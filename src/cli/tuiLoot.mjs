@@ -25,7 +25,7 @@ function toggleAutoLoot(app) {
   app.say(dim(on ? 'Auto-loot on: fights put their loot straight into your bags.' : 'Auto-loot off: a corpse opens the loot window and you take what you want.'));
 }
 
-function takeAll(app) {
+export function takeAll(app) {
   const r = app.g.takeAllLoot();
   if (!app.result(r)) return;
   for (const t of r.taken) app.say(`  ${yellow('You receive')} ${app.itemName(t.item)}${t.count > 1 ? ` x${t.count}` : ''}`);

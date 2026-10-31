@@ -762,6 +762,69 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   app.prefs.set('autoLoot', true);
 }
 
+// Bag housekeeping: open a container, split, move, sort, wrap and unwrap, destroy, the keyring.
+{
+  const g = app.g;
+  home(); app.switchTab(2);
+  const bagRow = (entry) => rowIndex((r) => r.data?.item === entry);
+  const lvl = g.state.char.level;
+  const box = ds.allItems().find((it) => !(it.lockId > 0) && !it.questItem && (it.requiredLevel ?? 0) <= lvl && ds.lootTable(`item:${it.entry}`).length > 0 && ds.lootTable(`item:${it.entry}`).every((l) => !l.questRequired));
+  if (box) {
+    g.state.inventory = addItem(g.state.inventory, box.entry, 2, box.stackable ?? 1);
+    app.render(); app.top().cursor = bagRow(box.entry); show('bags with a container');
+    check('a container shows as openable', /open/.test(strip(app.rowsOf(app.top())[app.top().cursor].text)));
+    app.prefs.set('autoLoot', false);
+    term.press('return'); show('opened container');
+    check('Enter opens a container into the loot window', countItem(g.state.inventory, box.entry) === 1 && (app.top()?.id === 'loot' || !g.pendingLoot()));
+    if (app.top()?.id === 'loot') term.press('a');
+    app.prefs.set('autoLoot', true);
+    check('the container is empty afterwards', !g.pendingLoot());
+    home(); app.switchTab(2);
+  } else check('the data has an openable container', false);
+  // A trade good the character does not hold yet, so every count below is exact.
+  const linen = ds.allItems().find((it) => it.itemClass === 7 && (it.stackable ?? 1) >= 10 && it.quality === 1 && !it.questItem && countItem(g.state.inventory, it.entry) === 0);
+  g.state.inventory = addItem(g.state.inventory, linen.entry, 5, linen.stackable);
+  app.render();
+  const stacksOf = (entry) => g.state.inventory.stacks.filter((x) => x.item === entry).map((x) => x.count);
+  app.top().cursor = bagRow(linen.entry); term.press('/'); term.press('2'); term.press('return');
+  check('/ splits a stack', stacksOf(linen.entry).includes(2) && stacksOf(linen.entry).length >= 2);
+  const at = g.state.inventory.stacks.findIndex((x) => x.item === linen.entry);
+  app.top().cursor = bagRow(linen.entry);
+  const next = g.state.inventory.stacks[at + 1];
+  term.press(']');
+  check('] moves a stack down a slot', g.state.inventory.stacks[at + 1]?.item === linen.entry || (next?.item === linen.entry && stacksOf(linen.entry).length === 1));
+  term.press('S');
+  check('S sorts the bags back into one linen stack', stacksOf(linen.entry).length === 1);
+  app.top().cursor = bagRow(linen.entry); term.press('m'); show('item menu');
+  check('m opens the item menu', app.top().id === 'pick' && /Split the stack/.test(strip(frame())) && /Destroy/.test(strip(frame())));
+  term.press('escape');
+  const paper = ds.allItems().find((it) => /Wrapping Paper$/.test(it.name) && !/\(/.test(it.name) && it.itemClass === 0);
+  if (paper) {
+    g.state.inventory = addItem(g.state.inventory, paper.entry, 1, 1);
+    app.render(); app.top().cursor = bagRow(paper.entry); term.press('return');
+    app.top().cursor = rowIndex((r, t) => t === linen.name || t.startsWith(`${linen.name} x`)); term.press('return');
+    const gift = g.state.inventory.stacks.find((x) => x.wrappedItemEntry === linen.entry);
+    check('wrapping paper wraps an item into a gift', !!gift && countItem(g.state.inventory, paper.entry) === 0);
+    if (gift) {
+      app.top().cursor = rowIndex((r) => r.data === gift); term.press('return');
+      check('Enter on a gift unwraps it', countItem(g.state.inventory, linen.entry) === 5 && !g.state.inventory.stacks.some((x) => x.wrappedItemEntry));
+    }
+  } else check('the data has wrapping paper', false);
+  app.top().cursor = bagRow(linen.entry);
+  const had = countItem(g.state.inventory, linen.entry), doomed = app.rowsOf(app.top())[app.top().cursor].data.count;
+  term.press('d'); term.press('return');
+  check('d destroys that one stack after a yes', countItem(g.state.inventory, linen.entry) === had - doomed);
+  const key = ds.allItems().find((it) => it.itemClass === 13);
+  if (key) {
+    g.state.keyring = { stacks: [{ item: key.entry, count: 1 }] };
+    app.render();
+    check('the keyring is listed under the bags', /Keyring/.test(strip(app.rowsOf(app.top()).map((r) => r.text).join(' '))));
+    app.top().cursor = rowIndex((r) => r.data?.keyring === 0); term.press('d'); term.press('return');
+    check('d destroys a key from the keyring', !(g.state.keyring?.stacks ?? []).length);
+  }
+  home();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);

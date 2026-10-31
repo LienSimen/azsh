@@ -23,6 +23,7 @@ import { squadJoinsPull } from './squad.mjs';
 import { barsDialog, playerBarsOwner } from './tuiBars.mjs';
 import { petWorldRows, petDialog, hasPetClass } from './tuiPet.mjs';
 import { portalRows } from './tuiDungeon.mjs';
+import { useStack, itemMenu, useAll, splitStack, moveStack, destroyStack, sortBags, keyringRows, primaryVerb } from './tuiBags.mjs';
 
 const STAT_LABEL = { str: 'Strength', agi: 'Agility', sta: 'Stamina', int: 'Intellect', spi: 'Spirit' };
 
@@ -324,12 +325,20 @@ function turnIn(app, q) {
 }
 
 function bagsView(app) {
+  const slotOf = (a, row) => (row?.data && !('keyring' in row.data) ? a.g.state.inventory.stacks.indexOf(row.data) : -1);
+  const onStack = (fn) => (a, row) => { const i = slotOf(a, row); if (i >= 0) fn(a, i); };
   return {
-    id: 'bags', title: 'Bags', hint: 'Enter: use / equip', empty: 'Your bags are empty.',
+    id: 'bags', title: 'Bags', hint: 'Enter: use / equip / open   m: more', empty: 'Your bags are empty.',
     keys: {
-      s: { hint: 'sell', fn: (a, row) => { if (!a.vendor) { a.flashMsg('Open a vendor first (World tab).'); return; } if (row?.data) sellStack(a, a.g.state.inventory.stacks.indexOf(row.data)); } },
+      m: { hint: 'item menu', fn: onStack(itemMenu) },
+      s: { hint: 'sell', fn: (a, row) => { if (!a.vendor) { a.flashMsg('Open a vendor first (World tab).'); return; } const i = slotOf(a, row); if (i >= 0) sellStack(a, i); } },
       j: { hint: 'sell junk', fn: (a) => { if (!a.vendor) { a.flashMsg('Open a vendor first (World tab).'); return; } sellJunk(a); } },
-      d: { hint: 'destroy', fn: (a, row) => { if (row?.data) a.confirm(`Destroy ${a.itemName(row.data.item)}${row.data.count > 1 ? ` x${row.data.count}` : ''}?`, () => a.result(a.g.discardItem(row.data.item, row.data.count), `Destroyed ${a.itemName(row.data.item)}.`)); } },
+      d: { hint: 'destroy', fn: onStack((a, i) => destroyStack(a, i)) },
+      S: { hint: 'sort', fn: (a) => sortBags(a) },
+      A: { fn: onStack(useAll) },
+      '/': { fn: onStack(splitStack) },
+      '[': { fn: onStack((a, i) => moveStack(a, i, -1)) },
+      ']': { fn: onStack((a, i) => moveStack(a, i, +1)) },
       b: { hint: 'bank', fn: (a) => { if (!cityAccess(a).bank) { a.flashMsg('No banker here. Banks are in the capitals, Ratchet, Booty Bay, Gadgetzan and Everlook.'); return; } a.push(bankDialog(a)); } },
       u: { hint: 'equip upgrades', fn: (a) => { const n = a.g.suggestedEquipmentUpgrades().length ? a.g.autoEquipUpgrades() : 0; if (n) a.say(green(`You put on ${plural(n, 'upgrade')}.`)); else a.flashMsg('Nothing in your bags beats what you wear.'); } },
       g: { hint: 'send to companions', fn: (a) => openSendGoods(a) },
@@ -338,20 +347,21 @@ function bagsView(app) {
       const st = a.g.state.inventory.stacks;
       const ups = new Set(a.g.suggestedEquipmentUpgrades().filter((u) => !u.holderId).map((u) => u.entry));
       const rows = [{ text: `${st.length}/${bagCapacity(a.ch, a.ds)} slots   ${yellow(moneyText(a.ch.gold) || '0c')}${ups.size ? green(`   ▲ ${plural(ups.size, 'upgrade')} to wear (u)`) : ''}`, header: true }];
-      for (const s of st) {
+      st.forEach((s, i) => {
         const it = a.ds.item(s.item);
         const name = qualityPaint(it?.quality)(it?.name ?? `item ${s.item}`);
-        const tag = it?.slot ? dim(`  ${it.slot}`) : it?.consumable ? dim(`  ${it.consumable.effect}`) : it?.questItem ? dim('  quest') : '';
+        const verb = primaryVerb(a, s);
+        const tag = s.wrappedItemEntry ? dim('  gift') : it?.slot ? dim(`  ${it.slot}`) : it?.consumable ? dim(`  ${it.consumable.effect}`) : verb === 'Open' ? dim('  open') : verb === 'Learn' ? dim('  learn') : it?.questItem ? dim('  quest') : '';
         rows.push({
           text: `${name}${s.count > 1 ? ` x${s.count}` : ''}${tag}${ups.has(s.item) ? green('  ▲') : ''}`, data: s,
-          detail: () => itemLines(a, it, a.vendor ? ['', dim(`s: sell to ${a.vendor.name}`)] : []),
-          act: () => {
-            if (it?.slot) { const r = a.g.equip(s.item); a.result(r, r.ok ? (it.slot === 'bag' ? `You equip ${it.name} as ${SLOT_LABEL[r.slot] ?? r.slot}.` : `You equip ${it.name}.`) : ''); return; }
-            const r = a.g.consumeItem(s.item);
-            a.result(r, r.ok ? `You use ${it?.name}.  HP ${a.hpText()}  ${a.pwText()}` : '');
-          },
+          detail: () => itemLines(a, it, [
+            '', dim(`${verb ? `Enter: ${verb.toLowerCase()}   ` : ''}m: more${s.count > 1 ? '   /: split' : ''}   [ ]: move   d: destroy`),
+            ...(a.vendor ? [dim(`s: sell to ${a.vendor.name}`)] : []),
+          ]),
+          act: () => useStack(a, i),
         });
-      }
+      });
+      rows.push(...keyringRows(a));
       return rows;
     },
   };
