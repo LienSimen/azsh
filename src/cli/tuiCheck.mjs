@@ -1467,7 +1467,8 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   const g = app.g;
   const { newHonorState, CITY_DEFENDER_MIN_RP } = await import('../domain/run/honor.ts');
   home(); term.press(':'); for (const ch of 'honor') term.press(ch); term.press('return'); show('honor');
-  check(':honor opens the honor window', app.top().id === 'honor' && /This week/.test(strip(frame())) && /Standings posted/.test(strip(frame())));
+  const honorText = strip(app.rowsOf(app.top()).map((r) => r.text).join('|'));
+  check(':honor opens the honor window', app.top().id === 'honor' && /This week/.test(honorText) && /Standings posted/.test(honorText));
   term.press('escape');
   const keep = g.state.char.honor;
   g.state.char.honor = { ...(keep ?? newHonorState()), rp: CITY_DEFENDER_MIN_RP + 1, todayHk: 3 };
@@ -1475,6 +1476,30 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   check('a City Defender sees the free capital teleports', /Capital teleports/.test(strip(app.rowsOf(app.top()).map((r) => r.text).join(' '))));
   check('the rank title shows', !/No rank/.test(strip(app.rowsOf(app.top())[0].text)));
   g.state.char.honor = keep;
+  home();
+}
+
+// Arena: the 1v1 and a 2v2 from the Honor window play in the live fight view and move the rating either way.
+{
+  const g = app.g;
+  const { arenaRatingOf } = await import('../domain/bg/arenaRating.ts');
+  home(); term.press(':'); for (const ch of 'honor') term.press(ch); term.press('return');
+  const duel = rowIndex((r, t) => /1v1|Arena 1/.test(t) || /gauntlet/.test(t));
+  check('the honor window lists the arena 1v1', duel > 0);
+  const r1 = arenaRatingOf(g.state.arenaRating, 1);
+  app.top().cursor = duel; term.press('return'); show('arena duel');
+  check('Enter starts the duel in the live fight view', !!app.fight && app.fight.label === 'arena');
+  finishFight();
+  check('the 1v1 moves the rating', arenaRatingOf(g.state.arenaRating, 1) !== r1 && app.log.some((l) => /Arena rating/.test(strip(l))));
+  home(); term.press(':'); for (const ch of 'honor') term.press(ch); term.press('return');
+  const two = rowIndex((r, t) => /companion\b/.test(t));
+  const r2 = arenaRatingOf(g.state.arenaRating, 2);
+  if (two > 0) {
+    app.top().cursor = two; term.press('return');
+    check('the 2v2 starts with a companion beside you', !!app.fight && app.fight.session.alliesView().length >= 1);
+    finishFight();
+    check('the 2v2 moves its own rating', arenaRatingOf(g.state.arenaRating, 2) !== r2);
+  } else check('the honor window lists the 2v2', false);
   home();
 }
 

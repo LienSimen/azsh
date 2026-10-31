@@ -237,7 +237,7 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
 - [x] S  Honor window: rank, kills, weekly standing from `domain/run/honor` and `honorWeek`;
       `runWeeklyHonorPass` and `bankWeeklyHonor` in the game loop; City Defender ports via
       `classTravelOptions`. Ref `panels/honorPanel.ts`.
-- [ ] M  Arena duel and team matches into the live fight view: `arenaDuel()`, `arenaMatch({ bracket,
+- [x] M  Arena duel and team matches into the live fight view: `arenaDuel()`, `arenaMatch({ bracket,
       allies })`, then `settleArenaDuel`, `settleArenaRating`, `awardDuelHonor`, `awardArenaWinHonor`.
       Settlement logic lives in `src/ui/app/app.ts:1861`; port it into `tuiFight.mjs`.
 - [ ] L  Warsong Gulch and Arathi Basin: `enterBattleground`, `leaveBattleground`, and the match
