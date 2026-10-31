@@ -1313,6 +1313,33 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   term5.close?.();
 }
 
+// Reputation: the window lists factions by group; watch one on the xp bar, declare war on one that allows it.
+{
+  const g = app.g;
+  const pickRow = (re) => { app.top().cursor = rowIndex((r, t) => re.test(t)); term.press('return'); };
+  // A neutral faction you have met (Booty Bay) can be declared war on; the home cities cannot.
+  g.state.char.reputations = { ...(g.state.char.reputations ?? {}), 21: g.state.char.reputations?.[21] ?? 0 };
+  home(); term.press(':'); for (const ch of 'rep') term.press(ch); term.press('return'); show('reputation');
+  check(':rep opens the reputation window', app.top().id === 'reputation');
+  const first = rowIndex((r) => r.data?.faction);
+  check('it lists factions', first > 0);
+  const f = app.rowsOf(app.top())[first].data.faction;
+  app.top().cursor = first; term.press('return'); pickRow(/^Watch it/);
+  check('Enter watches a faction', g.state.char.watchedFaction === f.id);
+  const rows = app.rowsOf(app.top()).filter((r) => r.data?.faction);
+  let warred = null;
+  for (const r of rows) {
+    app.top().cursor = rowIndex((x) => x.data?.faction === r.data.faction); term.press('return');
+    const war = rowIndex((x, t) => /Declare war/.test(t));
+    if (war >= 0) { app.top().cursor = war; term.press('return'); warred = r.data.faction; break; }
+    term.press('escape');
+  }
+  check('a faction that allows it can be declared war on', warred != null && g.atWarFactions().has(warred.id));
+  if (warred) g.setFactionAtWar(warred.id, false);
+  g.setWatchedFaction(0);
+  home();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);

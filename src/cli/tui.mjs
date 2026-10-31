@@ -17,6 +17,7 @@ import { autopilotSettingsDialog } from './tuiAutopilotSettings.mjs';
 import { macrosDialog, runMacro } from './tuiMacros.mjs';
 import { outfitterDialog } from './tuiOutfitter.mjs';
 import { journeyHeader, journeyTick } from './tuiWorld.mjs';
+import { reputationDialog } from './tuiRep.mjs';
 import { bold, dim, cyan, yellow, green, red, inverse, fit, vis, cut, bar, pct, wrapLines, brightYellow, magenta, brightBlue, strip } from './text.mjs';
 import { createGame, newGameState } from '../engine/game.ts';
 import { toSave } from '../persistence/saveShape.ts';
@@ -383,6 +384,7 @@ export class App {
     }
     if (c === 'settings' || c === 'options') { this.push(settingsDialog(this)); return; }
     if (c === 'autopilot') { this.push(autopilotSettingsDialog(this)); return; }
+    if (c === 'rep' || c === 'reputation') { this.push(reputationDialog(this)); return; }
     if (c === 'macro' || c === 'macros') {
       const name = args.trim();
       if (!name) { this.push(macrosDialog(this)); return; }

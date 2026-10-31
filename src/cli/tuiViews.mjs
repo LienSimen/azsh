@@ -34,6 +34,7 @@ import { pickPocket, pickPocketTag, journeyRows, afterDeparture, ridingRows, obj
 import { talentBuildsMenu, myTalentLink } from './tuiTalents.mjs';
 import { simLabDialog } from './tuiSimLab.mjs';
 import { autopilotSettingsDialog } from './tuiAutopilotSettings.mjs';
+import { reputationDialog } from './tuiRep.mjs';
 import { useStack, itemMenu, useAll, splitStack, moveStack, destroyStack, sortBags, keyringRows, primaryVerb } from './tuiBags.mjs';
 
 const STAT_LABEL = { str: 'Strength', agi: 'Agility', sta: 'Stamina', int: 'Intellect', spi: 'Spirit' };
@@ -924,7 +925,8 @@ function charView(app) {
       }
       rows.push(L(cyan('Home')), L(`  ${ch.hearthBind ? `${ch.hearthBind.name ?? ''} in ${ds.zone(ch.hearthBind.zone)?.name ?? ch.hearthBind.zone}` : 'none'}`));
       if (hasPetClass(a)) rows.push(L(''), { text: `Pet: ${ch.pet ? ch.pet.name : dim('none out')}   ${dim('Enter: the pet page')}`, act: () => a.push(petDialog(a)) });
-      rows.push(L(''), { text: `Settings   ${dim('loot, upgrades, disenchanting, junk, gathering   (:settings)')}`, act: () => a.push(settingsDialog(a)) });
+      rows.push(L(''), { text: `Reputation   ${dim(`${a.ch.watchedFaction ? `watching ${ds.faction(a.ch.watchedFaction)?.name ?? ''}   ` : ''}(:rep)`)}`, act: () => a.push(reputationDialog(a)) });
+      rows.push({ text: `Settings   ${dim('loot, upgrades, disenchanting, junk, gathering   (:settings)')}`, act: () => a.push(settingsDialog(a)) });
       return rows;
     },
   };

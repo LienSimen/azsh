@@ -216,7 +216,7 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
 - [x] S  Quests: `repeatQuest`, gray-log abandon, chain follow-up offers
       (`quests/quests:grayLogQuests`, `chainFollowUpOffer`), item-started quests
       (`bagQuestStartState`).
-- [ ] S  Reputation window: `setFactionAtWar`, `setFactionInactive`, `setWatchedFaction`,
+- [x] S  Reputation window: `setFactionAtWar`, `setFactionInactive`, `setWatchedFaction`,
       `atWarFactions`. Ref `panels/reputationPanel.ts`.
 - [ ] S  Meeting stone queue: `applyMeetingStoneQueue` from the stone's gossip, queue card,
       `leaveMeetingStoneQueue`. Ref `views/meetingStoneQueueView.ts`, `appInteractClickA.ts:1094`.
