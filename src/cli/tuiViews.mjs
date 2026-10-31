@@ -28,6 +28,7 @@ import { gearExtraRows, durabilityText, repairOne, slotRepairLines } from './tui
 import { outfitterDialog } from './tuiOutfitter.mjs';
 import { settingsDialog } from './tuiSettings.mjs';
 import { macrosDialog } from './tuiMacros.mjs';
+import { pickPocket, pickPocketTag } from './tuiWorld.mjs';
 import { useStack, itemMenu, useAll, splitStack, moveStack, destroyStack, sortBags, keyringRows, primaryVerb } from './tuiBags.mjs';
 
 const STAT_LABEL = { str: 'Strength', agi: 'Agility', sta: 'Stamina', int: 'Intellect', spi: 'Spirit' };
@@ -162,6 +163,7 @@ function worldView(app) {
     keys: {
       f: { hint: 'quick fight', fn: (a, row) => { if (row?.data?.creature) a.cmds.commands.fight(String(row.data.creature.entry)); } },
       t: { fn: (a, row) => { const c = row?.data?.creature; if (!c) return; if (a.ch.cls !== 3) { a.flashMsg('Only hunters tame beasts.'); return; } a.result(a.g.tamePet(c.entry), `You tame ${c.name}.`); } },
+      P: { fn: (a, row) => { if (row?.data?.creature) pickPocket(a, row.data.creature); } },
       a: { hint: 'autopilot', fn: (a) => startAutopilot(a) },
     },
     rows(a) {
@@ -214,7 +216,7 @@ function worldView(app) {
         rows.push({ text: '', header: true }, { text: `Creatures (${mobs.length})`, header: true });
         for (const m of mobs) {
           const wanted = g.state.questlog.quests.some((qs) => qs.status === 'active' && ds.quest(qs.entry)?.killTargets.some((k) => k.creatureEntry === m.entry));
-          rows.push({ text: `${conPaint(ch.level, m.level)(m.name)} ${dim(`L${m.level}`)}${wanted ? yellow('  !') : ''}`, data: { creature: m }, detail: () => creatureLines(a, m), act: () => startFight(a, m.entry) });
+          rows.push({ text: `${conPaint(ch.level, m.level)(m.name)} ${dim(`L${m.level}`)}${wanted ? yellow('  !') : ''}${ch.cls === 4 ? pickPocketTag(a, m) : ''}`, data: { creature: m }, detail: () => creatureLines(a, m), act: () => startFight(a, m.entry) });
         }
       }
       // The same offer list the autopilot reads: chain, class, race and exclusive-group gates applied;

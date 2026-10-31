@@ -1046,6 +1046,36 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   finishFight(); home();
 }
 
+// Pick pocket: a rogue in Stealth presses P on a humanoid; the pocket empties, or a resist starts the fight.
+{
+  const term3 = new HeadlessTerm(110, 34);
+  const app3 = new App({ term: term3, ds, repo });
+  term3.open();
+  app3.startGame(newGameState(ds, human.id, 4, 'Picktest', 77, 0), 'picktest', Date.now(), true);
+  const g3 = app3.g;
+  g3.state.char.level = 10;
+  g3.state.spellbook = { known: [...g3.state.spellbook.known, 921, 1784] };
+  g3.state.char.power = 100;
+  const at = (pred) => app3.rowsOf(app3.top()).findIndex((r) => !r.header && pred(r, strip(r.text)));
+  const { pickpocketLootKey } = await import('../domain/professions/pickpocket.ts');
+  const mark = at((r) => r.data?.creature && ds.lootTable(pickpocketLootKey(r.data.creature.entry)).length > 0);
+  check('Elwynn has a creature with pockets to pick', mark > 0);
+  if (mark > 0) {
+    const cr = app3.rowsOf(app3.top())[mark].data.creature;
+    app3.top().cursor = mark; term3.press('P');
+    check('P outside Stealth is refused', !app3.fight && app3.log.some((l) => /stealth/i.test(strip(l))));
+    const st = g3.castOutOfCombat(1784);
+    app3.render();
+    check('in Stealth the creature row offers P', /P: pick pocket/.test(strip(app3.rowsOf(app3.top())[mark].text)));
+    g3.state.char.power = 100;
+    term3.press('P');
+    const picked = !!g3.state.pickpocketRestock?.[`${g3.state.char.zoneId}:${cr.entry}`];
+    check(`P picks the pocket or a resist starts the fight (stealth cast ${st.ok ? 'ok' : st.reason})`, picked || !!app3.fight);
+    while (app3.fight) app3.fight.tick();
+  }
+  term3.close?.();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);

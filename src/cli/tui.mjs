@@ -42,6 +42,7 @@ const HELP_LINES = [
   '  for the rest of the session. Quests tab: d (or Do the quest in the quest window) runs the autopilot on',
   '  that one quest.',
   '  In a capital the World tab lists the Bank, the Auction House and the Mailbox under Services.',
+  '  Rogues: P on a creature picks its pocket (Stealth first). A resist starts the fight.',
   '  Dungeons: Enter on a portal opens its card (route, who walks in, supplies). In the run window Enter',
   '  pulls a stop, uses a gate or opens a chest; z rests, F finishes the run unwatched, L leaves, R resets.',
   '',
