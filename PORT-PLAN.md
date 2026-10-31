@@ -86,30 +86,30 @@ route stops that share a `roomName` (`roomSequence(route)` in `dungeonRouteOrder
 offered are the uncleared stops whose `isUnlocked` is true, grouped by room, with the suggested one
 first; engaging a stop runs it through the live fight view.
 
-- [ ] **2a Entry.** World tab: list portals from `world/instances:instancePortals` with `canEnter` and
+- [x] **2a Entry.** World tab: list portals from `world/instances:instancePortals` with `canEnter` and
       `lockRemainingMs`; `Enter` → `enterInstance(id, now, { routeDensity, asRaid, entranceTriggerId })`.
       Offer density (Bosses / Full) and Party / Raid. Replace the stub at `tuiViews.mjs:734`.
       Reference: `src/ui/views/worldView.ts:655`.
-- [ ] **2b Run screen.** A window (not a tab) while `state.instance` is set: header with dungeon, room,
+- [x] **2b Run screen.** A window (not a tab) while `state.instance` is set: header with dungeon, room,
       cleared/total, party frames; list of rooms with their stops (kind glyph, pack size, cleared,
       locked and by which flag, boss); detail pane shows the pack's creatures and boss intro text.
       `Enter` on an unlocked stop → `applyPrePullBuffs`, `beginEncounter(def.id, enc.id, { withSquad: true })`,
       live fight via `startFight` in `tuiFight.mjs`, then `resolveFight`. On a wipe: death flow as outdoors,
       retry allowed. Reference: `src/ui/views/instanceView.ts`, `src/ui/live/liveDungeonHeadless.ts:208`.
-- [ ] **2c Pull +1.** `p` during a fight → `pullAdditionalPack(dungeonId, session)` (next route trash
+- [x] **2c Pull +1.** `p` during a fight → `pullAdditionalPack(dungeonId, session)` (next route trash
       pack joins the open session, never a boss).
-- [ ] **2d Objects.** Doors and levers from `objectGate` events → `useInstanceObject(goEntry)`; chests
+- [x] **2d Objects.** Doors and levers from `objectGate` events → `useInstanceObject(goEntry)`; chests
       from `def.lootObjects` → `lootInstanceObject(goGuid)`; instance NPCs via `talkToNpc`,
       `acceptQuest`, `turnInQuest`, `finishEscort`. Show them as rows in the current room.
-- [ ] **2e Rest and supplies.** Between pulls `z` rests through `regenTick`; the run-supply ladder
+- [x] **2e Rest and supplies.** Between pulls `z` rests through `regenTick`; the run-supply ladder
       before entry (`runSupplyPlan`, `buyRunSupplies`, reference `src/ui/panels/runSupplyPanel.ts`).
-- [ ] **2f Finish instantly and summary.** `F` → loop remaining stops headlessly the way
+- [x] **2f Finish instantly and summary.** `F` → loop remaining stops headlessly the way
       `finishDungeonHeadless` does (`beginEncounter` + `runToEnd` + `resolveFight`), or the whole run
       through `runFullDungeon({ keepLogs })`. End screen from `domain/run/dungeonRun:buildRunSummary`
       (pulls, deaths, loot, per-member damage and healing from `memberStatsFromEvents`).
-- [ ] **2g Leave, reset, lockouts.** `leaveInstance(now)` holds a 5-man for 30 min; `resetInstance`;
+- [x] **2g Leave, reset, lockouts.** `leaveInstance(now)` holds a 5-man for 30 min; `resetInstance`;
       show lockouts on the portal row.
-- [ ] **2h Raids.** Enter as raid, instance roster (`setInstanceRoster`, `fillInstanceRoster`,
+- [x] **2h Raids.** Enter as raid, instance roster (`setInstanceRoster`, `fillInstanceRoster`,
       `clearInstanceRoster`, reference `src/ui/views/instanceRosterPicker.ts`), raid lineups 10/20/40
       (`setRaidLineup`, `fillRaidLineup`, `clearRaidLineup`), PallyPower board (`paladinBoard`,
       `stepPaladinBlessing`, `stepPaladinAura`, `autoSortPaladinAssignments`, `refreshPaladinBuffs`).
@@ -118,7 +118,7 @@ first; engaging a stop runs it through the live fight view.
       (`src/ui/dungeon/dungeonNavBakeLoader.ts:41`), `tickDungeonPatrolScripts`, and the pull lifecycle
       in `src/ui/live/livePullLifecycle.ts` and `liveAggroStream.ts`. Also the scripted dungeons
       (Stratholme timers, gauntlets and escorts in `live/liveStratUndead.ts`, `liveGauntletEscort.ts`).
-- [ ] **Check.** tuiCheck scenario: enter Ragefire Chasm or Deadmines with a squad, clear two stops,
+- [x] **Check.** tuiCheck scenario: enter Ragefire Chasm or Deadmines with a squad, clear two stops,
       use one gate, finish headlessly, assert summary and lockout.
 
 ## Phase 3: the rest of the facade, by area

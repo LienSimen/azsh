@@ -9,6 +9,7 @@ import { createCommands } from './repl.mjs';
 import { makeTabs, deathView } from './tuiViews.mjs';
 import { cityAccess, bankDialog, auctionDialog, mailDialog } from './tuiCity.mjs';
 import { startFight, startAutopilot } from './tuiFight.mjs';
+import { openRun } from './tuiDungeon.mjs';
 import { bold, dim, cyan, yellow, green, red, inverse, fit, vis, cut, bar, pct, wrapLines, brightYellow, magenta, brightBlue, strip } from './text.mjs';
 import { createGame, newGameState } from '../engine/game.ts';
 import { toSave } from '../persistence/saveShape.ts';
@@ -38,6 +39,8 @@ const HELP_LINES = [
   '  for the rest of the session. Quests tab: d (or Do the quest in the quest window) runs the autopilot on',
   '  that one quest.',
   '  In a capital the World tab lists the Bank, the Auction House and the Mailbox under Services.',
+  '  Dungeons: Enter on a portal opens its card (route, who walks in, supplies). In the run window Enter',
+  '  pulls a stop, uses a gate or opens a chest; z rests, F finishes the run unwatched, L leaves, R resets.',
   '',
   'Gear and bags',
   '  Gear tab: Enter on a slot lists everything in your bags (and the bank, in a bank town) that fits it.',
@@ -96,6 +99,7 @@ export class App {
     this.stack = [];
     this.lastActivity = g.state.activity[0] ?? null;
     this.say(bold(`Welcome${isNew ? '' : ' back'}, ${g.state.char.name}.`) + dim('  Press ? for the keys.'));
+    if (g.state.instance) openRun(this);
     if (!this.term.isTTY) return;
     // Out-of-combat regeneration ticks in real time, like standing still in the world.
     this.timers.push(this.term.setInterval(() => { if (!this.fight && !this.auto && !this.closed) { this.idleTick(1); this.render(); } }, 1000));
@@ -119,6 +123,7 @@ export class App {
     this.fight?.stop?.(); this.auto?.stop?.();
     await this.persist();
     this.term.close();
+    this.restoreConsole?.();
     if (this.g) console.log(dim(`Saved ${this.g.state.char.name}. Farewell.`));
     this.onQuit?.();
   }
@@ -474,6 +479,12 @@ export async function runTui({ term = new RealTerm(), argv = [] } = {}) {
   const ds = bootDataStore();
   const repo = new FileSaveRepository();
   const app = new App({ term, ds, repo });
+  // Engine diagnostics (console.warn from the combat layer) would print over the frame: while the screen is
+  // open they go to the log pane under AZSH_DEBUG, and nowhere otherwise.
+  const saved = { log: console.log, warn: console.warn, info: console.info, debug: console.debug };
+  const quiet = (...a) => { if (process.env.AZSH_DEBUG) app.say(dim(a.map(String).join(' '))); };
+  Object.assign(console, { log: quiet, warn: quiet, info: quiet, debug: quiet });
+  app.restoreConsole = () => Object.assign(console, saved);
   term.open();
   app.render();
   const saves = await repo.list();

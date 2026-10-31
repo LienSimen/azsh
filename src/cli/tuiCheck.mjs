@@ -508,6 +508,76 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   check(':fight brings the party in Party mode', app.log.slice(quickFrom).some((l) => squad.some((c) => strip(l).includes(c.name))));
 }
 
+// ---- dungeons: the Deadmines as a text run ------------------------------------------------------------------
+{
+  const g = app.g;
+  const { hasFlag } = await import('../world/instances.ts');
+  g.state.char.level = 20; g.state.char.gold = 10_000_000;
+  const bag = ds.items().find((i) => i.slot === 'bag' && i.itemClass !== 11 && (i.bagSlots ?? 0) >= 10 && (i.requiredLevel ?? 1) <= 20 && !i.allowClass?.length);
+  for (let i = 0; i < 4; i++) { g.state.inventory = addItem(g.state.inventory, bag.entry, 1, 1); g.equip(bag.entry); }
+  for (const c of [...(g.state.squad ?? [])]) g.dismissCompanion(c.id);
+  for (const [cls, role] of [[1, 'tank'], [2, 'healer'], [8, 'dps'], [4, 'dps']]) g.recruitCompanion(cls, role, 'twink');
+  for (const c of g.state.squad) c.level = 20;
+  g.state.char.zoneId = 'westfall'; g.regenTick(600, true);
+  home(); term.press('1'); show('westfall with a portal');
+  const portal = rowIndex((r) => r.data?.dungeon?.id === 'deadmines');
+  check('the World tab lists the Deadmines portal', portal > 0);
+  app.top().cursor = portal; term.press('return'); show('deadmines entry card');
+  check('Enter on the portal opens the entry card', app.top().id === 'enter-deadmines' && /Who walks in: 4 of 4/.test(strip(frame())));
+  app.top().cursor = rowIndex((r, t) => /^Route:/.test(t)); term.press('return');
+  check('the route toggles to Full', /Route: Full/.test(strip(frame())));
+  term.press('return');
+  app.top().cursor = rowIndex((r, t) => /^Enter the dungeon/.test(t)); term.press('return'); show('run window');
+  check('entering opens the run window', app.top()?.id === 'dungeon' && g.state.instance?.dungeonId === 'deadmines' && /Rhahk'Zor/.test(strip(frame())));
+  for (let n = 1; n <= 2; n++) {
+    app.top().cursor = rowIndex((r, t) => /◀ next/.test(t)); term.press('return');
+    check(`stop ${n} starts a live fight with the party`, !!app.fight?.withSquad && app.fight.session.alliesView().length >= 4);
+    finishFight();
+    check(`stop ${n} is cleared and the run window comes back`, g.state.instance.defeated.length === n && app.top()?.id === 'dungeon');
+  }
+  show('run window after two stops');
+  const chest = rowIndex((r) => r.data?.object?.kind === 'chest' && r.data.object.pin.name === 'Defias Gunpowder');
+  app.top().cursor = chest; term.press('return');
+  check('the Defias Gunpowder chest gives the gunpowder', countItem(g.state.inventory, 5397) === 1);
+  const cannon = rowIndex((r) => r.data?.object?.kind === 'gate');
+  app.top().cursor = cannon; term.press('return');
+  check('the Defias Cannon opens the iron-clad door', hasFlag(g.state.instance, 'deadmines-iron-clad-door'));
+  term.press('P'); show('paladin board');
+  check('P opens the paladin board with the paladin companion', app.top().id === 'pallypower' && rowIndex((r, t) => /^\s*Aura/.test(t)) > 0);
+  app.top().cursor = rowIndex((r, t) => /^\s*Aura/.test(t)); term.press('return');
+  check('Enter on the aura row assigns one', g.paladinBoard().rows.some((r) => r.assignedAura));
+  term.press('escape');
+  term.press('F'); term.press('return'); show('run report');
+  check('finish instantly ends on the run report', app.top()?.id === 'run-summary' && /Run report|Cleared|Partial|Wiped/.test(strip(frame())) && (app.dungeonPulls?.length ?? 0) > 2);
+  term.press('escape');
+  const cleared = g.state.instance.defeated.length;
+  term.press('L');
+  check('L leaves and the run is held', !g.state.instance && !!g.state.instanceSaves?.deadmines);
+  check('the portal row shows the held run', /your run is held/.test(strip(frame())));
+  app.top().cursor = rowIndex((r) => r.data?.dungeon?.id === 'deadmines'); term.press('return');
+  check('the entry card offers to go back in', /Go back in/.test(strip(frame())));
+  app.top().cursor = rowIndex((r, t) => /^Go back in/.test(t)); term.press('return');
+  check('going back in keeps the cleared stops', g.state.instance?.defeated.length === cleared);
+  term.press('R'); term.press('return');
+  check('R resets the run', g.state.instance?.defeated.length === 0);
+  term.press('L');
+  check('leaving a fresh run holds nothing', !g.state.instance && !g.state.instanceSaves?.deadmines);
+  // A raid door: the walk-in picker and the 20-man group, on Zul'Gurub's card.
+  g.state.char.zoneId = 'stranglethorn';
+  home(); term.press('1');
+  app.top().cursor = rowIndex((r) => r.data?.dungeon?.id === 'zul-gurub'); term.press('return'); show('zul-gurub card');
+  check('a raid card offers the raid group', app.top().id === 'enter-zul-gurub' && /Group: Raid/.test(strip(frame())) && /Raid group \(20-man\)/.test(strip(frame())));
+  app.top().cursor = rowIndex((r, t) => /^Who walks in/.test(t)); term.press('return');
+  term.press('return');
+  check('a pick at the door sets the instance roster', g.state.instanceRoster?.dungeonId === 'zul-gurub');
+  term.press('c'); check('c goes back to auto', !g.state.instanceRoster);
+  term.press('escape');
+  app.top().cursor = rowIndex((r, t) => /^Raid group/.test(t)); term.press('return'); term.press('f');
+  check('f fills the 20-man group', g.state.raidLineup?.size === 20 && g.state.raidLineup.ids.length > 0);
+  term.press('c'); home();
+  g.state.char.zoneId = 'westfall';
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);

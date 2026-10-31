@@ -13,21 +13,24 @@ export const TICK_MS = 100; // one engine tick per 100 ms of real time, like the
 const POWER_PAINT = { mana: brightBlue, rage: red, energy: yellow, focus: yellow };
 
 /** Start a live fight. Returns `{ ok: true, ctl }` or `{ ok: false, reason }`. `onEnd(outcome)` runs after the
- *  fight resolves (outcome null when the player ran); `label` names who is driving (the autopilot). */
-export function startFight(app, creatureEntry, { onEnd, label } = {}) {
+ *  fight resolves (outcome null when the player ran); `label` names who is driving (the autopilot). `begin` replaces
+ *  beginFight (a dungeon stop, squad always in) and `after(outcome)` runs right after resolveFight. */
+export function startFight(app, creatureEntry, { onEnd, label, begin, after } = {}) {
   if (app.fight) return { ok: false, reason: 'Already in a fight.' };
   if (app.isDead()) { app.flashMsg('You are dead.'); return { ok: false, reason: 'You are dead.' }; }
-  const opts = pullOpts(app.g, app.ds, app.cmds.buffPace, creatureEntry, (l) => app.say(cyan(l)));
-  const b = app.g.beginFight(creatureEntry, opts);
+  const opts = begin ? { withSquad: true } : pullOpts(app.g, app.ds, app.cmds.buffPace, creatureEntry, (l) => app.say(cyan(l)));
+  const b = begin ? begin() : app.g.beginFight(creatureEntry, opts);
   if (!app.result(b)) { app.render(); return { ok: false, reason: b.reason || 'Cannot fight that.' }; }
   const session = b.session;
   const squadXp = new Map((app.g.state.squad ?? []).map((c) => [c.id, c.xp ?? 0]));
   const ctl = {
-    session, enemyName: b.enemyName, enemyEntry: b.enemyEntry, onEnd, label, withSquad: !!opts,
+    after, session, enemyName: b.enemyName, enemyEntry: b.enemyEntry, onEnd, label, withSquad: !!opts && (app.g.state.squad ?? []).length > 0,
+    // A fight opened from a window (the dungeon run) takes the screen and hands the window back after.
+    savedStack: app.stack,
     auto: true, paused: false, speed: app.fightSpeed ?? 1, pressed: null, pressedTicks: 0, timer: null, pend: null, ended: false,
     frames: newFrameMemory(app), compact: false,
     names: sessionLogNames(session, { playerName: app.ch.name, enemyName: b.enemyName, spellName: (id) => app.ds.spell(id)?.name }),
-    hint() { return `${this.auto ? 'a: manual play' : '1-9: press an ability   a: auto-play'}${session.alliesView().length ? '   t: orders' : ''}   space: ${this.paused ? 'resume' : 'pause'}   + -: speed ${this.speed}x   l: log   Esc: ${this.label ? 'run away, stop autopilot' : 'run away'}`; },
+    hint() { return `${this.auto ? 'a: manual play' : '1-9: press an ability   a: auto-play'}${session.alliesView().length ? '   t: orders' : ''}${app.g.state.instance ? '   p: pull +1' : ''}   space: ${this.paused ? 'resume' : 'pause'}   + -: speed ${this.speed}x   l: log   Esc: ${this.label ? 'run away, stop autopilot' : 'run away'}`; },
     schedule() {
       if (this.timer) app.term.clearInterval(this.timer);
       this.timer = app.term.setInterval(() => this.tick(), Math.max(10, TICK_MS / this.speed));
@@ -72,6 +75,8 @@ export function startFight(app, creatureEntry, { onEnd, label } = {}) {
       if (this.pend) { if (this.pend.amount > 0) app.say(`${dim((this.pend.t / 1000).toFixed(1).padStart(5) + 's')} ${combatLogPlainText(this.pend.remake(this.pend.amount))}`); this.pend = null; }
       const r = app.g.resolveFight(session);
       app.fight = null;
+      app.stack = this.savedStack;
+      this.after?.(r);
       const tag = r.outcome === 'win' ? green(bold('Victory')) : r.outcome === 'defeat' ? red(bold('Defeat')) : yellow(bold('Stalemate'));
       const bits = [`${(r.result.durationMs / 1000).toFixed(1)} s`, `HP ${app.hpText()}`];
       if (r.xpGained) bits.push(`+${r.xpGained} xp`);
@@ -92,6 +97,7 @@ export function startFight(app, creatureEntry, { onEnd, label } = {}) {
       this.stop();
       app.g.abandonLiveFight();
       app.fight = null;
+      app.stack = this.savedStack;
       app.say(yellow(`You run from ${this.enemyName}.`));
       app.lastActivity = app.g.state.activity[0] ?? null;
       app.afterAction();
@@ -107,6 +113,7 @@ export function startFight(app, creatureEntry, { onEnd, label } = {}) {
       if (k === 'pagedown') { app.logScroll = Math.max(0, app.logScroll - 5); app.render(); return; }
       if (k === 'l') { app.openLog(); return; }
       if (k === 't') { partyOrders(app, this); return; }
+      if (k === 'p' && app.g.state.instance) { this.pullOne(); return; }
       if (/^[1-9]$/.test(k)) {
         const ab = this.abilityBar()[Number(k) - 1];
         if (!ab) return;
@@ -120,6 +127,13 @@ export function startFight(app, creatureEntry, { onEnd, label } = {}) {
         if (it) { session.aiPlayer = false; this.logEvents(session.tick({ item: it.item.entry })); session.aiPlayer = this.auto; app.render(); }
         return;
       }
+    },
+    /** Pull +1: the next uncleared trash pack on the route joins this fight (never a boss). */
+    pullOne() {
+      const r = app.g.pullAdditionalPack(app.g.state.instance.dungeonId, session);
+      if (!r.ok) { app.flashMsg(r.reason || 'Nothing more to pull.'); return; }
+      app.say(yellow(`${r.name} joins the fight: ${r.injected.map((x) => x.name).join(', ')}.`) + (r.softCapWarning ? red('  That is a lot of enemies.') : ''));
+      app.render();
     },
     abilityBar() { return session.abilities().filter((x) => !x.spell.passive).slice(0, 9); },
     render(W, H) {
@@ -168,6 +182,7 @@ export function startFight(app, creatureEntry, { onEnd, label } = {}) {
   };
   session.aiPlayer = true;
   app.fight = ctl;
+  app.stack = [];
   if (app.auto) app.auto.browsing = false; // an autopilot fight always comes back on screen
   app.say(cyan(`You attack ${b.enemyName}.`) + (b.packAssist?.length ? yellow(` ${b.packAssist.map((p) => p.name).join(', ')} join${b.packAssist.length === 1 ? 's' : ''} the fight!`) : ''));
   ctl.schedule();

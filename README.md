@@ -77,6 +77,17 @@ Solo, companions only against elites, or the whole party on every pull. That rul
 `:fight` and the autopilot; party frames show each companion's role, target and cast, and `t` in a fight
 pauses it to give one of them an order (attack a target, cast an ability, hold ground).
 
+**Dungeons** sit under *Dungeons* on the World tab of the zone that holds their door (and on the
+Travel tab), with any held run or raid lockout on the row. `Enter` opens the card before the door: route
+(Bosses or Full), party or raid, who walks in (`f` fills from every companion you own to what the
+instance wants), the 10/20/40-man raid group, the paladins' Blessings, and food and water for everyone
+short of it. Inside, the run window lists the rooms in route order with their stops (`B` boss, `T` trash,
+`R` rare), the doors, levers and chests nearest each stop, and the NPCs with quests. `Enter` on an
+open stop pulls it live with the party (`p` in the fight pulls the next trash pack in too), on a gate
+uses it, on a chest opens it. Locked stops say what opens them. `z` rests and eats between pulls,
+`F` runs every remaining stop without watching and ends on a run report (damage, healing, loot, wipes),
+`P` opens the Blessings board, `L` leaves (a 5-man is held for 30 minutes) and `R` resets.
+
 **Gear** shows every slot with what you wear. `Enter` on a slot lists everything in your bags
 (and in the bank, in a bank town) that fits it, with the stat, armor and damage difference in
 the detail pane; `Enter` there puts it on. The engine's equipment helper scores your bags

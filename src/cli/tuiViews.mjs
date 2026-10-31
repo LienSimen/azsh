@@ -18,6 +18,7 @@ import { cityAccess, bankDialog, auctionDialog, mailDialog } from './tuiCity.mjs
 import { professionsView, profTrainerDialog, worldGatherRows, openSendGoods, reagentUses } from './tuiProfessions.mjs';
 import { companionsView } from './tuiCompanions.mjs';
 import { squadJoinsPull } from './squad.mjs';
+import { portalRows } from './tuiDungeon.mjs';
 
 const STAT_LABEL = { str: 'Strength', agi: 'Agility', sta: 'Stamina', int: 'Intellect', spi: 'Spirit' };
 
@@ -186,6 +187,7 @@ function worldView(app) {
       if (city.ah) { const n = g.browseAuctions(Date.now()).length; services.push({ text: `${brightBlue('Auction House')} ${dim(`<Auctioneer>${n ? `  ${n} listings` : ''}`)}`, detail: () => [bold('Auction House'), 'Buy from and sell to the other players of this realm.', '', dim('Enter: browse, sell, see your auctions')], act: () => a.push(auctionDialog(a)) }); }
       if (city.mail) { const unread = g.unreadMailCount(Date.now()); services.push({ text: `${brightBlue('Mailbox')}${unread ? yellow(`  ${unread} new`) : ''}`, detail: () => [bold('Mailbox'), 'Auction sales, refunds and overflow loot arrive here.', '', dim('Enter: read your mail')], act: () => a.push(mailDialog(a)) }); }
       if (services.length) rows.push({ text: '', header: true }, { text: 'Services', header: true }, ...services);
+      rows.push(...portalRows(a));
       if (people.length) rows.push({ text: '', header: true }, { text: `People (${people.length})`, header: true }, ...people);
       rows.push(...worldGatherRows(a));
       rows.push({ text: '', header: true }, { text: 'Exits', header: true });
@@ -733,13 +735,7 @@ function travelView(app) {
         rows.push({ text: '', header: true }, { text: 'Teleports', header: true });
         for (const p of ports) rows.push({ text: `${p.name} → ${ds.zone(p.toZone)?.name ?? p.toZone}${p.reagents.some((r) => r.have < r.count) ? red('  no reagent') : ''}`, act: () => { const r = g.castTeleport(p.spellId); if (a.result(r)) { g.completeJourneyNow(); a.say(`You teleport to ${a.zone()?.name}.`); a.switchTab(0); } } });
       }
-      if (ch.level >= 10) {
-        const dungeons = ds.instances().filter((i) => i.minLevel <= ch.level + 3 && i.portalZone === z?.id);
-        if (dungeons.length) {
-          rows.push({ text: '', header: true }, { text: 'Dungeons here', header: true });
-          for (const d of dungeons) rows.push({ text: `${d.name} ${dim(`L${d.levelRange[0]}-${d.levelRange[1]}`)}`, detail: () => [bold(d.name), dim(`levels ${d.levelRange[0]}-${d.levelRange[1]}, requires ${d.minLevel}`), '', dim('Terminal dungeon runs are not wired yet.')], act: () => a.flashMsg('Dungeons are not playable in the terminal yet.') });
-        }
-      }
+      rows.push(...portalRows(a));
       return rows;
     },
   };
