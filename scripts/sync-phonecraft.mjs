@@ -48,6 +48,9 @@ const UI_COPIES = [
   // The wiki's name index and item-source index are pure; the terminal draws its own pages over them.
   ['ui/wiki/wikiIndex.ts', 'cli/wikiIndex.ts', []],
   ['ui/wiki/wikiSources.ts', 'cli/wikiSources.ts', []],
+  // Stratholme's Baron Run, Ysida, Barthilas and Aurius over the continuous floor (tuiFloor.mjs gives it a context).
+  ['ui/live/liveStratUndead.ts', 'cli/liveStratUndead.ts', [["import type { LiveDungeonCtx } from './liveDungeonCtx.ts';",
+    '// The live controller context, as much of it as this module reads; tuiFloor.mjs builds one.' + String.fromCharCode(10) + '// eslint-disable-next-line @typescript-eslint/no-explicit-any' + String.fromCharCode(10) + 'type LiveDungeonCtx = any;']]],
 ];
 
 const walk = (d, b = '') => (existsSync(join(d, b)) ? readdirSync(join(d, b), { withFileTypes: true }) : [])

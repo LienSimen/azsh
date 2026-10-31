@@ -57,6 +57,7 @@ const HELP_LINES = [
   '  space pauses, + speeds up) and Alterac Valley (a raid run).',
   '  Dungeons: Enter on a portal opens its card (route, who walks in, supplies). In the run window Enter',
   '  pulls a stop, uses a gate or opens a chest; z rests, F finishes the run unwatched, L leaves, R resets.',
+  '  W walks the floor instead: pick a place, the party walks the nav mesh, patrols walk, and what sees you pulls.',
   '',
   'Gear and bags',
   '  Gear tab: Enter on a slot lists everything in your bags (and the bank, in a bank town) that fits it.',

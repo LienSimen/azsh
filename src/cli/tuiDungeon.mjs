@@ -4,6 +4,7 @@
 // instanceView.ts (the entry card), liveDungeonHeadless.ts (pulls, gates, rest, Finish instantly) and the
 // floor's object clicks (liveObjectLoot.ts) onto the sequential route.
 import { bold, dim, cyan, yellow, green, red, gray, qualityPaint, fit, plural, secondsText, wrapLines } from './text.mjs';
+import { openFloor } from './tuiFloor.mjs';
 import { startFight } from './tuiFight.mjs';
 import { prePull } from './squad.mjs';
 import { questDialog } from './tuiViews.mjs';
@@ -355,10 +356,11 @@ export function runView(app) {
     id: 'dungeon', title: runDef(app)?.name ?? 'Dungeon', hint: 'Enter: pull / use',
     keys: {
       z: { hint: 'rest', fn: (a) => restBetween(a, 30) },
+      W: { hint: 'walk the floor', fn: (a) => openFloor(a) },
       F: { hint: 'finish instantly', fn: (a) => a.confirm('Run every remaining stop now, without watching?', () => finishInstantly(a)) },
       L: { hint: 'leave', fn: (a) => leaveRun(a) },
       P: { hint: 'blessings', fn: (a) => a.push(paladinDialog(a)) },
-      R: { hint: 'reset', fn: (a) => a.confirm('Reset the run? Every stop comes back.', () => { if (a.result(a.g.resetInstance(), 'The dungeon resets.')) a.dungeonPulls = []; }) },
+      R: { hint: 'reset', fn: (a) => a.confirm('Reset the run? Every stop comes back.', () => { const id = a.g.state.instance?.dungeonId; if (a.result(a.g.resetInstance(), 'The dungeon resets.')) { a.dungeonPulls = []; a.floor = null; if (a.floorKills && id) delete a.floorKills[id]; } }) },
     },
     rows(a) {
       const g = a.g, run = g.state.instance, def = runDef(a);
@@ -386,7 +388,8 @@ export function runView(app) {
         }
       }
       for (const o of objects.get('_') ?? []) rows.push({ ...objectRow(a, def, o), data: { object: o } });
-      rows.push(H(''), { text: dim('Leave the dungeon'), detail: () => [bold('Leave'), '', isRaid(def) ? 'A raid holds your progress until the lockout resets.' : 'A 5-man holds your progress for 30 minutes.'], act: () => leaveRun(a) });
+      rows.push(H(''), { text: `Walk the floor  ${dim('go anywhere; patrols and packs you pass pull on their own (W)')}`, detail: () => [bold('The floor'), '', 'Instead of picking stops, walk the dungeon on its nav mesh. Patrols walk their routes, and whatever sees you on the way pulls.'], act: () => openFloor(a) });
+      rows.push({ text: dim('Leave the dungeon'), detail: () => [bold('Leave'), '', isRaid(def) ? 'A raid holds your progress until the lockout resets.' : 'A 5-man holds your progress for 30 minutes.'], act: () => leaveRun(a) });
       return rows;
     },
   };
@@ -394,18 +397,21 @@ export function runView(app) {
 
 // ---- pulls ---------------------------------------------------------------------------------------------
 
-function pullStop(app, def, enc) {
+/** Pull one stop. `floor`: the continuous floor's pull (no sequential lock: you walked into it); `onDone(r)`
+ *  runs after the fight with its outcome (null when you ran). */
+export function pullStop(app, def, enc, { floor = false, onDone } = {}) {
   const run = app.g.state.instance;
   if (!run) return;
   if (isCleared(run, enc.id)) { app.flashMsg(`${enc.name} is already cleared.`); return; }
-  if (!isUnlocked(def, run, enc.id)) { app.flashMsg(`${enc.name} is locked.`); return; }
+  if (!floor && !isUnlocked(def, run, enc.id)) { app.flashMsg(`${enc.name} is locked.`); return; }
   for (const l of prePull(app.g, app.ds, app.cmds.buffPace)) app.say(cyan(l));
   let playerMax = 0, session = null;
   const f = startFight(app, enc.creatureEntry, {
     label: enc.kind === 'boss' ? 'boss' : undefined,
-    begin: () => { const b = app.g.beginEncounter(def.id, enc.id, { withSquad: true }); if (b.ok) { playerMax = b.playerMax; session = b.session; } return b; },
+    begin: () => { const b = app.g.beginEncounter(def.id, enc.id, { withSquad: true, ...(floor ? { continuousFloor: true } : {}) }); if (b.ok) { playerMax = b.playerMax; session = b.session; } return b; },
     after: (r) => { recordPull(app, def, enc, r, playerMax, session, app.dungeonDowntime ?? 0); app.dungeonDowntime = 0; },
     onEnd: (r) => {
+      onDone?.(r);
       if (!r) return;
       if (r.outcome === 'defeat') app.say(red('The party wipes. Rest, then try again.'));
       if (app.g.state.instance && isComplete(def, app.g.state.instance)) app.say(green(bold(`${def.name} is cleared.`)));
@@ -591,6 +597,7 @@ function leaveRun(app) {
   const r = app.g.leaveInstance(Date.now());
   if (!app.result(r, `You leave ${def?.name ?? 'the dungeon'}.`)) return;
   app.dungeonPulls = [];
+  app.floor = null; // rebuilt on the way back in; a held run keeps its floor kills
   app.stack = [];
   app.switchTab(0);
 }

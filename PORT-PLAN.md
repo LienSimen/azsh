@@ -113,14 +113,17 @@ first; engaging a stop runs it through the live fight view.
       `clearInstanceRoster`, reference `src/ui/views/instanceRosterPicker.ts`), raid lineups 10/20/40
       (`setRaidLineup`, `fillRaidLineup`, `clearRaidLineup`), PallyPower board (`paladinBoard`,
       `stepPaladinBlessing`, `stepPaladinAura`, `autoSortPaladinAssignments`, `refreshPaladinBuffs`).
-- [ ] **2i Patrols and the continuous floor (later).** Needs `ContinuousWorld`
-      (`src/world/continuousDungeon.ts`), a nav mesh loader that reads from disk instead of `fetch`
-      (`src/ui/dungeon/dungeonNavBakeLoader.ts:41`), `tickDungeonPatrolScripts`, and the pull lifecycle
-      in `src/ui/live/livePullLifecycle.ts` and `liveAggroStream.ts`. Also the scripted dungeons
-      (Stratholme timers, gauntlets and escorts in `live/liveStratUndead.ts`, `liveGauntletEscort.ts`).
-      Blocked on data first: the nav meshes are 65 `public/maps/bake/*.navmesh.bin` files in phonecraft
-      (42 MB) and none are in azsh. Decide whether to pack them into `src/data` or read them from a
-      phonecraft checkout (the `PHONECRAFT` path the sync script already uses) before porting the loader.
+- [x] **2i Patrols and the continuous floor.** `W` in the run window (`tuiFloor.mjs`): the party walks the
+      server nav mesh (`setMoveOrder`/`tickWalk`), patrols walk theirs (`tickDungeonPatrolScripts`), and what sees
+      you (`entitiesInAggroRange`) pulls: a route stop's bodies through `beginEncounter(..., { continuousFloor })`,
+      a body no stop owns as a plain fight. Kills stay dead on the floor; reset forgets them. Stratholme's Baron
+      Run runs on phonecraft's `liveStratUndead.ts` (copied by the sync script). The meshes are read from the
+      phonecraft checkout (`PHONECRAFT`, `public/maps/bake/*.navmesh.bin`, 42 MB) or `AZSH_NAVMESH_DIR`, not
+      packed here; without one `W` says so and the run stays sequential.
+- [ ] **2j Gauntlets, waves and escorts on the floor.** `live/liveGauntletEscort.ts` (1,014 lines: the Ring of
+      Law, UBRS eggs and Rend, Mograine/Whitemane, the Pusillin chase, Zul'Farrak stairs, escorts) reads ~40
+      members of the live controller and drives the combat session itself, so it needs that controller re-hosted
+      first. The sequential route still has these stops as plain pulls.
 - [x] **Check.** tuiCheck scenario: enter Ragefire Chasm or Deadmines with a squad, clear two stops,
       use one gate, finish headlessly, assert summary and lockout.
 

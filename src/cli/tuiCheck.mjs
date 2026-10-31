@@ -572,6 +572,33 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   check('going back in keeps the cleared stops', g.state.instance?.defeated.length === cleared);
   term.press('R'); term.press('return');
   check('R resets the run', g.state.instance?.defeated.length === 0);
+  // The continuous floor (2i): walk the Deadmines on its nav mesh; what sees you on the way pulls.
+  {
+    const { loadNavMesh, stepFloor, navMeshDir } = await import('./tuiFloor.mjs');
+    const def = ds.instance('deadmines');
+    g.regenTick(600, true);
+    if (loadNavMesh(def)) {
+      term.press('W'); show('the floor');
+      check('W opens the floor with the stops by distance', app.top()?.id === 'floor' && /Where to/.test(strip(frame())));
+      const f = app.floor;
+      const at0 = { x: f.world.party.x, y: f.world.party.y };
+      app.top().cursor = rowIndex((r) => r.data === undefined && !!r.keys?.P); term.press('return');
+      check('Enter on a stop starts the walk', f.walking && !!f.target);
+      let pulled = false;
+      for (let i = 0; i < 3000 && !pulled; i++) pulled = stepFloor(app, f) || !!app.fight;
+      check('the party walks the mesh', f.world.walkedYd > 1 && Math.hypot(f.world.party.x - at0.x, f.world.party.y - at0.y) > 1);
+      check('what sees you on the way pulls, with the party', pulled && !!app.fight && app.fight.session.alliesView().length >= 4);
+      const before = g.state.instance.defeated.length;
+      finishFight();
+      check('a won floor pull clears its stop and its bodies', g.state.instance.defeated.length === before + 1 && f.world.clearedGuids.length > 0 && app.top()?.id === 'floor');
+      term.press('escape');
+      term.press('R'); term.press('return');
+      check('a reset forgets the floor too', !app.floor && g.state.instance?.defeated.length === 0);
+    } else {
+      term.press('W');
+      check(`no mesh at ${navMeshDir()}: W says so and the run stays sequential`, app.top()?.id === 'dungeon' && /nav mesh/.test(app.flash?.text ?? ''));
+    }
+  }
   term.press('L');
   check('leaving a fresh run holds nothing', !g.state.instance && !g.state.instanceSaves?.deadmines);
   // A raid door: the walk-in picker and the 20-man group, on Zul'Gurub's card.
@@ -1659,6 +1686,35 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   app12.top().cursor = at((r, t) => /Leave the battleground/.test(t)); term12.press('return');
   check('Leave closes the match window', app12.top()?.id !== 'bg');
   term12.close?.();
+}
+
+// Stratholme on the floor: the Gauntlet gate arms the Baron's Ultimatum, Ysida is caged, the 45 minutes run out.
+{
+  const { loadNavMesh, stepFloor } = await import('./tuiFloor.mjs');
+  const { setFlag, hasFlag } = await import('../world/instances.ts');
+  const { STRATH_BARON_RUN } = await import('../data/dungeons/stratholme-undead.ts');
+  const def = ds.instance('stratholme-undead');
+  if (def && loadNavMesh(def)) {
+    const term13 = new HeadlessTerm(110, 34);
+    const app13 = new App({ term: term13, ds, repo });
+    term13.open();
+    app13.startGame(newGameState(ds, human.id, 1, 'Barontest', 61, 0), 'barontest', Date.now(), true);
+    const g13 = app13.g;
+    g13.state.char.level = 60;
+    check('Stratholme (Undead) can be entered', g13.enterInstance('stratholme-undead', Date.now()).ok);
+    app13.stack = []; (await import('./tuiDungeon.mjs')).openRun(app13);
+    term13.press('W');
+    const f = app13.floor;
+    check('the Stratholme floor carries its script', app13.top()?.id === 'floor' && !!f.script);
+    g13.state.instance = setFlag(g13.state.instance, STRATH_BARON_RUN.runFlag);
+    f.world.entities = f.world.entities.filter((e) => e.party); // nothing to pull: only the clock matters here
+    stepFloor(app13, f);
+    check('the gate arms the Baron\'s Ultimatum and cages Ysida', app13.log.some((l) => /45 minutes/.test(strip(l))) && app13.log.some((l) => /Ysida Harmon/.test(strip(l))));
+    f.runMs += STRATH_BARON_RUN.durationMs;
+    stepFloor(app13, f);
+    check('the 45 minutes run out', hasFlag(g13.state.instance, STRATH_BARON_RUN.failFlag) && app13.log.some((l) => /expired/.test(strip(l))));
+    term13.close?.();
+  } else check('Stratholme has a nav mesh to walk', false);
 }
 
 // Help overlay and escape.
