@@ -1462,6 +1462,22 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   check('D deposits every stack of the item', countItem(g7.state.inventory, linen.entry) === 0 && countItem(g7.state.bank, linen.entry) === 25);
 }
 
+// Honor: the window shows rank, kills and the week; a City Defender gets free capital teleports.
+{
+  const g = app.g;
+  const { newHonorState, CITY_DEFENDER_MIN_RP } = await import('../domain/run/honor.ts');
+  home(); term.press(':'); for (const ch of 'honor') term.press(ch); term.press('return'); show('honor');
+  check(':honor opens the honor window', app.top().id === 'honor' && /This week/.test(strip(frame())) && /Standings posted/.test(strip(frame())));
+  term.press('escape');
+  const keep = g.state.char.honor;
+  g.state.char.honor = { ...(keep ?? newHonorState()), rp: CITY_DEFENDER_MIN_RP + 1, todayHk: 3 };
+  term.press(':'); for (const ch of 'honor') term.press(ch); term.press('return');
+  check('a City Defender sees the free capital teleports', /Capital teleports/.test(strip(app.rowsOf(app.top()).map((r) => r.text).join(' '))));
+  check('the rank title shows', !/No rank/.test(strip(app.rowsOf(app.top())[0].text)));
+  g.state.char.honor = keep;
+  home();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);

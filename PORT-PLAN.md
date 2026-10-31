@@ -234,7 +234,7 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
 
 ### PvP
 
-- [ ] S  Honor window: rank, kills, weekly standing from `domain/run/honor` and `honorWeek`;
+- [x] S  Honor window: rank, kills, weekly standing from `domain/run/honor` and `honorWeek`;
       `runWeeklyHonorPass` and `bankWeeklyHonor` in the game loop; City Defender ports via
       `classTravelOptions`. Ref `panels/honorPanel.ts`.
 - [ ] M  Arena duel and team matches into the live fight view: `arenaDuel()`, `arenaMatch({ bracket,

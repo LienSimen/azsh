@@ -18,6 +18,7 @@ import { macrosDialog, runMacro } from './tuiMacros.mjs';
 import { outfitterDialog } from './tuiOutfitter.mjs';
 import { journeyHeader, journeyTick } from './tuiWorld.mjs';
 import { reputationDialog } from './tuiRep.mjs';
+import { honorDialog, weeklyHonorPass } from './tuiHonor.mjs';
 import { bold, dim, cyan, yellow, green, red, inverse, fit, vis, cut, bar, pct, wrapLines, brightYellow, magenta, brightBlue, strip } from './text.mjs';
 import { createGame, newGameState } from '../engine/game.ts';
 import { toSave } from '../persistence/saveShape.ts';
@@ -121,6 +122,7 @@ export class App {
     this.lastActivity = g.state.activity[0] ?? null;
     this.say(bold(`Welcome${isNew ? '' : ' back'}, ${g.state.char.name}.`) + dim('  Press ? for the keys.'));
     if (awayMs >= 60_000) this.offlineRest(Math.floor(awayMs / 1000));
+    weeklyHonorPass(this); // a maintenance day passed while away scores that week
     if (g.state.instance) openRun(this);
     openLoot(this); // an opened bag item's remainder is still claimable after a reload
     if (!this.term.isTTY) return;
@@ -386,6 +388,7 @@ export class App {
     if (c === 'settings' || c === 'options') { this.push(settingsDialog(this)); return; }
     if (c === 'autopilot') { this.push(autopilotSettingsDialog(this)); return; }
     if (c === 'rep' || c === 'reputation') { this.push(reputationDialog(this)); return; }
+    if (c === 'honor' || c === 'pvp') { this.push(honorDialog(this)); return; }
     if (c === 'macro' || c === 'macros') {
       const name = args.trim();
       if (!name) { this.push(macrosDialog(this)); return; }
