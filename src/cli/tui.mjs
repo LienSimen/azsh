@@ -19,8 +19,9 @@ import { outfitterDialog } from './tuiOutfitter.mjs';
 import { journeyHeader, journeyTick } from './tuiWorld.mjs';
 import { reputationDialog } from './tuiRep.mjs';
 import { honorDialog, weeklyHonorPass } from './tuiHonor.mjs';
+import { devCommand } from './tuiDev.mjs';
 import { bold, dim, cyan, yellow, green, red, inverse, fit, vis, cut, bar, pct, wrapLines, brightYellow, magenta, brightBlue, strip } from './text.mjs';
-import { createGame, newGameState } from '../engine/game.ts';
+import { createGame, newGameState, newGameStateFromWorldBot, pickRandomWorldBot } from '../engine/game.ts';
 import { toSave } from '../persistence/saveShape.ts';
 import { className, raceName } from '../domain/core/ids.ts';
 import { moneyText, coinsText } from '../domain/economy/money.ts';
@@ -59,6 +60,7 @@ const HELP_LINES = [
   '  Bags tab: Enter uses, equips, opens, unwraps or learns; m lists every verb for the stack. s sells to the open',
   '  vendor, j sells junk, b opens the bank, d destroys, S sorts, / splits a stack, [ ] move it, A uses the whole stack.',
   '  D lists every green, blue or epic the group can disenchant; L lists every book someone can learn. G runs it.',
+  '  :dev item|quest|recipe|prof skips the rules (testing). New character offers a random world bot.',
   '  :settings sets auto-loot, the upgrade helper, auto-disenchant, the junk rules and which nodes get gathered.',
   '  Spells tab: b edits your action bars, m your macros. :macro <name> runs one; a macro on bar 1 fires by its key in a fight.',
   '  Loot: with :autoloot off a corpse opens the loot window. Enter takes a row, a takes all, Esc leaves the rest.',
@@ -389,6 +391,7 @@ export class App {
     if (c === 'autopilot') { this.push(autopilotSettingsDialog(this)); return; }
     if (c === 'rep' || c === 'reputation') { this.push(reputationDialog(this)); return; }
     if (c === 'honor' || c === 'pvp') { this.push(honorDialog(this)); return; }
+    if (c === 'dev') { this.say(cyan(`> ${line}`)); devCommand(this, args); this.afterAction(); return; }
     if (c === 'macro' || c === 'macros') {
       const name = args.trim();
       if (!name) { this.push(macrosDialog(this)); return; }
@@ -586,14 +589,22 @@ export async function runTui({ term = new RealTerm(), argv = [] } = {}) {
   return new Promise((resolve) => { app.onQuit = resolve; });
 }
 
-function characterCreation(app, done) {
+export function characterCreation(app, done) {
   const ds = app.ds;
   const races = ds.races();
-  app.pick('Choose a race', races.map((r) => ({
+  // A random world bot: a whole character at its own level, geared, with its name (phonecraft's dev roll).
+  const randomBot = { label: `${dim('Random character')}  ${dim('a world bot at its own level')}`, value: 'random' };
+  app.pick('Choose a race', [randomBot, ...races.map((r) => ({
     label: `${r.name.padEnd(10)} ${dim(r.faction)}`,
     detail: [bold(r.name), r.faction, `Starts in ${ds.zone(r.startZone)?.name ?? r.startZone}`, '', dim('Classes: ') + r.classes.filter((c) => ds.createInfo(r.id, c)).map(className).join(', ')],
     value: r,
-  })), (race) => {
+  }))], (race) => {
+    if (race === 'random') {
+      const seed = (Date.now() ^ (Math.random() * 0x7fffffff)) >>> 0;
+      const bot = pickRandomWorldBot(ds, seed);
+      done(newGameStateFromWorldBot(ds, bot, seed));
+      return;
+    }
     const classes = race.classes.filter((c) => ds.createInfo(race.id, c));
     app.pick(`${race.name}: choose a class`, classes.map((c) => ({ label: className(c), value: c })), (cls) => {
       app.pick('Gender', [{ label: 'Male', value: 0 }, { label: 'Female', value: 1 }], (gender) => {

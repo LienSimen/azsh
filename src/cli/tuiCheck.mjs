@@ -1515,6 +1515,37 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   home();
 }
 
+// :dev verbs, and a random world-bot character from the create screen.
+{
+  const g = app.g;
+  const cmd = (text) => { term.press(':'); for (const ch of text) term.press(ch === ' ' ? 'space' : ch); term.press('return'); };
+  home();
+  const linen = ds.allItems().find((it) => it.name === 'Linen Cloth');
+  const had = countItem(g.state.inventory, linen.entry);
+  cmd('dev item linen cloth 3');
+  check(':dev item gives the item', countItem(g.state.inventory, linen.entry) === had + 3);
+  cmd('dev prof cooking');
+  check(':dev prof learns a profession at its cap', (g.state.char.skills.cooking?.max ?? 0) >= 300);
+  const known = new Set(g.state.char.knownRecipes);
+  const recipe = ds.recipes().find((r) => r.skill === 'cooking' && !known.has(r.id));
+  cmd(`dev recipe ${recipe.id}`);
+  check(':dev recipe learns it', g.state.char.knownRecipes.includes(recipe.id));
+  cmd('dev quest 783');
+  check(':dev quest finishes a quest', g.state.questlog.quests.some((q) => q.entry === 783 && q.status === 'turnedIn') || app.log.some((l) => /Quest done/.test(strip(l))));
+  cmd('dev nothing');
+  check(':dev with no verb lists them', app.log.some((l) => /:dev item/.test(strip(l))));
+  const term9 = new HeadlessTerm(110, 34);
+  const app9 = new App({ term: term9, ds, repo });
+  term9.open();
+  const { characterCreation } = await import('./tui.mjs');
+  let created = null;
+  characterCreation(app9, (state) => { created = state; });
+  app9.top().cursor = 0; term9.press('return');
+  check('the create screen rolls a random world bot', !!created?.char?.name && created.char.level >= 1);
+  term9.close?.();
+  home();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);
