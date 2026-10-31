@@ -1141,6 +1141,28 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   home();
 }
 
+// Autopilot settings: a switch, a choice, a percentage and a count, each through the form.
+{
+  const g = app.g;
+  const typeLine = (text) => { for (const ch of text) term.press(ch === ' ' ? 'space' : ch); term.press('return'); };
+  const field = (key) => { app.top().cursor = rowIndex((r) => r.data?.key === key); };
+  home(); term.press(':'); for (const ch of 'autopilot') term.press(ch); term.press('return'); show('autopilot settings');
+  check(':autopilot opens the autopilot settings', app.top().id === 'autopilot-settings');
+  const before = g.autopilotConfig();
+  field('autoGather'); term.press('return');
+  check('Enter flips a switch', g.autopilotConfig().autoGather === !before.autoGather);
+  field('aoeMode'); term.press('return');
+  check('Enter steps a choice', g.autopilotConfig().aoeMode !== before.aoeMode);
+  field('healthEnterPct'); term.press('return'); for (let i = 0; i < 4; i++) term.press('backspace'); typeLine('60');
+  check('a percentage is typed in', Math.abs(g.autopilotConfig().healthEnterPct - 0.6) < 1e-9);
+  field('pullNormalCount'); term.press('return'); term.press('backspace'); typeLine('3');
+  check('a count is typed in', g.autopilotConfig().pullNormalCount === 3);
+  field('pullNormalCount'); term.press('return'); term.press('backspace'); typeLine('99');
+  check('an out-of-range number is refused', g.autopilotConfig().pullNormalCount === 3);
+  g.setAutopilotConfig(before);
+  home();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);

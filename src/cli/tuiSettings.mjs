@@ -6,6 +6,7 @@ import { bold, dim, yellow, green, red, cyan, qualityPaint } from './text.mjs';
 import { autoLootOn } from './tuiLoot.mjs';
 import { moneyText } from '../domain/economy/money.ts';
 import { JUNK_PROTECT_CATEGORIES } from '../domain/items/junkCategories.ts';
+import { autopilotSettingsDialog } from './tuiAutopilotSettings.mjs';
 
 const H = (text) => ({ text, header: true });
 const QUALITY_NAME = ['Poor', 'Common', 'Uncommon', 'Rare', 'Epic'];
@@ -45,7 +46,7 @@ export function settingsDialog(app) {
     id: 'settings', title: 'Settings', hint: 'Enter: change',
     rows(a) {
       const g = a.g;
-      const rows = [H(bold('Loot'))];
+      const rows = [{ text: `Autopilot settings  ${dim('resting, pulls, fighting, questing   (:autopilot)')}`, act: (a2) => a2.push(autopilotSettingsDialog(a2)) }, H(''), H(bold('Loot'))];
       rows.push({ text: `Auto-loot                 ${onOff(autoLootOn(a))}`, detail: () => [bold('Auto-loot'), '', 'On: a corpse\'s drops and coin go straight into your bags.', 'Off: the loot window opens and you take what you want.'], act: (a2) => a2.prefs.set('autoLoot', !autoLootOn(a2)) });
 
       const eh = g.equipmentHelperConfig();

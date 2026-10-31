@@ -13,6 +13,9 @@ import { openRun } from './tuiDungeon.mjs';
 import { openLoot } from './tuiLoot.mjs';
 import { MemoryPrefs, FilePrefs } from './prefs.mjs';
 import { settingsDialog, globalSettingsOpts } from './tuiSettings.mjs';
+import { autopilotSettingsDialog } from './tuiAutopilotSettings.mjs';
+import { macrosDialog, runMacro } from './tuiMacros.mjs';
+import { outfitterDialog } from './tuiOutfitter.mjs';
 import { bold, dim, cyan, yellow, green, red, inverse, fit, vis, cut, bar, pct, wrapLines, brightYellow, magenta, brightBlue, strip } from './text.mjs';
 import { createGame, newGameState } from '../engine/game.ts';
 import { toSave } from '../persistence/saveShape.ts';
@@ -40,7 +43,7 @@ const HELP_LINES = [
   '  exit opens it. a hands the character to the autopilot: it quests and hunts on its own, and every',
   '  fight plays out live on screen. Esc stops it. A quest it dies on 3 times or cannot finish is skipped',
   '  for the rest of the session. Quests tab: d (or Do the quest in the quest window) runs the autopilot on',
-  '  that one quest.',
+  '  that one quest. :autopilot (or A on the Rotation tab) sets how it rests, pulls, fights and quests.',
   '  In a capital the World tab lists the Bank, the Auction House and the Mailbox under Services.',
   '  Rogues: P on a creature picks its pocket (Stealth first). A resist starts the fight.',
   '  Dungeons: Enter on a portal opens its card (route, who walks in, supplies). In the run window Enter',
@@ -357,8 +360,8 @@ export class App {
       return;
     }
     if (c === 'settings' || c === 'options') { this.push(settingsDialog(this)); return; }
+    if (c === 'autopilot') { this.push(autopilotSettingsDialog(this)); return; }
     if (c === 'macro' || c === 'macros') {
-      const { macrosDialog, runMacro } = await import('./tuiMacros.mjs');
       const name = args.trim();
       if (!name) { this.push(macrosDialog(this)); return; }
       const def = this.g.macroByName(name);
@@ -367,7 +370,7 @@ export class App {
       return;
     }
     if (c === 'outfit') {
-      if (!args.trim()) { const { outfitterDialog } = await import('./tuiOutfitter.mjs'); this.push(outfitterDialog(this)); return; }
+      if (!args.trim()) { this.push(outfitterDialog(this)); return; }
       // A bare name wears it; wear|unwear|toggle name are the macro forms. Companions with a set of that name follow.
       const r = this.g.runOutfitterCommand(/^(wear|unwear|toggle)\s/i.test(args.trim()) ? args.trim() : `wear ${args.trim()}`);
       if (r.ok) this.say(green(`${r.wearing ? 'You put on' : 'You take off'} ${r.name}.`) + (r.missing ? yellow(`  ${r.missing} missing.`) : ''));

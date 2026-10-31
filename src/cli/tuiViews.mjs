@@ -31,6 +31,7 @@ import { macrosDialog } from './tuiMacros.mjs';
 import { pickPocket, pickPocketTag } from './tuiWorld.mjs';
 import { talentBuildsMenu, myTalentLink } from './tuiTalents.mjs';
 import { simLabDialog } from './tuiSimLab.mjs';
+import { autopilotSettingsDialog } from './tuiAutopilotSettings.mjs';
 import { useStack, itemMenu, useAll, splitStack, moveStack, destroyStack, sortBags, keyringRows, primaryVerb } from './tuiBags.mjs';
 
 const STAT_LABEL = { str: 'Strength', agi: 'Agility', sta: 'Stamina', int: 'Intellect', spi: 'Spirit' };
@@ -602,6 +603,7 @@ function rotationView(app) {
       w: { hint: 'whose', fn: (a) => pickRotationOwner(a) },
       p: { hint: 'profiles', fn: (a) => profileMenu(a) },
       D: { hint: 'target dummy', fn: (a) => a.push(simLabDialog(a, () => simSubject(a))) },
+      A: { hint: 'autopilot', fn: (a) => a.push(autopilotSettingsDialog(a)) },
       // K J c d still work as shortcuts; the menu on Enter is the advertised way, so they stay out of the hint line.
       K: { fn: (a, row) => row?.data?.rule && moveRule(a, row.data, -1) },
       J: { fn: (a, row) => row?.data?.rule && moveRule(a, row.data, +1) },
