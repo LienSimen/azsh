@@ -1,4 +1,0 @@
-{
-  "note": "AHBot per-item value override — port of characters.ahbot_items (AuctionHouseBot.cpp:138-155). value = AH unit copper, replacing CalculateBuyoutPrice (cpp:242, cpp:275); value 0 blacklists the item both ways (cpp:229-231, 271-273). CMaNGOS ships the table empty and fills it by GM command; every row here needs a source beside it.",
-  "items": []
-}

@@ -5,5 +5,6 @@ if (major < 22 || (major === 22 && minor < 18)) {
   console.error(`azsh needs Node 22.18 or newer (found ${process.versions.node}).`);
   process.exit(1);
 }
+await import('../src/cli/register.mjs');
 const { main } = await import('../src/cli/repl.mjs');
 await main(process.argv.slice(2));

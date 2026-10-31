@@ -12,7 +12,7 @@
   },
   "scripts": {
     "start": "node bin/azsh.mjs",
-    "check": "node src/cli/bootCheck.mjs",
+    "check": "node --import ./src/cli/register.mjs src/cli/bootCheck.mjs",
     "data:pack": "node scripts/pack-data.mjs",
     "data:unpack": "node scripts/pack-data.mjs --unpack"
   }

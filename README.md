@@ -9,8 +9,8 @@ npm install -g .     # or: node bin/azsh.mjs
 azsh                 # pick a character or roll one
 ```
 
-Needs Node 22.18 or newer (it strips TypeScript types natively). The install is about 15 MB,
-11 MB of which is the baked game data.
+Needs Node 22.18 or newer (it strips TypeScript types natively). No dependencies. The tree is
+about 29 MB: 15 MB of gzipped game data and 13 MB of engine source.
 
 ## Playing
 
@@ -27,7 +27,7 @@ Saves live in `~/.azsh/saves/`, one JSON file per character. `AZSH_HOME` moves t
 | Layer | Source | In this tree |
 | --- | --- | --- |
 | Engine, rules, world, quests, autopilot | phonecraft `src/engine`, `src/domain`, `src/world`, `src/quests`, `src/progression`, `src/autopilot` | copied as-is |
-| Data | phonecraft `src/data` (CMaNGOS world DB + DBC bake) | tables gzipped on disk, audio tables dropped |
+| Data | phonecraft `src/data` (CMaNGOS world DB + DBC bake) | every table gzipped on disk (`src/cli/gzLoader.mjs` serves static imports), audio tables dropped |
 | Front end | new | `src/cli/` |
 | Combat log wording | phonecraft `src/ui/combat/combatLogFormat.ts` | `src/cli/combatLogFormat.ts` |
 

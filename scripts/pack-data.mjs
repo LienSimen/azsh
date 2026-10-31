@@ -1,6 +1,6 @@
 // Gzip the bake on disk: src/data/tables/*.json and the five lazy chunks become .json.gz.
-// src/cli/bootData.mjs reads either form. `--unpack` reverses it. Rotation, raid-plan and
-// dungeon JSON stay raw because TypeScript modules static-import them.
+// src/cli/bootData.mjs reads either form and src/cli/gzLoader.mjs serves static imports, so every
+// table can be packed. `--unpack` reverses it.
 import { readdirSync, readFileSync, writeFileSync, unlinkSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';

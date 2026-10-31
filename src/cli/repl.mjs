@@ -4,7 +4,7 @@ import { createInterface } from 'node:readline';
 import { stdin, stdout } from 'node:process';
 import { bootDataStore } from './bootData.mjs';
 import { FileSaveRepository } from './fileRepository.mjs';
-import { formatCombatLog, combatLogPlainText } from './combatLogFormat.ts';
+import { formatCombatLog, combatLogPlainText, POWER_MERGE_MS } from './combatLogFormat.ts';
 import { createGame, newGameState } from '../engine/game.ts';
 import { toSave } from '../persistence/saveShape.ts';
 import { className, raceName } from '../domain/core/ids.ts';
@@ -159,13 +159,24 @@ export async function main(argv = []) {
     if (!logOn) return;
     const n = { ...names(), enemyName };
     const rows = [];
+    const line = (t, row) => `${dim((t / 1000).toFixed(1).padStart(6) + 's')}  ${combatLogPlainText(row)}`;
+    // Passive regen ticks arrive as merge rows; add them up per unit and power within one quantum, like
+    // the web client's combat log does, and drop a zero total (rage decay).
+    let pend = null;
+    const flush = () => { if (pend && pend.amount > 0) rows.push(line(pend.t, pend.remake(pend.amount))); pend = null; };
     for (const ev of events) {
       const row = formatCombatLog(ev, n);
       if (!row) continue;
-      // Passive power ticks: the web client merges these; a zero tick (rage decay) is noise here.
-      if (row.merge && row.merge.amount <= 0) continue;
-      rows.push(`${dim((ev.t / 1000).toFixed(1).padStart(6) + 's')}  ${combatLogPlainText(row)}`);
+      if (row.merge) {
+        if (pend && pend.key === row.merge.key && row.merge.t - pend.t0 < POWER_MERGE_MS) { pend.amount += row.merge.amount; pend.t = row.merge.t; continue; }
+        flush();
+        pend = { key: row.merge.key, t0: row.merge.t, t: row.merge.t, amount: row.merge.amount, remake: row.merge.remake };
+        continue;
+      }
+      flush();
+      rows.push(line(ev.t, row));
     }
+    flush();
     const MAX = 150;
     if (rows.length > MAX) {
       console.log(dim(`  … ${rows.length - MAX} earlier lines hidden (log off to silence)`));
