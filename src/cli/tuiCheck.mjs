@@ -895,6 +895,34 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   home();
 }
 
+// Outfitter: save what is worn, wear it back after taking a piece off, edit slots, build for a stat, delete.
+{
+  const g = app.g;
+  const typeLine = (text) => { for (const ch of text) term.press(ch === ' ' ? 'space' : ch); term.press('return'); };
+  const outfitRow = (name) => rowIndex((r) => r.data?.outfit?.name === name);
+  home(); app.switchTab(3); term.press('o'); show('outfitter');
+  check('o on Gear opens the Outfitter', app.top().id === 'outfitter');
+  term.press('n'); typeLine('Kit');
+  check('n saves what is worn as an outfit', g.outfitterState().outfits.some((o) => o.name === 'Kit'));
+  const chest = g.state.char.equipped.chest;
+  term.press('escape');
+  g.unequip('chest');
+  term.press('o');
+  app.top().cursor = outfitRow('Kit'); term.press('return'); show('outfit worn');
+  check('Enter on the outfit puts the missing piece back on', g.state.char.equipped.chest != null && JSON.stringify(g.state.char.equipped.chest) === JSON.stringify(chest));
+  app.top().cursor = outfitRow('Kit'); term.press('e'); show('outfit slots');
+  check('e lists the outfit slots', app.top().id === 'outfit-slots' && /Chest/.test(strip(frame())));
+  app.top().cursor = rowIndex((r, t) => /Chest/.test(t)); term.press('return');
+  const kit = () => g.outfitterState().outfits.find((o) => o.name === 'Kit');
+  check('Enter drops a slot from the set', !kit().items.chest);
+  term.press('escape');
+  term.press('N'); app.top().cursor = rowIndex((r, t) => /Stamina$/.test(t)); term.press('return');
+  check('N builds an outfit for a stat', g.outfitterState().outfits.some((o) => o.statId === 'sta'));
+  app.top().cursor = outfitRow('Kit'); term.press('x'); term.press('return');
+  check('x deletes an outfit after a yes', !kit());
+  home();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);

@@ -6,6 +6,7 @@ import { equippedEntry } from '../domain/items/itemInstance.ts';
 import { hasDurability, maxDurability, currentDurability, repairCostSlot } from '../domain/items/durability.ts';
 import { isAmmoItem, canUseAmmo, checkAmmoCompatibility, weaponNeedsProjectileAmmo } from '../domain/items/ammo.ts';
 import { countItem } from '../domain/items/inventory.ts';
+import { outfitterDialog } from './tuiOutfitter.mjs';
 import { listAutoConsumableOptions, staleAutoConsumables, isAutoFood, isAutoDrink, isAutoBuff, AUTO_CONSUMABLE_VITAL_THRESHOLD } from '../domain/bots/autoConsumables.ts';
 
 const H = (text) => ({ text, header: true });
@@ -121,6 +122,12 @@ export function gearExtraRows(app) {
       act: (a) => pickAmmo(a),
     });
   }
+  const outfits = app.g.outfitterState().outfits.length;
+  rows.push({
+    text: `Outfits     ${outfits ? `${outfits} saved` : dim('none yet')}`,
+    detail: () => [bold('Outfitter'), '', 'Named gear sets for you and your companions: put one on with a key.', '', dim('Enter (or o): open')],
+    act: (a) => a.push(outfitterDialog(a)),
+  });
   rows.push({
     text: `Auto use    ${autoSummary(app)}`,
     detail: () => [bold('Auto consumables'), '', 'Food, water, potions and elixirs the game uses for you between fights.', '', dim('Enter: choose')],

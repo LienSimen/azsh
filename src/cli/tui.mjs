@@ -47,6 +47,7 @@ const HELP_LINES = [
   'Gear and bags',
   '  Gear tab: Enter on a slot lists everything in your bags (and the bank, in a bank town) that fits it.',
   '  ▲ marks an upgrade the equipment helper found; u puts on every upgrade at once, x takes a piece off.',
+  '  r repairs one piece; o opens the Outfitter (gear sets). :outfit <name> wears a set from anywhere.',
   '  Bags tab: Enter uses, equips, opens, unwraps or learns; m lists every verb for the stack. s sells to the open',
   '  vendor, j sells junk, b opens the bank, d destroys, S sorts, / splits a stack, [ ] move it, A uses the whole stack.',
   '  D lists every green, blue or epic the group can disenchant; L lists every book someone can learn. G runs it.',
@@ -347,6 +348,15 @@ export class App {
       if (want === 'on' || want === 'off') this.prefs.set('autoLoot', want === 'on');
       this.say(`Auto-loot is ${this.prefs.get('autoLoot') !== false ? green('on') : yellow('off')}. ${dim(':autoloot on|off')}`);
       this.render();
+      return;
+    }
+    if (c === 'outfit') {
+      if (!args.trim()) { const { outfitterDialog } = await import('./tuiOutfitter.mjs'); this.push(outfitterDialog(this)); return; }
+      // A bare name wears it; wear|unwear|toggle name are the macro forms. Companions with a set of that name follow.
+      const r = this.g.runOutfitterCommand(/^(wear|unwear|toggle)\s/i.test(args.trim()) ? args.trim() : `wear ${args.trim()}`);
+      if (r.ok) this.say(green(`${r.wearing ? 'You put on' : 'You take off'} ${r.name}.`) + (r.missing ? yellow(`  ${r.missing} missing.`) : ''));
+      else this.say(red(r.reason));
+      this.afterAction();
       return;
     }
     if (c === 'bank' || c === 'ah' || c === 'auction' || c === 'mail') {

@@ -171,7 +171,7 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
 - [x] S  Bulk: bulk disenchant and bulk learn. Ref `panels/bagBulkPanel.ts`, `app/appInteractBulkBags.ts`.
 - [x] S  Ammo: `setAmmo`, `clearAmmo` on the Gear tab for ranged users.
 - [x] S  Auto consumables: `setAutoConsumable`, `clearAutoConsumable`.
-- [ ] M  Outfitter (gear sets): `ensureOutfitter`, `createOutfit`, `rename/deleteOutfit`,
+- [x] M  Outfitter (gear sets): `ensureOutfitter`, `createOutfit`, `rename/deleteOutfit`,
       `rebuildOutfit`, `selectOutfit`, `wearOutfit`, `unwearOutfit`, `setOutfitSlot`,
       `setOutfitSlotsAll`, `setOutfitDisabled`, `outfitterState`. Ref `panels/outfitterPanel.ts`.
 - [ ] S  Filters and helpers (a Settings window): `equipmentHelperConfig`/`setEquipmentHelperConfig`,

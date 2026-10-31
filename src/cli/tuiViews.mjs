@@ -25,6 +25,7 @@ import { petWorldRows, petDialog, hasPetClass } from './tuiPet.mjs';
 import { portalRows } from './tuiDungeon.mjs';
 import { bulkDisenchantDialog, learnAllDialog } from './tuiBulk.mjs';
 import { gearExtraRows, durabilityText, repairOne, slotRepairLines } from './tuiGear.mjs';
+import { outfitterDialog } from './tuiOutfitter.mjs';
 import { useStack, itemMenu, useAll, splitStack, moveStack, destroyStack, sortBags, keyringRows, primaryVerb } from './tuiBags.mjs';
 
 const STAT_LABEL = { str: 'Strength', agi: 'Agility', sta: 'Stamina', int: 'Intellect', spi: 'Spirit' };
@@ -409,6 +410,7 @@ function gearView(app) {
       } },
       x: { hint: 'take off', fn: (a, row) => { if (row?.data?.it) a.result(a.g.unequip(row.data.slot), `You take off ${row.data.it.name}.`); } },
       r: { hint: 'repair', fn: (a, row) => { if (row?.data?.it) repairOne(a, row.data.slot); } },
+      o: { hint: 'outfits', fn: (a) => a.push(outfitterDialog(a)) },
     },
     rows(a) {
       const rows = [];
