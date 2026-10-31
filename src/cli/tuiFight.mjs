@@ -8,14 +8,16 @@ import { moneyText } from '../domain/economy/money.ts';
 import { maxHealth, maxPower } from '../domain/character/character.ts';
 import { powerType } from '../domain/character/characterStats.ts';
 import { pullOpts, sessionLogNames } from './squad.mjs';
+import { slotContent } from './tuiBars.mjs';
 
 export const TICK_MS = 100; // one engine tick per 100 ms of real time, like the web client
 const POWER_PAINT = { mana: brightBlue, rage: red, energy: yellow, focus: yellow };
 
 /** Start a live fight. Returns `{ ok: true, ctl }` or `{ ok: false, reason }`. `onEnd(outcome)` runs after the
  *  fight resolves (outcome null when the player ran); `label` names who is driving (the autopilot). `begin` replaces
- *  beginFight (a dungeon stop, squad always in) and `after(outcome)` runs right after resolveFight. */
-export function startFight(app, creatureEntry, { onEnd, label, begin, after } = {}) {
+ *  beginFight (a dungeon stop, squad always in) and `after(outcome)` runs right after resolveFight. `resolve(session)`
+ *  replaces resolveFight for a fight that pays nothing (a duel); Esc in one forfeits instead of running. */
+export function startFight(app, creatureEntry, { onEnd, label, begin, after, resolve } = {}) {
   if (app.fight) return { ok: false, reason: 'Already in a fight.' };
   if (app.isDead()) { app.flashMsg('You are dead.'); return { ok: false, reason: 'You are dead.' }; }
   const opts = begin ? { withSquad: true } : pullOpts(app.g, app.ds, app.cmds.buffPace, creatureEntry, (l) => app.say(cyan(l)));
@@ -24,13 +26,13 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after } = 
   const session = b.session;
   const squadXp = new Map((app.g.state.squad ?? []).map((c) => [c.id, c.xp ?? 0]));
   const ctl = {
-    after, session, enemyName: b.enemyName, enemyEntry: b.enemyEntry, onEnd, label, withSquad: !!opts && (app.g.state.squad ?? []).length > 0,
+    after, resolve, session, enemyName: b.enemyName, enemyEntry: b.enemyEntry, onEnd, label, withSquad: !!opts && (app.g.state.squad ?? []).length > 0,
     // A fight opened from a window (the dungeon run) takes the screen and hands the window back after.
     savedStack: app.stack,
     auto: true, paused: false, speed: app.fightSpeed ?? 1, pressed: null, pressedTicks: 0, timer: null, pend: null, ended: false,
     frames: newFrameMemory(app), compact: false,
     names: sessionLogNames(session, { playerName: app.ch.name, enemyName: b.enemyName, spellName: (id) => app.ds.spell(id)?.name }),
-    hint() { return `${this.auto ? 'a: manual play' : '1-9: press an ability   a: auto-play'}${session.alliesView().length ? '   t: orders' : ''}${app.g.state.instance ? '   p: pull +1' : ''}   space: ${this.paused ? 'resume' : 'pause'}   + -: speed ${this.speed}x   l: log   Esc: ${this.label ? 'run away, stop autopilot' : 'run away'}`; },
+    hint() { return `${this.auto ? 'a: manual play' : '1-0: your action bar   a: auto-play'}${session.alliesView().length ? '   t: orders' : ''}${app.g.state.instance ? '   p: pull +1' : ''}   space: ${this.paused ? 'resume' : 'pause'}   + -: speed ${this.speed}x   l: log   Esc: ${this.label ? 'run away, stop autopilot' : 'run away'}`; },
     schedule() {
       if (this.timer) app.term.clearInterval(this.timer);
       this.timer = app.term.setInterval(() => this.tick(), Math.max(10, TICK_MS / this.speed));
@@ -73,7 +75,7 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after } = 
       this.ended = true;
       this.stop();
       if (this.pend) { if (this.pend.amount > 0) app.say(`${dim((this.pend.t / 1000).toFixed(1).padStart(5) + 's')} ${combatLogPlainText(this.pend.remake(this.pend.amount))}`); this.pend = null; }
-      const r = app.g.resolveFight(session);
+      const r = this.resolve ? this.resolve(session) : app.g.resolveFight(session);
       app.fight = null;
       app.stack = this.savedStack;
       this.after?.(r);
@@ -93,6 +95,7 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after } = 
       this.onEnd?.(r);
     },
     flee() {
+      if (this.resolve) { session.forfeit('player'); for (let i = 0; i < 50 && !session.ended; i++) session.tick(); this.finish(); return; }
       this.ended = true;
       this.stop();
       app.g.abandonLiveFight();
@@ -114,14 +117,8 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after } = 
       if (k === 'l') { app.openLog(); return; }
       if (k === 't') { partyOrders(app, this); return; }
       if (k === 'p' && app.g.state.instance) { this.pullOne(); return; }
-      if (/^[1-9]$/.test(k)) {
-        const ab = this.abilityBar()[Number(k) - 1];
-        if (!ab) return;
-        this.pressed = ab.spell.id; this.pressedTicks = 0;
-        if (!ab.usable) app.say(dim(`${ab.spell.name}: ${ab.reason ?? 'not ready'} (queued)`));
-        app.render();
-        return;
-      }
+      const slot = this.abilityBar().find((e) => e.key === k);
+      if (slot) { this.fire(slot); return; }
       if (k === '0') {
         const it = session.items().find((x) => x.usable);
         if (it) { session.aiPlayer = false; this.logEvents(session.tick({ item: it.item.entry })); session.aiPlayer = this.auto; app.render(); }
@@ -135,7 +132,39 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after } = 
       app.say(yellow(`${r.name} joins the fight: ${r.injected.map((x) => x.name).join(', ')}.`) + (r.softCapWarning ? red('  That is a lot of enemies.') : ''));
       app.render();
     },
-    abilityBar() { return session.abilities().filter((x) => !x.spell.passive).slice(0, 9); },
+    /** Press one number-row slot: a spell queues over auto-play for one GCD, an item goes at once. */
+    fire(slot) {
+      if (slot.spell) {
+        this.pressed = slot.spell.id; this.pressedTicks = 0;
+        if (!slot.usable) app.say(dim(`${slot.spell.name}: ${slot.reason ?? 'not ready'} (queued)`));
+      } else if (slot.item) {
+        if (!slot.usable) { app.say(dim(`${slot.label}: ${slot.reason ?? 'not usable now'}`)); return; }
+        session.aiPlayer = false; this.logEvents(session.tick({ item: slot.item })); session.aiPlayer = this.auto;
+      } else app.say(dim(`${slot.label}: macros run from the Spells tab, not in a fight yet.`));
+      app.render();
+    },
+    /** The number row: your action bar 1 by its keybinds (spells and bag items), else your first nine abilities. */
+    abilityBar() {
+      const abs = session.abilities();
+      const bar = app.g.state.actionBars?.[0];
+      const out = [];
+      for (let i = 0; bar && i < (bar.slots?.length ?? 0); i++) {
+        const key = bar.keys?.[i];
+        if (!key || !/^[0-9]$/.test(key)) continue; // letter and modifier binds would shadow the fight's own keys
+        const c = slotContent(bar, i);
+        if (!c) continue;
+        if (c.kind === 'spell') {
+          const ab = abs.find((x) => x.spell.id === c.id);
+          const sp = ab?.spell ?? app.ds.spell(c.id);
+          if (sp) out.push({ key, spell: sp, label: sp.name, usable: !!ab?.usable, reason: ab ? ab.reason : 'not known in this fight', cooldownRemainingMs: ab?.cooldownRemainingMs ?? 0 });
+        } else if (c.kind === 'item') {
+          const it = session.items().find((x) => x.item.entry === c.entry);
+          out.push({ key, item: c.entry, label: `${app.itemName(c.entry)}${it ? ` x${it.count}` : ''}`, usable: !!it?.usable, reason: it ? it.reason : 'none left', cooldownRemainingMs: 0 });
+        } else out.push({ key, macro: c.id, label: `macro ${app.g.macroById?.(c.id)?.name ?? c.id}`, usable: false, cooldownRemainingMs: 0 });
+      }
+      if (out.length) return out;
+      return abs.filter((x) => !x.spell.passive).slice(0, 9).map((ab, i) => ({ key: String(i + 1), spell: ab.spell, label: ab.spell.name, usable: ab.usable, reason: ab.reason, cooldownRemainingMs: ab.cooldownRemainingMs }));
+    },
     render(W, H) {
       const lines = [];
       const t = (session.t / 1000).toFixed(1);
@@ -167,8 +196,8 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after } = 
       for (let i = 0; i < abs.length; i++) {
         const ab = abs[i];
         const cd = ab.cooldownRemainingMs > 0 ? dim(` ${Math.ceil(ab.cooldownRemainingMs / 1000)}s`) : '';
-        const label = `${ab.spell.name}${cd}`;
-        const cell = ab.usable ? `${inverse(` ${i + 1} `)} ${this.pressed === ab.spell.id ? yellow(label) : label}` : `${dim(` ${i + 1} `)} ${dim(label)}`;
+        const label = `${ab.label}${cd}`;
+        const cell = ab.usable ? `${inverse(` ${ab.key} `)} ${this.pressed != null && this.pressed === ab.spell?.id ? yellow(label) : label}` : `${dim(` ${ab.key} `)} ${dim(label)}`;
         if (vis(row) + vis(cell) + 3 > W) { lines.push(row); row = ' '; }
         row += `${cell}   `;
       }
@@ -176,7 +205,7 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after } = 
       if (items.length) row += `${inverse(' 0 ')} ${items[0].item.name ?? 'item'} x${items[0].count}`;
       lines.push(row);
       const unusable = abs.filter((a) => !a.usable && a.reason && a.cooldownRemainingMs <= 0).slice(0, 3);
-      if (unusable.length) lines.push(dim(`   ${unusable.map((a) => `${a.spell.name}: ${a.reason}`).join('   ')}`));
+      if (unusable.length) lines.push(dim(`   ${unusable.map((a) => `${a.label}: ${a.reason}`).join('   ')}`));
       return lines.slice(0, H);
     },
   };

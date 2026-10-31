@@ -14,10 +14,13 @@ import { equippedEntry } from '../domain/items/itemInstance.ts';
 import { knows } from '../domain/character/spellbook.ts';
 import { availablePoints, canSpend, canRefund, spentInTree } from '../domain/character/talents.ts';
 import { offeredQuests } from '../quests/quests.ts';
+import { pushBuyback, buyBack as buyBackDomain } from '../domain/economy/trading.ts';
 import { cityAccess, bankDialog, auctionDialog, mailDialog } from './tuiCity.mjs';
 import { professionsView, profTrainerDialog, worldGatherRows, openSendGoods, reagentUses } from './tuiProfessions.mjs';
 import { companionsView } from './tuiCompanions.mjs';
+import { companionLevel, companionCharacter, companionSpellbook } from '../domain/bots/squad.ts';
 import { squadJoinsPull } from './squad.mjs';
+import { barsDialog, playerBarsOwner } from './tuiBars.mjs';
 import { portalRows } from './tuiDungeon.mjs';
 
 const STAT_LABEL = { str: 'Strength', agi: 'Agility', sta: 'Stamina', int: 'Intellect', spi: 'Spirit' };
@@ -320,8 +323,8 @@ function bagsView(app) {
   return {
     id: 'bags', title: 'Bags', hint: 'Enter: use / equip', empty: 'Your bags are empty.',
     keys: {
-      s: { hint: 'sell', fn: (a, row) => { if (!a.vendor) { a.flashMsg('Open a vendor first (World tab).'); return; } if (row?.data) { const r = a.g.sellItem(row.data.item, row.data.count); a.result(r, r.ok ? `Sold ${a.itemName(row.data.item)}${r.qty > 1 ? ` x${r.qty}` : ''} for ${moneyText(r.earned)}.` : ''); } } },
-      j: { hint: 'sell junk', fn: (a) => { if (!a.vendor) { a.flashMsg('Open a vendor first (World tab).'); return; } const r = a.g.sellAllJunk(); a.result(r, r.ok ? `Sold ${r.count} grey items for ${moneyText(r.earned)}.` : ''); } },
+      s: { hint: 'sell', fn: (a, row) => { if (!a.vendor) { a.flashMsg('Open a vendor first (World tab).'); return; } if (row?.data) sellStack(a, a.g.state.inventory.stacks.indexOf(row.data)); } },
+      j: { hint: 'sell junk', fn: (a) => { if (!a.vendor) { a.flashMsg('Open a vendor first (World tab).'); return; } sellJunk(a); } },
       d: { hint: 'destroy', fn: (a, row) => { if (row?.data) a.confirm(`Destroy ${a.itemName(row.data.item)}${row.data.count > 1 ? ` x${row.data.count}` : ''}?`, () => a.result(a.g.discardItem(row.data.item, row.data.count), `Destroyed ${a.itemName(row.data.item)}.`)); } },
       b: { hint: 'bank', fn: (a) => { if (!cityAccess(a).bank) { a.flashMsg('No banker here. Banks are in the capitals, Ratchet, Booty Bay, Gadgetzan and Everlook.'); return; } a.push(bankDialog(a)); } },
       u: { hint: 'equip upgrades', fn: (a) => { const n = a.g.suggestedEquipmentUpgrades().length ? a.g.autoEquipUpgrades() : 0; if (n) a.say(green(`You put on ${plural(n, 'upgrade')}.`)); else a.flashMsg('Nothing in your bags beats what you wear.'); } },
@@ -466,16 +469,18 @@ function slotDialog(app, slot) {
 function spellsView(app) {
   return {
     id: 'spells', title: 'Spellbook', hint: 'Enter: cast',
+    keys: { b: { hint: 'action bars', fn: (a) => a.push(barsDialog(a, playerBarsOwner)) } },
     rows(a) {
       const known = knownUsableSpells(a.ch, a.g.state.spellbook, a.ds).sort((x, y) => x.name.localeCompare(y.name));
-      return known.map((sp) => {
+      const head = [{ text: `Action bars ${dim(`${a.g.state.actionBars?.length ?? 0} bars   b`)}`, detail: () => [bold('Action bars'), '', 'Bar 1 is the number row in a fight: put spells and bag items on it and bind keys.'], act: () => a.push(barsDialog(a, playerBarsOwner)) }, { text: '', header: true }];
+      return [...head, ...known.map((sp) => {
         const cd = a.g.spellCooldownRemaining(sp.id);
         return {
           text: `${sp.name}${sp.rank ? dim(` (Rank ${sp.rank})`) : ''}${sp.cost ? dim(`  ${sp.cost} ${sp.powerType}`) : ''}${cd > 0 ? red(`  ${secondsText(cd)}`) : ''}`,
           detail: () => spellLines(a, sp),
           act: () => a.result(a.g.castOutOfCombat(sp.id), `You cast ${sp.name}.`),
         };
-      });
+      })];
     },
   };
 }
@@ -493,32 +498,87 @@ function rotNames(app) {
   };
 }
 
+/** Whose rotation the tab edits: yours, or a seated companion's (the editor's companion picker in phonecraft
+ *  rotationEditor.ts). Every read and write on the tab goes through this. */
+function rotOwner(app) {
+  const g = app.g, id = app.tabs[5]?.view.whose;
+  const comp = id ? (g.state.squad ?? []).find((c) => c.id === id) : null;
+  if (!comp) {
+    return {
+      name: 'your', comp: null, get: () => g.rotation(), set: (r) => g.setRotation(r), reset: () => g.resetRotation(),
+      spells: () => knownUsableSpells(app.ch, g.state.spellbook, app.ds), bag: () => g.state.inventory.stacks,
+      profiles: () => g.rotationProfiles(), add: (o) => g.addRotationProfile(o), rename: (pid, n) => g.renameRotationProfile(pid, n),
+      del: (pid) => g.deleteRotationProfile(pid), select: (pid) => g.selectRotationProfile(pid),
+    };
+  }
+  const lvl = companionLevel(comp, app.ch.level);
+  return {
+    name: `${comp.name}'s`, comp, get: () => g.companionRotation(comp.id), set: (r) => g.setCompanionRotation(comp.id, r), reset: () => g.resetCompanionRotation(comp.id),
+    spells: () => knownUsableSpells(companionCharacter(comp, lvl, app.ds), companionSpellbook(comp, lvl, app.ds), app.ds), bag: () => comp.bags?.stacks ?? [],
+    profiles: () => g.companionRotationProfiles(comp.id), add: (o) => g.addCompanionRotationProfile(comp.id, o), rename: (pid, n) => g.renameCompanionRotationProfile(comp.id, pid, n),
+    del: (pid) => g.deleteCompanionRotationProfile(comp.id, pid), select: (pid) => g.selectCompanionRotationProfile(comp.id, pid),
+  };
+}
+
 function editRotation(app, mutate) {
-  const rot = structuredClone(app.g.rotation());
+  const o = rotOwner(app);
+  const rot = structuredClone(o.get());
   mutate(rot);
   rot.custom = true;
-  app.g.setRotation(rot);
+  o.set(rot);
+}
+
+/** w: you or one of the seated companions. */
+function pickRotationOwner(app) {
+  const view = app.tabs[5].view;
+  const opts = [{ label: `${view.whose ? '  ' : green('● ')}You`, value: null }, ...(app.g.state.squad ?? []).map((c) => ({ label: `${view.whose === c.id ? green('● ') : '  '}${c.name} ${dim(`${className(c.cls)}, ${c.role}`)}`, value: c.id }))];
+  app.pick('Whose rotation?', opts, (id) => { view.whose = id; view.cursor = 0; view.scroll = 0; });
+}
+
+/** The named rotations: switch, add (a copy or the recommended list), rename, delete. */
+function profileMenu(app) {
+  const o = rotOwner(app);
+  const list = o.profiles();
+  const opts = [
+    ...list.map((p) => ({ label: `${p.active ? green('● ') : '  '}${p.name}`, value: { kind: 'select', p } })),
+    { label: dim('+ New rotation (a copy of this one)'), value: { kind: 'add' } },
+    { label: dim('+ New rotation (the recommended list)'), value: { kind: 'band' } },
+    { label: dim('Rename this one'), value: { kind: 'rename' } },
+    ...(list.length > 1 ? [{ label: red('Delete this one'), value: { kind: 'delete' } }] : []),
+  ];
+  const active = list.find((p) => p.active);
+  app.pick(`${o.comp ? o.name : 'Your'} rotations`, opts, (v) => {
+    if (v.kind === 'select') app.result(o.select(v.p.id), `Now playing ${v.p.name}.`);
+    else if (v.kind === 'add' || v.kind === 'band') app.prompt('Name: ', (n) => { const r = o.add({ name: n, ...(v.kind === 'band' ? { fromBand: null } : { copyFromId: active?.id }) }); if (app.result(r, r.ok ? `Added ${r.name}.` : '')) o.select(r.id); app.afterAction(); });
+    else if (v.kind === 'rename' && active) app.prompt('New name: ', (n) => { app.result(o.rename(active.id, n), `Renamed to ${n}.`); app.afterAction(); }, active.name);
+    else if (v.kind === 'delete' && active) app.confirm(`Delete ${active.name}?`, () => app.result(o.del(active.id), `Deleted ${active.name}.`));
+  });
 }
 
 function rotationView(app) {
-  const rebuild = (a) => a.confirm('Rebuild the recommended rotation for your spec? Your edits are lost.', () => { a.g.resetRotation(); a.say(green('Rotation rebuilt.')); });
+  const rebuild = (a) => a.confirm('Rebuild the recommended rotation? The edits are lost.', () => { rotOwner(a).reset(); a.say(green('Rotation rebuilt.')); });
   return {
     id: 'rotation', title: 'Rotation', hint: 'Enter: open',
     keys: {
+      w: { hint: 'whose', fn: (a) => pickRotationOwner(a) },
+      p: { hint: 'profiles', fn: (a) => profileMenu(a) },
       // K J c d still work as shortcuts; the menu on Enter is the advertised way, so they stay out of the hint line.
       K: { fn: (a, row) => row?.data?.rule && moveRule(a, row.data, -1) },
       J: { fn: (a, row) => row?.data?.rule && moveRule(a, row.data, +1) },
       a: { hint: 'add', fn: (a, row) => addRule(a, row?.data?.phase ?? 'combat', row?.data?.rule ? row.data.index : undefined) },
       c: { fn: (a, row) => row?.data?.rule && editCondition(a, row.data) },
       d: { fn: (a, row) => row?.data?.rule && a.confirm('Delete this rule?', () => deleteRule(a, row.data)) },
-      s: { hint: 'spec', fn: (a) => pickSpec(a) },
+      s: { hint: 'spec', fn: (a) => { if (!rotOwner(a).comp) pickSpec(a); } },
       r: { hint: 'rebuild', fn: rebuild },
     },
     rows(a) {
-      const g = a.g, rot = g.rotation(), names = rotNames(a);
-      const spec = g.effectiveRotationSpec();
+      const g = a.g, o = rotOwner(a), rot = o.get(), names = rotNames(a);
+      const spec = o.comp ? (a.ds.botSpecs(o.comp.cls)?.[o.comp.specIdx]?.name ?? className(o.comp.cls)) : g.effectiveRotationSpec();
+      const prof = o.profiles().find((p) => p.active);
       const rows = [
-        { text: `${bold(`${spec} rotation`)}${rot.custom ? dim('  (edited by you)') : dim('  (recommended)')}${g.rotationNeedsRefresh() ? yellow('  a newer recommended list exists') : ''}`, header: true },
+        { text: `${bold(o.comp ? `${o.comp.name}: ${spec}` : `${spec} rotation`)}${rot.custom ? dim('  (edited)') : dim('  (recommended)')}${!o.comp && g.rotationNeedsRefresh() ? yellow('  a newer recommended list exists') : ''}`, header: true },
+        ...((g.state.squad ?? []).length ? [{ text: `Whose: ${cyan(o.comp ? o.comp.name : 'You')} ${dim('w')}`, detail: () => [bold('Whose rotation'), '', "Your own, or a seated companion's: the same rules drive them in every fight."], act: () => pickRotationOwner(a) }] : []),
+        { text: `Profile: ${cyan(prof?.name ?? 'Default')} ${dim(`${o.profiles().length} saved   p`)}`, detail: () => [bold('Rotation profiles'), '', 'Keep several named rotations and switch which one plays.', ...o.profiles().map((p) => `${p.active ? green('●') : dim('·')} ${p.name}`)], act: () => profileMenu(a) },
         ...wrapLines('What auto-play casts for you. Each tick the rules are read top to bottom and the first one whose conditions hold fires. ✓ is on, · is off. Enter on a rule opens its menu.', a.layout().listW - 2).map((t) => ({ text: dim(t), header: true })),
       ];
       for (const phase of PHASES) {
@@ -541,7 +601,7 @@ function rotationView(app) {
         });
       }
       rows.push({ text: '', header: true }, { text: 'Settings', header: true });
-      rows.push({
+      if (!o.comp) rows.push({
         text: `Build for spec: ${cyan(spec)}${g.rotationSpec() ? '' : dim('  (follows your talents)')}`,
         detail: () => [bold('Spec'), '', 'The recommended list is built for one talent tree. Enter picks another, or lets it follow your talents again.'],
         act: () => pickSpec(a),
@@ -597,7 +657,7 @@ function ruleLines(app, rule, names) {
 }
 
 function moveRule(app, { phase, index, rule }, delta) {
-  const list = app.g.rotation().phases[phase] ?? [];
+  const list = rotOwner(app).get().phases[phase] ?? [];
   const j = index + delta;
   if (j < 0 || j >= list.length) { app.flashMsg(delta < 0 ? 'Already first in its list.' : 'Already last in its list.'); return; }
   editRotation(app, (rot) => {
@@ -611,9 +671,10 @@ function moveRule(app, { phase, index, rule }, delta) {
 }
 
 function addRule(app, phase, afterIndex) {
-  const known = knownUsableSpells(app.ch, app.g.state.spellbook, app.ds).filter((s) => !s.passive).sort((x, y) => x.name.localeCompare(y.name));
+  const o = rotOwner(app);
+  const known = o.spells().filter((s) => !s.passive).sort((x, y) => x.name.localeCompare(y.name));
   const options = known.map((sp) => ({ label: `${sp.name}${sp.rank ? dim(` (Rank ${sp.rank})`) : ''}`, detail: () => spellLines(app, sp), value: { kind: 'spell', spellId: sp.id } }));
-  const combatItems = app.g.state.inventory.stacks.map((s) => app.ds.item(s.item)).filter((it) => it?.useInCombat);
+  const combatItems = [...new Set(o.bag().map((s) => s.item))].map((e) => app.ds.item(e)).filter((it) => it?.useInCombat);
   for (const it of combatItems) options.push({ label: `Use ${qualityPaint(it.quality)(it.name)}`, detail: () => itemLines(app, it), value: { kind: 'item', itemEntry: it.entry } });
   app.pick(`Add to ${PHASE_LABEL[phase].split(' (')[0].toLowerCase()}: what to do`, options, (action) => {
     const id = `tui-${Date.now().toString(36)}-${Math.floor(Math.random() * 1e6).toString(36)}`;
@@ -778,20 +839,73 @@ function charView(app) {
 
 // ---- NPC dialogs ---------------------------------------------------------------------------------
 
+const VENDOR_MODES = ['buy', 'sell', 'buyback', 'party'];
+const VENDOR_MODE_LABEL = { buy: 'Buying', sell: 'Selling', buyback: 'Buyback', party: 'Companions' };
+
+/** Record a sale so the Buyback tab can undo it this session (phonecraft keeps the list caller-side too). */
+export function noteSale(app, entry, qty, refundCopper, owner) {
+  app.buyback = pushBuyback(app.buyback ?? [], { entry, qty, refundCopper, soldAt: Date.now(), ...(owner ? { owner: owner.id, ownerName: owner.name } : {}) });
+}
+
+/** Sell one of your bag stacks at the open vendor, onto the buyback list. */
+export function sellStack(app, slot) {
+  const s = app.g.state.inventory.stacks[slot];
+  if (!s) return;
+  const r = app.g.sellItemStack(slot, s.count);
+  if (app.result(r, r.ok ? `Sold ${app.itemName(s.item)}${r.qty > 1 ? ` x${r.qty}` : ''} for ${moneyText(r.earned)}.` : '')) noteSale(app, s.item, r.qty, r.earned);
+}
+
+/** Sell every junk-filter match, each onto the buyback list. */
+export function sellJunk(app) {
+  const preview = app.g.junkSellPreview();
+  const r = app.g.sellAllJunk();
+  if (!app.result(r, r.ok ? `Sold ${plural(r.count, 'junk item')} for ${moneyText(r.earned)}.` : '')) return;
+  for (const p of preview) noteSale(app, p.entry, p.count, p.unitSell * p.count);
+}
+
+// Buy a sale back: a companion's stack goes home to that companion (vendorBuybackRun.ts).
+function buyBackAt(app, i) {
+  const list = app.buyback ?? [], e = list[i];
+  if (!e) return;
+  if (e.owner) {
+    const r = app.g.buyBackCompanionStack(e.owner, e.entry, e.qty, e.refundCopper);
+    if (app.result(r, r.ok ? `${app.itemName(e.entry)} goes back to ${e.ownerName}.` : '')) app.buyback = list.filter((_, j) => j !== i);
+    return;
+  }
+  const r = buyBackDomain(app.g.state.char, app.g.state.inventory, list, i, app.ds.item(e.entry)?.stackable, bagCapacity(app.ch, app.ds));
+  if (!r.ok) { app.say(red(r.reason ?? 'Cannot buy that back.')); return; }
+  app.g.state.char = r.char; app.g.state.inventory = r.inventory; app.buyback = r.buyback;
+  app.say(green(`You buy back ${app.itemName(e.entry)}${e.qty > 1 ? ` x${e.qty}` : ''} for ${moneyText(e.refundCopper)}.`));
+}
+
 export function vendorDialog(app, vendor) {
   app.vendor = vendor; app.cmds.setVendor(vendor);
   let mode = 'buy';
+  const hints = { buy: 'Enter: buy   Tab: next', sell: 'Enter: sell   Tab: next', buyback: 'Enter: buy back   Tab: next', party: 'Enter: sell for them   Tab: next' };
   const view = {
-    id: `vendor-${vendor.entry}`, title: vendor.name, hint: 'Enter: buy   Tab: buy/sell',
+    id: `vendor-${vendor.entry}`, title: vendor.name, hint: hints.buy,
     keys: {
       B: { hint: 'buy many', fn: (a, row) => { if (mode === 'buy' && row?.data) a.prompt(`How many ${a.itemName(row.data.itemEntry)}? `, (t) => { const n = Number(t); if (n > 0) buy(a, row.data, n); a.afterAction(); }); } },
-      j: { hint: 'sell junk', fn: (a) => { const r = a.g.sellAllJunk(); a.result(r, r.ok ? `Sold ${r.count} grey items for ${moneyText(r.earned)}.` : ''); } },
+      j: { hint: 'sell junk', fn: (a, row) => {
+        if (mode !== 'party') { sellJunk(a); return; }
+        const comp = row?.data?.comp;
+        if (!comp) return;
+        const r = a.g.sellCompanionJunk(comp.id);
+        if (a.result(r, r.ok ? `Sold ${plural(r.count, 'junk item')} of ${comp.name}'s for ${moneyText(r.earned)}.` : '')) for (const x of r.sold) noteSale(a, x.entry, x.qty, x.refundCopper, comp);
+      } },
       ...(vendor.canRepair ? { r: { hint: 'repair', fn: (a) => { const r = a.g.repairAll(vendor.entry); a.result(r, r.ok ? (r.spent ? `Repaired for ${moneyText(r.spent)}.` : 'Nothing needs repair.') : ''); } } } : {}),
     },
-    onKey(a, k) { if (k === 'tab') { mode = mode === 'buy' ? 'sell' : 'buy'; view.cursor = 0; view.scroll = 0; view.hint = mode === 'buy' ? 'Enter: buy   Tab: sell' : 'Enter: sell   Tab: buy'; return true; } return false; },
+    onKey(a, k) {
+      if (k !== 'tab' && k !== 'shift-tab') return false;
+      const i = VENDOR_MODES.indexOf(mode) + (k === 'tab' ? 1 : -1);
+      mode = VENDOR_MODES[(i + VENDOR_MODES.length) % VENDOR_MODES.length];
+      view.cursor = 0; view.scroll = 0; view.hint = hints[mode];
+      return true;
+    },
     onClose(a) { /* the vendor stays "open" for :buy / s in bags until you travel */ },
     rows(a) {
-      const rows = [{ text: `${bold(vendor.name)} ${dim(`<${vendor.subname ?? 'Vendor'}>`)}   ${mode === 'buy' ? bold('Buying') : dim('Buying')} ${dim('|')} ${mode === 'sell' ? bold('Selling') : dim('Selling')}   ${yellow(moneyText(a.ch.gold) || '0c')}`, header: true }, { text: '', header: true }];
+      const tabs = `${bold(VENDOR_MODE_LABEL[mode])} ${dim(`${VENDOR_MODES.indexOf(mode) + 1}/${VENDOR_MODES.length}`)}`;
+      const rows = [{ text: `${bold(vendor.name)} ${dim(`<${vendor.subname ?? 'Vendor'}>`)}   ${tabs}   ${yellow(moneyText(a.ch.gold) || '0c')}`, header: true }, { text: '', header: true }];
       if (mode === 'buy') {
         const offers = a.g.vendorOffers(vendor.entry);
         const uses = reagentUses(a);
@@ -810,16 +924,46 @@ export function vendorDialog(app, vendor) {
             act: () => buy(a, o, 1),
           });
         }
-      } else {
+      } else if (mode === 'sell') {
         const st = a.g.state.inventory.stacks;
+        const junk = a.g.junkSellPreview();
+        if (junk.length) rows.push({ text: dim(`j sells ${plural(junk.reduce((n, p) => n + p.count, 0), 'junk item')} for ${moneyText(junk.reduce((n, p) => n + p.unitSell * p.count, 0))}`), header: true });
         if (!st.length) rows.push({ text: dim('Your bags are empty.'), header: true });
-        for (const s of st) {
+        st.forEach((s, slot) => {
           const it = a.ds.item(s.item);
           const total = (it?.sellPrice ?? 0) * s.count;
           rows.push({
             text: `${qualityPaint(it?.quality)(it?.name ?? s.item)}${s.count > 1 ? ` x${s.count}` : ''}  ${total ? yellow(moneyText(total)) : dim('no value')}`, data: s,
-            detail: () => itemLines(a, it),
-            act: () => { const r = a.g.sellItem(s.item, s.count); a.result(r, r.ok ? `Sold ${it?.name}${r.qty > 1 ? ` x${r.qty}` : ''} for ${moneyText(r.earned)}.` : ''); },
+            detail: () => itemLines(a, it, ['', dim('Enter: sell the stack (you can buy it back on the Buyback tab)')]),
+            act: () => sellStack(a, slot),
+          });
+        });
+      } else if (mode === 'buyback') {
+        const list = a.buyback ?? [];
+        if (!list.length) rows.push({ text: dim('Nothing sold here this session.'), header: true });
+        list.forEach((e, i) => {
+          const it = a.ds.item(e.entry);
+          rows.push({
+            text: `${qualityPaint(it?.quality)(it?.name ?? e.entry)}${e.qty > 1 ? ` x${e.qty}` : ''}  ${yellow(moneyText(e.refundCopper))}${e.ownerName ? dim(`  back to ${e.ownerName}`) : ''}`,
+            detail: () => itemLines(a, it, ['', `Buy back for ${yellow(moneyText(e.refundCopper))}`]),
+            act: () => buyBackAt(a, i),
+          });
+        });
+      } else {
+        const comps = [...(a.g.state.squad ?? []), ...Object.values(a.g.state.botRoster ?? {})];
+        if (!comps.length) rows.push({ text: dim('No companions to sell for.'), header: true });
+        for (const comp of comps) {
+          const bags = comp.bags?.stacks ?? [];
+          const junk = a.g.companionJunkSellPreview(comp.id);
+          rows.push({ text: '', header: true }, { text: `${comp.name}${junk.length ? dim(`   j: sell ${plural(junk.reduce((n, p) => n + p.count, 0), 'junk item')}`) : ''}`, header: true });
+          if (!bags.length) rows.push({ text: dim('  Empty bags.'), header: true });
+          bags.forEach((s, slot) => {
+            const it = a.ds.item(s.item);
+            rows.push({
+              text: `  ${qualityPaint(it?.quality)(it?.name ?? s.item)}${s.count > 1 ? ` x${s.count}` : ''}  ${it?.sellPrice ? yellow(moneyText(it.sellPrice * s.count)) : dim('no value')}`, data: { comp, s },
+              detail: () => itemLines(a, it, ['', dim(`Enter: sell it out of ${comp.name}'s bags   j: sell their junk`)]),
+              act: () => { const r = a.g.sellCompanionItemStack(comp.id, slot); if (a.result(r, r.ok ? `Sold ${comp.name}'s ${it?.name}${r.qty > 1 ? ` x${r.qty}` : ''} for ${moneyText(r.earned)}.` : '')) noteSale(a, s.item, r.qty, r.earned, comp); },
+            });
           });
         }
       }

@@ -92,6 +92,16 @@ if (vendorRow > 0) {
   check('vendor dialog opened', app.top().id.startsWith('vendor-'));
   term.press('tab'); show('vendor sell');
   check('vendor sell list shows bags', /Selling/.test(frame()));
+  const sold = app.g.state.inventory.stacks.find((s) => (ds.item(s.item)?.sellPrice ?? 0) > 0);
+  if (sold) {
+    const had = countItem(app.g.state.inventory, sold.item);
+    app.top().cursor = rowIndex((r) => r.data === sold); term.press('return');
+    term.press('tab'); show('vendor buyback');
+    check('a sale lands on the Buyback tab', /Buyback/.test(frame()) && strip(frame()).includes(ds.item(sold.item).name));
+    app.top().cursor = rowIndex((r, t) => t.includes(ds.item(sold.item).name)); term.press('return');
+    check('Enter buys it back', countItem(app.g.state.inventory, sold.item) === had && !(app.buyback ?? []).length);
+    term.press('tab'); check('Tab reaches the companions mode', /Companions/.test(strip(frame())));
+  }
   term.press('escape');
   check('Esc closes the vendor', app.stack.length === 0);
 }
@@ -576,6 +586,97 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   check('f fills the 20-man group', g.state.raidLineup?.size === 20 && g.state.raidLineup.ids.length > 0);
   term.press('c'); home();
   g.state.char.zoneId = 'westfall';
+}
+
+// ---- companions: settings, hire search, rotation, bars, bags, bank, share, pets, duel ------------------------
+{
+  const g = app.g;
+  const tabOf = (id) => app.tabs.findIndex((t) => t.view.id === id);
+  const comp = () => g.state.squad[2];
+  const openPage = () => { home(); app.switchTab(tabOf('companions')); app.top().cursor = rowIndex((r, t) => t.startsWith(comp().name)); term.press('return'); };
+  openPage(); show('companion page with settings');
+  check('the companion page has settings rows', /How they play/.test(strip(frame())) || rowIndex((r, t) => /^Area spells:/.test(t)) > 0);
+  app.top().cursor = rowIndex((r, t) => /^Area spells:/.test(t)); term.press('return');
+  check('Enter cycles their AoE mode', comp().aoeMode === 'aoe');
+  app.top().cursor = rowIndex((r, t) => /^Emergency heals:/.test(t)); term.press('return');
+  check('Enter switches off-heal', comp().offHeal === true);
+  const locked = comp().xpLocked === true;
+  app.top().cursor = rowIndex((r, t) => /^Experience:/.test(t)); term.press('return');
+  check('Enter switches their experience lock', (comp().xpLocked === true) !== locked);
+  term.press('return');
+  const specs = ds.botSpecs(comp().cls) ?? [];
+  app.top().cursor = rowIndex((r, t) => /^Spec:/.test(t)); term.press('return');
+  const before = comp().specIdx;
+  app.top().cursor = app.rowsOf(app.top()).findIndex((r, i) => i !== before); term.press('return');
+  check(`a spec pick respecs them (${specs.length} builds)`, specs.length < 2 || comp().specIdx !== before);
+  // Bags: give them a potion, use it on them is refused or fine; sell needs a vendor; bank and back.
+  const potion = ds.items().find((i) => i.useInCombat?.effect === 'restore_health' && (i.requiredLevel ?? 1) <= 5);
+  g.state.inventory = addItem(g.state.inventory, potion.entry, 3, 5);
+  g.giveItemToBot(comp().id, potion.entry, 3);
+  openPage();
+  const potRow = rowIndex((r, t) => t.startsWith(potion.name));
+  check('their bags list what you gave', potRow > 0);
+  app.top().cursor = potRow; term.press('b');
+  check('b puts it in their bank', (comp().bank?.stacks ?? []).some((s) => s.item === potion.entry));
+  app.top().cursor = rowIndex((r, t) => t.startsWith(potion.name)); term.press('return');
+  check('Enter in their bank takes it back to their bags', (comp().bags?.stacks ?? []).some((s) => s.item === potion.entry));
+  // Action bars: their kit bar opens and a slot fills from their spells.
+  app.top().cursor = rowIndex((r, t) => /^Action bars/.test(t)); term.press('return'); show('companion bars');
+  check('their action bars open', app.top().id === 'bars' && /action bars/.test(strip(frame())));
+  term.press('escape'); term.press('escape');
+  // Rotation tab: switch to the companion, add a profile, switch back.
+  home(); term.press('6'); term.press('w');
+  app.top().cursor = rowIndex((r, t) => t.includes(comp().name)); term.press('return'); show('companion rotation');
+  check('w shows the companion rotation', strip(frame()).includes(`${comp().name}:`));
+  term.press('p'); app.top().cursor = rowIndex((r, t) => /copy of this one/.test(t)); term.press('return'); term.type('Second');
+  check('p adds a named companion rotation', g.companionRotationProfiles(comp().id).some((p) => p.name === 'Second' && p.active));
+  term.press('w'); term.press('return');
+  check('w back to your own rotation', !app.tabs[5].view.whose);
+  // Player action bars: bar 1 from the Spells tab, and the fight's number row reads it.
+  home(); term.press('5'); term.press('b'); show('player bars');
+  check('b on Spells opens your action bars', app.top().id === 'bars' && /Bar 1/.test(strip(frame())));
+  term.press('escape');
+  // Share consumables and the party vault from the Companions tab.
+  g.state.inventory = addItem(g.state.inventory, potion.entry, 8, 5);
+  home(); app.switchTab(tabOf('companions')); term.press('s'); show('share consumables');
+  check('s opens Share consumables listing the potion', app.top().id === 'share' && strip(frame()).includes(potion.name));
+  term.press('A');
+  check('A hands potions out', g.state.squad.some((c) => (c.bags?.stacks ?? []).some((s) => s.item === potion.entry)));
+  term.press('escape'); term.press('v');
+  check('v opens party storage', app.top().id === 'vault' && strip(frame()).includes(potion.name));
+  app.top().cursor = rowIndex((r, t) => t.includes(potion.name)); term.press('return');
+  check('Enter in party storage takes it all back', countItem(g.state.inventory, potion.entry) > 0 && g.state.squad.every((c) => !(c.bags?.stacks ?? []).some((s) => s.item === potion.entry)));
+  term.press('escape');
+  // A hunter on the bench with a pet picker; a tavern duel at an inn.
+  const hunter = g.recruitCompanion(3, 'dps', 'field');
+  const hc = Object.values(g.state.botRoster ?? {}).find((c) => c.id === hunter.id) ?? g.state.squad.find((c) => c.id === hunter.id);
+  if (hc) hc.level = 20;
+  const benched = g.dismissCompanion(g.state.squad[3].id);
+  g.activateCompanion(hunter.id);
+  home(); app.switchTab(tabOf('companions')); app.top().cursor = rowIndex((r, t) => t.startsWith(hc?.name ?? '?')); term.press('return');
+  const petRow = rowIndex((r, t) => /^Tame another beast/.test(t));
+  check('a hunter companion has a pet picker', petRow > 0 && benched.ok);
+  if (petRow > 0) {
+    app.top().cursor = petRow; term.press('return'); term.press('down'); term.press('return');
+    check('picking a beast gives them that pet', !!(g.state.squad.find((c) => c.id === hunter.id)?.pet));
+  }
+  g.state.char.zoneId = 'elwynn';
+  home(); app.switchTab(tabOf('companions')); app.top().cursor = rowIndex((r, t) => t.startsWith(comp().name)); term.press('return');
+  const duelRow = rowIndex((r, t) => /^Duel /.test(t));
+  check('at an inn a companion can be duelled', duelRow > 0);
+  if (duelRow > 0) {
+    const hp = g.state.char.health;
+    app.top().cursor = duelRow; term.press('return');
+    check('the duel runs in the live fight view', !!app.fight && app.fight.label === 'duel');
+    finishFight();
+    check('a duel costs nothing and ends on a yield', !app.fight && app.log.slice(-6).some((l) => /yield|gives way/.test(strip(l))) && g.state.char.health > 0 && hp > 0);
+  }
+  // Hire search from the hire list.
+  home(); app.switchTab(tabOf('companions'));
+  app.top().cursor = rowIndex((r, t) => /^Hire a companion/.test(t)); term.press('return');
+  term.press('/'); term.type('mage');
+  check('/ in the hire list searches the faction', app.top().id === 'hire-search' && app.rowsOf(app.top()).some((r) => !r.header && /Mage/.test(strip(r.text))));
+  home();
 }
 
 // Help overlay and escape.

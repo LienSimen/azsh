@@ -5,6 +5,8 @@ import { bold, dim, cyan, yellow, green, red, qualityPaint, fit, plural } from '
 import { itemLines } from './tuiViews.mjs';
 import { recipeBook, openSendGoods, companionsOf } from './tuiProfessions.mjs';
 import { SQUAD_MODES, SQUAD_MODE_LABEL, squadModeOf, setSquadMode } from './squad.mjs';
+import { settingsRows, petRows, questRows, teachRow, bagRows, bankRows, shareDialog, vaultDialog, hireSearch, tavernDuel } from './tuiCompanionKit.mjs';
+import { barsDialog, companionBarsOwner } from './tuiBars.mjs';
 import { moneyText } from '../domain/economy/money.ts';
 import { className, raceName } from '../domain/core/ids.ts';
 import { bagCapacity, EQUIP_SLOTS, SLOT_LABEL, itemSlotTargets } from '../domain/items/equipment.ts';
@@ -121,6 +123,9 @@ export function companionsView(app) {
       u: { hint: 'gear everyone', fn: gearAll },
       c: { hint: 'collect trips', fn: collectAll },
       m: { hint: 'squad mode', fn: (a) => pickSquadMode(a) },
+      s: { hint: 'share consumables', fn: (a) => a.push(shareDialog(a)) },
+      v: { hint: 'party storage', fn: (a) => a.push(vaultDialog(a)) },
+      A: { hint: 'everyone AoE', fn: (a) => { const r = a.g.setAllCompanionsAoeMode('aoe'); const ap = a.g.autopilotConfig(); if (ap.aoeMode !== 'aoe') a.g.setAutopilotConfig({ ...ap, aoeMode: 'aoe' }); a.result(r, 'Everyone prefers area spells against two or more.'); } },
     },
     rows(a) {
       const g = a.g, squad = g.state.squad ?? [], bench = Object.values(g.state.botRoster ?? {});
@@ -146,6 +151,8 @@ export function companionsView(app) {
         rows.push(H(''), H('Everyone'));
         rows.push({ text: `Put on every upgrade ${ups ? green(`(${ups})`) : dim('(none)')} ${dim('u')}`, detail: () => [bold('Gear everyone'), '', 'Each companion, party and bench, takes the best piece for them out of their own bags, your bags and your bank. Shared items go to whoever gains the most.'], act: () => gearAll(a) });
         rows.push({ text: `Send trade goods and upgrades ${dim('g')}`, detail: () => [bold('Send goods'), '', 'Ore, herbs, leather and cloth go to the companions whose recipes use them; you review the list first.'], act: () => openSendGoods(a) });
+        rows.push({ text: `Share consumables ${dim('s')}`, detail: () => [bold('Share consumables'), '', 'Potions, elixirs, food buffs, coats, devices, bandages, ammo and reagents from your bags, split to whoever gains the most, or by your rules.'], act: () => a.push(shareDialog(a)) });
+        rows.push({ text: `Party storage ${dim('v')}`, detail: () => [bold('Party storage'), '', 'Everything your companions carry and bank, by item. Take any of it back.'], act: () => a.push(vaultDialog(a)) });
         rows.push({ text: `Collect finished trips ${back ? green(`(${back} back)`) : dim('(none back)')} ${dim('c')}`, detail: () => [bold('Gathering trips'), '', `Energy ${energy}/${MAX_COMPANION_ENERGY}, refills at ${new Date(energyResetsAtMs(Date.now())).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`], act: () => collectAll(a) });
       }
       return rows;
@@ -179,7 +186,7 @@ function yieldText(app, rows) {
 
 // ---- hiring -------------------------------------------------------------------------------------------
 
-function findCand(app, botId) { return app.g.innCandidates().find((c) => c.bot.id === botId) ?? null; }
+function findCand(app, botId) { return [...app.g.innCandidates(), ...(app.hireResults ?? [])].find((c) => c.bot.id === botId) ?? null; }
 
 // The body they would bring: same shell hireCandidate builds, on their own spec, for the stat preview.
 function candCharacter(app, c) {
@@ -222,12 +229,16 @@ function pickRoleAndHire(app, c, after) {
   app.pick(`${c.bot.name}: what role?`, roles.map((r) => ({ label: `${roleText(r)}${r === c.specRole ? dim('  (their spec)') : ''}`, value: r })), (role) => { if (hireAs(app, c, role)) after?.(); });
 }
 
-function hireDialog(app) {
+function hireDialog(app, results) {
   return {
-    id: 'hire', title: 'Hire', hint: 'Enter: look closer',
-    keys: { h: { hint: 'hire', fn: (a, row) => { const c = row?.data && findCand(a, row.data); if (c) pickRoleAndHire(a, c, () => a.pop()); } } },
+    id: results ? 'hire-search' : 'hire', title: results ? 'Search' : 'Hire', hint: 'Enter: look closer',
+    keys: {
+      h: { hint: 'hire', fn: (a, row) => { const c = row?.data && findCand(a, row.data); if (c) pickRoleAndHire(a, c, () => a.pop()); } },
+      '/': { hint: 'search', fn: (a) => hireSearch(a, (found) => { a.hireResults = found; a.push(hireDialog(a, found)); }) },
+      D: { hint: 'duel', fn: (a, row) => { if (row?.data) tavernDuel(a, row.data); } },
+    },
     rows(a) {
-      const g = a.g, list = g.innCandidates();
+      const g = a.g, list = results ?? g.innCandidates();
       const squad = g.state.squad ?? [];
       const rows = [H(`${plural(list.length, 'adventurer')} for hire   ${squad.length >= MAX_COMPANIONS ? yellow('party full: a new hire goes to the bench') : dim(`party ${squad.length}/${MAX_COMPANIONS}`)}   ${yellow(moneyText(a.ch.gold) || '0c')}`), H('')];
       if (!list.length) rows.push(H(dim('  Nobody is looking for work here right now.')));
@@ -324,6 +335,11 @@ export function companionDialog(app, id) {
         : { text: green('Seat in the party'), detail: () => [bold('Party'), '', `Up to ${MAX_COMPANIONS} companions travel with you.`], act: () => a.result(g.activateCompanion(id), `${comp.name} joins the party.`) });
       rows.push({ text: 'Put on their best gear', detail: () => [bold('Best gear'), '', 'Strict upgrades from their own bags first, then from yours. What you hand over becomes theirs.'], act: () => { const r = g.equipCompanionBest(id); a.result(r, r.equipped ? `${comp.name} puts on ${plural(r.equipped, 'piece')}.` : `${comp.name} already wears the best they can.`); } });
       rows.push({ text: 'Give them something from your bags…', detail: () => [bold('Give'), '', 'Anything you hand over is theirs. A Plans or Pattern they can use is learned on the spot.'], act: () => giveDialog(a, id) });
+      rows.push(...teachRow(a, comp));
+      rows.push({ text: 'Action bars…', detail: () => [bold('Action bars'), '', 'Their kit: what they can fire when you take them over, and the bag items their autopilot preps with.'], act: () => a.push(barsDialog(a, (x) => companionBarsOwner(x, findComp(x, id)))) });
+      rows.push(...settingsRows(a, comp));
+      rows.push(...petRows(a, comp));
+      rows.push(...questRows(a, comp));
 
       // Professions: Enter opens their book (crafting) or trips (gathering); x drops one.
       const profs = g.companionProfessionsOf(id);
@@ -361,19 +377,8 @@ export function companionDialog(app, id) {
         });
       }
 
-      // Their bags: Enter takes a stack into yours.
-      const bags = comp.bags?.stacks ?? [];
-      const cap = bagCapacity(companionCharacter(comp, lvl, ds), ds);
-      rows.push(H(''), H(`Their bags ${dim(`${bags.length}/${cap}   Enter: take it`)}`));
-      if (!bags.length) rows.push(H(dim('  Empty.')));
-      bags.forEach((s, slot) => {
-        const it = ds.item(s.item);
-        rows.push({
-          text: `${qualityPaint(it?.quality)(it?.name ?? s.item)}${s.count > 1 ? ` x${s.count}` : ''}`,
-          detail: () => itemLines(a, it, ['', dim('Enter: take it into your bags (soulbound gear stays with them)')]),
-          act: () => { const r = g.takeItemFromBotStack(id, slot); a.result(r, `You take ${it?.name ?? 'it'}${r.moved > 1 ? ` x${r.moved}` : ''} from ${comp.name}.`); },
-        });
-      });
+      rows.push(...bagRows(a, comp, bagCapacity(companionCharacter(comp, lvl, ds), ds)));
+      rows.push(...bankRows(a, comp));
 
       rows.push(H(''), { text: red(`Release ${comp.name} for good`), detail: () => [bold('Release'), '', 'They leave your roster for good. You get the hire price back. Their bags and gear go with them.'],
         act: () => a.confirm(`Release ${comp.name} for good? Their bags and gear go with them.`, () => { const r = g.releaseCompanions({ ids: [id] }); if (a.result(r, `${comp.name} leaves.${r.refundCopper ? ` You get ${moneyText(r.refundCopper)} back.` : ''}`)) a.popTo('__none__'); }) });

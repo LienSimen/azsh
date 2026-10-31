@@ -128,29 +128,29 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
 
 ### Companions (tab exists; `tuiCompanions.mjs` header says bars, talents, pets, raids were left out)
 
-- [ ] S  Spec, off-heal, XP lock, AoE mode, everyone-AoE: `setCompanionSpec`, `setCompanionOffHeal`,
+- [x] S  Spec, off-heal, XP lock, AoE mode, everyone-AoE: `setCompanionSpec`, `setCompanionOffHeal`,
       `setCompanionXpLocked`, `setCompanionAoeMode`, `setAllCompanionsAoeMode`. Ref `panels/companionsPanel.ts`.
-- [ ] S  Hire search by name or class: `searchInnCandidates`.
-- [ ] M  Companion rotation editor: reuse the Rotation tab with a crafter-style "whose rotation" switch.
+- [x] S  Hire search by name or class: `searchInnCandidates`.
+- [x] M  Companion rotation editor: reuse the Rotation tab with a crafter-style "whose rotation" switch.
       `companionRotation`, `setCompanionRotation`, `resetCompanionRotation`, profiles
       (`companionRotationProfiles`, `add/rename/delete/selectCompanionRotationProfile`). Ref
       `rotation/rotationEditor.ts`.
-- [ ] M  Companion action bars and kit: `companionActionBars`, `add/removeCompanionActionBar`,
+- [x] M  Companion action bars and kit: `companionActionBars`, `add/removeCompanionActionBar`,
       `resetCompanionActionBars`, `setCompanionActionSlot`, `setCompanionItemActionSlot`. Ref
       `panels/companionKitPanel.ts`. (Bars feed the autopilot's prep items; rotations drive the fight.)
-- [ ] S  Companion quests: `companionQuestOffers`, `accept/turnIn/abandonCompanionQuest`.
-- [ ] S  Companion bag verbs: `useCompanionItem`, `discardCompanionBagStack`,
+- [x] S  Companion quests: `companionQuestOffers`, `accept/turnIn/abandonCompanionQuest`.
+- [x] S  Companion bag verbs: `useCompanionItem`, `discardCompanionBagStack`,
       `disenchantCompanionBagStack`, `sellCompanionItemStack`, `sellCompanionJunk`,
       `companionJunkSellPreview`, `buyBackCompanionStack`, `moveItemBetweenBots`, `giveItemToBot`,
       `takeItemFromBot`. Add to the Companion page and the vendor's companions mode.
-- [ ] S  Companion bank and party vault: `companionBankDepositStack`, `companionBankWithdrawStack`,
+- [x] S  Companion bank and party vault: `companionBankDepositStack`, `companionBankWithdrawStack`,
       `buyCompanionBankSlot`, `equip/unequipCompanionBankBag`, `takeFromPartyStorage`.
-- [ ] S  Consumable sharing: `squadConsumableDetail`, `applySquadConsumablePlan`,
+- [x] S  Consumable sharing: `squadConsumableDetail`, `applySquadConsumablePlan`,
       `consumableShareState`, `consumableShareMembers`, `setConsumableShareRule/Scope/IncludeYou/Cat`.
-- [ ] S  Companion pets: `setCompanionPet`, `setCompanionPetAutocast`,
+- [x] S  Companion pets: `setCompanionPet`, `setCompanionPetAutocast`,
       `learnPetSpellFromItemOnCompanion`, `learnSpellFromItemOnCompanion`.
-- [ ] S  Talent link for a companion: `setCompanionTalentLink` (needs the talent-link text input).
-- [ ] S  Tavern duel against a companion: `tavernDuel(id)` into the live fight view, `sess.forfeit`.
+- [x] S  Talent link for a companion: `setCompanionTalentLink` (needs the talent-link text input).
+- [x] S  Tavern duel against a companion: `tavernDuel(id)` into the live fight view, `sess.forfeit`.
 
 ### Pets (hunter, warlock)
 
@@ -178,7 +178,7 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
       `gatherFilterConfig`, junk filter and auto-DE configs (global and character), `runAutoJunk`,
       `autoDisenchantUpgrades`. Ref `panels/settingsPanel.ts` Loot tab.
 - [ ] S  Repair one slot and repair quote on the Gear tab: `repairSlot`, `repairQuote`.
-- [ ] S  Vendor buyback tab and `sellItemStack`, `junkSellPreview`. Ref `panels/vendorPanel.ts`.
+- [x] S  Vendor buyback tab and `sellItemStack`, `junkSellPreview`. Ref `panels/vendorPanel.ts`.
 
 ### Spells, action bars, macros
 
