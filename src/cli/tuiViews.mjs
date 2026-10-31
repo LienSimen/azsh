@@ -30,7 +30,7 @@ import { gearExtraRows, durabilityText, repairOne, slotRepairLines } from './tui
 import { outfitterDialog } from './tuiOutfitter.mjs';
 import { settingsDialog } from './tuiSettings.mjs';
 import { macrosDialog } from './tuiMacros.mjs';
-import { pickPocket, pickPocketTag, journeyRows, afterDeparture, ridingRows, objectRows } from './tuiWorld.mjs';
+import { pickPocket, pickPocketTag, journeyRows, afterDeparture, ridingRows, objectRows, meetingStoneQueueRows } from './tuiWorld.mjs';
 import { talentBuildsMenu, myTalentLink } from './tuiTalents.mjs';
 import { simLabDialog } from './tuiSimLab.mjs';
 import { autopilotSettingsDialog } from './tuiAutopilotSettings.mjs';
@@ -175,7 +175,7 @@ function worldView(app) {
     rows(a) {
       const ds = a.ds, g = a.g, z = a.zone(), ch = a.ch;
       if (!z) return [{ text: 'You are nowhere.', header: true }];
-      const rows = [...journeyRows(a), { text: `${z.name}  ${dim(`levels ${z.levelRange[0]}-${z.levelRange[1]}${z.faction ? `, ${z.faction}` : ''}`)}`, header: true }];
+      const rows = [...journeyRows(a), ...meetingStoneQueueRows(a), { text: `${z.name}  ${dim(`levels ${z.levelRange[0]}-${z.levelRange[1]}${z.faction ? `, ${z.faction}` : ''}`)}`, header: true }];
       const have = new Map(g.state.questlog.quests.map((qs) => [qs.entry, qs]));
       const offered = offeredQuests(ds, z.id, ch, g.state.questlog).filter((o) => !have.has(o.quest.entry) && (o.canAccept || o.quest.minLevel <= ch.level + 5));
       const ready = g.state.questlog.quests.filter((qs) => qs.status === 'complete').map((qs) => ({ qs, q: ds.quest(qs.entry) })).filter((x) => x.q);

@@ -16,6 +16,8 @@ import { isGoQuestGiver, interactVerbForGoType, goRuntimeAvailability } from '..
 import { pruneWildSummoned } from '../engine/game/summonObjectWild.ts';
 import { offeredQuests } from '../quests/quests.ts';
 import { pageText } from '../data/pageTexts.ts';
+import { meetingStonesForPortalZone, instanceForMeetingStoneArea } from '../world/meetingStones.ts';
+import { applyMeetingStoneQueue, meetingStoneQueueStateFromApply, leaveMeetingStoneQueue, formatMeetingStonePlace, formatMeetingStoneLevel, ERR_MEETING_STONE_IN_QUEUE_S, ERR_MEETING_STONE_LEFT_QUEUE_S, MEETINGSTONE_STATUS_JOINED_QUEUE } from '../engine/game/meetingStoneQueue.ts';
 
 /** The Pick Pocket rank you know, or undefined. */
 export function pickPocketSpell(app) {
@@ -172,6 +174,8 @@ function zoneObjectList(app) {
   for (const go of zoneGameObjects(ds, c.zoneId)) if (zoneGoListedForPlayer(ds, go, refs, view)) add(go);
   for (const e of questTargets(ds, log).objects) { const go = ds.gameObject(e); if (go && zoneGoListedForPlayer(ds, go, refs, view)) add(go); }
   for (const w of pruneWildSummoned(g.state.wildSummonedObjects, Date.now())) add(ds.gameObject(w.goEntry));
+  // Meeting stones are not in the zone lists: they stand by the portals of this zone's dungeons.
+  for (const stone of meetingStonesForPortalZone(ds, c.zoneId)) add(stone);
   for (const o of offeredQuests(ds, c.zoneId, c, log)) if (o.quest.goStarter) add(ds.gameObject(o.quest.goStarter));
   for (const qs of log.quests) if (qs.status !== 'turnedIn') { const q = ds.quest(qs.entry); if (q?.goEnder) add(ds.gameObject(q.goEnder)); }
   return out;
@@ -218,6 +222,7 @@ export function objectRows(app) {
 
 /** Enter on an object: its quests if it has any to give or take, else use it (open, read, take). */
 export function useObject(app, go) {
+  if (go.meetingstone?.areaId) { meetingStoneMenu(app, go); return; }
   const offer = goOffer(app, go);
   if (offer && (offer.acceptable.length || offer.turnInReady.length)) {
     const opts = [
@@ -273,4 +278,51 @@ export function bookDialog(app, title, firstPage) {
     },
   };
   return view;
+}
+
+// ---- meeting stones ------------------------------------------------------------------------------------
+// The stone by a dungeon puts you (or your party) in the queue for it, as SCRIPT_COMMAND_MEETINGSTONE does; the
+// World tab shows the queue card until you leave it. Cite: LFGMgr.cpp:38-90 via engine/game/meetingStoneQueue.ts.
+
+function stonePlace(app, areaId) {
+  return instanceForMeetingStoneArea(app.ds, areaId)?.name ?? `area ${areaId}`;
+}
+
+function meetingStoneMenu(app, go) {
+  const areaId = go.meetingstone.areaId;
+  const place = stonePlace(app, areaId);
+  const q = app.g.state.meetingStoneQueue;
+  const queuedHere = q?.status === MEETINGSTONE_STATUS_JOINED_QUEUE && q.areaId === areaId;
+  const band = go.meetingstone.maxLevel ? `  ${dim(formatMeetingStoneLevel(go.meetingstone.minLevel ?? 1, go.meetingstone.maxLevel))}` : '';
+  app.pick(go.name, [
+    queuedHere
+      ? { label: 'Leave the queue', value: () => leaveQueue(app) }
+      : { label: `Join the queue for ${place}${band}`, value: () => joinQueue(app, areaId) },
+  ], (fn) => fn());
+}
+
+function joinQueue(app, areaId) {
+  const applied = applyMeetingStoneQueue({ areaId, hasGroup: (app.g.state.squad?.length ?? 0) > 0, isLeader: true });
+  const queued = meetingStoneQueueStateFromApply(applied);
+  if (!queued) { app.flashMsg('Only the party leader can queue the party.'); return; }
+  app.g.state.meetingStoneQueue = queued;
+  app.say(cyan(formatMeetingStonePlace(ERR_MEETING_STONE_IN_QUEUE_S, stonePlace(app, areaId))) + dim(queued.mode === 'group' ? '  (your party)' : ''));
+}
+
+function leaveQueue(app) {
+  const left = leaveMeetingStoneQueue(app.g.state.meetingStoneQueue);
+  if (!left.left) return;
+  app.g.state.meetingStoneQueue = null;
+  app.say(dim(formatMeetingStonePlace(ERR_MEETING_STONE_LEFT_QUEUE_S, stonePlace(app, left.areaId))));
+}
+
+/** The queue card at the top of the World tab while you are queued. */
+export function meetingStoneQueueRows(app) {
+  const q = app.g.state.meetingStoneQueue;
+  if (!q || q.status !== MEETINGSTONE_STATUS_JOINED_QUEUE) return [];
+  const place = stonePlace(app, q.areaId);
+  return [
+    { text: `${cyan('Looking for more')} for ${place}  ${dim(q.mode === 'group' ? 'your party is queued' : 'you are queued')}   ${dim('Enter: leave the queue')}`, act: (a) => leaveQueue(a) },
+    { text: '', header: true },
+  ];
 }

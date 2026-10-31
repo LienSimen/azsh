@@ -1340,6 +1340,26 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   home();
 }
 
+// Meeting stone: the stone by the Deadmines queues you for it; the World tab carries the queue card until you leave.
+{
+  const g = app.g;
+  const keep = g.state.char.zoneId;
+  g.state.char.zoneId = 'westfall';
+  home(); term.press('1');
+  const stone = rowIndex((r) => r.data?.object?.meetingstone);
+  check('Westfall lists the Deadmines meeting stone', stone > 0);
+  if (stone > 0) {
+    app.top().cursor = stone; term.press('return'); show('meeting stone');
+    app.top().cursor = rowIndex((r, t) => /^Join the queue/.test(t)); term.press('return');
+    check('the stone queues you', g.state.meetingStoneQueue?.status === 1);
+    check('the World tab shows the queue card', /Looking for more for/.test(strip(frame())));
+    app.top().cursor = rowIndex((r, t) => /Looking for more/.test(t)); term.press('return');
+    check('Enter on the card leaves the queue', !g.state.meetingStoneQueue);
+  }
+  g.state.char.zoneId = keep;
+  home();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);
