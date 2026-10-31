@@ -594,11 +594,11 @@ export function characterCreation(app, done) {
   const races = ds.races();
   // A random world bot: a whole character at its own level, geared, with its name (phonecraft's dev roll).
   const randomBot = { label: `${dim('Random character')}  ${dim('a world bot at its own level')}`, value: 'random' };
-  app.pick('Choose a race', [randomBot, ...races.map((r) => ({
+  app.pick('Choose a race', [...races.map((r) => ({
     label: `${r.name.padEnd(10)} ${dim(r.faction)}`,
     detail: [bold(r.name), r.faction, `Starts in ${ds.zone(r.startZone)?.name ?? r.startZone}`, '', dim('Classes: ') + r.classes.filter((c) => ds.createInfo(r.id, c)).map(className).join(', ')],
     value: r,
-  }))], (race) => {
+  })), randomBot], (race) => {
     if (race === 'random') {
       const seed = (Date.now() ^ (Math.random() * 0x7fffffff)) >>> 0;
       const bot = pickRandomWorldBot(ds, seed);

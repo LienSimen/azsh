@@ -1540,7 +1540,7 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   const { characterCreation } = await import('./tui.mjs');
   let created = null;
   characterCreation(app9, (state) => { created = state; });
-  app9.top().cursor = 0; term9.press('return');
+  app9.top().cursor = app9.rowsOf(app9.top()).length - 1; term9.press('return');
   check('the create screen rolls a random world bot', !!created?.char?.name && created.char.level >= 1);
   term9.close?.();
   home();
