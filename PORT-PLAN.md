@@ -190,7 +190,7 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
 - [x] M  Macros: `macros`, `macroById`, `macroByName`, `saveMacro`, `deleteMacro`, plus the two hosts
       (`macros/macroHostWorld.ts`, `macroHostCombat.ts`) over `domain/macro`. Terminal editor is a
       text field; templates from `macros/macroTemplates.ts`.
-- [ ] S  Cancel an aura (`cancelAura`, `canCancelAuraNow`) from the Character tab and the fight view.
+- [x] S  Cancel an aura (`cancelAura`, `canCancelAuraNow`) from the Character tab and the fight view.
 - [ ] S  Pick pocket on World for rogues: `castOutOfCombat(spell, { targetCreature })`, on resist
       start the fight with `{ withSquad, noAoe }`.
 

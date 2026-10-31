@@ -857,7 +857,22 @@ function charView(app) {
         L(''),
       ];
       const skills = Object.entries(ch.skills ?? {});
-      if (skills.length) rows.push(L(cyan('Professions')), ...skills.map(([k, v]) => L(`  ${ds.profession(k)?.name ?? k} ${v.value ?? v.rank ?? v}`)), L(''));
+      if (skills.length) rows.push(L(cyan('Professions')), ...skills.map(([k, v]) => L(`  ${ds.profession(k)?.name ?? k} ${typeof v === 'object' ? `${v.current ?? v.value ?? 0}/${v.max ?? '?'}` : v}`)), L(''));
+      // Buffs you hold. Enter cancels one, the way a right-click on the buff frame does.
+      const now = Date.now();
+      const auras = (ch.activeAuras ?? []).filter((x) => x.expiresAt == null || x.expiresAt > now);
+      if (auras.length) {
+        rows.push(L(cyan('Auras')));
+        for (const x of auras) {
+          const sp = ds.spell(x.spellId);
+          const can = a.g.canCancelAuraNow(x.spellId);
+          rows.push({
+            text: `  ${can ? green(sp?.name ?? x.spellId) : dim(sp?.name ?? x.spellId)}${x.expiresAt != null ? dim(`  ${secondsText(x.expiresAt - now)}`) : ''}${can ? dim('   Enter: cancel') : ''}`,
+            act: () => { if (!can) { a.flashMsg(`${sp?.name ?? 'That'} cannot be cancelled.`); return; } const r = a.g.cancelAura(x.spellId); a.result(r, r.ok ? `${r.name} fades.` : ''); },
+          });
+        }
+        rows.push(L(''));
+      }
       rows.push(L(cyan('Home')), L(`  ${ch.hearthBind ? `${ch.hearthBind.name ?? ''} in ${ds.zone(ch.hearthBind.zone)?.name ?? ch.hearthBind.zone}` : 'none'}`));
       if (hasPetClass(a)) rows.push(L(''), { text: `Pet: ${ch.pet ? ch.pet.name : dim('none out')}   ${dim('Enter: the pet page')}`, act: () => a.push(petDialog(a)) });
       rows.push(L(''), { text: `Settings   ${dim('loot, upgrades, disenchanting, junk, gathering   (:settings)')}`, act: () => a.push(settingsDialog(a)) });

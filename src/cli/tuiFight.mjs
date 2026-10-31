@@ -34,7 +34,7 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
     auto: true, paused: false, speed: app.fightSpeed ?? 1, pressed: null, pressedTicks: 0, follow: [], focus: null, macros: null, timer: null, pend: null, ended: false,
     frames: newFrameMemory(app), compact: false,
     names: sessionLogNames(session, { playerName: app.ch.name, enemyName: b.enemyName, spellName: (id) => app.ds.spell(id)?.name }),
-    hint() { return `${this.auto ? 'a: manual play' : '1-0: your action bar   a: auto-play'}${session.alliesView().length ? '   t: orders' : ''}${app.g.state.instance ? '   p: pull +1' : ''}   space: ${this.paused ? 'resume' : 'pause'}   + -: speed ${this.speed}x   l: log   Esc: ${this.label ? 'run away, stop autopilot' : 'run away'}`; },
+    hint() { return `${this.auto ? 'a: manual play' : '1-0: your action bar   a: auto-play'}${session.alliesView().length ? '   t: orders' : ''}   c: cancel a buff${app.g.state.instance ? '   p: pull +1' : ''}   space: ${this.paused ? 'resume' : 'pause'}   + -: speed ${this.speed}x   l: log   Esc: ${this.label ? 'run away, stop autopilot' : 'run away'}`; },
     schedule() {
       if (this.timer) app.term.clearInterval(this.timer);
       this.timer = app.term.setInterval(() => this.tick(), Math.max(10, TICK_MS / this.speed));
@@ -128,6 +128,7 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       if (k === 'pagedown') { app.logScroll = Math.max(0, app.logScroll - 5); app.render(); return; }
       if (k === 'l') { app.openLog(); return; }
       if (k === 't') { partyOrders(app, this); return; }
+      if (k === 'c') { cancelBuff(app, this); return; }
       if (k === 'p' && app.g.state.instance) { this.pullOne(); return; }
       const slot = this.abilityBar().find((e) => e.key === k);
       if (slot) { this.fire(slot); return; }
@@ -257,6 +258,19 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
   ctl.schedule();
   app.render();
   return { ok: true, ctl };
+}
+
+/** c in a fight: drop one of your own buffs (the ones the engine lets go). The fight waits while you pick. */
+function cancelBuff(app, ctl) {
+  const buffs = ctl.session.playerView().buffs.filter((b) => app.g.canCancelAuraNow(b.spellId));
+  if (!buffs.length) { app.flashMsg('Nothing on you that can be cancelled.'); return; }
+  const wasPaused = ctl.paused;
+  ctl.paused = true;
+  ctl.onOrdersClosed = () => { ctl.paused = wasPaused; ctl.onOrdersClosed = null; };
+  app.pick('Cancel which buff?', buffs.map((b) => ({ label: app.ds.spell(b.spellId)?.name ?? String(b.spellId), value: b.spellId })), (id) => {
+    const r = app.g.cancelAura(id);
+    app.result(r, r.ok ? `${r.name} fades.` : '');
+  });
 }
 
 const STANCES = [['retaliate', 'Fight back (default)'], ['passive', 'Passive: walk, then stand'], ['hold', 'Hold ground: no moving, rotation keeps going']];

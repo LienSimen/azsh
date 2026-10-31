@@ -1023,6 +1023,29 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   home();
 }
 
+// Cancel an aura: from the Character tab, and with c inside a fight.
+{
+  const g = app.g;
+  const fort = ds.spell(1243);
+  const give = () => { g.state.char.activeAuras = [...(g.state.char.activeAuras ?? []).filter((x) => x.spellId !== 1243), { spellId: 1243, expiresAt: Date.now() + 600000 }]; };
+  give();
+  home(); app.switchTab(app.tabs.length - 1); show('character auras');
+  const at = rowIndex((r, t) => t.includes(fort.name));
+  check('the Character tab lists your auras', at > 0);
+  app.top().cursor = at; term.press('return');
+  check('Enter on a buff cancels it', !(g.state.char.activeAuras ?? []).some((x) => x.spellId === 1243));
+  give(); home(); term.press('1');
+  const mob = app.rowsOf(app.top()).findIndex((r) => r.data?.creature);
+  app.top().cursor = mob; term.press('return');
+  if (app.fight && app.fight.session.playerView().buffs.some((b) => b.spellId === 1243)) {
+    term.press('c');
+    check('c in a fight lists the buffs you can cancel', app.top()?.title === 'Cancel which buff?');
+    app.top().cursor = rowIndex((r, t) => t.includes(fort.name)); term.press('return');
+    check('picking one cancels it in the fight', !app.fight.session.playerView().buffs.some((b) => b.spellId === 1243) && !app.stack.length);
+  } else check('the buff carries into the fight', false);
+  finishFight(); home();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);
