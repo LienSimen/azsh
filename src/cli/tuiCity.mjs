@@ -1,0 +1,274 @@
+// City services: the bank, the auction house and the mailbox. Same view shape as tuiViews.mjs; every
+// change is a Game facade call. Where they open follows phonecraft's CITY_PANEL rule: the auction
+// house in the six capitals, the bank there plus the goblin and Crossroads banker towns.
+import { bold, dim, cyan, yellow, green, red, qualityPaint, fit, secondsText, plural } from './text.mjs';
+import { itemLines } from './tuiViews.mjs';
+import { moneyText } from '../domain/economy/money.ts';
+import { bagCapacity } from '../domain/items/equipment.ts';
+import { bankCapacity, nextBankBagSlotCost } from '../domain/items/bank.ts';
+import { minNextBid, auctionDeposit } from '../domain/economy/auction.ts';
+import { AH_DURATIONS_MS } from '../engine/game/types.ts';
+
+/** Non-capital zones with a banker spawn (Unit.h UNIT_NPC_FLAG_BANKER): Ratchet/Crossroads, Booty Bay, Gadgetzan, Everlook. */
+const BANK_TOWN_ZONE_IDS = new Set(['barrens', 'stranglethorn', 'tanaris', 'winterspring']);
+
+/** Which city services the zone you stand in offers. */
+export function cityAccess(app) {
+  const z = app.zone();
+  const capital = !!z?.capital;
+  const bank = capital || BANK_TOWN_ZONE_IDS.has(app.ch.zoneId);
+  // A mailbox stands outside every inn and in every capital; mail that is already waiting is always reachable.
+  const mail = capital || !!z?.innkeepers?.length || (app.g.state.mailbox?.length ?? 0) > 0;
+  return { capital, bank, ah: capital, mail };
+}
+
+/** "12g 5s 3c", "1.5g", "50s", "250" (copper) → copper, or null when unreadable. */
+export function parseMoney(text) {
+  const t = String(text).trim().toLowerCase();
+  if (!t) return null;
+  if (/^\d+$/.test(t)) return Number(t);
+  let total = 0, any = false;
+  for (const m of t.matchAll(/(\d+(?:\.\d+)?)\s*([gsc])/g)) {
+    any = true;
+    const n = Number(m[1]);
+    total += m[2] === 'g' ? n * 10000 : m[2] === 's' ? n * 100 : n;
+  }
+  return any ? Math.round(total) : null;
+}
+
+function timeLeft(a, now) {
+  const ms = a.expiresAt - now;
+  if (ms <= 0) return red('ended');
+  if (ms < 30 * 60 * 1000) return red('short');
+  if (ms < 2 * 60 * 60 * 1000) return yellow('medium');
+  if (ms < 12 * 60 * 60 * 1000) return 'long';
+  return green('very long');
+}
+
+// ---- bank ---------------------------------------------------------------------------------------
+
+export function bankDialog(app, startMode = 'deposit') {
+  let mode = startMode;
+  const hint = () => (mode === 'deposit' ? 'Enter: deposit stack   Tab: withdraw' : 'Enter: withdraw stack   Tab: deposit');
+  const move = (a, index, qty) => {
+    const r = mode === 'deposit' ? a.g.bankDepositStack(index, qty) : a.g.bankWithdrawStack(index, qty);
+    a.result(r, r.ok ? `${mode === 'deposit' ? 'Deposited' : 'Withdrew'} ${r.moved} item${r.moved === 1 ? '' : 's'}.` : '');
+  };
+  const view = {
+    id: 'bank', title: 'Bank', hint: hint(),
+    keys: {
+      n: { hint: 'move some', fn: (a, row) => { if (!row?.data) return; a.prompt(`How many ${a.itemName(row.data.s.item)} (1-${row.data.s.count})? `, (t) => { const n = Number(t); if (n > 0) move(a, row.data.index, Math.min(n, row.data.s.count)); a.afterAction(); }); } },
+      '+': { hint: 'buy bag slot', fn: (a) => {
+        const cost = nextBankBagSlotCost(a.g.state.bankBags);
+        if (cost == null) { a.flashMsg('You already own every bank bag slot.'); return; }
+        a.confirm(`Buy a bank bag slot for ${moneyText(cost)}?`, () => a.result(a.g.buyBankBagSlot(), `Bought a bank bag slot for ${moneyText(cost)}.`));
+      } },
+      B: { hint: 'slot a bag', fn: (a, row) => {
+        if (mode !== 'deposit' || !row?.data) { a.flashMsg('Pick a bag in your bags (deposit side) first.'); return; }
+        const it = a.ds.item(row.data.s.item);
+        if (it?.slot !== 'bag') { a.flashMsg('That is not a bag.'); return; }
+        const free = a.g.state.bankBags.findIndex((b) => b == null);
+        if (free < 0) { a.flashMsg('No empty bank bag slot. + buys one.'); return; }
+        a.result(a.g.equipBankBag(it.entry ?? row.data.s.item, free), `${it.name} now holds bank space.`);
+      } },
+    },
+    onKey(a, k) { if (k === 'tab') { mode = mode === 'deposit' ? 'withdraw' : 'deposit'; view.cursor = 0; view.scroll = 0; view.hint = hint(); return true; } return false; },
+    rows(a) {
+      const st = a.g.state, ds = a.ds;
+      const bankCap = bankCapacity(st.bankBags, ds), bagCap = bagCapacity(a.ch, ds);
+      const owned = st.bankBags.length, slotted = st.bankBags.filter((b) => b != null).length;
+      const rows = [
+        { text: `${bold('Bank')} ${dim(`${st.bank.stacks.length}/${bankCap}`)}   ${bold('Bags')} ${dim(`${st.inventory.stacks.length}/${bagCap}`)}   ${yellow(moneyText(a.ch.gold) || '0c')}`, header: true },
+        { text: dim(`Bank bag slots: ${owned} owned, ${slotted} holding a bag${nextBankBagSlotCost(st.bankBags) != null ? `, next costs ${moneyText(nextBankBagSlotCost(st.bankBags))}` : ''}`), header: true },
+        { text: `${mode === 'deposit' ? bold('Your bags → bank') : dim('Your bags → bank')}   ${mode === 'withdraw' ? bold('Bank → your bags') : dim('Bank → your bags')}`, header: true },
+        { text: '', header: true },
+      ];
+      const list = mode === 'deposit' ? st.inventory.stacks : st.bank.stacks;
+      if (!list.length) rows.push({ text: dim(mode === 'deposit' ? 'Your bags are empty.' : 'Your bank is empty.'), header: true });
+      list.forEach((s, index) => {
+        const it = ds.item(s.item);
+        const tag = it?.slot ? dim(`  ${it.slot}`) : it?.questItem ? dim('  quest') : '';
+        rows.push({
+          text: `${qualityPaint(it?.quality)(it?.name ?? `item ${s.item}`)}${s.count > 1 ? ` x${s.count}` : ''}${tag}`, data: { s, index },
+          detail: () => itemLines(a, it, ['', dim(mode === 'deposit' ? 'Enter: deposit   n: deposit some' : 'Enter: withdraw   n: withdraw some')]),
+          act: () => move(a, index),
+        });
+      });
+      return rows;
+    },
+  };
+  return view;
+}
+
+// ---- auction house ------------------------------------------------------------------------------
+
+export function auctionDialog(app) {
+  app.g.refillAuctions(Date.now());
+  let mode = 'browse';
+  let filter = '';
+  const MODES = ['browse', 'sell', 'mine'];
+  const hint = () => ({ browse: 'Enter: buyout   Tab: sell', sell: 'Enter: list for sale   Tab: my auctions', mine: 'Enter: cancel listing   Tab: browse' })[mode];
+  const unit = (x) => Math.round(x.buyoutCopper / x.quantity);
+  const view = {
+    id: 'auction', title: 'Auction House', hint: hint(),
+    keys: {
+      s: { hint: 'search', fn: (a) => { if (mode !== 'browse') return; a.prompt('Search: ', (t) => { filter = t.trim().toLowerCase(); view.cursor = 0; view.scroll = 0; a.render(); }, filter); } },
+      b: { hint: 'bid', fn: (a, row) => {
+        if (mode !== 'browse' || !row?.data?.auction) return;
+        const au = row.data.auction, min = minNextBid(au);
+        a.prompt(`Bid on ${a.itemName(au.item)} (at least ${moneyText(min)}): `, (t) => {
+          const amount = parseMoney(t);
+          if (amount == null) { a.say(red('Say a price like 2g 50s or 250.')); a.render(); return; }
+          a.result(a.g.bidAuction(au.id, amount, Date.now()), `You bid ${moneyText(amount)} on ${a.itemName(au.item)}.`);
+          a.afterAction();
+        }, moneyText(min));
+      } },
+      m: { hint: 'mailbox', fn: (a) => a.push(mailDialog(a)) },
+    },
+    onKey(a, k) {
+      if (k !== 'tab') return false;
+      mode = MODES[(MODES.indexOf(mode) + 1) % MODES.length];
+      if (mode === 'browse') a.g.refillAuctions(Date.now());
+      view.cursor = 0; view.scroll = 0; view.hint = hint();
+      return true;
+    },
+    rows(a) {
+      const now = Date.now(), ds = a.ds;
+      const unread = a.g.unreadMailCount(now);
+      const rows = [
+        { text: `${bold('Auction House')}   ${MODES.map((m) => (m === mode ? bold : dim)({ browse: 'Browse', sell: 'Sell', mine: 'My auctions' }[m])).join(dim(' | '))}   ${yellow(moneyText(a.ch.gold) || '0c')}${unread ? yellow(`   ${unread} new mail`) : ''}`, header: true },
+        { text: '', header: true },
+      ];
+      if (mode === 'browse') {
+        let list = a.g.browseAuctions(now);
+        if (filter) list = list.filter((x) => (ds.item(x.item)?.name ?? '').toLowerCase().includes(filter));
+        list.sort((x, y) => (ds.item(x.item)?.name ?? '').localeCompare(ds.item(y.item)?.name ?? '') || unit(x) - unit(y));
+        rows.push({ text: `${filter ? `"${filter}": ` : ''}${plural(list.length, 'listing')}${filter ? dim('   s: change search') : dim('   s: search by name')}`, header: true });
+        if (!list.length) rows.push({ text: dim('Nothing on the boards right now.'), header: true });
+        for (const au of list) {
+          const it = ds.item(au.item);
+          const can = au.buyoutCopper <= a.ch.gold;
+          const name = `${qualityPaint(it?.quality)(it?.name ?? au.item)}${au.quantity > 1 ? ` x${au.quantity}` : ''}`;
+          rows.push({
+            text: `${can ? name : dim(name)}  ${yellow(moneyText(au.buyoutCopper))}${au.quantity > 1 ? dim(` (${moneyText(unit(au))} each)`) : ''}  ${dim('bid')} ${moneyText(au.bidCopper)}${au.highBidder === a.ch.name ? green('  yours') : ''}  ${timeLeft(au, now)}${it?.requiredLevel > a.ch.level ? red(`  L${it.requiredLevel}`) : ''}`,
+            data: { auction: au },
+            detail: () => itemLines(a, it, ['', `Buyout: ${yellow(moneyText(au.buyoutCopper))}`, `Current bid: ${moneyText(au.bidCopper)}${au.highBidder ? dim(` (${au.highBidder === a.ch.name ? 'you' : au.highBidder})`) : dim(' (no bids)')}`, `Next bid: ${moneyText(minNextBid(au))}`, dim(`Seller: ${au.seller}`), '', dim('Enter: buy out   b: bid')]),
+            act: () => a.confirm(`Buy ${it?.name ?? au.item}${au.quantity > 1 ? ` x${au.quantity}` : ''} for ${moneyText(au.buyoutCopper)}?`, () => a.result(a.g.buyoutAuction(au.id), `Bought ${it?.name}${au.quantity > 1 ? ` x${au.quantity}` : ''} for ${moneyText(au.buyoutCopper)}.`)),
+          });
+        }
+      } else if (mode === 'sell') {
+        const st = a.g.state.inventory.stacks;
+        rows.push({ text: dim('Pick something from your bags to put up for auction.'), header: true });
+        if (!st.length) rows.push({ text: dim('Your bags are empty.'), header: true });
+        for (const s of st) {
+          const it = ds.item(s.item);
+          const soulbound = !!s.bound, quest = !!it?.questItem;
+          const name = `${qualityPaint(it?.quality)(it?.name ?? s.item)}${s.count > 1 ? ` x${s.count}` : ''}`;
+          rows.push({
+            text: `${soulbound || quest ? dim(name) : name}${soulbound ? red('  soulbound') : quest ? dim('  quest') : ''}${it?.sellPrice ? dim(`  vendor ${moneyText(it.sellPrice * s.count)}`) : ''}`, data: { s },
+            detail: () => itemLines(a, it, ['', dim('Enter: set prices and list it')]),
+            act: () => { if (soulbound) a.flashMsg('Soulbound items cannot be auctioned.'); else if (quest) a.flashMsg('Quest items cannot be auctioned.'); else sellFlow(a, s, it); },
+          });
+        }
+      } else {
+        const own = a.g.ownAuctions(), bids = a.g.myBidAuctions();
+        const mail = a.g.listMail(now);
+        rows.push({ text: `Mailbox: ${mail.length ? `${plural(mail.length, 'letter')} waiting` : 'empty'}${dim('  (sales and refunds arrive here)')}`, act: () => a.push(mailDialog(a)), data: {} });
+        rows.push({ text: '', header: true }, { text: `Your listings (${own.length})`, header: true });
+        if (!own.length) rows.push({ text: dim('  You have nothing up for sale.'), header: true });
+        for (const au of own) {
+          const it = ds.item(au.item);
+          rows.push({
+            text: `${qualityPaint(it?.quality)(it?.name ?? au.item)}${au.quantity > 1 ? ` x${au.quantity}` : ''}  ${dim('bid')} ${moneyText(au.bidCopper)}${au.highBidder ? green(' (bid placed)') : ''}  ${dim('buyout')} ${yellow(moneyText(au.buyoutCopper))}  ${timeLeft(au, now)}`,
+            data: { auction: au },
+            detail: () => itemLines(a, it, ['', `Buyout: ${yellow(moneyText(au.buyoutCopper))}`, `Bid: ${moneyText(au.bidCopper)}${au.highBidder ? ` by ${au.highBidder}` : ''}`, '', dim('Enter: cancel the listing (the deposit is lost)')]),
+            act: () => a.confirm(`Cancel the ${it?.name} listing?`, () => a.result(a.g.cancelAuction(au.id), `Listing cancelled. ${it?.name} is back in your bags.`)),
+          });
+        }
+        rows.push({ text: '', header: true }, { text: `Your bids (${bids.length})`, header: true });
+        if (!bids.length) rows.push({ text: dim('  You hold no high bids.'), header: true });
+        for (const au of bids) {
+          const it = ds.item(au.item);
+          rows.push({ text: `  ${qualityPaint(it?.quality)(it?.name ?? au.item)}${au.quantity > 1 ? ` x${au.quantity}` : ''}  ${dim('your bid')} ${moneyText(au.bidCopper)}  ${timeLeft(au, now)}`, header: true });
+        }
+      }
+      return rows;
+    },
+  };
+  return view;
+}
+
+/** Ask quantity, bid, buyout and duration, then list. Each answer is a hint-row prompt. */
+function sellFlow(app, s, it) {
+  const finish = (qty, bid, buyout) => {
+    const opts = Object.entries(AH_DURATIONS_MS).map(([k, ms]) => {
+      const dep = auctionDeposit(it?.sellPrice ?? 0, qty, ms / 1000);
+      return { label: `${{ short: '2 hours', medium: '8 hours', long: '24 hours' }[k]}  ${dim(`deposit ${moneyText(dep) || '0c'}`)}`, value: k };
+    });
+    app.pick('How long should it run?', opts, (dur) => {
+      const r = app.g.listAuction(s.item, qty, bid, buyout, dur, Date.now());
+      app.result(r, r.ok ? `Listed ${it?.name}${qty > 1 ? ` x${qty}` : ''}: bid ${moneyText(bid)}, buyout ${moneyText(buyout)}.` : '');
+      app.afterAction();
+    });
+  };
+  const askPrices = (qty) => {
+    const vendor = (it?.sellPrice ?? 0) * qty;
+    app.prompt(`Starting bid for ${it?.name}${qty > 1 ? ` x${qty}` : ''} (e.g. 2g 50s): `, (t1) => {
+      const bid = parseMoney(t1);
+      if (bid == null || bid < 1) { app.say(red('Say a price like 2g 50s or 250.')); app.render(); return; }
+      app.prompt(`Buyout (at least ${moneyText(bid)}): `, (t2) => {
+        const buyout = parseMoney(t2);
+        if (buyout == null || buyout < bid) { app.say(red('The buyout must be at least the starting bid.')); app.render(); return; }
+        finish(qty, bid, buyout);
+      }, moneyText(Math.max(bid, Math.round(bid * 1.5))));
+    }, vendor ? moneyText(Math.max(1, vendor * 2)) : '');
+  };
+  if (s.count > 1) app.prompt(`How many ${it?.name} (1-${s.count})? `, (t) => { const n = Math.min(s.count, Number(t)); if (n > 0) askPrices(n); else app.render(); }, String(s.count));
+  else askPrices(1);
+}
+
+// ---- mailbox ------------------------------------------------------------------------------------
+
+export function mailDialog(app) {
+  return {
+    id: 'mail', title: 'Mailbox', hint: 'Enter: take what is in it',
+    keys: {
+      A: { hint: 'take all', fn: (a) => { const r = a.g.collectMail(); a.result(r, r.ok ? (r.abortedFull ? red('Your bags filled up before the mail was empty.') : r.moved ? `Collected ${r.moved} from the mail.` : 'Nothing to collect.') : ''); } },
+      d: { hint: 'delete', fn: (a, row) => { if (row?.data?.mail) a.confirm(`Delete "${row.data.mail.subject}"?`, () => a.result(a.g.deleteMail(row.data.mail.id), 'Mail deleted.')); } },
+    },
+    rows(a) {
+      const now = Date.now();
+      const mail = a.g.listMail(now);
+      const rows = [{ text: `${bold('Mailbox')}  ${dim(plural(mail.length, 'letter'))}   ${yellow(moneyText(a.ch.gold) || '0c')}${mail.length ? dim('   A: take everything') : ''}`, header: true }, { text: '', header: true }];
+      if (!mail.length) rows.push({ text: dim('No mail.'), header: true });
+      for (const m of mail) {
+        const atts = m.attachments.map((x) => `${qualityPaint(a.ds.item(x.entry)?.quality)(a.itemName(x.entry))}${x.quantity > 1 ? ` x${x.quantity}` : ''}`);
+        const bits = [...(m.money ? [yellow(moneyText(m.money))] : []), ...atts];
+        const read = (m.checked ?? 0) & 1;
+        rows.push({
+          text: `${read ? dim(m.subject) : bold(m.subject)}  ${dim(`from ${m.sender}`)}${bits.length ? `  ${bits.join(', ')}` : ''}${m.cod ? red(`  COD ${moneyText(m.cod)}`) : ''}`,
+          data: { mail: m },
+          detail: () => [bold(m.subject), dim(`From ${m.sender}`), '', ...String(m.body ?? '').split('\n').filter(Boolean), ...(bits.length ? ['', cyan('Enclosed'), ...bits.map((b) => `  ${b}`)] : []), ...(m.cod ? ['', red(`Cash on delivery: ${moneyText(m.cod)}`)] : []), '', dim(`Expires in ${secondsText(Math.max(0, m.expiresAt - now))}`)],
+          act: () => takeMail(a, m),
+        });
+      }
+      return rows;
+    },
+  };
+}
+
+function takeMail(app, m) {
+  app.g.markMailRead(m.id);
+  let took = 0;
+  if (m.money) { const r = app.g.takeMailMoney(m.id); if (r.ok && r.taken) { took++; app.say(green(`You take ${moneyText(r.taken)}.`)); } else if (!r.ok) app.say(red(r.reason)); }
+  for (let i = 0; i < 16; i++) {
+    const cur = app.g.listMail(Date.now()).find((x) => x.id === m.id);
+    if (!cur?.attachments.length) break;
+    const att = cur.attachments[0];
+    const r = app.g.takeMailItem(m.id);
+    if (!r.ok) { app.say(red(r.reason)); break; }
+    took++;
+    app.say(green(`You take ${app.itemName(att.entry)}${att.quantity > 1 ? ` x${att.quantity}` : ''}.`));
+  }
+  if (!took) app.flashMsg('Nothing to take from this letter. d deletes it.');
+}
