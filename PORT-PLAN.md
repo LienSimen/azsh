@@ -174,7 +174,7 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
 - [x] M  Outfitter (gear sets): `ensureOutfitter`, `createOutfit`, `rename/deleteOutfit`,
       `rebuildOutfit`, `selectOutfit`, `wearOutfit`, `unwearOutfit`, `setOutfitSlot`,
       `setOutfitSlotsAll`, `setOutfitDisabled`, `outfitterState`. Ref `panels/outfitterPanel.ts`.
-- [ ] S  Filters and helpers (a Settings window): `equipmentHelperConfig`/`setEquipmentHelperConfig`,
+- [x] S  Filters and helpers (a Settings window): `equipmentHelperConfig`/`setEquipmentHelperConfig`,
       `gatherFilterConfig`, junk filter and auto-DE configs (global and character), `runAutoJunk`,
       `autoDisenchantUpgrades`. Ref `panels/settingsPanel.ts` Loot tab.
 - [x] S  Repair one slot and repair quote on the Gear tab: `repairSlot`, `repairQuote`.

@@ -923,6 +923,34 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   home();
 }
 
+// Settings: auto-loot, helper mode, auto-disenchant on both layers, junk boxes and lists, gather colours.
+{
+  const g = app.g;
+  const row = (re) => rowIndex((r, t) => re.test(t));
+  const enter = (re) => { app.top().cursor = row(re); term.press('return'); };
+  home(); term.press(':'); for (const ch of 'settings') term.press(ch); term.press('return'); show('settings');
+  check(':settings opens the Settings window', app.top().id === 'settings');
+  enter(/^Auto-loot/); check('Enter flips auto-loot', app.prefs.get('autoLoot') === false); enter(/^Auto-loot/);
+  enter(/^Upgrades/); check('Enter switches the helper to put upgrades on', g.equipmentHelperConfig().mode === 'auto'); enter(/^Upgrades/);
+  enter(/^This character/); check('this character disenchants greens on its own', g.characterAutoDisenchantConfig().enabled && g.characterAutoDisenchantConfig().maxQuality === 2);
+  enter(/^Every character/); check('the every-character layer lands in the prefs file', app.prefs.get('autoDisenchant')?.enabled === true);
+  enter(/sell Common$/); check('a sell box edits the shared junk rules', g.globalJunkFilterConfig().sellQuality[1] === true && app.prefs.get('junkFilter')?.sellQuality?.[1] === true);
+  enter(/^Rules/); check('Rules gives this character its own junk rules', g.characterJunkFilterConfig().characterSpecific === true);
+  enter(/destroy Poor$/); check('edits then land on the character layer', g.characterJunkFilterConfig().destroyQuality[0] === true && !g.globalJunkFilterConfig().destroyQuality[0]);
+  enter(/^ *. gray$/); check('a gather colour box flips', g.gatherFilterConfig().takeColor.gray === true);
+  term.press('escape');
+  app.switchTab(2);
+  const st = g.state.inventory.stacks[0];
+  app.top().cursor = rowIndex((r) => r.data === st); term.press('m');
+  app.top().cursor = rowIndex((r, t) => t === 'Always keep'); term.press('return');
+  check('the bag item menu puts an item on the keep list', g.characterJunkFilterConfig().keepEntries.includes(st.item));
+  // Back to the defaults so nothing after this runs under these rules.
+  g.setCharacterAutoDisenchantConfig({ enabled: false, maxQuality: 2, protectCompanionUpgrades: true });
+  g.setCharacterJunkFilterConfig({ ...g.characterJunkFilterConfig(), characterSpecific: false, keepEntries: [], destroyQuality: { 0: false, 1: false, 2: false, 3: false, 4: false } });
+  app.prefs.set('autoDisenchant', undefined); app.prefs.set('junkFilter', undefined);
+  home();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);

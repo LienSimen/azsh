@@ -7,6 +7,7 @@ import { SLOT_LABEL, bagCapacity } from '../domain/items/equipment.ts';
 import { freeSlots, isWrappingPaper, isFilledGift, canWrapTarget } from '../domain/items/inventory.ts';
 import { isOpenableContainer } from '../domain/items/itemContainer.ts';
 import { itemTeachIntent } from '../domain/items/itemTeaches.ts';
+import { junkListOptions } from './tuiSettings.mjs';
 
 const stacks = (app) => app.g.state.inventory.stacks;
 const hasLoot = (app) => (entry) => app.ds.lootTable(`item:${entry}`).length > 0;
@@ -138,6 +139,7 @@ export function itemMenu(app, slot) {
   if (slot > 0) opts.push({ label: `Move up  ${dim('[')}`, value: () => moveStack(app, slot, -1) });
   if (slot < stacks(app).length - 1) opts.push({ label: `Move down  ${dim(']')}`, value: () => moveStack(app, slot, +1) });
   opts.push({ label: `Move to the end`, value: () => app.result(app.g.moveItem(slot, stacks(app).length)) });
+  opts.push(...junkListOptions(app, s.item));
   opts.push({ label: red(`Destroy  ${dim('d')}`), value: () => destroyStack(app, slot) });
   app.pick(`${it?.name ?? 'Item'}${countText(s)}`, opts, (fn) => fn());
 }

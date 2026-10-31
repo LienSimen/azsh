@@ -26,6 +26,7 @@ import { portalRows } from './tuiDungeon.mjs';
 import { bulkDisenchantDialog, learnAllDialog } from './tuiBulk.mjs';
 import { gearExtraRows, durabilityText, repairOne, slotRepairLines } from './tuiGear.mjs';
 import { outfitterDialog } from './tuiOutfitter.mjs';
+import { settingsDialog } from './tuiSettings.mjs';
 import { useStack, itemMenu, useAll, splitStack, moveStack, destroyStack, sortBags, keyringRows, primaryVerb } from './tuiBags.mjs';
 
 const STAT_LABEL = { str: 'Strength', agi: 'Agility', sta: 'Stamina', int: 'Intellect', spi: 'Spirit' };
@@ -856,6 +857,7 @@ function charView(app) {
       if (skills.length) rows.push(L(cyan('Professions')), ...skills.map(([k, v]) => L(`  ${ds.profession(k)?.name ?? k} ${v.value ?? v.rank ?? v}`)), L(''));
       rows.push(L(cyan('Home')), L(`  ${ch.hearthBind ? `${ch.hearthBind.name ?? ''} in ${ds.zone(ch.hearthBind.zone)?.name ?? ch.hearthBind.zone}` : 'none'}`));
       if (hasPetClass(a)) rows.push(L(''), { text: `Pet: ${ch.pet ? ch.pet.name : dim('none out')}   ${dim('Enter: the pet page')}`, act: () => a.push(petDialog(a)) });
+      rows.push(L(''), { text: `Settings   ${dim('loot, upgrades, disenchanting, junk, gathering   (:settings)')}`, act: () => a.push(settingsDialog(a)) });
       return rows;
     },
   };

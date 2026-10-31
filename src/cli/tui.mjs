@@ -12,6 +12,7 @@ import { startFight, startAutopilot } from './tuiFight.mjs';
 import { openRun } from './tuiDungeon.mjs';
 import { openLoot } from './tuiLoot.mjs';
 import { MemoryPrefs, FilePrefs } from './prefs.mjs';
+import { settingsDialog, globalSettingsOpts } from './tuiSettings.mjs';
 import { bold, dim, cyan, yellow, green, red, inverse, fit, vis, cut, bar, pct, wrapLines, brightYellow, magenta, brightBlue, strip } from './text.mjs';
 import { createGame, newGameState } from '../engine/game.ts';
 import { toSave } from '../persistence/saveShape.ts';
@@ -51,6 +52,7 @@ const HELP_LINES = [
   '  Bags tab: Enter uses, equips, opens, unwraps or learns; m lists every verb for the stack. s sells to the open',
   '  vendor, j sells junk, b opens the bank, d destroys, S sorts, / splits a stack, [ ] move it, A uses the whole stack.',
   '  D lists every green, blue or epic the group can disenchant; L lists every book someone can learn. G runs it.',
+  '  :settings sets auto-loot, the upgrade helper, auto-disenchant, the junk rules and which nodes get gathered.',
   '  Loot: with :autoloot off a corpse opens the loot window. Enter takes a row, a takes all, Esc leaves the rest.',
   '',
   'In a fight',
@@ -92,7 +94,7 @@ export class App {
 
   startGame(state, slot, createdAt, isNew) {
     this.slot = slot; this.createdAt = createdAt ?? Date.now();
-    const g = createGame(this.ds, state, { travelPace: 'instant' });
+    const g = createGame(this.ds, state, { travelPace: 'instant', ...globalSettingsOpts(this.prefs) });
     this.g = g;
     if (g.state.char.journey) g.completeJourneyNow();
     // Real createInfo has no starting weapon (ETL gap KI-003); phonecraft's harness hands one over too.
@@ -350,6 +352,7 @@ export class App {
       this.render();
       return;
     }
+    if (c === 'settings' || c === 'options') { this.push(settingsDialog(this)); return; }
     if (c === 'outfit') {
       if (!args.trim()) { const { outfitterDialog } = await import('./tuiOutfitter.mjs'); this.push(outfitterDialog(this)); return; }
       // A bare name wears it; wear|unwear|toggle name are the macro forms. Companions with a set of that name follow.
