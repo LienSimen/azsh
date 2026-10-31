@@ -1,10 +1,12 @@
 // World-tab extras that are not a creature fight, a quest or a vendor: pick pocket for rogues (P on a creature)
-// and real-time journeys.
+// real-time journeys, and riding (instructors, mounts).
 import { bold, dim, yellow, red, green, cyan, bar } from './text.mjs';
 import { startFight } from './tuiFight.mjs';
 import { knownUsableSpells } from '../domain/character/characterSpells.ts';
 import { activeStealthAura } from '../domain/character/buildCombatant.ts';
 import { pickpocketLootKey, canRestockPickpocket } from '../domain/professions/pickpocket.ts';
+import { moneyText } from '../domain/economy/money.ts';
+import { vendorPriceMultiplierFor, trainerSpellCost } from '../engine/game/vendorOffers.ts';
 
 /** The Pick Pocket rank you know, or undefined. */
 export function pickPocketSpell(app) {
@@ -104,4 +106,46 @@ export function journeyMenu(app) {
     { label: app.travelPaused ? 'Carry on' : 'Pause the trip', value: () => { app.travelPaused = !app.travelPaused; g.setIdlePaused(app.travelPaused); app.say(dim(app.travelPaused ? 'You stop by the road.' : 'You carry on.')); } },
     { label: red('Turn back here'), value: () => { const r = g.cancelJourney(); if (app.result(r, `You stop in ${app.zone()?.name}.`)) app.journeyWas = null; } },
   ], (fn) => fn());
+}
+
+// ---- riding and mounts ---------------------------------------------------------------------------------
+
+/** Riding instructors in this zone, as World-tab People rows. */
+export function ridingRows(app) {
+  const ids = app.zone()?.ridingTrainers ?? [];
+  if (!ids.length || !app.ds.ridingSpells().length) return [];
+  return ids.map((entry) => {
+    const name = app.ds.creature(entry)?.name ?? `Riding Instructor (${entry})`;
+    return {
+      text: `${name} ${dim('<Riding Instructor>')}${app.ch.ridingSkill ? dim(`  you ride at ${app.ch.ridingSkill}`) : ''}`,
+      detail: () => [bold(name), 'Riding instructor', `Your riding: ${app.ch.ridingSkill ?? 0}`, '', dim('Enter: learn to ride')],
+      act: (a) => ridingDialog(a, entry),
+    };
+  });
+}
+
+function ridingDialog(app, entry) {
+  const mod = vendorPriceMultiplierFor(app.ds, app.ch, entry);
+  const have = app.ch.ridingSkill ?? 0;
+  const seen = new Set();
+  const opts = [];
+  for (const sp of app.ds.ridingSpells()) {
+    if (seen.has(sp.rank)) continue;
+    seen.add(sp.rank);
+    const cost = trainerSpellCost(sp.cost, mod);
+    const why = have >= sp.rank ? 'known' : sp.step > 1 && have < 75 ? 'needs Apprentice Riding' : app.ch.level < sp.reqLevel ? `level ${sp.reqLevel}` : app.ch.gold < cost ? 'not enough money' : '';
+    opts.push({ label: `${why ? dim(`Riding ${sp.rank}`) : green(`Riding ${sp.rank}`)}  ${dim(`level ${sp.reqLevel}, ${moneyText(cost)}`)}${why ? dim(`  ${why}`) : ''}`, value: sp.rank });
+  }
+  app.pick(`${app.ds.creature(entry)?.name ?? 'Riding instructor'}`, opts, (rank) => {
+    const r = app.g.trainRiding(entry, rank);
+    app.result(r, r.ok ? `You learn Riding (${r.rank}) for ${moneyText(r.spent)}.` : '');
+  });
+}
+
+export const isMountItem = (it) => it != null && (it.mountSpell != null || it.mountSpeedPct != null);
+
+/** Enter on a mount in the bags: get on, or off when it is the one you ride. */
+export function toggleMount(app, entry) {
+  if (app.ch.mountedItem === entry) { app.result(app.g.dismount(), 'You dismount.'); return; }
+  app.result(app.g.useMount(entry), `You mount ${app.itemName(entry)}.`);
 }

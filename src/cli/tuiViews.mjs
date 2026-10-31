@@ -28,7 +28,7 @@ import { gearExtraRows, durabilityText, repairOne, slotRepairLines } from './tui
 import { outfitterDialog } from './tuiOutfitter.mjs';
 import { settingsDialog } from './tuiSettings.mjs';
 import { macrosDialog } from './tuiMacros.mjs';
-import { pickPocket, pickPocketTag, journeyRows, afterDeparture } from './tuiWorld.mjs';
+import { pickPocket, pickPocketTag, journeyRows, afterDeparture, ridingRows } from './tuiWorld.mjs';
 import { talentBuildsMenu, myTalentLink } from './tuiTalents.mjs';
 import { simLabDialog } from './tuiSimLab.mjs';
 import { autopilotSettingsDialog } from './tuiAutopilotSettings.mjs';
@@ -195,6 +195,7 @@ function worldView(app) {
         const sk = ch.skills[d.skill];
         people.push({ text: `${d.name} ${dim(`<${prof} Trainer>`)}${sk ? dim(`  ${sk.current}/${sk.max}`) : ''}`, detail: () => [bold(d.name), `${prof} trainer`, sk ? `Your skill: ${sk.current}/${sk.max}` : `You do not know ${prof} yet.`, '', dim('Enter: ranks and recipes')], act: () => a.push(profTrainerDialog(a, d)) });
       }
+      people.push(...ridingRows(a));
       for (const f of z.flightMasters ?? []) people.push({ text: `${f.name} ${dim('<Flight Master>')}`, detail: () => [bold(f.name), 'Flight master', '', dim('Enter: open the travel tab')], act: () => a.switchTab(7) });
       // City services: the bank in capitals and banker towns, the auction house in capitals, the mailbox by every inn.
       const city = cityAccess(a);

@@ -8,6 +8,7 @@ import { freeSlots, isWrappingPaper, isFilledGift, canWrapTarget } from '../doma
 import { isOpenableContainer } from '../domain/items/itemContainer.ts';
 import { itemTeachIntent } from '../domain/items/itemTeaches.ts';
 import { junkListOptions } from './tuiSettings.mjs';
+import { isMountItem, toggleMount } from './tuiWorld.mjs';
 
 const stacks = (app) => app.g.state.inventory.stacks;
 const hasLoot = (app) => (entry) => app.ds.lootTable(`item:${entry}`).length > 0;
@@ -18,6 +19,7 @@ const countText = (s) => (s.count > 1 ? ` x${s.count}` : '');
 export function primaryVerb(app, s) {
   const it = app.ds.item(s.item);
   if (!it) return null;
+  if (isMountItem(it)) return app.ch.mountedItem === it.entry ? 'Dismount' : 'Mount';
   if (isFilledGift(s)) return 'Unwrap';
   if (isWrappingPaper(it)) return 'Wrap an item';
   if (isContainer(app, it)) return 'Open';
@@ -33,6 +35,7 @@ export function useStack(app, slot) {
   const s = stacks(app)[slot];
   if (!s) return;
   const it = app.ds.item(s.item);
+  if (isMountItem(it)) { toggleMount(app, s.item); return; }
   if (isFilledGift(s)) {
     const r = app.g.unwrapItem(slot);
     app.result(r, r.ok ? `You unwrap ${it?.name ?? 'the gift'}: ${app.itemName(r.restoredEntry)}.` : '');

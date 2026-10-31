@@ -1206,6 +1206,30 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   term4.close?.();
 }
 
+// Riding: an instructor teaches Apprentice Riding, a mount in the bags puts you on and takes you off.
+{
+  const g = app.g;
+  const { isMountItem } = await import('./tuiWorld.mjs');
+  const keep = { level: g.state.char.level, zone: g.state.char.zoneId };
+  g.state.char.level = 40; g.state.char.gold += 2_000_000;
+  const rz = ds.zones().find((z) => (z.ridingTrainers ?? []).some((e) => ds.creature(e) && g.previewTravel(z.id).ok) && (z.faction ?? 'Alliance') !== 'Horde');
+  g.state.char.zoneId = rz.id;
+  home(); term.press('1');
+  const instructor = rowIndex((r, t) => /<Riding Instructor>/.test(t));
+  check(`${rz.name} lists a riding instructor`, instructor > 0);
+  app.top().cursor = instructor; term.press('return'); show('riding instructor');
+  app.top().cursor = rowIndex((r, t) => /^Riding 75/.test(t)); term.press('return');
+  check('Enter on a rank teaches riding', (g.state.char.ridingSkill ?? 0) >= 75);
+  const horse = ds.allItems().find((it) => isMountItem(it) && (it.requiredLevel ?? 0) <= 40 && (!it.allowRace?.length || it.allowRace.includes(g.state.char.race)) && (it.requiredSkillRank ?? 0) <= 75);
+  g.state.inventory = addItem(g.state.inventory, horse.entry, 1, 1);
+  app.switchTab(2); app.top().cursor = rowIndex((r) => r.data?.item === horse.entry); term.press('return');
+  check('Enter on a mount in the bags mounts it', g.state.char.mountedItem === horse.entry && /mounted/.test(strip(frame()).split('\n')[0]));
+  term.press('return');
+  check('and Enter again gets off', g.state.char.mountedItem == null);
+  g.state.char.level = keep.level; g.state.char.zoneId = keep.zone;
+  home();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);

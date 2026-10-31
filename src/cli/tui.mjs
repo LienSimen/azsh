@@ -451,7 +451,7 @@ export class App {
     }
     const ch = this.ch, ds = this.ds;
     const z = this.zone();
-    const dead = this.isDead() ? red(bold('  DEAD')) : '';
+    const dead = this.isDead() ? red(bold('  DEAD')) : ch.mountedItem != null ? dim('  mounted') : '';
     const title = ` ${bold(ch.name)} ${dim(`L${ch.level} ${raceName(ch.race)} ${className(ch.cls)}`)}${dead}`;
     const road = journeyHeader(this);
     const right = `${road ? yellow(road) : cyan(z?.name ?? ch.zoneId)}  ${yellow(moneyText(ch.gold) || '0c')} `;
