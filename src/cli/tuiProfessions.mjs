@@ -28,6 +28,7 @@ import {
 } from '../domain/bots/sendTradeGoods.ts';
 import { trainerSpellCost, vendorPriceMultiplierFor } from '../engine/game/vendorOffers.ts';
 import { zoneProfTrainers } from '../world/world.ts';
+import { GOSSIP_SENDER_MAIN, GOSSIP_SENDER_CHECK, S_WEAPON, S_ARMOR, S_HAMMER, S_AXE, S_SWORD, S_DRAGON, S_ELEMENTAL, S_TRIBAL } from '../domain/scriptdev/npcProfessions.ts';
 
 const DIFF_PAINT = { orange, yellow, green, gray, locked: red };
 const KIND_ORDER = { crafting: 0, gathering: 1, secondary: 2 };
@@ -116,12 +117,17 @@ function craftChip(chk) {
 }
 
 /** Make `want` of a recipe as this crafter, then say it once: the engine logs each craft and each buy. */
-function craftMany(app, cr, r, want) {
+/** `all`: make as many as the reagents, purse and bags allow. For you that is the engine's craftAll in one call. */
+function craftMany(app, cr, r, want, all = false) {
   const g = app.g;
   const before = g.state.activity[0] ?? null;
   let made = 0, units = 0, spent = 0, skill, reason;
-  const n = Math.min(Math.max(1, want), 999);
-  for (let i = 0; i < n; i++) {
+  let n = Math.min(Math.max(1, want), 999);
+  if (all && !cr.id) {
+    const res = g.craftAll(r.id);
+    if (res.ok) { made = n = res.crafted; units = res.produced?.count ?? made; spent = res.spent ?? 0; if (res.skillAfter != null && res.skillAfter !== res.skillBefore) skill = res.skillAfter; }
+    else reason = res.reason;
+  } else for (let i = 0; i < n; i++) {
     const res = cr.id ? g.craftAsCompanion(cr.id, r.id) : g.craft(r.id);
     if (!res.ok) { reason = res.reason; break; }
     made++;
@@ -226,7 +232,7 @@ export function recipeBook(app, crafterId, skill) {
   const view = {
     id: `book-${skill}`, title: prof?.name ?? skill, hint: 'Enter: make one',
     keys: {
-      A: { hint: 'make all', fn: (a, row) => { const d = row?.data; if (d?.recipe) { if (d.chk.ok) craftMany(a, d.cr, d.recipe, d.chk.max); else a.say(red(d.chk.reason)); } } },
+      A: { hint: 'make all', fn: (a, row) => { const d = row?.data; if (d?.recipe) { if (d.chk.ok) craftMany(a, d.cr, d.recipe, d.chk.max, true); else a.say(red(d.chk.reason)); } } },
       N: { hint: 'how many', fn: (a, row) => { const d = row?.data; if (d?.recipe) { if (d.chk.ok) askCount(a, d.cr, d.recipe, d.chk); else a.say(red(d.chk.reason)); } } },
       h: { hint: 'have mats', fn: (a) => { haveOnly = !haveOnly; view.cursor = 0; view.scroll = 0; a.flashMsg(haveOnly ? 'Showing only what you can make now.' : 'Showing every known recipe.'); } },
       '/': { hint: 'search', fn: (a) => { if (search) { search = ''; a.flashMsg('Search cleared.'); return; } a.prompt('Search recipes: ', (t) => { search = t.toLowerCase(); view.cursor = 0; view.scroll = 0; a.render(); }); } },
@@ -454,7 +460,7 @@ function partyBook(app) {
   const view = {
     id: 'party-book', title: 'Party recipes', hint: 'Enter: make one',
     keys: {
-      A: { hint: 'make all', fn: (a, row) => { const o = row?.data?.best; if (o?.chk.ok) craftMany(a, o.cr, row.data.recipe, o.chk.max); else if (row?.data) a.say(red(o?.chk.reason ?? 'Nobody can make that now.')); } },
+      A: { hint: 'make all', fn: (a, row) => { const o = row?.data?.best; if (o?.chk.ok) craftMany(a, o.cr, row.data.recipe, o.chk.max, true); else if (row?.data) a.say(red(o?.chk.reason ?? 'Nobody can make that now.')); } },
       N: { hint: 'how many', fn: (a, row) => { const o = row?.data?.best; if (o?.chk.ok) askCount(a, o.cr, row.data.recipe, o.chk); else if (row?.data) a.say(red(o?.chk.reason ?? 'Nobody can make that now.')); } },
       c: { hint: 'pick crafter', fn: (a, row) => { if (row?.data) pickCrafter(a, row.data); } },
       h: { hint: 'have mats', fn: (a) => { haveOnly = !haveOnly; view.cursor = 0; view.scroll = 0; a.flashMsg(haveOnly ? 'Showing only what someone can make now.' : 'Showing every recipe the party knows.'); } },
@@ -507,6 +513,40 @@ function partyBook(app) {
 // ---- trainers -------------------------------------------------------------------------------------------
 
 /** A profession trainer: the next rank of the craft, and the recipes and formulas they teach. */
+// Blacksmith and leatherworker specialisations, from the trainer's own gossip (npc_professions.cpp).
+const SPEC_SPELL = { weapon: S_WEAPON, armor: S_ARMOR, hammer: S_HAMMER, axe: S_AXE, sword: S_SWORD, dragon: S_DRAGON, elemental: S_ELEMENTAL, tribal: S_TRIBAL };
+
+function specRows(app, trainer) {
+  const items = (app.g.professionSpecGossip(trainer.entry).items ?? []).filter((x) => /^(learn|unlearn)_/.test(x.kind));
+  if (!items.length) return [];
+  const rows = [H('Specialisation')];
+  for (const it of items) {
+    const unlearn = it.kind.startsWith('unlearn_');
+    const sp = app.ds.spell(SPEC_SPELL[it.kind.replace(/^(un)?learn_/, '')]);
+    const name = sp?.name ?? it.kind.replace(/^(un)?learn_/, '');
+    const cost = it.costCopper ?? 0;
+    rows.push({
+      text: `${unlearn ? red(`Unlearn ${name}`) : green(`Become a specialist: ${name}`)}${cost ? `  ${yellow(moneyText(cost))}` : ''}`,
+      detail: () => [bold(name), '', unlearn ? 'Forget this specialisation and the recipes that go with it.' : 'A specialisation opens its own recipes. You can hold one at a time.', ...(cost ? ['', `Cost ${moneyText(cost)}`] : [])],
+      act: (a) => (unlearn ? a.confirm(`Unlearn ${name}${cost ? ` for ${moneyText(cost)}` : ''}? Its recipes are forgotten.`, () => applySpec(a, trainer, it, name, true)) : applySpec(a, trainer, it, name, false)),
+    });
+  }
+  rows.push(H(''));
+  return rows;
+}
+
+function applySpec(app, trainer, it, name, unlearn) {
+  const g = app.g;
+  // A learn first answers with a confirm step (GOSSIP_SENDER_MAIN), then casts on the check sender.
+  let r = g.selectProfessionSpec(trainer.entry, { sender: unlearn ? GOSSIP_SENDER_CHECK : GOSSIP_SENDER_MAIN, action: it.action, ...(unlearn ? { equippedOk: true } : {}) });
+  if (r.ok && !unlearn && r.phase === 'confirm_learn') r = g.selectProfessionSpec(trainer.entry, { sender: GOSSIP_SENDER_CHECK, action: it.action });
+  if (!app.result(r)) return;
+  if (r.grantedSpellId != null) app.say(green(`You are now a specialist: ${app.ds.spell(r.grantedSpellId)?.name ?? name}.`));
+  else if (r.removedSpellId != null) app.say(yellow(`You forget ${app.ds.spell(r.removedSpellId)?.name ?? name}.`));
+  else if (r.blacksmithUnlearnGap) app.say(red(`${name} cannot be unlearned here: the classic script never finished blacksmith unlearning.`));
+  else app.say(dim('Nothing changes.'));
+}
+
 export function profTrainerDialog(app, trainer) {
   const ds = app.ds;
   const prof = ds.profession(trainer.skill);
@@ -546,6 +586,7 @@ export function profTrainerDialog(app, trainer) {
           act: () => a.result(a.g.learnProfession(trainer.entry), `You are now a${/^[AEIOU]/.test(nr.name) ? 'n' : ''} ${nr.name} ${prof.name}.`),
         }, H(''));
       } else if (sk) rows.push(H(dim(prof?.kind === 'secondary' && sk.max < 300 ? 'Expert and Artisan come from books, not trainers.' : 'You hold the highest rank they teach.')), H(''));
+      rows.push(...specRows(a, trainer));
       const list = teachables();
       const now = list.filter((t) => sk && sk.current >= t.def.orange && ch.level >= t.reqLevel);
       const later = list.filter((t) => !now.includes(t)).slice(0, 20);

@@ -1381,6 +1381,29 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   home();
 }
 
+// Profession specialisation: a leatherworker who did the Dragonscale quest learns it from Peter Galen in Azshara.
+{
+  const term6 = new HeadlessTerm(110, 34);
+  const app6 = new App({ term: term6, ds, repo });
+  term6.open();
+  app6.startGame(newGameState(ds, human.id, 1, 'Leathertest', 13, 0), 'leathertest', Date.now(), true);
+  const g6 = app6.g;
+  g6.state.char.level = 60; g6.state.char.gold = 10_000_000;
+  g6.devLearnProfession('leatherworking');
+  g6.state.questlog.quests.push({ entry: 5141, status: 'turnedIn', progress: {} });
+  g6.state.char.zoneId = 'azshara'; app6.render();
+  const at = (pred) => app6.rowsOf(app6.top()).findIndex((r) => !r.header && pred(r, strip(r.text)));
+  app6.top().cursor = at((r, t) => t.startsWith('Peter Galen')); term6.press('return');
+  if (showFrames) console.log(`\n=== leather trainer ===\n${term6.text()}`);
+  const row = at((r, t) => /Become a specialist/.test(t));
+  check('the trainer offers Dragonscale Leatherworking', row >= 0);
+  if (row >= 0) {
+    app6.top().cursor = row; term6.press('return');
+    check('Enter makes you a Dragonscale leatherworker', g6.state.spellbook.known.includes(10656));
+  }
+  term6.close?.();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);

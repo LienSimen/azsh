@@ -222,7 +222,9 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
       `leaveMeetingStoneQueue`. Ref `views/meetingStoneQueueView.ts`, `appInteractClickA.ts:1094`.
 - [x] S  Attack-farm chain ("fight this again until stopped") in the fight view. Ref
       `combat/attackFarmLoop.ts`.
-- [ ] S  Profession specialisations: `selectProfessionSpec`, `professionSpecGossip`; `craftAll`.
+- [x] S  Profession specialisations: `selectProfessionSpec`, `professionSpecGossip`; `craftAll`.
+      (Armorsmith/Weaponsmith learn sits with Myolor Sunderfury and Krathok Moltenfist, who are not in the
+      zone trainer lists, so only their unlearn and the leatherworking choices are reachable. Data, phonecraft.)
 
 ### Bank, mail, auction
 
