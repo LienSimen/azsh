@@ -209,7 +209,7 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
       `journeyStatus` in the header, `cancelJourney`, `setJourneySpeed`, `setIdlePaused`, and a
       "skip" that calls `completeJourneyNow`. Remove the instant calls at `repl.mjs:132`, `tui.mjs:86`,
       `tuiViews.mjs:224/727/732`.
-- [ ] S  Offline rest on load: `accrueOfflineRest`.
+- [x] S  Offline rest on load: `accrueOfflineRest`.
 - [ ] S  Mounts and riding: `useMount`, `dismount`, `trainRiding`.
 - [ ] S  Objects as World rows (chests, books, meeting stones, banners): `interactObject` from the UI,
       not only the autopilot; book paging.

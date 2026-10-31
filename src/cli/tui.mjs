@@ -100,10 +100,12 @@ export class App {
 
   // ---- game lifecycle ---------------------------------------------------------------------------
 
-  startGame(state, slot, createdAt, isNew) {
+  /** `updatedAt` is when the save was last written: the gap since is offline rest and regen. */
+  startGame(state, slot, createdAt, isNew, updatedAt) {
     this.slot = slot; this.createdAt = createdAt ?? Date.now();
+    const awayMs = updatedAt > 0 ? Math.max(0, Date.now() - updatedAt) : 0;
     // Travel pace is a setting (instant by default, like phonecraft); `skipping` lets Arrive now land a trip at any pace.
-    const g = createGame(this.ds, state, { travelPace: () => (this.skipping ? 'instant' : this.prefs.get('travelPace') ?? 'instant'), ...globalSettingsOpts(this.prefs) });
+    const g = createGame(this.ds, state, { travelPace: () => (this.skipping ? 'instant' : this.prefs.get('travelPace') ?? 'instant'), offlineTimeMs: awayMs, ...globalSettingsOpts(this.prefs) });
     this.g = g;
     if (g.state.char.journey) { if (this.prefs.get('travelPace') === 'instant') this.arriveNow(); else g.journeyTick(); }
     // Real createInfo has no starting weapon (ETL gap KI-003); phonecraft's harness hands one over too.
@@ -116,11 +118,22 @@ export class App {
     this.stack = [];
     this.lastActivity = g.state.activity[0] ?? null;
     this.say(bold(`Welcome${isNew ? '' : ' back'}, ${g.state.char.name}.`) + dim('  Press ? for the keys.'));
+    if (awayMs >= 60_000) this.offlineRest(Math.floor(awayMs / 1000));
     if (g.state.instance) openRun(this);
     openLoot(this); // an opened bag item's remainder is still claimable after a reload
     if (!this.term.isTTY) return;
     // Out-of-combat regeneration ticks in real time, like standing still in the world.
     this.timers.push(this.term.setInterval(() => { if (!this.fight && !this.auto && !this.closed) { this.idleTick(1); journeyTick(this); this.render(); } }, 1000));
+  }
+
+  /** Time away from the game: rested xp at the logout rate (Player::ComputeRest), and an hour of regen at most. */
+  offlineRest(awaySec) {
+    const g = this.g, before = g.state.char.restedXp ?? 0;
+    g.accrueOfflineRest(awaySec);
+    if (!this.isDead()) g.regenTick(Math.min(3600, awaySec), false, { restAlreadyBooked: true });
+    const gained = (g.state.char.restedXp ?? 0) - before;
+    const away = awaySec >= 86400 ? `${Math.floor(awaySec / 86400)} d` : awaySec >= 3600 ? `${Math.floor(awaySec / 3600)} h` : `${Math.floor(awaySec / 60)} min`;
+    this.say(dim(`You were away ${away}.${gained > 0 ? ` +${gained} rested xp.` : ''}`));
   }
 
   /** Land the current trip now, whatever the travel pace. */
@@ -542,7 +555,7 @@ export async function runTui({ term = new RealTerm(), argv = [] } = {}) {
   const saves = await repo.list();
   const begin = async (save) => {
     app.stack = [];
-    app.startGame(save.state, save.slot, save.createdAt, false);
+    app.startGame(save.state, save.slot, save.createdAt, false, save.updatedAt);
     app.render();
   };
   const createFlow = () => characterCreation(app, (state) => {

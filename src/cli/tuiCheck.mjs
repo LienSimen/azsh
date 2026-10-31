@@ -1194,6 +1194,18 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   home();
 }
 
+// Offline rest: a save last written eight hours ago comes back with rested xp.
+{
+  const term4 = new HeadlessTerm(110, 34);
+  const app4 = new App({ term: term4, ds, repo });
+  term4.open();
+  const st = newGameState(ds, human.id, 1, 'Resttest', 5, 0);
+  st.char.level = 10; st.char.restedXp = 0;
+  app4.startGame(st, 'resttest', Date.now() - 9 * 3600_000, false, Date.now() - 8 * 3600_000);
+  check('time away is rested xp on load', (app4.g.state.char.restedXp ?? 0) > 0 && app4.log.some((l) => /You were away 8 h\. \+\d+ rested xp/.test(strip(l))));
+  term4.close?.();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);
