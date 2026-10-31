@@ -29,6 +29,7 @@ import { outfitterDialog } from './tuiOutfitter.mjs';
 import { settingsDialog } from './tuiSettings.mjs';
 import { macrosDialog } from './tuiMacros.mjs';
 import { pickPocket, pickPocketTag } from './tuiWorld.mjs';
+import { talentBuildsMenu, myTalentLink } from './tuiTalents.mjs';
 import { useStack, itemMenu, useAll, splitStack, moveStack, destroyStack, sortBags, keyringRows, primaryVerb } from './tuiBags.mjs';
 
 const STAT_LABEL = { str: 'Strength', agi: 'Agility', sta: 'Stamina', int: 'Intellect', spi: 'Spirit' };
@@ -765,11 +766,13 @@ function talentsView(app) {
     keys: {
       u: { hint: 'refund', fn: (a, row) => row?.data && a.result(a.g.refundTalent(row.data.id), `Refunded a point from ${row.data.name}.`) },
       R: { hint: 'respec', fn: (a) => { const cost = a.g.respecCost(); a.confirm(`Reset all talents for ${moneyText(cost) || 'free'}?`, () => a.result(a.g.respec(), 'Your talents are reset.')); } },
+      B: { hint: 'builds', fn: (a) => talentBuildsMenu(a) },
     },
     rows(a) {
       const ch = a.ch;
       const free = availablePoints(ch);
       const rows = [{ text: ch.level < 10 ? dim('Talents unlock at level 10.') : `${plural(free, 'point')} to spend`, header: true }];
+      if (ch.level >= 10) rows.push({ text: `Builds  ${dim(`premade specs, saved loadouts, talent strings   ${myTalentLink(a) || 'nothing spent yet'}`)}`, detail: () => [bold('Talent builds'), '', 'Switch to a premade spec, a build you saved, or a pasted talent string. Spent points cost a respec.', '', dim('Enter (or B): open')], act: () => talentBuildsMenu(a) });
       for (const tree of a.ds.talentTrees(ch.cls)) {
         rows.push({ text: '', header: true }, { text: `${tree.name}  ${dim(`${spentInTree(ch, tree.tabId, a.ds)} points`)}`, header: true });
         const talents = [...tree.talents].sort((x, y) => x.tier - y.tier || x.col - y.col);

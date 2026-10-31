@@ -1095,6 +1095,34 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   home();
 }
 
+// Talent builds: a premade spec, save it, respec, put the saved build back, paste a string, delete the build.
+{
+  const g = app.g;
+  const typeLine = (text) => { for (const ch of text) term.press(ch === ' ' ? 'space' : ch); term.press('return'); };
+  const pickRow = (re) => { app.top().cursor = rowIndex((r, t) => re.test(t)); term.press('return'); };
+  const spent = () => Object.values(g.state.char.talents ?? {}).reduce((n, v) => n + v, 0);
+  const { talentLinkFromTalents } = await import('../domain/character/talentLink.ts');
+  const link = () => talentLinkFromTalents(g.state.char.talents ?? {}, g.state.char.cls, ds);
+  g.state.char.gold += 1_000_000;
+  home(); term.press('7'); term.press('B'); show('talent builds');
+  check('B on Talents lists the premade specs', app.top().title === 'Talent builds' && /premade/.test(strip(frame())));
+  pickRow(/premade/); if (app.top()?.id === 'pick' && /respec/.test(app.top().title)) term.press('return');
+  const premade = link();
+  check('a premade spec spends the points', spent() > 0 && premade.length > 0);
+  term.press('B'); pickRow(/^Save my talents/); typeLine('Mine');
+  check('the current talents save as a build', (g.state.talentBuilds ?? []).some((b) => b.name === 'Mine' && b.link === premade));
+  g.respec();
+  check('a respec empties the tree', spent() === 0);
+  term.press('B'); pickRow(/saved\s+Mine/); pickRow(/^Use this build/);
+  check('the saved build goes back on', link() === premade);
+  g.respec();
+  term.press('B'); pickRow(/^Paste a talent string/); typeLine(premade);
+  check('a pasted talent string is applied', link() === premade);
+  term.press('B'); pickRow(/saved\s+Mine/); pickRow(/^Delete it/); term.press('return');
+  check('a saved build can be deleted', !(g.state.talentBuilds ?? []).some((b) => b.name === 'Mine'));
+  home();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);
