@@ -73,6 +73,7 @@ const HELP_LINES = [
   'Rotation tab',
   '  The rotation is what auto-play casts for you. Rules are checked top to bottom every tick and the',
   '  first one whose conditions hold fires. Enter on a rule opens its menu; Enter on "+ Add" adds one.',
+  '  D runs the rotation against a target dummy and reads the parse (DPS, casts, what did the damage).',
 ];
 
 export class App {

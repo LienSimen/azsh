@@ -199,7 +199,7 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
 - [x] S  Rotation profiles: `rotationProfiles`, `add/rename/delete/selectRotationProfile`.
 - [x] S  Premade specs, saved builds and talent links: `applyPremadeSpec`, `saveTalentBuild`,
       `deleteTalentBuild`, `applyTalentBuild`, `applyTalentLink`.
-- [ ] M  Target dummy sim lab: `domain/sim/dummySim`, `targetDummy`. Ref `rotation/rotationSimLab.ts`.
+- [x] M  Target dummy sim lab: `domain/sim/dummySim`, `targetDummy`. Ref `rotation/rotationSimLab.ts`.
 - [ ] S  Autopilot settings window: every `AutopilotConfig` field as a form (thresholds, pull counts,
       squad mode, quest policy, shard cap). Ref `rotation/rotationEditorAuto.ts`, `autopilot/runDials.ts`.
 

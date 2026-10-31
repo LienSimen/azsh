@@ -1123,6 +1123,24 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   home();
 }
 
+// Target dummy: D on the Rotation tab parses the rotation; the report names DPS and the abilities that did damage.
+{
+  home(); term.press('6'); term.press('D'); show('target dummy');
+  check('D on Rotation opens the target dummy', app.top().id === 'sim-lab');
+  app.top().cursor = rowIndex((r, t) => /^Fights/.test(t));
+  while (app.top().sim.iterations !== 20) term.press('return');
+  app.top().cursor = rowIndex((r, t) => /^Dummy/.test(t));
+  while (app.top().sim.entry !== 2673) term.press('return');
+  term.press('G');
+  const sim = app.top().sim;
+  while (!sim.run.done) sim.run.step(1000);
+  sim.report = sim.run.report();
+  app.render(); show('dummy parse');
+  check('the parse reports DPS', sim.report.dps.avg > 0 && /DPS/.test(strip(frame())));
+  check('and which abilities did the damage', sim.report.abilities.length > 0 && rowIndex(() => true) >= 0 && app.rowsOf(app.top()).some((r) => strip(r.text).startsWith(sim.report.abilities[0].name)));
+  home();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);

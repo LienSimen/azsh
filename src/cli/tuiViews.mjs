@@ -30,6 +30,7 @@ import { settingsDialog } from './tuiSettings.mjs';
 import { macrosDialog } from './tuiMacros.mjs';
 import { pickPocket, pickPocketTag } from './tuiWorld.mjs';
 import { talentBuildsMenu, myTalentLink } from './tuiTalents.mjs';
+import { simLabDialog } from './tuiSimLab.mjs';
 import { useStack, itemMenu, useAll, splitStack, moveStack, destroyStack, sortBags, keyringRows, primaryVerb } from './tuiBags.mjs';
 
 const STAT_LABEL = { str: 'Strength', agi: 'Agility', sta: 'Stamina', int: 'Intellect', spi: 'Spirit' };
@@ -550,6 +551,14 @@ function rotOwner(app) {
   };
 }
 
+/** Who the target dummy parses: the Rotation tab's subject, with the body and spellbook that rotation runs on. */
+function simSubject(app) {
+  const o = rotOwner(app);
+  if (!o.comp) return { name: 'Your', who: 'You', rotation: o.get(), char: app.ch, spellbook: app.g.state.spellbook };
+  const lvl = companionLevel(o.comp, app.ch.level);
+  return { name: o.name, who: o.comp.name, rotation: o.get(), char: companionCharacter(o.comp, lvl, app.ds), spellbook: companionSpellbook(o.comp, lvl, app.ds) };
+}
+
 function editRotation(app, mutate) {
   const o = rotOwner(app);
   const rot = structuredClone(o.get());
@@ -592,6 +601,7 @@ function rotationView(app) {
     keys: {
       w: { hint: 'whose', fn: (a) => pickRotationOwner(a) },
       p: { hint: 'profiles', fn: (a) => profileMenu(a) },
+      D: { hint: 'target dummy', fn: (a) => a.push(simLabDialog(a, () => simSubject(a))) },
       // K J c d still work as shortcuts; the menu on Enter is the advertised way, so they stay out of the hint line.
       K: { fn: (a, row) => row?.data?.rule && moveRule(a, row.data, -1) },
       J: { fn: (a, row) => row?.data?.rule && moveRule(a, row.data, +1) },
