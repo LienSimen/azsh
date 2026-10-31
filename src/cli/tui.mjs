@@ -20,6 +20,7 @@ import { journeyHeader, journeyTick } from './tuiWorld.mjs';
 import { reputationDialog } from './tuiRep.mjs';
 import { honorDialog, weeklyHonorPass } from './tuiHonor.mjs';
 import { devCommand } from './tuiDev.mjs';
+import { savePicker } from './tuiSaves.mjs';
 import { bold, dim, cyan, yellow, green, red, inverse, fit, vis, cut, bar, pct, wrapLines, brightYellow, magenta, brightBlue, strip } from './text.mjs';
 import { createGame, newGameState, newGameStateFromWorldBot, pickRandomWorldBot } from '../engine/game.ts';
 import { toSave } from '../persistence/saveShape.ts';
@@ -221,7 +222,7 @@ export class App {
   pick(title, options, onPick, { hint, keepOpen } = {}) {
     const view = {
       id: 'pick', title, hint: hint ?? 'Enter: choose   Esc: back',
-      rows: () => options.map((o) => ({ text: o.label, detail: o.detail ? () => (typeof o.detail === 'function' ? o.detail() : o.detail) : undefined, act: () => { if (!keepOpen) this.pop(); onPick(o.value, o); } })),
+      rows: () => options.map((o) => ({ text: o.label, data: o.value, detail: o.detail ? () => (typeof o.detail === 'function' ? o.detail() : o.detail) : undefined, act: () => { if (!keepOpen) this.pop(); onPick(o.value, o); } })),
       noDetail: !options.some((o) => o.detail),
     };
     this.push(view);
@@ -573,19 +574,8 @@ export async function runTui({ term = new RealTerm(), argv = [] } = {}) {
     void app.persist();
     app.render();
   });
-  if (saves.length && !argv.includes('--new')) {
-    const options = saves.map((m) => ({
-      label: `${bold(m.name)}  ${dim(`L${m.level} ${className(m.cls)}`)}`,
-      detail: [bold(m.name), `Level ${m.level} ${className(m.cls)}`, dim(`last played ${new Date(m.updatedAt).toLocaleString()}`)],
-      value: m,
-    }));
-    options.push({ label: green('New character'), value: null });
-    app.pick('Choose a character', options, async (m) => {
-      if (!m) return createFlow();
-      const save = await repo.load(m.slot);
-      if (save) await begin(save);
-    }, { hint: 'Enter: play' });
-  } else createFlow();
+  if (saves.length && !argv.includes('--new')) await savePicker(app, { onPlay: (save) => { void begin(save); }, onNew: createFlow });
+  else createFlow();
   return new Promise((resolve) => { app.onQuit = resolve; });
 }
 

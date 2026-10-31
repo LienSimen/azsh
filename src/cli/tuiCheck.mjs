@@ -1546,6 +1546,53 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   home();
 }
 
+// Saves: from the picker, back up, delete and bring back, restore, export and import (a real save folder in tmp).
+{
+  const { mkdtempSync, existsSync, rmSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const { FileSaveRepository } = await import('./fileRepository.mjs');
+  const { toSave } = await import('../persistence/saveShape.ts');
+  const { savePicker } = await import('./tuiSaves.mjs');
+  const tick = async (n = 5) => { for (let i = 0; i < n; i++) await new Promise((r) => setTimeout(r, 0)); };
+  const dir = mkdtempSync(join(tmpdir(), 'azsh-saves-'));
+  const repo10 = new FileSaveRepository(join(dir, 'saves'));
+  const now = Date.now();
+  await repo10.save(toSave('keeper', newGameState(ds, human.id, 1, 'Keeper', 31, 0), now, now));
+  const term10 = new HeadlessTerm(110, 34);
+  const app10 = new App({ term: term10, ds, repo: repo10 });
+  term10.open();
+  let played = null;
+  const open = async () => { app10.stack = []; await savePicker(app10, { onPlay: (s2) => { played = s2; }, onNew: () => {} }); };
+  const at = (pred) => app10.rowsOf(app10.top()).findIndex((r) => !r.header && pred(r, strip(r.text)));
+  const choose = async (re) => { app10.top().cursor = at((r, t) => re.test(t)); term10.press('return'); await tick(); };
+  await open(); show('save picker');
+  check('the picker lists the save', at((r, t) => /^Keeper/.test(t)) >= 0);
+  app10.top().cursor = at((r, t) => /^Keeper/.test(t)); term10.press('m');
+  await choose(/^Back it up now/);
+  check('a save can be backed up by hand', (await repo10.listBackups('keeper')).length === 1);
+  app10.top().cursor = at((r, t) => /^Keeper/.test(t)); term10.press('m');
+  await choose(/^Export to a file/);
+  const exported = app10.log.map(strip).reverse().find((l) => /^Wrote /.test(l))?.slice(6);
+  check('a save exports to a file', !!exported && existsSync(exported));
+  app10.top().cursor = at((r, t) => /^Keeper/.test(t)); term10.press('m');
+  await choose(/^Delete/); term10.press('return'); await tick();
+  check('delete removes it from the list', !(await repo10.list()).some((m) => m.slot === 'keeper'));
+  await open();
+  await choose(/^Bring back Keeper/);
+  check('and Bring back restores it', (await repo10.list()).some((m) => m.slot === 'keeper'));
+  await open();
+  await choose(/^Import a save file/);
+  for (const ch of exported) term10.press(ch === ' ' ? 'space' : ch); term10.press('return'); await tick();
+  check('an exported file imports as a second copy', (await repo10.list()).filter((m) => m.name === 'Keeper').length === 2);
+  await open();
+  await choose(/^Keeper/);
+  check('Enter on a save still plays it', played?.state?.char?.name === 'Keeper');
+  term10.close?.();
+  rmSync(dir, { recursive: true, force: true });
+  if (exported) rmSync(exported, { force: true });
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);

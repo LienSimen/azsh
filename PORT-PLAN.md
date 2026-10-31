@@ -256,7 +256,7 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
 - [ ] M  Wiki window: item, spell, quest, NPC, talent, recipe, zone, dungeon, object, faction lookup
       from the DataStore, `/` search, cross-links. Ref `wiki/wikiView.ts` and siblings. This is
       the single biggest quality-of-life gain for a text game.
-- [ ] S  Saves: backup, restore, export, import, delete from the picker.
+- [x] S  Saves: backup, restore, export, import, delete from the picker.
 - [x] S  `:dev` verbs: `devGrantItem`, `devCompleteQuest`, `devLearnRecipe`, `devLearnProfession`,
       random world-bot character (`newGameStateFromWorldBot`, `pickRandomWorldBot`).
 
