@@ -118,6 +118,9 @@ first; engaging a stop runs it through the live fight view.
       (`src/ui/dungeon/dungeonNavBakeLoader.ts:41`), `tickDungeonPatrolScripts`, and the pull lifecycle
       in `src/ui/live/livePullLifecycle.ts` and `liveAggroStream.ts`. Also the scripted dungeons
       (Stratholme timers, gauntlets and escorts in `live/liveStratUndead.ts`, `liveGauntletEscort.ts`).
+      Blocked on data first: the nav meshes are 65 `public/maps/bake/*.navmesh.bin` files in phonecraft
+      (42 MB) and none are in azsh. Decide whether to pack them into `src/data` or read them from a
+      phonecraft checkout (the `PHONECRAFT` path the sync script already uses) before porting the loader.
 - [x] **Check.** tuiCheck scenario: enter Ragefire Chasm or Deadmines with a squad, clear two stops,
       use one gate, finish headlessly, assert summary and lockout.
 
