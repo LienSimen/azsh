@@ -7,7 +7,7 @@ import { afterDeparture } from './tuiWorld.mjs';
 import { isCityDefender, newHonorState, PVP_RANKS, rankForRp, rankTitle, visualRankDecimal } from '../domain/run/honor.ts';
 import { daysToNextMaintenance, nextMaintenanceDate } from '../domain/run/honorWeek.ts';
 import { factionOf } from '../domain/character/races.ts';
-import { arenaRows } from './tuiArena.mjs';
+import { arenaRows, battlegroundRows } from './tuiArena.mjs';
 
 const H = (text) => ({ text, header: true });
 const kv = (label, value, paint = (x) => x) => H(`  ${label.padEnd(20)} ${paint(String(value))}`);
@@ -48,7 +48,7 @@ export function honorDialog(app) {
       const fac = honorFaction(a);
       const highest = h.highestRank >= 1 && h.highestRank <= PVP_RANKS.length ? rankTitle(PVP_RANKS[h.highestRank - 1], fac) : 'none';
       const rows = [H(`${bold(honorRankLine(a))}   ${fac === 'horde' ? red('Horde') : cyan('Alliance')}`)];
-      rows.push(...arenaRows(a));
+      rows.push(...battlegroundRows(a), ...arenaRows(a));
       // City Defender (rank 15 standing): the capital teleports cost no rune and no mana.
       if (isCityDefender(h)) {
         const ports = a.g.classTravelOptions().filter((t) => t.free);

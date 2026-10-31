@@ -1613,6 +1613,24 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   home();
 }
 
+// Alterac Valley: from the Honor window it is a raid run in the dungeon run window.
+{
+  const term11 = new HeadlessTerm(110, 34);
+  const app11 = new App({ term: term11, ds, repo });
+  term11.open();
+  app11.startGame(newGameState(ds, human.id, 1, 'Valleytest', 41, 0), 'valleytest', Date.now(), true);
+  const g11 = app11.g;
+  g11.state.char.level = 60;
+  const at = (pred) => app11.rowsOf(app11.top()).findIndex((r) => !r.header && pred(r, strip(r.text)));
+  term11.press(':'); for (const ch of 'honor') term11.press(ch); term11.press('return');
+  const av = at((r, t) => /Alterac Valley/.test(t));
+  check('the honor window lists Alterac Valley', av >= 0);
+  app11.top().cursor = av; term11.press('return');
+  if (showFrames) console.log(`\n=== alterac valley ===\n${term11.text()}`);
+  check('Enter starts the valley as a raid run', /^alterac-valley-/.test(g11.state.instance?.dungeonId ?? '') && app11.top()?.id === 'dungeon');
+  term11.close?.();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);

@@ -8,6 +8,9 @@ import { BATTLEGROUNDS } from '../domain/run/battlegroundRun.ts';
 import { arenaRatingOf, ratingTier } from '../domain/bg/arenaRating.ts';
 import { BG_TIERS } from '../domain/bg/bgTier.ts';
 import { gauntletLength } from '../domain/bg/arenaComps.ts';
+import { avInstanceIdFor } from '../data/dungeons/alterac-valley.ts';
+import { factionOf } from '../domain/character/races.ts';
+import { openRun } from './tuiDungeon.mjs';
 
 const H = (text) => ({ text, header: true });
 
@@ -65,6 +68,26 @@ export function startArenaMatch(app, bracket) {
       return arenaOutcome(r);
     },
   });
+}
+
+/** Alterac Valley is a raid run, not a battleground screen (phonecraft appInteractClickA.ts:1179): your side's
+ *  wing of the valley, entered as a raid with the bench promoted, played in the dungeon run window. */
+export function enterAlteracValley(app) {
+  const team = factionOf(app.ds, app.ch.race) === 'horde' ? 'horde' : 'alliance';
+  const r = app.g.enterInstance(avInstanceIdFor(team), Date.now(), { asRaid: true });
+  if (!app.result(r, `You join the fight for Alterac Valley.`)) return;
+  app.stack = [];
+  openRun(app);
+}
+
+/** The Battlegrounds section: Alterac Valley (Warsong Gulch and Arathi Basin need the match driver). */
+export function battlegroundRows(app) {
+  const av = BATTLEGROUNDS.av;
+  const rows = [H(''), H(`${cyan('Battlegrounds')}  ${dim('earn honor and climb the weekly ranks')}`)];
+  if (av) rows.push(app.ch.level >= av.minLevel
+    ? { text: `  ${av.name}  ${dim(`${av.minLevel}-${av.maxLevel}, a raid run: captains, towers and the general`)}`, act: (a) => enterAlteracValley(a) }
+    : H(dim(`  ${av.name}  level ${av.minLevel}`)));
+  return rows;
 }
 
 /** The Arena section of the Honor window. */

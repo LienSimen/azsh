@@ -330,14 +330,22 @@ function npcDialog(app, entry, name) {
   app.pick(name, opts, (fn) => fn());
 }
 
+/** One line each for a party; a raid (more than ten) folds into a line per role plus whoever is hurt or dead. */
 function partyLines(app) {
   const g = app.g, ch = app.ch;
-  const out = [`  ${fit(ch.name, 12)} ${dim(`L${ch.level}`)}  ${hpTag(ch.health, maxHealth(ch, app.ds))}`];
-  for (const c of g.state.squad ?? []) {
+  const squad = g.state.squad ?? [];
+  const me = `  ${fit(ch.name, 12)} ${dim(`L${ch.level}`)}  ${hpTag(ch.health, maxHealth(ch, app.ds))}`;
+  const members = squad.map((c) => {
     const lvl = companionLevel(c, ch.level);
     const max = maxHealth(companionCharacter(c, lvl, app.ds), app.ds);
-    out.push(`  ${fit(c.name, 12)} ${dim(`L${lvl} ${ROLE_NAME[c.role] ?? c.role}`)}  ${hpTag(c.health ?? max, max)}`);
-  }
+    return { c, lvl, max, hp: c.health ?? max };
+  });
+  if (squad.length < 10) return [me, ...members.map((m) => `  ${fit(m.c.name, 12)} ${dim(`L${m.lvl} ${ROLE_NAME[m.c.role] ?? m.c.role}`)}  ${hpTag(m.hp, m.max)}`)];
+  const byRole = new Map();
+  for (const m of members) byRole.set(m.c.role, (byRole.get(m.c.role) ?? 0) + 1);
+  const hurt = members.filter((m) => m.hp < m.max * 0.5).sort((x, y) => x.hp / x.max - y.hp / y.max);
+  const out = [me, `  ${dim(`raid of ${squad.length + 1}:`)} ${[...byRole].map(([r, n]) => `${n} ${r === 'dps' ? 'damage' : `${ROLE_NAME[r] ?? r}${n === 1 ? '' : 's'}`}`).join(', ')}`];
+  if (hurt.length) out.push(`  ${dim('hurt:')} ${hurt.slice(0, 6).map((m) => `${m.c.name} ${hpTag(m.hp, m.max)}`).join('  ')}${hurt.length > 6 ? dim(`  +${hurt.length - 6}`) : ''}`);
   return out;
 }
 const hpTag = (hp, max) => (hp <= 0 ? red('dead') : (hp / max < 0.5 ? yellow : green)(`${Math.round((hp / Math.max(1, max)) * 100)}%`));

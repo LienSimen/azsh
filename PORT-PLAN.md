@@ -244,8 +244,10 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
       driver in `src/ui/bg/bgScreen.ts` over `domain/bg/*` (`BgWorld`, `BgMatch`, `wsg`, `ab`). The
       map is graphical; the objective state and fights are not. Text form: objectives list, your
       assignment, engage.
-- [ ] M  Alterac Valley: `enterInstance(avInstanceIdFor(team), now, { asRaid: true })`; it is a raid
-      run and rides on Phase 2.
+- [x] M  Alterac Valley: `enterInstance(avInstanceIdFor(team), now, { asRaid: true })`; it is a raid
+      run and rides on Phase 2. On the Honor window; it plays as a plain raid run. Phonecraft's valley
+      layer on top (`domain/bg/avInstanceScore.ts`, the node and mine captures its live controller drives)
+      is not in the text run yet.
 - [x] S  Outdoor PvP world states (Eastern Plaguelands towers) as a World row. **engine**: capture does
       NOT happen through `interactObject`: the banners are GO type 29 and `useGameObject`
       (`domain/world/gameObjects.ts`) has no case for it, so it refuses before the OutdoorPvPEP hook in
