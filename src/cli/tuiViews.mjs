@@ -13,7 +13,9 @@ import { bagCapacity, EQUIP_SLOTS, BAG_SLOTS, SLOT_LABEL, itemSlotTargets, DUAL_
 import { equippedEntry } from '../domain/items/itemInstance.ts';
 import { knows } from '../domain/character/spellbook.ts';
 import { availablePoints, canSpend, canRefund, spentInTree } from '../domain/character/talents.ts';
-import { offeredQuests } from '../quests/quests.ts';
+import { offeredQuests, chainFollowUpOffer, grayLogQuests } from '../quests/quests.ts';
+import { isRepeatableQuest, questRepeatsAvailable } from '../domain/quests/questlog.ts';
+import { questRewardChoices } from '../domain/quests/questRewardChoice.ts';
 import { pushBuyback, buyBack as buyBackDomain } from '../domain/economy/trading.ts';
 import { cityAccess, bankDialog, auctionDialog, mailDialog } from './tuiCity.mjs';
 import { professionsView, profTrainerDialog, worldGatherRows, openSendGoods, reagentUses } from './tuiProfessions.mjs';
@@ -258,6 +260,7 @@ function questsView(app) {
     keys: {
       d: { hint: 'do quest', fn: (a, row) => { if (row?.data) doQuest(a, row.data.q); } },
       x: { hint: 'abandon', fn: (a, row) => { if (row?.data) a.confirm(`Abandon ${row.data.q.title}?`, () => a.result(a.g.abandonQuest(row.data.q.entry), `Abandoned ${row.data.q.title}.`)); } },
+      G: { hint: 'drop gray', fn: (a) => abandonGray(a) },
     },
     rows(a) {
       const rows = [];
@@ -293,6 +296,9 @@ export function questDialog(app, q, mode) {
         rows.push({ text: dim('Decline'), act: () => a.pop() });
       } else {
         if (s?.status === 'complete') rows.push({ text: green('Complete the quest'), act: () => turnIn(a, q) });
+        // A repeatable with a fixed reward hands in every round the bags pay for in one go.
+        const rounds = s?.status === 'complete' && isRepeatableQuest(q) && questRewardChoices(q).length <= 1 ? questRepeatsAvailable(q, a.g.state.inventory, a.ch.zoneId) : 0;
+        if (rounds >= 2) rows.push({ text: green(`Hand it in ${rounds} times`), act: () => repeatTurnIn(a, q) });
         else rows.push({ text: cyan('Do the quest'), act: () => doQuest(a, q) });
         rows.push({ text: red('Abandon the quest'), act: () => a.confirm(`Abandon ${q.title}?`, () => { if (a.result(a.g.abandonQuest(q.entry), `Abandoned ${q.title}.`)) a.popTo('__none__'); }) });
         rows.push({ text: dim('Close'), act: () => a.pop() });
@@ -312,6 +318,28 @@ function doQuest(app, q) {
   startAutopilot(app, 500, undefined, q.entry);
 }
 
+function repeatTurnIn(app, q) {
+  const r = app.g.repeatQuest(q.entry);
+  if (!app.result(r)) return;
+  const bits = [`${r.turnedIn} times`];
+  if (r.xp) bits.push(`+${r.xp} xp`);
+  if (r.money) bits.push(`+${moneyText(r.money)}`);
+  app.say(green(`Quest complete: ${q.title}`) + dim(`  ${bits.join(', ')}`));
+  for (const lv of r.leveledTo) { app.say(bold(green(`You have reached level ${lv}!`))); app.flashMsg(`Level ${lv}!`); }
+  app.stack = [];
+}
+
+/** G on the Quests tab: drop every gray quest (no xp left in them) that is not ready to hand in. */
+function abandonGray(app) {
+  const gray = grayLogQuests(app.ds, app.g.state.questlog, app.ch.level);
+  if (!gray.length) { app.flashMsg('No gray quests in your log.'); return; }
+  app.confirm(`Abandon ${plural(gray.length, 'gray quest')}: ${gray.map((t) => t.quest.title).join(', ')}?`, () => {
+    let n = 0;
+    for (const t of gray) if (app.g.abandonQuest(t.quest.entry).ok) n++;
+    app.say(dim(`Abandoned ${plural(n, 'gray quest')}.`));
+  });
+}
+
 function turnIn(app, q) {
   const finish = (choice) => {
     const res = app.g.turnInQuest(q.entry, choice);
@@ -324,6 +352,9 @@ function turnIn(app, q) {
     if (bits.length) app.say('  ' + bits.join(', '));
     for (const lv of res.leveledTo) { app.say(bold(green(`You have reached level ${lv}!`))); app.flashMsg(`Level ${lv}!`); }
     app.stack = [];
+    // The next quest in the chain, when this zone offers it now, opens straight away.
+    const next = chainFollowUpOffer(app.ds, app.ch, app.g.state.questlog, q.entry);
+    if (next) { app.say(cyan(`Next in the chain: ${next.quest.title}`)); app.push(questDialog(app, next.quest, 'offer')); }
     app.afterAction();
   };
   if (q.rewChoiceItems?.length) {

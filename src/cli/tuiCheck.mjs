@@ -1267,6 +1267,52 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   home();
 }
 
+// Quests: the next quest in a chain opens after a turn-in, gray quests go in one press, a bag item starts a quest.
+{
+  const term5 = new HeadlessTerm(110, 34);
+  const app5 = new App({ term: term5, ds, repo });
+  term5.open();
+  app5.startGame(newGameState(ds, human.id, 1, 'Chaintest', 11, 0), 'chaintest', Date.now(), true);
+  const g5 = app5.g;
+  const at = (pred) => app5.rowsOf(app5.top()).findIndex((r) => !r.header && pred(r, strip(r.text)));
+  const { offeredQuests, chainFollowUpOffer } = await import('../quests/quests.ts');
+  // A Threat Within (speak to the Marshal) leads to Kobold Camp Cleanup: talk to him, then hand it in through the quest window.
+  let chained = ds.quest(783);
+  if (!g5.acceptQuest(783).ok) chained = null;
+  else g5.talkToNpc({ npcName: chained.enderName });
+  if (chained) {
+    app5.switchTab(1); app5.render();
+    app5.top().cursor = at((r) => r.data?.q?.entry === chained.entry); term5.press('return');
+    app5.top().cursor = at((r, t) => t === 'Complete the quest'); term5.press('return');
+    if (app5.top()?.id === 'pick') term5.press('return');
+    const next = g5.state.questlog.quests.find((x) => x.entry === chained.entry)?.status === 'turnedIn' || !g5.state.questlog.quests.some((x) => x.entry === chained.entry);
+    check(`turning in ${chained.title} opens the next quest in the chain`, next && /^quest-/.test(app5.top()?.id ?? '') && app5.top().id !== `quest-${chained.entry}`);
+  } else check('Northshire has a talk quest with a follow-up', false);
+  app5.stack = [];
+  // Gray quests: at level 30 the Northshire quests are gray.
+  const o = offeredQuests(ds, g5.state.char.zoneId, g5.state.char, g5.state.questlog).find((x) => x.canAccept);
+  if (o && g5.acceptQuest(o.quest.entry).ok) {
+    g5.state.char.level = 30;
+    app5.switchTab(1); term5.press('G'); term5.press('return');
+    check('G abandons the gray quests', !g5.state.questlog.quests.some((x) => x.entry === o.quest.entry && x.status === 'active'));
+    g5.state.char.level = 1;
+  }
+  const { bagQuestStartState } = await import('../quests/quests.ts');
+  const starter = ds.allItems().filter((it) => (it.startQuest ?? 0) > 0).find((it) => {
+    const inv = addItem(g5.state.inventory, it.entry, 1, 1);
+    return bagQuestStartState(ds, g5.state.char, g5.state.questlog, inv, it.entry)?.kind === 'offer';
+  });
+  if (starter) {
+    g5.state.inventory = addItem(g5.state.inventory, starter.entry, 1, 1);
+    app5.switchTab(2); app5.render();
+    app5.top().cursor = at((r) => r.data?.item === starter.entry); term5.press('return');
+    check(`${starter.name} in the bags opens its quest`, app5.top()?.id === `quest-${starter.startQuest}`);
+    app5.top().cursor = at((r, t) => t === 'Accept the quest'); term5.press('return');
+    check('and the quest can be accepted from it', g5.state.questlog.quests.some((x) => x.entry === starter.startQuest));
+  } else check('the data has an item that starts a quest', false);
+  term5.close?.();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);

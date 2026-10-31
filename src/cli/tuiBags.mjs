@@ -9,6 +9,8 @@ import { isOpenableContainer } from '../domain/items/itemContainer.ts';
 import { itemTeachIntent } from '../domain/items/itemTeaches.ts';
 import { junkListOptions } from './tuiSettings.mjs';
 import { isMountItem, toggleMount } from './tuiWorld.mjs';
+import { questDialog } from './tuiViews.mjs';
+import { bagQuestStartState } from '../quests/quests.ts';
 
 const stacks = (app) => app.g.state.inventory.stacks;
 const hasLoot = (app) => (entry) => app.ds.lootTable(`item:${entry}`).length > 0;
@@ -20,6 +22,7 @@ export function primaryVerb(app, s) {
   const it = app.ds.item(s.item);
   if (!it) return null;
   if (isMountItem(it)) return app.ch.mountedItem === it.entry ? 'Dismount' : 'Mount';
+  if ((it.startQuest ?? 0) > 0 && bagQuestStartState(app.ds, app.ch, app.g.state.questlog, app.g.state.inventory, it.entry)) return 'Start the quest';
   if (isFilledGift(s)) return 'Unwrap';
   if (isWrappingPaper(it)) return 'Wrap an item';
   if (isContainer(app, it)) return 'Open';
@@ -36,6 +39,11 @@ export function useStack(app, slot) {
   if (!s) return;
   const it = app.ds.item(s.item);
   if (isMountItem(it)) { toggleMount(app, s.item); return; }
+  if ((it?.startQuest ?? 0) > 0) {
+    const st = bagQuestStartState(app.ds, app.ch, app.g.state.questlog, app.g.state.inventory, s.item);
+    if (st?.kind === 'offer') { app.push(questDialog(app, st.offer.quest, 'offer')); return; }
+    if (st?.kind === 'blocked') { app.flashMsg(st.reason); return; }
+  }
   if (isFilledGift(s)) {
     const r = app.g.unwrapItem(slot);
     app.result(r, r.ok ? `You unwrap ${it?.name ?? 'the gift'}: ${app.itemName(r.restoredEntry)}.` : '');

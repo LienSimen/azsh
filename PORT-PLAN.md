@@ -213,7 +213,7 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
 - [x] S  Mounts and riding: `useMount`, `dismount`, `trainRiding`.
 - [x] S  Objects as World rows (chests, books, meeting stones, banners): `interactObject` from the UI,
       not only the autopilot; book paging.
-- [ ] S  Quests: `repeatQuest`, gray-log abandon, chain follow-up offers
+- [x] S  Quests: `repeatQuest`, gray-log abandon, chain follow-up offers
       (`quests/quests:grayLogQuests`, `chainFollowUpOffer`), item-started quests
       (`bagQuestStartState`).
 - [ ] S  Reputation window: `setFactionAtWar`, `setFactionInactive`, `setWatchedFaction`,
