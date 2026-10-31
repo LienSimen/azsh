@@ -240,10 +240,14 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
 - [x] M  Arena duel and team matches into the live fight view: `arenaDuel()`, `arenaMatch({ bracket,
       allies })`, then `settleArenaDuel`, `settleArenaRating`, `awardDuelHonor`, `awardArenaWinHonor`.
       Settlement logic lives in `src/ui/app/app.ts:1861`; port it into `tuiFight.mjs`.
-- [ ] L  Warsong Gulch and Arathi Basin: `enterBattleground`, `leaveBattleground`, and the match
+- [x] L  Warsong Gulch and Arathi Basin: `enterBattleground`, `leaveBattleground`, and the match
       driver in `src/ui/bg/bgScreen.ts` over `domain/bg/*` (`BgWorld`, `BgMatch`, `wsg`, `ab`). The
       map is graphical; the objective state and fights are not. Text form: objectives list, your
       assignment, engage.
+      Done as a watched match on the Honor window: phonecraft's world, rules, roster and strategy layer, with
+      BgMatch's attrition resolver doing the fighting (flat damage and healing per body) instead of
+      bgScreen.ts's whole-match combat session. You pick your seat's job; honor, kills and marks settle as
+      bgScreen.ts does. A fought version needs that session re-hosted (the 2,200-line part).
 - [x] M  Alterac Valley: `enterInstance(avInstanceIdFor(team), now, { asRaid: true })`; it is a raid
       run and rides on Phase 2. On the Honor window; it plays as a plain raid run. Phonecraft's valley
       layer on top (`domain/bg/avInstanceScore.ts`, the node and mine captures its live controller drives)

@@ -11,6 +11,7 @@ import { gauntletLength } from '../domain/bg/arenaComps.ts';
 import { avInstanceIdFor } from '../data/dungeons/alterac-valley.ts';
 import { factionOf } from '../domain/character/races.ts';
 import { openRun } from './tuiDungeon.mjs';
+import { objectiveBgRows } from './tuiBg.mjs';
 
 const H = (text) => ({ text, header: true });
 
@@ -80,10 +81,10 @@ export function enterAlteracValley(app) {
   openRun(app);
 }
 
-/** The Battlegrounds section: Alterac Valley (Warsong Gulch and Arathi Basin need the match driver). */
+/** The Battlegrounds section: Warsong Gulch and Arathi Basin as a watched match, Alterac Valley as a raid run. */
 export function battlegroundRows(app) {
   const av = BATTLEGROUNDS.av;
-  const rows = [H(''), H(`${cyan('Battlegrounds')}  ${dim('earn honor and climb the weekly ranks')}`)];
+  const rows = [H(''), H(`${cyan('Battlegrounds')}  ${dim('earn honor and climb the weekly ranks')}`), ...objectiveBgRows(app)];
   if (av) rows.push(app.ch.level >= av.minLevel
     ? { text: `  ${av.name}  ${dim(`${av.minLevel}-${av.maxLevel}, a raid run: captains, towers and the general`)}`, act: (a) => enterAlteracValley(a) }
     : H(dim(`  ${av.name}  level ${av.minLevel}`)));

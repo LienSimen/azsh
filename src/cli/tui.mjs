@@ -53,6 +53,8 @@ const HELP_LINES = [
   '  that one quest. :autopilot (or A on the Rotation tab) sets how it rests, pulls, fights and quests.',
   '  In a capital the World tab lists the Bank, the Auction House and the Mailbox under Services.',
   '  Rogues: P on a creature picks its pocket (Stealth first). A resist starts the fight.',
+  '  :honor: your PvP rank, the arena (1v1 to 5v5), Warsong Gulch and Arathi Basin (pick your job, watch it play,',
+  '  space pauses, + speeds up) and Alterac Valley (a raid run).',
   '  Dungeons: Enter on a portal opens its card (route, who walks in, supplies). In the run window Enter',
   '  pulls a stop, uses a gate or opens a chest; z rests, F finishes the run unwatched, L leaves, R resets.',
   '',

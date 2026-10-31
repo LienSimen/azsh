@@ -1631,6 +1631,36 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   term11.close?.();
 }
 
+// Warsong Gulch from the Honor window: pick your job, the match plays out, honor and marks settle, you are out.
+{
+  const term12 = new HeadlessTerm(110, 34);
+  const app12 = new App({ term: term12, ds, repo });
+  term12.open();
+  app12.startGame(newGameState(ds, human.id, 1, 'Gulchtest', 51, 0), 'gulchtest', Date.now(), true);
+  const g12 = app12.g;
+  g12.state.char.level = 30;
+  const { stepBg } = await import('./tuiBg.mjs');
+  const at = (pred) => app12.rowsOf(app12.top()).findIndex((r) => !r.header && pred(r, strip(r.text)));
+  term12.press(':'); for (const ch of 'honor') term12.press(ch); term12.press('return');
+  app12.top().cursor = at((r, t) => /Warsong Gulch/.test(t)); term12.press('return');
+  if (showFrames) console.log(`\n=== warsong gulch ===\n${term12.text()}`);
+  check('the honor window starts Warsong Gulch', app12.top()?.id === 'bg' && !!g12.state.battleground && /flag/.test(strip(term12.text())));
+  app12.top().cursor = at((r, t) => /Your job/.test(t)); term12.press('return');
+  app12.top().cursor = at((r, t) => /guard our flag/.test(t)); term12.press('return');
+  check('you can change your job', app12.bg.world.units.get(app12.bg.selfId).role === 'defense');
+  const bg = app12.bg;
+  const marks0 = g12.state.inventory.stacks.length;
+  let n = 0;
+  while (!bg.world.ended && n < 40000) { stepBg(app12, bg, 200); n += 200; }
+  app12.render();
+  check('the match plays to an end', bg.world.ended && bg.settled);
+  check('honor and marks of honor settle', bg.marks > 0 && g12.state.inventory.stacks.length > marks0 && (g12.state.char.honor?.cp ?? 0) > 0);
+  check('and you are out of the battleground', !g12.state.battleground);
+  app12.top().cursor = at((r, t) => /Leave the battleground/.test(t)); term12.press('return');
+  check('Leave closes the match window', app12.top()?.id !== 'bg');
+  term12.close?.();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);
