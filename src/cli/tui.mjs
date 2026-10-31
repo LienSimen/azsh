@@ -10,6 +10,8 @@ import { makeTabs, deathView } from './tuiViews.mjs';
 import { cityAccess, bankDialog, auctionDialog, mailDialog } from './tuiCity.mjs';
 import { startFight, startAutopilot } from './tuiFight.mjs';
 import { openRun } from './tuiDungeon.mjs';
+import { openLoot } from './tuiLoot.mjs';
+import { MemoryPrefs, FilePrefs } from './prefs.mjs';
 import { bold, dim, cyan, yellow, green, red, inverse, fit, vis, cut, bar, pct, wrapLines, brightYellow, magenta, brightBlue, strip } from './text.mjs';
 import { createGame, newGameState } from '../engine/game.ts';
 import { toSave } from '../persistence/saveShape.ts';
@@ -46,6 +48,7 @@ const HELP_LINES = [
   '  Gear tab: Enter on a slot lists everything in your bags (and the bank, in a bank town) that fits it.',
   '  ▲ marks an upgrade the equipment helper found; u puts on every upgrade at once, x takes a piece off.',
   '  Bags tab: Enter uses or equips, s sells to the open vendor, j sells junk, b opens the bank, d destroys.',
+  '  Loot: with :autoloot off a corpse opens the loot window. Enter takes a row, a takes all, Esc leaves the rest.',
   '',
   'In a fight',
   '  1-9 press an ability    a toggle auto-play    space pause    + - speed    l log    Esc run away',
@@ -65,8 +68,8 @@ const HELP_LINES = [
 ];
 
 export class App {
-  constructor({ term, ds, repo }) {
-    this.term = term; this.ds = ds; this.repo = repo;
+  constructor({ term, ds, repo, prefs }) {
+    this.term = term; this.ds = ds; this.repo = repo; this.prefs = prefs ?? new MemoryPrefs();
     this.g = null; this.slot = null; this.createdAt = Date.now();
     this.tabs = []; this.tab = 0;
     this.stack = [];
@@ -100,6 +103,7 @@ export class App {
     this.lastActivity = g.state.activity[0] ?? null;
     this.say(bold(`Welcome${isNew ? '' : ' back'}, ${g.state.char.name}.`) + dim('  Press ? for the keys.'));
     if (g.state.instance) openRun(this);
+    openLoot(this); // an opened bag item's remainder is still claimable after a reload
     if (!this.term.isTTY) return;
     // Out-of-combat regeneration ticks in real time, like standing still in the world.
     this.timers.push(this.term.setInterval(() => { if (!this.fight && !this.auto && !this.closed) { this.idleTick(1); this.render(); } }, 1000));
@@ -336,6 +340,13 @@ export class App {
     const c = cmd.toLowerCase();
     if (c === 'quit' || c === 'exit' || c === 'q') { await this.quit(); return; }
     if (c === 'auto') { const m = args.match(/^(\d+)?\s*(?:farm\s+(.+))?$/i); startAutopilot(this, Number(m?.[1] ?? 200), m?.[2]); return; }
+    if (c === 'autoloot') {
+      const want = args.trim().toLowerCase();
+      if (want === 'on' || want === 'off') this.prefs.set('autoLoot', want === 'on');
+      this.say(`Auto-loot is ${this.prefs.get('autoLoot') !== false ? green('on') : yellow('off')}. ${dim(':autoloot on|off')}`);
+      this.render();
+      return;
+    }
     if (c === 'bank' || c === 'ah' || c === 'auction' || c === 'mail') {
       const city = cityAccess(this);
       if (c === 'bank') { if (city.bank) this.push(bankDialog(this)); else this.say(red('No banker here. Banks are in the capitals, Ratchet, Booty Bay, Gadgetzan and Everlook.')); }
@@ -478,7 +489,7 @@ export class App {
 export async function runTui({ term = new RealTerm(), argv = [] } = {}) {
   const ds = bootDataStore();
   const repo = new FileSaveRepository();
-  const app = new App({ term, ds, repo });
+  const app = new App({ term, ds, repo, prefs: new FilePrefs() });
   // Engine diagnostics (console.warn from the combat layer) would print over the frame: while the screen is
   // open they go to the log pane under AZSH_DEBUG, and nowhere otherwise.
   const saved = { log: console.log, warn: console.warn, info: console.info, debug: console.debug };

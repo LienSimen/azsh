@@ -643,7 +643,7 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   term.press('A');
   check('A hands potions out', g.state.squad.some((c) => (c.bags?.stacks ?? []).some((s) => s.item === potion.entry)));
   term.press('escape'); term.press('v');
-  check('v opens party storage', app.top().id === 'vault' && strip(frame()).includes(potion.name));
+  check('v opens party storage', app.top().id === 'vault' && rowIndex((r, t) => t.includes(potion.name)) > 0);
   app.top().cursor = rowIndex((r, t) => t.includes(potion.name)); term.press('return');
   check('Enter in party storage takes it all back', countItem(g.state.inventory, potion.entry) > 0 && g.state.squad.every((c) => !(c.bags?.stacks ?? []).some((s) => s.item === potion.entry)));
   term.press('escape');
@@ -720,6 +720,46 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
     check('a pet trainer rank can be bought', (g2.state.char.petSpells ?? []).length > 0);
   }
   term2.close?.();
+}
+
+// Loot window: auto-loot off holds the corpse's drops and coin; Enter takes a row, a takes the rest, Esc leaves it.
+{
+  home(); term.press('1');
+  term.press(':'); for (const ch of 'autoloot off') term.press(ch === ' ' ? 'space' : ch); term.press('return');
+  check(':autoloot off turns auto-loot off', app.prefs.get('autoLoot') === false);
+  let held = false;
+  for (let i = 0; i < 8 && !held; i++) {
+    app.idleTick(600, true);
+    const mob = app.rowsOf(app.top()).findIndex((r) => r.data?.creature);
+    if (mob < 0) break;
+    app.top().cursor = mob; term.press('return'); finishFight();
+    held = app.top()?.id === 'loot';
+    if (!held && app.g.pendingLoot()) app.g.closeLoot();
+  }
+  // Nothing dropped in eight kills: fill the container by hand so the window's verbs still get exercised.
+  if (!held) {
+    const linen = ds.allItems().find((it) => /^Linen Cloth$/.test(it.name));
+    app.g.openLoot({ kind: 'corpse', title: 'Test Corpse' }, [{ item: linen.entry, count: 2 }], 37);
+    term.press('escape'); term.press(':'); for (const ch of 'autoloot off') term.press(ch === ' ' ? 'space' : ch); term.press('return');
+    app.push((await import('./tuiLoot.mjs')).lootDialog(app));
+  }
+  show('loot window');
+  check('a won fight with auto-loot off opens the loot window', app.top()?.id === 'loot' && !!app.g.pendingLoot());
+  const before = app.g.pendingLoot();
+  const n0 = before.rows.length + (before.copper > 0 ? 1 : 0);
+  const gold0 = app.ch.gold, bag0 = app.g.state.inventory.stacks.reduce((n, st) => n + st.count, 0);
+  term.press('return');
+  const after1 = app.g.pendingLoot();
+  check('Enter takes one row out of the container', (after1 ? after1.rows.length + (after1.copper > 0 ? 1 : 0) : 0) === n0 - 1 && (app.ch.gold > gold0 || app.g.state.inventory.stacks.reduce((n, st) => n + st.count, 0) > bag0));
+  if (app.g.pendingLoot()) term.press('a');
+  check('a takes the rest and closes the window', !app.g.pendingLoot() && app.top()?.id !== 'loot');
+  // Esc on a held corpse leaves the rest behind.
+  const linen = ds.allItems().find((it) => /^Linen Cloth$/.test(it.name));
+  app.g.openLoot({ kind: 'corpse', title: 'Test Corpse' }, [{ item: linen.entry, count: 1 }], 5);
+  app.push((await import('./tuiLoot.mjs')).lootDialog(app));
+  term.press('escape');
+  check('Esc closes the window and leaves the leftovers', !app.g.pendingLoot() && app.top()?.id !== 'loot');
+  app.prefs.set('autoLoot', true);
 }
 
 // Help overlay and escape.

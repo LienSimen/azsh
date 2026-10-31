@@ -9,6 +9,7 @@ import { maxHealth, maxPower } from '../domain/character/character.ts';
 import { powerType } from '../domain/character/characterStats.ts';
 import { pullOpts, sessionLogNames } from './squad.mjs';
 import { slotContent } from './tuiBars.mjs';
+import { autoLootOn, openLoot } from './tuiLoot.mjs';
 
 export const TICK_MS = 100; // one engine tick per 100 ms of real time, like the web client
 const POWER_PAINT = { mana: brightBlue, rage: red, energy: yellow, focus: yellow };
@@ -75,22 +76,25 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       this.ended = true;
       this.stop();
       if (this.pend) { if (this.pend.amount > 0) app.say(`${dim((this.pend.t / 1000).toFixed(1).padStart(5) + 's')} ${combatLogPlainText(this.pend.remake(this.pend.amount))}`); this.pend = null; }
-      const r = this.resolve ? this.resolve(session) : app.g.resolveFight(session);
+      // Auto-loot off: the corpse holds its drops and coin for the loot window. The autopilot always takes them.
+      const hold = !this.resolve && this.label !== 'autopilot' && !autoLootOn(app);
+      const r = this.resolve ? this.resolve(session) : app.g.resolveFight(session, hold ? { holdLoot: true } : undefined);
       app.fight = null;
       app.stack = this.savedStack;
       this.after?.(r);
       const tag = r.outcome === 'win' ? green(bold('Victory')) : r.outcome === 'defeat' ? red(bold('Defeat')) : yellow(bold('Stalemate'));
       const bits = [`${(r.result.durationMs / 1000).toFixed(1)} s`, `HP ${app.hpText()}`];
       if (r.xpGained) bits.push(`+${r.xpGained} xp`);
-      if (r.goldGained) bits.push(`+${moneyText(r.goldGained)}`);
+      if (r.goldGained && !hold) bits.push(`+${moneyText(r.goldGained)}`);
       app.say(`${tag} against ${this.enemyName}  ${dim(bits.join('  '))}`);
-      for (const d of r.loot) app.say(`  ${yellow('You receive')} ${app.itemName(d.item)}${d.count > 1 ? ` x${d.count}` : ''}`);
+      if (!hold) for (const d of r.loot) app.say(`  ${yellow('You receive')} ${app.itemName(d.item)}${d.count > 1 ? ` x${d.count}` : ''}`);
       const gained = (app.g.state.squad ?? []).filter((c) => (c.xp ?? 0) !== squadXp.get(c.id)).map((c) => `${c.name} ${(c.xp ?? 0) > (squadXp.get(c.id) ?? 0) ? `+${(c.xp ?? 0) - (squadXp.get(c.id) ?? 0)} xp` : 'levels up'}`);
       if (gained.length) app.say(dim(`  Companions: ${gained.join(', ')}`));
       for (const lv of r.leveledTo) { app.say(bold(green(`  You have reached level ${lv}!`))); app.flashMsg(`Level ${lv}!`); }
       if (r.outcome === 'win') app.flashMsg(`${this.enemyName} dies.${r.xpGained ? `  +${r.xpGained} xp` : ''}`);
       // The lines above already tell the story; the engine's activity rows for this fight would repeat it.
       app.lastActivity = app.g.state.activity[0] ?? null;
+      if (hold) openLoot(app);
       app.afterAction();
       this.onEnd?.(r);
     },

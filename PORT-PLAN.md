@@ -163,7 +163,7 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
 
 ### Items, bags, gear
 
-- [ ] S  Loot window with hold: `resolveFight(sess, { holdLoot: true })`, `pendingLoot`, `takeLoot`,
+- [x] S  Loot window with hold: `resolveFight(sess, { holdLoot: true })`, `pendingLoot`, `takeLoot`,
       `takeLootMoney`, `takeAllLoot`, `closeLoot`; an auto-loot toggle keeps today's behaviour.
 - [ ] S  Bag housekeeping: `moveItem`, `sortContainer`, split stacks, `discardBagStack`,
       `discardKeyringStack`, `openContainerItem`, `consumeItemAll`, `wrapItem`, `unwrapItem`,
