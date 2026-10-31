@@ -6,6 +6,7 @@ import { spellLines, itemLines } from './tuiViews.mjs';
 import { knownUsableSpells } from '../domain/character/characterSpells.ts';
 import { companionLevel, companionCharacter, companionSpellbook } from '../domain/bots/squad.ts';
 import { SLOTS_PER_BAR, MAX_BARS } from '../domain/character/actionbar.ts';
+import { actionBarsForForm } from '../domain/character/stanceBar.ts';
 
 const H = (text) => ({ text, header: true });
 
@@ -17,11 +18,16 @@ export function slotContent(bar, i) {
   return null;
 }
 
+/** The player's bars as they show right now: bar 1 is paged by form (stance, shapeshift, stealth), like phonecraft. */
+export function visibleBars(g) {
+  return actionBarsForForm(g.state.actionBars ?? [], g.state.primaryBarPages, (g.state.char.form ?? 0) | 0);
+}
+
 export function playerBarsOwner(app) {
   const g = app.g;
   return {
     title: 'Your action bars', player: true,
-    bars: () => g.state.actionBars ?? [],
+    bars: () => visibleBars(g),
     spells: () => knownUsableSpells(app.ch, g.state.spellbook, app.ds).filter((s) => !s.passive),
     items: () => g.state.inventory.stacks,
     macros: () => g.macros?.() ?? [],
@@ -56,7 +62,12 @@ function slotLabel(app, owner, c) {
 
 /** Pick what goes in one slot: a spell, an item, a macro, or nothing. */
 function fillSlot(app, owner, b, i) {
-  const ok = (r) => r == null || r.ok !== false || (app.say(red(r.reason ?? 'That does not go there.')), false);
+  // The setters return nothing; the engine refuses by leaving the slot alone, so compare before and after.
+  const ok = (r) => {
+    if (r?.ok === false) { app.say(red(r.reason ?? 'That does not go there.')); return false; }
+    if (!slotContent(owner.bars()[b] ?? {}, i)) { app.say(red('That cannot go on a bar.')); return false; }
+    return true;
+  };
   const opts = [
     ...owner.spells().sort((x, y) => x.name.localeCompare(y.name)).map((sp) => ({ label: `${sp.name}${sp.rank ? dim(` (Rank ${sp.rank})`) : ''}`, detail: () => spellLines(app, sp), value: () => ok(owner.setSpell(b, i, sp.id)) })),
     ...[...new Set(owner.items().map((s) => s.item))].map((e) => app.ds.item(e)).filter((it) => it && (it.useInCombat || it.consumable || it.useSpell)).map((it) => ({ label: yellow(it.name), detail: () => itemLines(app, it), value: () => ok(owner.setItem(b, i, it.entry)) })),
@@ -80,7 +91,7 @@ export function barsDialog(app, ownerFn) {
       const o = ownerFn(a);
       const bars = o.bars();
       const rows = [H(`${bold(o.title)}   ${dim(`${bars.length} of ${MAX_BARS} bars`)}`)];
-      if (o.player) rows.push(H(dim('Bar 1 is the number row in a fight. Keys you bind here fire there.')));
+      if (o.player) rows.push(H(dim(`Bar 1 is the number row in a fight. Keys you bind here fire there.${(a.ch.form ?? 0) ? '  This is the page for your current form.' : ''}`)));
       bars.forEach((bar, b) => {
         rows.push(H(''), H(`Bar ${b + 1}`));
         for (let i = 0; i < SLOTS_PER_BAR; i++) {

@@ -7,6 +7,7 @@ import { App } from './tui.mjs';
 import { bootDataStore } from './bootData.mjs';
 import { newGameState } from '../engine/game.ts';
 import { strip } from './text.mjs';
+import { visibleBars } from './tuiBars.mjs';
 import { addItem, countItem } from '../domain/items/inventory.ts';
 import { moneyText as moneyTextOf } from '../domain/economy/money.ts';
 
@@ -948,6 +949,40 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   g.setCharacterAutoDisenchantConfig({ enabled: false, maxQuality: 2, protectCompanionUpgrades: true });
   g.setCharacterJunkFilterConfig({ ...g.characterJunkFilterConfig(), characterSpecific: false, keepEntries: [], destroyQuality: { 0: false, 1: false, 2: false, 3: false, 4: false } });
   app.prefs.set('autoDisenchant', undefined); app.prefs.set('junkFilter', undefined);
+  home();
+}
+
+// Action bars: bind a key, the fight's number row fires it; add and remove a bar; the global bar fills and fires.
+{
+  const g = app.g;
+  const typeLine = (text) => { for (const ch of text) term.press(ch === ' ' ? 'space' : ch); term.press('return'); };
+  home(); term.press('5'); term.press('b');
+  const slotRow = (b, i) => rowIndex((r) => r.data?.b === b && r.data?.i === i);
+  app.top().cursor = slotRow(0, 4); term.press('return');
+  // The engine de-dupes across bars: placing Heroic Strike here moves it from slot 1.
+  const spellName = ds.spell(78).name;
+  const pickRow = rowIndex((r, t) => t.trim().replace(/ \(Rank \d+\)$/, '') === spellName);
+  app.top().cursor = pickRow; term.press('return');
+  check('Enter fills a bar slot with a spell on the page for the current form', visibleBars(g)[0].slots[4] === 78);
+  app.top().cursor = slotRow(0, 4); term.press('k'); typeLine('7');
+  check('k binds a key to the slot', g.state.actionBars[0].keys[4] === '7');
+  const bars = g.state.actionBars.length;
+  term.press('+'); check('+ adds a bar', g.state.actionBars.length === bars + 1);
+  term.press('-'); check('- removes it again', g.state.actionBars.length === bars);
+  const potion = ds.allItems().find((it) => it.useInCombat?.effect === 'restore_health' && (it.requiredLevel ?? 0) <= g.state.char.level);
+  g.state.inventory = addItem(g.state.inventory, potion.entry, 3, potion.stackable ?? 5);
+  app.top().cursor = rowIndex((r, t) => /^\d+\s+empty$/.test(t.trim()) && !('b' in (r.data ?? {}))); term.press('return');
+  app.top().cursor = rowIndex((r, t) => t.trim() === potion.name); term.press('return');
+  check('a global bar slot takes a bag item', (g.state.globalActionBar?.items ?? []).includes(potion.entry));
+  term.press('escape'); home(); term.press('1');
+  g.state.char.health = Math.max(1, Math.floor(g.state.char.health / 2));
+  const mob = app.rowsOf(app.top()).findIndex((r) => r.data?.creature);
+  if (mob >= 0) {
+    app.top().cursor = mob; term.press('return');
+    const row = app.fight?.abilityBar() ?? [];
+    check('the fight number row fires the bound key', row.some((x) => x.key === '7' && x.label === spellName));
+    finishFight();
+  } else check('a creature to fight for the bar check', false);
   home();
 }
 

@@ -182,10 +182,10 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
 
 ### Spells, action bars, macros
 
-- [ ] M  Action bars with keybinds, so the in-fight number row is the player's own bar instead of the
+- [x] M  Action bars with keybinds, so the in-fight number row is the player's own bar instead of the
       ability list: `addActionBar`, `removeActionBar`, `setActionSlot`, `setItemActionSlot`,
       `setMacroActionSlot`, `setActionKey`. Ref `views/hudActionBarPaint.ts`, `combat/actionBarModel.ts`.
-- [ ] S  Global action bar: `setGlobalItemSlot`, `setGlobalOutfitSlot`, `clearGlobalActionSlot`,
+- [x] S  Global action bar: `setGlobalItemSlot`, `setGlobalOutfitSlot`, `clearGlobalActionSlot`,
       `fireGlobalActionBar`, `fireGlobalActionSlot`.
 - [ ] M  Macros: `macros`, `macroById`, `macroByName`, `saveMacro`, `deleteMacro`, plus the two hosts
       (`macros/macroHostWorld.ts`, `macroHostCombat.ts`) over `domain/macro`. Terminal editor is a

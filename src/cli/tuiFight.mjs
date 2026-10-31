@@ -8,7 +8,7 @@ import { moneyText } from '../domain/economy/money.ts';
 import { maxHealth, maxPower } from '../domain/character/character.ts';
 import { powerType } from '../domain/character/characterStats.ts';
 import { pullOpts, sessionLogNames } from './squad.mjs';
-import { slotContent } from './tuiBars.mjs';
+import { slotContent, visibleBars } from './tuiBars.mjs';
 import { autoLootOn, openLoot } from './tuiLoot.mjs';
 
 export const TICK_MS = 100; // one engine tick per 100 ms of real time, like the web client
@@ -150,7 +150,7 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
     /** The number row: your action bar 1 by its keybinds (spells and bag items), else your first nine abilities. */
     abilityBar() {
       const abs = session.abilities();
-      const bar = app.g.state.actionBars?.[0];
+      const bar = visibleBars(app.g)[0];
       const out = [];
       for (let i = 0; bar && i < (bar.slots?.length ?? 0); i++) {
         const key = bar.keys?.[i];
