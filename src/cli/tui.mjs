@@ -66,6 +66,7 @@ const HELP_LINES = [
   '  1-9 press an ability    a toggle auto-play    space pause    + - speed    l log    Esc run away',
   '  t gives a companion an order: attack a target, cast one ability, or hold ground (the fight waits).',
   '  c cancels one of your buffs (also from the Character tab, out of a fight).',
+  '  r (in a fight you started with Enter) fights the same creature again after each win, until r again or Esc.',
   '  The numbered ability bar shows in manual play (a); auto-play keeps the screen to the unit frames.',
   '',
   'Professions and Companions',

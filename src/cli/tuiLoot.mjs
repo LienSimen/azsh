@@ -6,6 +6,7 @@ import { bold, dim, yellow, green, red, qualityPaint } from './text.mjs';
 import { itemLines } from './tuiViews.mjs';
 import { moneyText } from '../domain/economy/money.ts';
 import { formatItemName } from '../domain/items/itemDisplayName.ts';
+import { farmNext } from './tuiFight.mjs';
 
 const KIND_LABEL = { corpse: 'Corpse', chest: 'Chest', object: 'Object', mining: 'Mining', herbalism: 'Herbs', fishing: 'Fishing', skinning: 'Skinning', container: 'Container' };
 
@@ -52,11 +53,13 @@ export function lootDialog(app) {
     },
     onClose(a) {
       const left = a.g.pendingLoot();
-      if (!left) return;
+      if (!left) { queueMicrotask(() => farmNext(a)); return; }
       const n = left.rows.length + (left.copper > 0 ? 1 : 0);
       a.g.closeLoot();
       if (left.kind === 'container') a.say(dim(`You close ${left.title}. What is left stays inside.`));
       else a.say(dim(`You leave ${n === 1 ? 'one thing' : `${n} things`} on ${left.title}.`));
+      // A repeating fight waits for the loot window; closing it starts the next pull.
+      queueMicrotask(() => farmNext(a));
     },
     rows(a) {
       const L = a.g.pendingLoot();

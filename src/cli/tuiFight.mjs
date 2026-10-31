@@ -28,13 +28,15 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
   const session = b.session;
   const squadXp = new Map((app.g.state.squad ?? []).map((c) => [c.id, c.xp ?? 0]));
   const ctl = {
+    // A plain fight (Enter on a creature) can repeat: r keeps pulling the same creature after each win.
+    plain: !begin && !resolve && !label,
     after, resolve, session, enemyName: b.enemyName, enemyEntry: b.enemyEntry, onEnd, label, withSquad: !!opts && (app.g.state.squad ?? []).length > 0,
     // A fight opened from a window (the dungeon run) takes the screen and hands the window back after.
     savedStack: app.stack,
     auto: true, paused: false, speed: app.fightSpeed ?? 1, pressed: null, pressedTicks: 0, follow: [], focus: null, macros: null, timer: null, pend: null, ended: false,
     frames: newFrameMemory(app), compact: false,
     names: sessionLogNames(session, { playerName: app.ch.name, enemyName: b.enemyName, spellName: (id) => app.ds.spell(id)?.name }),
-    hint() { return `${this.auto ? 'a: manual play' : '1-0: your action bar   a: auto-play'}${session.alliesView().length ? '   t: orders' : ''}   c: cancel a buff${app.g.state.instance ? '   p: pull +1' : ''}   space: ${this.paused ? 'resume' : 'pause'}   + -: speed ${this.speed}x   l: log   Esc: ${this.label ? 'run away, stop autopilot' : 'run away'}`; },
+    hint() { return `${this.plain ? (app.farmEntry === creatureEntry ? 'r: stop repeating   ' : 'r: fight again after   ') : ''}${this.auto ? 'a: manual play' : '1-0: your action bar   a: auto-play'}${session.alliesView().length ? '   t: orders' : ''}   c: cancel a buff${app.g.state.instance ? '   p: pull +1' : ''}   space: ${this.paused ? 'resume' : 'pause'}   + -: speed ${this.speed}x   l: log   Esc: ${this.label ? 'run away, stop autopilot' : 'run away'}`; },
     schedule() {
       if (this.timer) app.term.clearInterval(this.timer);
       this.timer = app.term.setInterval(() => this.tick(), Math.max(10, TICK_MS / this.speed));
@@ -105,11 +107,16 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       if (hold) openLoot(app);
       app.afterAction();
       this.onEnd?.(r);
+      if (this.plain && app.farmEntry === creatureEntry) {
+        if (r.outcome === 'win') scheduleFarm(app);
+        else { app.farmEntry = null; app.say(yellow('Stopped repeating the fight.')); }
+      }
     },
     flee() {
       if (this.resolve) { session.forfeit('player'); for (let i = 0; i < 50 && !session.ended; i++) session.tick(); this.finish(); return; }
       this.ended = true;
       this.stop();
+      if (app.farmEntry === creatureEntry) app.farmEntry = null;
       app.g.abandonLiveFight();
       app.fight = null;
       app.stack = this.savedStack;
@@ -129,6 +136,12 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       if (k === 'l') { app.openLog(); return; }
       if (k === 't') { partyOrders(app, this); return; }
       if (k === 'c') { cancelBuff(app, this); return; }
+      if (k === 'r' && this.plain) {
+        app.farmEntry = app.farmEntry === creatureEntry ? null : creatureEntry;
+        app.say(dim(app.farmEntry ? `You will fight ${this.enemyName} again after each win. r stops it.` : 'No more repeats after this fight.'));
+        app.render();
+        return;
+      }
       if (k === 'p' && app.g.state.instance) { this.pullOne(); return; }
       const slot = this.abilityBar().find((e) => e.key === k);
       if (slot) { this.fire(slot); return; }
@@ -271,6 +284,23 @@ function cancelBuff(app, ctl) {
     const r = app.g.cancelAura(id);
     app.result(r, r.ok ? `${r.name} fades.` : '');
   });
+}
+
+export const FARM_DELAY_MS = 900;
+
+/** After a won repeat fight: the next pull of the same creature, once the loot window (if open) is closed. */
+function scheduleFarm(app) {
+  const t = app.term.setInterval(() => { app.term.clearInterval(t); farmNext(app); }, FARM_DELAY_MS);
+}
+
+/** Start the next repeat fight now, if one is due (the loot window calls this as it closes). */
+export function farmNext(app) {
+  const entry = app.farmEntry;
+  if (!entry || app.fight || app.auto || app.closed) return;
+  if (app.top()?.id === 'loot') return;
+  if (app.isDead()) { app.farmEntry = null; return; }
+  if (app.ch.health < maxHealth(app.ch, app.ds) * 0.35) { app.farmEntry = null; app.say(yellow('Too hurt to go on: stopped repeating the fight.')); app.render(); return; }
+  startFight(app, entry);
 }
 
 const STANCES = [['retaliate', 'Fight back (default)'], ['passive', 'Passive: walk, then stand'], ['hold', 'Hold ground: no moving, rotation keeps going']];

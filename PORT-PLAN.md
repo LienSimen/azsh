@@ -220,7 +220,7 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
       `atWarFactions`. Ref `panels/reputationPanel.ts`.
 - [x] S  Meeting stone queue: `applyMeetingStoneQueue` from the stone's gossip, queue card,
       `leaveMeetingStoneQueue`. Ref `views/meetingStoneQueueView.ts`, `appInteractClickA.ts:1094`.
-- [ ] S  Attack-farm chain ("fight this again until stopped") in the fight view. Ref
+- [x] S  Attack-farm chain ("fight this again until stopped") in the fight view. Ref
       `combat/attackFarmLoop.ts`.
 - [ ] S  Profession specialisations: `selectProfessionSpec`, `professionSpecGossip`; `craftAll`.
 

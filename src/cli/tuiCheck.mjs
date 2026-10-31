@@ -1360,6 +1360,27 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   home();
 }
 
+// Repeat a fight: r in a plain fight pulls the same creature again after each win, until r again or Esc.
+{
+  const g = app.g;
+  const { farmNext } = await import('./tuiFight.mjs');
+  home(); term.press('1');
+  g.state.char.health = 100000; app.idleTick(600, true);
+  const mob = app.rowsOf(app.top()).findIndex((r) => r.data?.creature);
+  const entry = app.rowsOf(app.top())[mob].data.creature.entry;
+  app.top().cursor = mob; term.press('return');
+  term.press('r');
+  check('r marks the fight to repeat', app.farmEntry === entry && /stop repeating/.test(app.fight.hint()));
+  finishFight();
+  farmNext(app);
+  check('a won repeat fight pulls the same creature again', !!app.fight && app.fight.enemyEntry === entry);
+  term.press('r');
+  check('r again stops the repeats', app.farmEntry == null);
+  finishFight(); farmNext(app);
+  check('and no new fight starts', !app.fight);
+  home();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);
