@@ -16,6 +16,7 @@ import { settingsDialog, globalSettingsOpts } from './tuiSettings.mjs';
 import { autopilotSettingsDialog } from './tuiAutopilotSettings.mjs';
 import { macrosDialog, runMacro } from './tuiMacros.mjs';
 import { outfitterDialog } from './tuiOutfitter.mjs';
+import { journeyHeader, journeyTick } from './tuiWorld.mjs';
 import { bold, dim, cyan, yellow, green, red, inverse, fit, vis, cut, bar, pct, wrapLines, brightYellow, magenta, brightBlue, strip } from './text.mjs';
 import { createGame, newGameState } from '../engine/game.ts';
 import { toSave } from '../persistence/saveShape.ts';
@@ -101,15 +102,16 @@ export class App {
 
   startGame(state, slot, createdAt, isNew) {
     this.slot = slot; this.createdAt = createdAt ?? Date.now();
-    const g = createGame(this.ds, state, { travelPace: 'instant', ...globalSettingsOpts(this.prefs) });
+    // Travel pace is a setting (instant by default, like phonecraft); `skipping` lets Arrive now land a trip at any pace.
+    const g = createGame(this.ds, state, { travelPace: () => (this.skipping ? 'instant' : this.prefs.get('travelPace') ?? 'instant'), ...globalSettingsOpts(this.prefs) });
     this.g = g;
-    if (g.state.char.journey) g.completeJourneyNow();
+    if (g.state.char.journey) { if (this.prefs.get('travelPace') === 'instant') this.arriveNow(); else g.journeyTick(); }
     // Real createInfo has no starting weapon (ETL gap KI-003); phonecraft's harness hands one over too.
     if (isNew && g.state.char.equipped.mainhand == null) {
       const weapon = this.ds.allItems().find((i) => i.slot === 'mainhand' && i.requiredLevel <= 1);
       if (weapon) { g.state.inventory = addItem(g.state.inventory, weapon.entry, 1, 1); g.equip(weapon.entry); }
     }
-    this.cmds = createCommands({ g, ds: this.ds, out: (s) => this.say(s), persist: () => this.persist(), slot });
+    this.cmds = createCommands({ g, ds: this.ds, out: (s) => this.say(s), persist: () => this.persist(), slot, arrive: () => !g.state.char.journey, skipJourney: () => this.arriveNow() });
     this.tabs = makeTabs(this);
     this.stack = [];
     this.lastActivity = g.state.activity[0] ?? null;
@@ -118,7 +120,13 @@ export class App {
     openLoot(this); // an opened bag item's remainder is still claimable after a reload
     if (!this.term.isTTY) return;
     // Out-of-combat regeneration ticks in real time, like standing still in the world.
-    this.timers.push(this.term.setInterval(() => { if (!this.fight && !this.auto && !this.closed) { this.idleTick(1); this.render(); } }, 1000));
+    this.timers.push(this.term.setInterval(() => { if (!this.fight && !this.auto && !this.closed) { this.idleTick(1); journeyTick(this); this.render(); } }, 1000));
+  }
+
+  /** Land the current trip now, whatever the travel pace. */
+  arriveNow() {
+    this.skipping = true;
+    try { return this.g.completeJourneyNow(); } finally { this.skipping = false; }
   }
 
   async persist() {
@@ -330,6 +338,7 @@ export class App {
 
   /** After any state-changing key: pull activity, save, repaint. */
   afterAction() {
+    journeyTick(this);
     this.flushActivity();
     if (this.g) void this.persist();
     if (this.g && this.isDead() && this.top()?.id !== 'death' && !this.fight) this.push(deathView(this));
@@ -431,7 +440,8 @@ export class App {
     const z = this.zone();
     const dead = this.isDead() ? red(bold('  DEAD')) : '';
     const title = ` ${bold(ch.name)} ${dim(`L${ch.level} ${raceName(ch.race)} ${className(ch.cls)}`)}${dead}`;
-    const right = `${cyan(z?.name ?? ch.zoneId)}  ${yellow(moneyText(ch.gold) || '0c')} `;
+    const road = journeyHeader(this);
+    const right = `${road ? yellow(road) : cyan(z?.name ?? ch.zoneId)}  ${yellow(moneyText(ch.gold) || '0c')} `;
     const l0 = fit(title, L.W - vis(right)) + right;
     const hpMax = maxHealth(ch, ds), pwMax = maxPower(ch, ds), pt = powerType(ch);
     const xpMax = ds.xpToNext(ch.level);

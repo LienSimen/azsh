@@ -7,6 +7,7 @@ import { autoLootOn } from './tuiLoot.mjs';
 import { moneyText } from '../domain/economy/money.ts';
 import { JUNK_PROTECT_CATEGORIES } from '../domain/items/junkCategories.ts';
 import { autopilotSettingsDialog } from './tuiAutopilotSettings.mjs';
+import { paceLabel, nextPace } from './tuiWorld.mjs';
 
 const H = (text) => ({ text, header: true });
 const QUALITY_NAME = ['Poor', 'Common', 'Uncommon', 'Rare', 'Epic'];
@@ -48,6 +49,19 @@ export function settingsDialog(app) {
       const g = a.g;
       const rows = [{ text: `Autopilot settings  ${dim('resting, pulls, fighting, questing   (:autopilot)')}`, act: (a2) => a2.push(autopilotSettingsDialog(a2)) }, H(''), H(bold('Loot'))];
       rows.push({ text: `Auto-loot                 ${onOff(autoLootOn(a))}`, detail: () => [bold('Auto-loot'), '', 'On: a corpse\'s drops and coin go straight into your bags.', 'Off: the loot window opens and you take what you want.'], act: (a2) => a2.prefs.set('autoLoot', !autoLootOn(a2)) });
+
+      const pace = a.prefs.get('travelPace') ?? 'instant';
+      rows.push(H(''), H(bold('Travel')));
+      rows.push({
+        text: `Travel pace               ${pace === 'instant' ? dim('instant') : cyan(paceLabel(pace))}`,
+        detail: () => [bold('Travel pace'), '', 'Instant: you arrive the moment you set off.', 'Real time: a trip takes as long as the road (1x), or half or a quarter of it. The header counts it down; the World tab has the journey card.'],
+        act: (a2) => {
+          const next = nextPace(pace);
+          a2.prefs.set('travelPace', next);
+          // Switching to instant lands a trip already underway, as phonecraft does.
+          if (next === 'instant' && g.state.char.journey) a2.arriveNow();
+        },
+      });
 
       const eh = g.equipmentHelperConfig();
       rows.push(H(''), H(bold('Equipment helper')));

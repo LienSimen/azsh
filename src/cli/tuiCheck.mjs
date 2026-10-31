@@ -1163,6 +1163,37 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   home();
 }
 
+// Real-time travel: with a 1x pace a trip takes time; the header counts down, the World tab carries the journey
+// card (speed, pause, arrive now, turn back), and the game loop lands it.
+{
+  const g = app.g;
+  const pickRow = (re) => { app.top().cursor = rowIndex((r, t) => re.test(t)); term.press('return'); };
+  home(); term.press(':'); for (const ch of 'settings') term.press(ch); term.press('return');
+  pickRow(/^Travel pace/);
+  check('Settings sets a real-time travel pace', app.prefs.get('travelPace') === 1);
+  home();
+  const here = g.state.char.zoneId;
+  const dest = (ds.zone(here)?.neighbors ?? []).map((id) => ds.zone(id)).find((z) => z && g.previewTravel(z.id).ok);
+  term.press('8'); app.top().cursor = rowIndex((r, t) => t.startsWith(dest.name)); term.press('return');
+  show('on the road');
+  check('a trip at 1x takes time', !!g.state.char.journey && g.state.char.zoneId !== dest.id);
+  check('the header counts it down', strip(frame()).split('\n')[0].includes(`→ ${dest.name}`));
+  check('the World tab opens on the journey card', app.tab === 0 && /On the road to/.test(strip(frame())));
+  app.top().cursor = rowIndex((r, t) => /journey options/.test(t)); term.press('return');
+  pickRow(/^Travel at 4x/);
+  check('the trip can be sped up', g.journeyStatus()?.timeScale === 4);
+  app.top().cursor = rowIndex((r, t) => /journey options/.test(t)); term.press('return'); pickRow(/^Turn back/);
+  check('and turned back', !g.state.char.journey);
+  term.press('8'); app.top().cursor = rowIndex((r, t) => t.startsWith(dest.name)); term.press('return');
+  app.top().cursor = rowIndex((r, t) => /journey options/.test(t)); term.press('return'); pickRow(/^Arrive now/);
+  check('Arrive now lands it at once', !g.state.char.journey && g.state.char.zoneId === dest.id);
+  term.press('8'); app.top().cursor = rowIndex((r, t) => t.startsWith(ds.zone(here).name)); term.press('return');
+  g.journeyTick(Date.now() + 24 * 3600_000);
+  check('the clock running out lands the trip too', !g.state.char.journey && g.state.char.zoneId === here);
+  app.prefs.set('travelPace', 'instant');
+  home();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);

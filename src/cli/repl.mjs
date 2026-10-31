@@ -190,7 +190,13 @@ async function createCharacter(ds, ask) {
 // Every verb of the line game, built over one Game facade. `out(line)` is where text goes: the REPL
 // prints it, the windowed TUI appends it to its log pane. Returns the verb table plus the readers
 // the prompt and the TUI command line need.
-export function createCommands({ g, ds, out, persist, slot }) {
+// `arrive()` runs after a departure and says whether the character is already there: the line game travels
+// instantly; the windowed game passes its own when a real-time pace is set. `skipJourney()` lands the
+// autopilot's trips at once whatever the pace (it does not wait out the road).
+export function createCommands({ g, ds, out, persist, slot, arrive, skipJourney }) {
+  arrive ??= () => { if (g.state.char.journey) g.completeJourneyNow(); return !g.state.char.journey; };
+  skipJourney ??= () => g.completeJourneyNow();
+  const onTheRoad = (to) => { const st = g.journeyStatus(); out(`You set off for ${bold(to)}.  ${dim(st ? `${Math.ceil(st.progress.remainingSeconds)} s to go` : '')}`); };
   let logOn = true;
   let curVendor = null;
   // Quests the world autopilot gave up on this session; later runs skip them too.
@@ -511,7 +517,7 @@ export function createCommands({ g, ds, out, persist, slot }) {
       out(`  xp ${ch.xp}/${ds.xpToNext(ch.level)}  HP ${hp()}  power ${pw()}  ${moneyText(ch.gold)}`);
       out(`  zone ${zoneHere()?.name ?? ch.zoneId}${ch.hearth ? `, home ${ds.zone(ch.hearth.zoneId ?? ch.hearth)?.name ?? ''}` : ''}`);
       const skills = Object.entries(ch.skills ?? {});
-      if (skills.length) out('  skills ' + skills.map(([k, v]) => `${ds.profession(k)?.name ?? k} ${v.value ?? v.rank ?? v}`).join(', '));
+      if (skills.length) out('  skills ' + skills.map(([k, v]) => `${ds.profession(k)?.name ?? k} ${typeof v === 'object' ? `${v.current ?? v.value ?? 0}/${v.max ?? '?'}` : v}`).join(', '));
     },
     travel(args) {
       const z = zoneHere();
@@ -523,12 +529,12 @@ export function createCommands({ g, ds, out, persist, slot }) {
       if (!show(pv)) return;
       const res = g.travelTo(r.one.id);
       if (!show(res)) return;
-      g.completeJourneyNow();
-      out(`You travel to ${bold(r.one.name)}.  ${dim(`${Math.round(pv.totalSeconds)} s${pv.totalCopper ? `, ${moneyText(pv.totalCopper)}` : ''}`)}`);
       curVendor = null;
+      if (!arrive()) { onTheRoad(r.one.name); return; }
+      out(`You travel to ${bold(r.one.name)}.  ${dim(`${Math.round(pv.totalSeconds)} s${pv.totalCopper ? `, ${moneyText(pv.totalCopper)}` : ''}`)}`);
       this.look();
     },
-    hearth() { const res = g.castHearth(); if (show(res)) { g.completeJourneyNow(); out(`You hearth to ${zoneHere()?.name}.`); curVendor = null; } },
+    hearth() { const res = g.castHearth(); if (!show(res)) return; curVendor = null; if (arrive()) out(`You hearth to ${zoneHere()?.name}.`); else onTheRoad(g.journeyStatus()?.destination ? ds.zone(g.journeyStatus().destination)?.name ?? 'home' : 'home'); },
     bind() { show(g.bindHearth(), `Your home is now ${zoneHere()?.name}.`); },
     release() { show(g.runToCorpse(), 'You release your spirit and run to your corpse.'); },
     reclaim() { show(g.reclaimCorpse(), `You return to life.  HP ${hp()}`); },
@@ -645,7 +651,7 @@ export function createCommands({ g, ds, out, persist, slot }) {
           case 'object': { const r = g.interactObject(step.objectEntry); if (!r.ok) sets.blockedObjects.add(step.objectEntry); line = r.ok ? `used ${ds.gameObject?.(step.objectEntry)?.name ?? step.objectEntry}` : dim(`object ${step.objectEntry}: ${r.reason}`); break; }
           case 'use': { const r = g.useQuestItemOnTarget({ itemEntry: step.itemEntry, targetCreatureEntry: step.targetCreatureEntry }); if (!r.ok) sets.blockedUses.add(step.itemEntry); line = r.ok ? `used ${ds.item(step.itemEntry)?.name}` : dim(`use ${ds.item(step.itemEntry)?.name}: ${r.reason}`); break; }
           case 'speak': { const r = g.talkToNpc({ npcName: step.npcName }); if (!r.ok) sets.blockedSpeaks.add(step.questEntry); line = r.ok ? `spoke to ${step.npcName}` : dim(`speak ${step.npcName}: ${r.reason}`); break; }
-          case 'travel': { const r = g.travelTo(step.zoneId); if (r.ok) g.completeJourneyNow(); else sets.blockedTravels.add(step.zoneId); line = r.ok ? cyan(`travel to ${ds.zone(step.zoneId)?.name} (${step.reason})`) : dim(`travel ${step.zoneId}: ${r.reason}`); break; }
+          case 'travel': { const r = g.travelTo(step.zoneId); if (r.ok) skipJourney(); else sets.blockedTravels.add(step.zoneId); line = r.ok ? cyan(`travel to ${ds.zone(step.zoneId)?.name} (${step.reason})`) : dim(`travel ${step.zoneId}: ${r.reason}`); break; }
           case 'equip': { const r = g.equip(step.itemEntry); line = r.ok ? `equipped ${ds.item(step.itemEntry)?.name}` : dim(`equip: ${r.reason}`); break; }
           case 'event': { const r = g.finishEscort(step.questEntry); if (!r.ok) sets.blockedQuests.add(step.questEntry); line = r.ok ? `event done for ${nm(step.questEntry)}` : dim(`event: ${r.reason}`); break; }
           case 'gather': { const r = g.gather(step.nodeId); line = r.ok ? `gathered ${r.yielded.map((d) => ds.item(d.item)?.name).join(', ')}` : dim(`gather: ${r.reason}`); break; }

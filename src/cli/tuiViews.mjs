@@ -28,7 +28,7 @@ import { gearExtraRows, durabilityText, repairOne, slotRepairLines } from './tui
 import { outfitterDialog } from './tuiOutfitter.mjs';
 import { settingsDialog } from './tuiSettings.mjs';
 import { macrosDialog } from './tuiMacros.mjs';
-import { pickPocket, pickPocketTag } from './tuiWorld.mjs';
+import { pickPocket, pickPocketTag, journeyRows, afterDeparture } from './tuiWorld.mjs';
 import { talentBuildsMenu, myTalentLink } from './tuiTalents.mjs';
 import { simLabDialog } from './tuiSimLab.mjs';
 import { autopilotSettingsDialog } from './tuiAutopilotSettings.mjs';
@@ -172,7 +172,7 @@ function worldView(app) {
     rows(a) {
       const ds = a.ds, g = a.g, z = a.zone(), ch = a.ch;
       if (!z) return [{ text: 'You are nowhere.', header: true }];
-      const rows = [{ text: `${z.name}  ${dim(`levels ${z.levelRange[0]}-${z.levelRange[1]}${z.faction ? `, ${z.faction}` : ''}`)}`, header: true }];
+      const rows = [...journeyRows(a), { text: `${z.name}  ${dim(`levels ${z.levelRange[0]}-${z.levelRange[1]}${z.faction ? `, ${z.faction}` : ''}`)}`, header: true }];
       const have = new Map(g.state.questlog.quests.map((qs) => [qs.entry, qs]));
       const offered = offeredQuests(ds, z.id, ch, g.state.questlog).filter((o) => !have.has(o.quest.entry) && (o.canAccept || o.quest.minLevel <= ch.level + 5));
       const ready = g.state.questlog.quests.filter((qs) => qs.status === 'complete').map((qs) => ({ qs, q: ds.quest(qs.entry) })).filter((x) => x.q);
@@ -243,9 +243,8 @@ export function travelTo(app, dest) {
   if (!app.result(pv)) return;
   const res = app.g.travelTo(dest.id);
   if (!app.result(res)) return;
-  app.g.completeJourneyNow();
   app.vendor = null; app.cmds.setVendor(null);
-  app.say(`You travel to ${bold(dest.name)}. ${dim(`${secondsText(pv.totalSeconds * 1000)}${pv.totalCopper ? `, ${moneyText(pv.totalCopper)}` : ''}`)}`);
+  afterDeparture(app, () => `You travel to ${bold(dest.name)}. ${dim(`${secondsText(pv.totalSeconds * 1000)}${pv.totalCopper ? `, ${moneyText(pv.totalCopper)}` : ''}`)}`);
   app.stack = [];
   app.switchTab(0);
   app.tabs[0].view.cursor = 0; app.tabs[0].view.scroll = 0;
@@ -833,12 +832,12 @@ function travelView(app) {
       rows.push({
         text: bind ? `Hearth to ${ds.zone(bind.zone)?.name ?? bind.zone}${bind.name ? dim(` (${bind.name})`) : ''}${cd > 0 ? red(`  ${secondsText(cd)}`) : ''}` : dim('No home set: speak with an innkeeper.'),
         detail: () => [bold('Hearthstone'), bind ? `Bound at ${bind.name ?? ds.zone(bind.zone)?.name}` : 'Not bound', cd > 0 ? red(`Ready in ${secondsText(cd)}`) : green('Ready')],
-        act: () => { const r = g.castHearth(); if (a.result(r)) { g.completeJourneyNow(); a.vendor = null; a.say(`You hearth to ${a.zone()?.name}.`); a.switchTab(0); } },
+        act: () => { const r = g.castHearth(); if (a.result(r)) { a.vendor = null; afterDeparture(a, () => `You hearth to ${a.zone()?.name}.`); a.switchTab(0); } },
       });
       const ports = g.classTravelOptions();
       if (ports.length) {
         rows.push({ text: '', header: true }, { text: 'Teleports', header: true });
-        for (const p of ports) rows.push({ text: `${p.name} → ${ds.zone(p.toZone)?.name ?? p.toZone}${p.reagents.some((r) => r.have < r.count) ? red('  no reagent') : ''}`, act: () => { const r = g.castTeleport(p.spellId); if (a.result(r)) { g.completeJourneyNow(); a.say(`You teleport to ${a.zone()?.name}.`); a.switchTab(0); } } });
+        for (const p of ports) rows.push({ text: `${p.name} → ${ds.zone(p.toZone)?.name ?? p.toZone}${p.reagents.some((r) => r.have < r.count) ? red('  no reagent') : ''}`, act: () => { const r = g.castTeleport(p.spellId); if (a.result(r)) { afterDeparture(a, () => `You teleport to ${a.zone()?.name}.`); a.switchTab(0); } } });
       }
       rows.push(...portalRows(a));
       return rows;

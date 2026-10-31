@@ -205,7 +205,7 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
 
 ### World and travel
 
-- [ ] M  Real-time journeys instead of `travelPace: 'instant'`: `journeyTick` in the game loop,
+- [x] M  Real-time journeys instead of `travelPace: 'instant'`: `journeyTick` in the game loop,
       `journeyStatus` in the header, `cancelJourney`, `setJourneySpeed`, `setIdlePaused`, and a
       "skip" that calls `completeJourneyNow`. Remove the instant calls at `repl.mjs:132`, `tui.mjs:86`,
       `tuiViews.mjs:224/727/732`.
