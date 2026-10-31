@@ -196,7 +196,7 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
 
 ### Rotation and talents
 
-- [ ] S  Rotation profiles: `rotationProfiles`, `add/rename/delete/selectRotationProfile`.
+- [x] S  Rotation profiles: `rotationProfiles`, `add/rename/delete/selectRotationProfile`.
 - [ ] S  Premade specs, saved builds and talent links: `applyPremadeSpec`, `saveTalentBuild`,
       `deleteTalentBuild`, `applyTalentBuild`, `applyTalentLink`.
 - [ ] M  Target dummy sim lab: `domain/sim/dummySim`, `targetDummy`. Ref `rotation/rotationSimLab.ts`.

@@ -1076,6 +1076,25 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   term3.close?.();
 }
 
+// Your rotation profiles: add a copy, rename it, switch between them, delete one.
+{
+  const g = app.g;
+  const typeLine = (text) => { for (const ch of text) term.press(ch === ' ' ? 'space' : ch); term.press('return'); };
+  const pickRow = (re) => { app.top().cursor = rowIndex((r, t) => re.test(t)); term.press('return'); };
+  home(); term.press('6');
+  const n0 = g.rotationProfiles().length;
+  term.press('p'); pickRow(/New rotation \(a copy/); typeLine('Aoe');
+  check('p adds a rotation profile and plays it', g.rotationProfiles().length === n0 + 1 && g.rotationProfiles().find((x) => x.active)?.name === 'Aoe');
+  term.press('p'); pickRow(/^Rename this one/); for (let i = 0; i < 3; i++) term.press('backspace'); typeLine('Cleave');
+  check('it can be renamed', g.rotationProfiles().some((x) => x.name === 'Cleave'));
+  const other = g.rotationProfiles().find((x) => !x.active);
+  term.press('p'); pickRow(new RegExp(`^\s*${other.name}$`));
+  check('another profile can be picked', g.rotationProfiles().find((x) => x.active)?.id === other.id);
+  term.press('p'); pickRow(/Cleave/); term.press('p'); pickRow(/^Delete this one/); term.press('return');
+  check('and deleted', !g.rotationProfiles().some((x) => x.name === 'Cleave') && g.rotationProfiles().length === n0);
+  home();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);
