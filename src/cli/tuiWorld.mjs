@@ -17,6 +17,8 @@ import { pruneWildSummoned } from '../engine/game/summonObjectWild.ts';
 import { offeredQuests } from '../quests/quests.ts';
 import { pageText } from '../data/pageTexts.ts';
 import { meetingStonesForPortalZone, instanceForMeetingStoneArea } from '../world/meetingStones.ts';
+import { getVariable } from '../engine/game/worldState.ts';
+import { WORLD_STATE_ADD, WORLD_STATE_EP_TOWER_COUNT_ALLIANCE, WORLD_STATE_EP_TOWER_COUNT_HORDE, WORLD_STATE_EP_NORTHPASS_ALLIANCE, WORLD_STATE_EP_NORTHPASS_HORDE, WORLD_STATE_EP_CROWNGUARD_ALLIANCE, WORLD_STATE_EP_CROWNGUARD_HORDE, WORLD_STATE_EP_EASTWALL_ALLIANCE, WORLD_STATE_EP_EASTWALL_HORDE, WORLD_STATE_EP_PLAGUEWOOD_ALLIANCE, WORLD_STATE_EP_PLAGUEWOOD_HORDE, GO_TOWER_BANNER_NORTHPASS, GO_TOWER_BANNER_CROWNGUARD, GO_TOWER_BANNER_EASTWALL, GO_TOWER_BANNER_PLAGUEWOOD, WORLD_STATE_SI_GATHERED_A, WORLD_STATE_SI_GATHERED_H, WORLD_STATE_SI_SILITHYST_MAX, MAX_SILITHYST } from '../engine/game/outdoorPvp.ts';
 import { applyMeetingStoneQueue, meetingStoneQueueStateFromApply, leaveMeetingStoneQueue, formatMeetingStonePlace, formatMeetingStoneLevel, ERR_MEETING_STONE_IN_QUEUE_S, ERR_MEETING_STONE_LEFT_QUEUE_S, MEETINGSTONE_STATUS_JOINED_QUEUE } from '../engine/game/meetingStoneQueue.ts';
 
 /** The Pick Pocket rank you know, or undefined. */
@@ -325,4 +327,35 @@ export function meetingStoneQueueRows(app) {
     { text: `${cyan('Looking for more')} for ${place}  ${dim(q.mode === 'group' ? 'your party is queued' : 'you are queued')}   ${dim('Enter: leave the queue')}`, act: (a) => leaveQueue(a) },
     { text: '', header: true },
   ];
+}
+
+// ---- outdoor PvP ---------------------------------------------------------------------------------------
+// Eastern Plaguelands' four towers and Silithus' silithyst count, read from the world states. Read only for now:
+// the banners are GameObject type 29 (capture point), which useGameObject has no case for, so interactObject
+// refuses before its OutdoorPvPEP capture hook runs. That is a phonecraft engine fix.
+
+const EP_TOWERS = [
+  ['Northpass Tower', GO_TOWER_BANNER_NORTHPASS, WORLD_STATE_EP_NORTHPASS_ALLIANCE, WORLD_STATE_EP_NORTHPASS_HORDE],
+  ['Crown Guard Tower', GO_TOWER_BANNER_CROWNGUARD, WORLD_STATE_EP_CROWNGUARD_ALLIANCE, WORLD_STATE_EP_CROWNGUARD_HORDE],
+  ['Eastwall Tower', GO_TOWER_BANNER_EASTWALL, WORLD_STATE_EP_EASTWALL_ALLIANCE, WORLD_STATE_EP_EASTWALL_HORDE],
+  ['Plaguewood Tower', GO_TOWER_BANNER_PLAGUEWOOD, WORLD_STATE_EP_PLAGUEWOOD_ALLIANCE, WORLD_STATE_EP_PLAGUEWOOD_HORDE],
+];
+
+export function outdoorPvpRows(app) {
+  const vars = app.g.state.worldStates;
+  const zone = app.ch.zoneId;
+  if (zone === 'easternplaguelands') {
+    const a = getVariable(vars, WORLD_STATE_EP_TOWER_COUNT_ALLIANCE), h = getVariable(vars, WORLD_STATE_EP_TOWER_COUNT_HORDE);
+    const rows = [{ text: '', header: true }, { text: `Towers  ${cyan(`Alliance ${a}`)}  ${red(`Horde ${h}`)}`, header: true }];
+    for (const [name, banner, sa, sh] of EP_TOWERS) {
+      const owner = getVariable(vars, sa) === WORLD_STATE_ADD ? cyan('Alliance') : getVariable(vars, sh) === WORLD_STATE_ADD ? red('Horde') : dim('nobody');
+      rows.push({ text: `  ${name}  ${owner}`, header: true, data: { tower: banner } });
+    }
+    return rows;
+  }
+  if (zone === 'silithus') {
+    const max = getVariable(vars, WORLD_STATE_SI_SILITHYST_MAX) || MAX_SILITHYST;
+    return [{ text: '', header: true }, { text: `Silithyst gathered  ${cyan(`Alliance ${getVariable(vars, WORLD_STATE_SI_GATHERED_A)}/${max}`)}  ${red(`Horde ${getVariable(vars, WORLD_STATE_SI_GATHERED_H)}/${max}`)}`, header: true }];
+  }
+  return [];
 }

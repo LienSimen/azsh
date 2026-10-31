@@ -1503,6 +1503,18 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   home();
 }
 
+// Outdoor PvP: the Eastern Plaguelands towers and who holds them are on the World tab.
+{
+  const g = app.g;
+  const keep = g.state.char.zoneId;
+  g.state.char.zoneId = 'easternplaguelands';
+  home(); term.press('1');
+  const rows = app.rowsOf(app.top());
+  check('Eastern Plaguelands lists its four towers', rows.filter((r) => r.data?.tower).length === 4 && rows.some((r) => /^Towers/.test(strip(r.text))));
+  g.state.char.zoneId = keep;
+  home();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);

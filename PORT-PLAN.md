@@ -246,8 +246,10 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
       assignment, engage.
 - [ ] M  Alterac Valley: `enterInstance(avInstanceIdFor(team), now, { asRaid: true })`; it is a raid
       run and rides on Phase 2.
-- [ ] S  Outdoor PvP world states (Eastern Plaguelands towers) as a World row; capture already
-      happens through `interactObject`.
+- [x] S  Outdoor PvP world states (Eastern Plaguelands towers) as a World row. **engine**: capture does
+      NOT happen through `interactObject`: the banners are GO type 29 and `useGameObject`
+      (`domain/world/gameObjects.ts`) has no case for it, so it refuses before the OutdoorPvPEP hook in
+      `professions.ts:1645`. The rows are read-only until phonecraft adds a type-29 use path.
 
 ### Wiki, saves, dev
 
