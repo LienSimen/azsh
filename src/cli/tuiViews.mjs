@@ -24,6 +24,7 @@ import { barsDialog, playerBarsOwner } from './tuiBars.mjs';
 import { petWorldRows, petDialog, hasPetClass } from './tuiPet.mjs';
 import { portalRows } from './tuiDungeon.mjs';
 import { bulkDisenchantDialog, learnAllDialog } from './tuiBulk.mjs';
+import { gearExtraRows, durabilityText, repairOne, slotRepairLines } from './tuiGear.mjs';
 import { useStack, itemMenu, useAll, splitStack, moveStack, destroyStack, sortBags, keyringRows, primaryVerb } from './tuiBags.mjs';
 
 const STAT_LABEL = { str: 'Strength', agi: 'Agility', sta: 'Stamina', int: 'Intellect', spi: 'Spirit' };
@@ -407,6 +408,7 @@ function gearView(app) {
         a.say(n ? green(`You put on ${plural(n, 'upgrade')}.`) : red('The upgrades could not be equipped.'));
       } },
       x: { hint: 'take off', fn: (a, row) => { if (row?.data?.it) a.result(a.g.unequip(row.data.slot), `You take off ${row.data.it.name}.`); } },
+      r: { hint: 'repair', fn: (a, row) => { if (row?.data?.it) repairOne(a, row.data.slot); } },
     },
     rows(a) {
       const rows = [];
@@ -428,12 +430,14 @@ function gearView(app) {
       for (const slot of [...EQUIP_SLOTS, ...BAG_SLOTS]) {
         const it = wornItem(a, slot);
         const up = ups.some((u) => u.slot === slot);
+        const dur = it ? durabilityText(a, slot) : '';
         rows.push({
-          text: `${fit(SLOT_LABEL[slot], 10)} ${it ? qualityPaint(it.quality)(it.name) : dim('—')}${up ? green('  ▲') : ''}`, data: { slot, it },
-          detail: () => (it ? itemLines(a, it, ['', dim('Enter: change   x: take off')]) : [dim(`Nothing in the ${SLOT_LABEL[slot]} slot.`), '', dim('Enter: pick something to wear')]),
+          text: `${fit(SLOT_LABEL[slot], 10)} ${it ? qualityPaint(it.quality)(it.name) : dim('—')}${up ? green('  ▲') : ''}${dur ? `  ${dur}` : ''}`, data: { slot, it },
+          detail: () => (it ? itemLines(a, it, ['', ...(dur ? [`Durability ${dur}`] : []), dim('Enter: change   x: take off'), ...slotRepairLines(a, slot)]) : [dim(`Nothing in the ${SLOT_LABEL[slot]} slot.`), '', dim('Enter: pick something to wear')]),
           act: () => a.push(slotDialog(a, slot)),
         });
       }
+      rows.push(...gearExtraRows(a));
       return rows;
     },
   };

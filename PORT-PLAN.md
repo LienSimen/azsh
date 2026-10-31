@@ -169,15 +169,15 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
       `discardKeyringStack`, `openContainerItem`, `consumeItemAll`, `wrapItem`, `unwrapItem`,
       `learnSpellFromItem`, `learnProfessionRankFromItem`.
 - [x] S  Bulk: bulk disenchant and bulk learn. Ref `panels/bagBulkPanel.ts`, `app/appInteractBulkBags.ts`.
-- [ ] S  Ammo: `setAmmo`, `clearAmmo` on the Gear tab for ranged users.
-- [ ] S  Auto consumables: `setAutoConsumable`, `clearAutoConsumable`.
+- [x] S  Ammo: `setAmmo`, `clearAmmo` on the Gear tab for ranged users.
+- [x] S  Auto consumables: `setAutoConsumable`, `clearAutoConsumable`.
 - [ ] M  Outfitter (gear sets): `ensureOutfitter`, `createOutfit`, `rename/deleteOutfit`,
       `rebuildOutfit`, `selectOutfit`, `wearOutfit`, `unwearOutfit`, `setOutfitSlot`,
       `setOutfitSlotsAll`, `setOutfitDisabled`, `outfitterState`. Ref `panels/outfitterPanel.ts`.
 - [ ] S  Filters and helpers (a Settings window): `equipmentHelperConfig`/`setEquipmentHelperConfig`,
       `gatherFilterConfig`, junk filter and auto-DE configs (global and character), `runAutoJunk`,
       `autoDisenchantUpgrades`. Ref `panels/settingsPanel.ts` Loot tab.
-- [ ] S  Repair one slot and repair quote on the Gear tab: `repairSlot`, `repairQuote`.
+- [x] S  Repair one slot and repair quote on the Gear tab: `repairSlot`, `repairQuote`.
 - [x] S  Vendor buyback tab and `sellItemStack`, `junkSellPreview`. Ref `panels/vendorPanel.ts`.
 
 ### Spells, action bars, macros

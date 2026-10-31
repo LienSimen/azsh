@@ -8,6 +8,7 @@ import { bootDataStore } from './bootData.mjs';
 import { newGameState } from '../engine/game.ts';
 import { strip } from './text.mjs';
 import { addItem, countItem } from '../domain/items/inventory.ts';
+import { moneyText as moneyTextOf } from '../domain/economy/money.ts';
 
 const showFrames = process.argv.includes('--frames');
 let failures = 0;
@@ -852,6 +853,45 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
     check('G learns it and eats the book', g.state.char.knownRecipes.includes(book.teachRecipe) && countItem(g.state.inventory, book.entry) === 0);
     term.press('escape');
   } else check('the data has a tailoring pattern to learn', false);
+  home();
+}
+
+// Gear upkeep: durability on the slots, repair one piece, repair all, load ammo, auto consumables.
+{
+  const g = app.g;
+  home(); app.switchTab(3);
+  const worn = ['chest', 'legs', 'mainhand', 'feet'].find((sl) => g.state.char.equipped[sl] != null);
+  g.state.char.durability = { ...(g.state.char.durability ?? {}), [worn]: 1 };
+  g.state.char.gold += 100000;
+  app.render(); show('gear with a worn piece');
+  const slotRow = rowIndex((r) => r.data?.slot === worn);
+  check('a worn-down slot shows its durability', / 1\/\d+/.test(strip(app.rowsOf(app.top())[slotRow].text)));
+  const quote = g.repairQuote();
+  check('the Repair all row prices the bill', rowIndex((r, t) => t.startsWith('Repair all') && t.includes(moneyTextOf(quote.cost))) > 0);
+  if (quote.vendorName) {
+    app.top().cursor = slotRow; term.press('r');
+    check('r on a slot repairs that piece', g.state.char.durability?.[worn] == null);
+  } else check(`a repairer is in reach in ${g.state.char.zoneId}`, false);
+  const bow = ds.allItems().find((it) => it.slot === 'ranged' && it.itemSubclass === 2 && (it.requiredLevel ?? 0) <= g.state.char.level && it.quality <= 2);
+  const arrows = ds.allItems().find((it) => it.itemClass === 6 && it.itemSubclass === 2 && (it.requiredLevel ?? 0) <= g.state.char.level);
+  g.state.inventory = addItem(addItem(g.state.inventory, bow.entry, 1, 1), arrows.entry, 200, arrows.stackable ?? 200);
+  g.equip(bow.entry, 'ranged');
+  app.render();
+  app.top().cursor = rowIndex((r, t) => t.startsWith('Ammo')); term.press('return'); show('ammo picker');
+  app.top().cursor = rowIndex((r, t) => t.includes(arrows.name)); term.press('return');
+  check('Enter on Ammo loads arrows', g.state.char.ammoItem === arrows.entry);
+  app.top().cursor = rowIndex((r, t) => t.startsWith('Ammo')); term.press('return');
+  app.top().cursor = rowIndex((r, t) => t.trim() === 'No ammo'); term.press('return');
+  check('and No ammo puts them away', g.state.char.ammoItem == null);
+  const bread = ds.allItems().find((it) => it.consumable?.effect === 'food' && (it.requiredLevel ?? 0) <= g.state.char.level && !it.useBuff);
+  g.state.inventory = addItem(g.state.inventory, bread.entry, 5, bread.stackable ?? 20);
+  app.render();
+  app.top().cursor = rowIndex((r, t) => t.startsWith('Auto use')); term.press('return'); show('auto consumables');
+  check('Auto use opens the auto consumables list', app.top().id === 'auto-cons');
+  app.top().cursor = rowIndex((r, t) => t.includes(bread.name)); term.press('return');
+  check('Enter sets a food to eat on its own', g.state.char.autoConsumables?.food === bread.entry);
+  term.press('return');
+  check('Enter again takes it off', g.state.char.autoConsumables?.food !== bread.entry);
   home();
 }
 
