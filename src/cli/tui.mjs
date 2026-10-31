@@ -21,6 +21,7 @@ import { reputationDialog } from './tuiRep.mjs';
 import { honorDialog, weeklyHonorPass } from './tuiHonor.mjs';
 import { devCommand } from './tuiDev.mjs';
 import { savePicker } from './tuiSaves.mjs';
+import { wikiDialog } from './tuiWiki.mjs';
 import { bold, dim, cyan, yellow, green, red, inverse, fit, vis, cut, bar, pct, wrapLines, brightYellow, magenta, brightBlue, strip } from './text.mjs';
 import { createGame, newGameState, newGameStateFromWorldBot, pickRandomWorldBot } from '../engine/game.ts';
 import { toSave } from '../persistence/saveShape.ts';
@@ -40,6 +41,7 @@ const HELP_LINES = [
   '  Enter                    act on the row          Esc             close the window on top (or back to World)',
   '  PgUp PgDn                page the list or text   Home End        first / last row',
   '  l                        open the full log       :               command line (same verbs as the line game)',
+  '  /                        search the wiki: items, spells, quests, NPCs, zones, dungeons (:wiki <words>)',
   '  z                        sit and rest 30 s       ?               this help',
   '  Ctrl-C / :quit           save and leave',
   '',
@@ -274,6 +276,8 @@ export class App {
     if (this.isDead() && this.top()?.id !== 'death') { this.push(deathView(this)); return; }
     if (k === 'z' && !this.stack.length) { this.idleTick(30, true); this.say(dim(`You sit and rest for 30 s.  HP ${this.hpText()}  ${this.pwText()}`)); this.afterAction(); return; }
     if (this.viewKey(k)) return;
+    // / anywhere a view does not use it: look something up in the wiki.
+    if (k === '/') { const w = wikiDialog(this); this.push(w); w.keys['/'].fn(this); return; }
     if (!this.stack.length) {
       if (/^[0-9]$/.test(k)) { this.switchTab(digitTab(k)); return; }
       if (k === 'tab' || k === 'right') { this.switchTab((this.tab + 1) % this.tabs.length); return; }
@@ -392,6 +396,7 @@ export class App {
     if (c === 'autopilot') { this.push(autopilotSettingsDialog(this)); return; }
     if (c === 'rep' || c === 'reputation') { this.push(reputationDialog(this)); return; }
     if (c === 'honor' || c === 'pvp') { this.push(honorDialog(this)); return; }
+    if (c === 'wiki' || c === 'w') { this.push(wikiDialog(this, args.trim())); return; }
     if (c === 'dev') { this.say(cyan(`> ${line}`)); devCommand(this, args); this.afterAction(); return; }
     if (c === 'macro' || c === 'macros') {
       const name = args.trim();

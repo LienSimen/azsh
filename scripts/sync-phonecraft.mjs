@@ -45,6 +45,9 @@ export interface ActionBarMacroInfo {
 const UI_COPIES = [
   ['ui/macros/macroHostWorld.ts', 'cli/macroHostWorld.ts', [['// Runs a macro out in the world', '// Copied from phonecraft src/ui/macros/macroHostWorld.ts (import paths only).' + String.fromCharCode(10) + '// Runs a macro out in the world']]],
   ['ui/macros/macroHostCombat.ts', 'cli/macroHostCombat.ts', [["import type { ActionBarMacroInfo } from '../combat/actionBarModel.ts';", ACTION_BAR_MACRO_INFO]]],
+  // The wiki's name index and item-source index are pure; the terminal draws its own pages over them.
+  ['ui/wiki/wikiIndex.ts', 'cli/wikiIndex.ts', []],
+  ['ui/wiki/wikiSources.ts', 'cli/wikiSources.ts', []],
 ];
 
 const walk = (d, b = '') => (existsSync(join(d, b)) ? readdirSync(join(d, b), { withFileTypes: true }) : [])

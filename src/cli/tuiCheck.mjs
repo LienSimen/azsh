@@ -1593,6 +1593,26 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   if (exported) rmSync(exported, { force: true });
 }
 
+// Wiki: / searches every catalog, a page lists its links, Enter follows one, Esc comes back.
+{
+  home(); term.press('1');
+  term.press('/'); for (const ch of 'linen cloth') term.press(ch === ' ' ? 'space' : ch); term.press('return'); show('wiki search');
+  check('/ opens the wiki and searches', app.top().id === 'wiki' && /Linen Cloth/.test(strip(frame())));
+  app.top().cursor = rowIndex((r, t) => t.startsWith('Linen Cloth')); term.press('return'); show('wiki item page');
+  const page = app.rowsOf(app.top()).map((r) => strip(r.text)).join('|');
+  check('the item page says where it drops', app.top().id === 'wiki-page' && /Dropped by/.test(page) && /Reagent for/.test(page));
+  const drop = rowIndex((r, t) => !!r.act && /%/.test(t));
+  app.top().cursor = drop; term.press('return');
+  check('Enter follows a link to the NPC page', app.top().id === 'wiki-page' && app.stack.filter((v) => v.id === 'wiki-page').length === 2);
+  term.press('escape');
+  check('Esc goes back to the item', app.rowsOf(app.top()).some((r) => /Reagent for/.test(strip(r.text))));
+  home(); term.press(':'); for (const ch of 'wiki hogger') term.press(ch === ' ' ? 'space' : ch); term.press('return');
+  check(':wiki <words> opens on the search', app.top().id === 'wiki' && /Hogger/.test(strip(frame())));
+  term.press('tab'); term.press('tab'); term.press('tab'); term.press('tab');
+  check('Tab narrows to one kind', /\[NPCs\]/.test(strip(frame())));
+  home();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);
