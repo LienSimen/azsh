@@ -28,7 +28,7 @@ import { gearExtraRows, durabilityText, repairOne, slotRepairLines } from './tui
 import { outfitterDialog } from './tuiOutfitter.mjs';
 import { settingsDialog } from './tuiSettings.mjs';
 import { macrosDialog } from './tuiMacros.mjs';
-import { pickPocket, pickPocketTag, journeyRows, afterDeparture, ridingRows } from './tuiWorld.mjs';
+import { pickPocket, pickPocketTag, journeyRows, afterDeparture, ridingRows, objectRows } from './tuiWorld.mjs';
 import { talentBuildsMenu, myTalentLink } from './tuiTalents.mjs';
 import { simLabDialog } from './tuiSimLab.mjs';
 import { autopilotSettingsDialog } from './tuiAutopilotSettings.mjs';
@@ -209,6 +209,7 @@ function worldView(app) {
       if (petRows.length) rows.push({ text: '', header: true }, { text: 'Pet', header: true }, ...petRows);
       if (people.length) rows.push({ text: '', header: true }, { text: `People (${people.length})`, header: true }, ...people);
       rows.push(...worldGatherRows(a));
+      rows.push(...objectRows(a));
       rows.push({ text: '', header: true }, { text: 'Exits', header: true });
       for (const id of z.neighbors) {
         const dest = ds.zone(id);

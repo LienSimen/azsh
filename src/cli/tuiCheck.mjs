@@ -1230,6 +1230,43 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   home();
 }
 
+// World objects: a chest opens into the loot window, a poster offers its quest, a book pages.
+{
+  const g = app.g;
+  const keep = g.state.char.zoneId;
+  g.state.char.zoneId = 'elwynn';
+  home(); term.press('1');
+  const chest = rowIndex((r) => r.data?.object?.name === 'Battered Chest');
+  check('Elwynn lists objects with a chest', chest > 0);
+  app.prefs.set('autoLoot', false);
+  app.top().cursor = chest; term.press('return'); show('chest opened');
+  check('Enter on a chest opens it', app.top()?.id === 'loot' || app.log.some((l) => /Battered Chest/.test(strip(l))));
+  if (app.top()?.id === 'loot') term.press('a');
+  app.prefs.set('autoLoot', true);
+  home(); term.press('1');
+  const poster = rowIndex((r, t) => r.data?.object && t.startsWith('! '));
+  if (poster > 0) {
+    app.top().cursor = poster; term.press('return');
+    check('a quest object offers its quest', app.top()?.id === 'pick' && /!/.test(strip(frame())));
+    term.press('escape');
+  }
+  // Readable pages are baked for dungeon books; the reader is the same window wherever the book stands.
+  const { pageText } = await import('../data/pageTexts.ts');
+  const { bookDialog } = await import('./tuiWorld.mjs');
+  let first = null;
+  for (let id = 1; id < 5000 && first == null; id++) { const p = pageText(id); if (p?.next) first = id; }
+  if (first != null) {
+    app.push(bookDialog(app, 'A book', first)); show('book');
+    check('a book opens on its first page', app.top()?.id === 'book' && /page 1 of/.test(strip(frame())));
+    app.top().cursor = rowIndex((r, t) => t === 'Next page'); term.press('return');
+    check('Next page turns it', /page 2 of/.test(strip(frame())));
+    term.press('b'); check('b goes back a page', /page 1 of/.test(strip(frame())));
+    term.press('escape');
+  } else check('the data has a book with two pages', false);
+  g.state.char.zoneId = keep;
+  home();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);

@@ -211,7 +211,7 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
       `tuiViews.mjs:224/727/732`.
 - [x] S  Offline rest on load: `accrueOfflineRest`.
 - [x] S  Mounts and riding: `useMount`, `dismount`, `trainRiding`.
-- [ ] S  Objects as World rows (chests, books, meeting stones, banners): `interactObject` from the UI,
+- [x] S  Objects as World rows (chests, books, meeting stones, banners): `interactObject` from the UI,
       not only the autopilot; book paging.
 - [ ] S  Quests: `repeatQuest`, gray-log abandon, chain follow-up offers
       (`quests/quests:grayLogQuests`, `chainFollowUpOffer`), item-started quests

@@ -1,12 +1,21 @@
 // World-tab extras that are not a creature fight, a quest or a vendor: pick pocket for rogues (P on a creature)
-// real-time journeys, and riding (instructors, mounts).
-import { bold, dim, yellow, red, green, cyan, bar } from './text.mjs';
+// real-time journeys, riding (instructors, mounts), and the zone's objects (chests, books, quest objects).
+import { bold, dim, yellow, red, green, cyan, bar, wrapLines } from './text.mjs';
 import { startFight } from './tuiFight.mjs';
 import { knownUsableSpells } from '../domain/character/characterSpells.ts';
 import { activeStealthAura } from '../domain/character/buildCombatant.ts';
 import { pickpocketLootKey, canRestockPickpocket } from '../domain/professions/pickpocket.ts';
 import { moneyText } from '../domain/economy/money.ts';
 import { vendorPriceMultiplierFor, trainerSpellCost } from '../engine/game/vendorOffers.ts';
+import { questDialog } from './tuiViews.mjs';
+import { mailDialog } from './tuiCity.mjs';
+import { autoLootOn, openLoot, takeAll } from './tuiLoot.mjs';
+import { zoneGameObjects, zoneGoListedForPlayer, makeGoPlayerVisibility, questReferencedGoEntries, questTargets } from '../world/world.ts';
+import { goQuestGiverOffer, goDialogMarkerFromOffer, questStatusFromLog } from '../domain/quests/questlog.ts';
+import { isGoQuestGiver, interactVerbForGoType, goRuntimeAvailability } from '../domain/world/gameObjects.ts';
+import { pruneWildSummoned } from '../engine/game/summonObjectWild.ts';
+import { offeredQuests } from '../quests/quests.ts';
+import { pageText } from '../data/pageTexts.ts';
 
 /** The Pick Pocket rank you know, or undefined. */
 export function pickPocketSpell(app) {
@@ -148,4 +157,120 @@ export const isMountItem = (it) => it != null && (it.mountSpell != null || it.mo
 export function toggleMount(app, entry) {
   if (app.ch.mountedItem === entry) { app.result(app.g.dismount(), 'You dismount.'); return; }
   app.result(app.g.useMount(entry), `You mount ${app.itemName(entry)}.`);
+}
+
+// ---- world objects ---------------------------------------------------------------------------------
+// Chests, books, signposts, quest objects and banners in this zone (phonecraft worldView.ts goList). Herb and
+// ore nodes stay on the gathering rows. Enter on one is interactObject; a quest object offers its quests first.
+
+function zoneObjectList(app) {
+  const ds = app.ds, g = app.g, c = app.ch, log = g.state.questlog;
+  const refs = questReferencedGoEntries(ds);
+  const view = makeGoPlayerVisibility(ds, log, !!c.skills?.fishing);
+  const seen = new Set(), out = [];
+  const add = (go) => { if (go && !seen.has(go.entry)) { seen.add(go.entry); out.push(go); } };
+  for (const go of zoneGameObjects(ds, c.zoneId)) if (zoneGoListedForPlayer(ds, go, refs, view)) add(go);
+  for (const e of questTargets(ds, log).objects) { const go = ds.gameObject(e); if (go && zoneGoListedForPlayer(ds, go, refs, view)) add(go); }
+  for (const w of pruneWildSummoned(g.state.wildSummonedObjects, Date.now())) add(ds.gameObject(w.goEntry));
+  for (const o of offeredQuests(ds, c.zoneId, c, log)) if (o.quest.goStarter) add(ds.gameObject(o.quest.goStarter));
+  for (const qs of log.quests) if (qs.status !== 'turnedIn') { const q = ds.quest(qs.entry); if (q?.goEnder) add(ds.gameObject(q.goEnder)); }
+  return out;
+}
+
+function goOffer(app, go) {
+  if (!isGoQuestGiver(go)) return null;
+  const c = app.ch, log = app.g.state.questlog;
+  return goQuestGiverOffer(go, log, { level: c.level, classId: c.cls, raceId: c.race, questStatus: questStatusFromLog(log) }, (e) => app.ds.quest(e), app.g.state.inventory, {
+    questDefFor: (id) => app.ds.quest(id),
+    fallbackStarted: !go.questsStarted?.length ? offeredQuests(app.ds, c.zoneId, c, log).filter((o) => o.quest.goStarter === go.entry).map((o) => o.quest.entry) : undefined,
+    fallbackEnded: !go.questsEnded?.length ? log.quests.filter((qs) => app.ds.quest(qs.entry)?.goEnder === go.entry).map((qs) => qs.entry) : undefined,
+  });
+}
+
+export function objectRows(app) {
+  const list = zoneObjectList(app);
+  if (!list.length) return [];
+  const rows = [{ text: '', header: true }, { text: `Objects (${list.length})`, header: true }];
+  const rt = app.g.state.goRuntime ?? {};
+  for (const go of list) {
+    const offer = goOffer(app, go);
+    const mark = offer ? goDialogMarkerFromOffer(offer) : null;
+    const tag = mark === 'reward' ? green('? ') : mark === 'available' ? yellow('! ') : mark === 'incomplete' ? dim('? ') : '';
+    const avail = goRuntimeAvailability(rt[`${app.ch.zoneId}:${go.entry}`], Date.now());
+    const verb = interactVerbForGoType(go.type);
+    const state = avail.kind === 'consumed' ? dim('  gone') : avail.kind === 'restock' ? dim(`  back in ${Math.ceil((avail.readyAtMs - Date.now()) / 1000)}s`) : dim(`  ${verb.toLowerCase()}`);
+    rows.push({
+      text: `${tag}${go.name}${state}`, data: { object: go },
+      detail: () => [
+        bold(go.name), '',
+        ...(offer ? [
+          ...offer.acceptable.map((q) => yellow(`! ${app.ds.quest(q)?.title}`)),
+          ...offer.turnInReady.map((q) => green(`? ${app.ds.quest(q)?.title}`)),
+          ...offer.incomplete.map((q) => dim(`? ${app.ds.quest(q)?.title} (in progress)`)),
+        ] : []),
+        '', dim(`Enter: ${verb.toLowerCase()}`),
+      ],
+      act: (a) => useObject(a, go),
+    });
+  }
+  return rows;
+}
+
+/** Enter on an object: its quests if it has any to give or take, else use it (open, read, take). */
+export function useObject(app, go) {
+  const offer = goOffer(app, go);
+  if (offer && (offer.acceptable.length || offer.turnInReady.length)) {
+    const opts = [
+      ...offer.turnInReady.map((q) => ({ label: `${green('?')} ${app.ds.quest(q)?.title}`, value: () => app.push(questDialog(app, app.ds.quest(q), 'log')) })),
+      ...offer.acceptable.map((q) => ({ label: `${yellow('!')} ${app.ds.quest(q)?.title}`, value: () => app.push(questDialog(app, app.ds.quest(q), 'offer')) })),
+      { label: dim(interactVerbForGoType(go.type)), value: () => interact(app, go) },
+    ];
+    app.pick(go.name, opts, (fn) => fn());
+    return;
+  }
+  interact(app, go);
+}
+
+function interact(app, go) {
+  const r = app.g.interactObject(go.entry, { hold: true });
+  if (!app.result(r)) return;
+  const verb = interactVerbForGoType(go.type).toLowerCase();
+  if (r.mailboxOpen) { app.push(mailDialog(app)); return; }
+  if (r.boarded) { afterDeparture(app, () => `You ride to ${app.zone()?.name}.`); return; }
+  if (r.pageId > 0) { app.push(bookDialog(app, go.name, r.pageId)); return; }
+  if (r.keyUsed) app.say(dim(`The ${app.itemName(r.keyUsed)} turns.`));
+  if (app.g.pendingLoot()) {
+    app.say(green(`You ${verb} ${go.name}.`) + (r.workedBy ? dim(`  ${r.workedBy} works it.`) : '') + (r.skillUp ? cyan(`  Skill ${r.skillUp}.`) : ''));
+    if (autoLootOn(app)) takeAll(app);
+    openLoot(app);
+    return;
+  }
+  const bits = [
+    ...(r.questsOffered ?? []).map((q) => `${yellow('!')} ${app.ds.quest(q)?.title}`),
+    ...(r.questsTurnIn ?? []).map((q) => `${green('?')} ${app.ds.quest(q)?.title}`),
+    ...(r.questsIncomplete ?? []).map((q) => dim(`${app.ds.quest(q)?.title} is not done yet`)),
+  ];
+  app.say(`You ${verb} ${go.name}.${bits.length ? `  ${bits.join('   ')}` : r.yielded?.length ? '' : dim('  Nothing happens.')}`);
+}
+
+/** A book, plaque or letter: one page at a time; Enter on Next page turns it, b goes back. */
+export function bookDialog(app, title, firstPage) {
+  const pages = [];
+  for (let id = firstPage, n = 0; id > 0 && n < 50; n++) { const p = pageText(id); if (!p) break; pages.push(p.text); id = p.next ?? 0; }
+  const view = {
+    id: 'book', title, hint: pages.length > 1 ? 'Enter: next page' : '', noDetail: true, page: 0,
+    keys: { b: { hint: 'previous page', fn: () => { view.page = Math.max(0, view.page - 1); } } },
+    rows(a) {
+      const text = pages[view.page] ?? '(blank)';
+      const width = Math.max(40, a.layout().W - 4);
+      const rows = [{ text: `${bold(title)}  ${dim(`page ${view.page + 1} of ${pages.length}`)}`, header: true }, { text: '', header: true }];
+      for (const para of text.split(/\n/)) for (const l of wrapLines(para, width)) rows.push({ text: ` ${l}`, header: true });
+      rows.push({ text: '', header: true }, {
+        text: view.page + 1 < pages.length ? 'Next page' : 'Close',
+        act: (a2) => { if (view.page + 1 < pages.length) { view.page++; view.cursor = 0; view.scroll = 0; } else a2.pop(); },
+      });
+      return rows;
+    },
+  };
+  return view;
 }
