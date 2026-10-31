@@ -154,12 +154,12 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
 
 ### Pets (hunter, warlock)
 
-- [ ] M  Pet page under Character or a `Pet` row on World: `tamePet` (World row on tameable beasts),
+- [x] M  Pet page under Character or a `Pet` row on World: `tamePet` (World row on tameable beasts),
       `dismissPet`, `feedPet`, `setPetAutoFeed`, `setPetCommand`, `setPetReact`, `togglePetAutocast`.
       Ref `views/playChrome.ts` feed modal, `render/petBar.ts`.
-- [ ] S  Stable master in cities: `stablePet`, `callStabledPet`, `buyStableSlot`. Ref `panels/stablePanel.ts`.
-- [ ] S  Pet trainer: `buyPetSpell`, `teachPetSpell`, `trainPet`; list via `world/world:zonePetTrainers`.
-- [ ] S  Warlock shard cap: autopilot config field. Pet frame in fights already renders `petView()`.
+- [x] S  Stable master in cities: `stablePet`, `callStabledPet`, `buyStableSlot`. Ref `panels/stablePanel.ts`.
+- [x] S  Pet trainer: `buyPetSpell`, `teachPetSpell`, `trainPet`; list via `world/world:zonePetTrainers`.
+- [x] S  Warlock shard cap: autopilot config field. Pet frame in fights already renders `petView()`.
 
 ### Items, bags, gear
 

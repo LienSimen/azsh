@@ -21,6 +21,7 @@ import { companionsView } from './tuiCompanions.mjs';
 import { companionLevel, companionCharacter, companionSpellbook } from '../domain/bots/squad.ts';
 import { squadJoinsPull } from './squad.mjs';
 import { barsDialog, playerBarsOwner } from './tuiBars.mjs';
+import { petWorldRows, petDialog, hasPetClass } from './tuiPet.mjs';
 import { portalRows } from './tuiDungeon.mjs';
 
 const STAT_LABEL = { str: 'Strength', agi: 'Agility', sta: 'Stamina', int: 'Intellect', spi: 'Spirit' };
@@ -85,7 +86,7 @@ export function creatureLines(app, c) {
   out.push(`${hp} health   hits ${c.dmgMin}-${c.dmgMax} every ${(c.attackTimeMs / 1000).toFixed(1)} s`);
   if (c.armor) out.push(`${c.armor} armor`);
   if (c.xp) out.push(dim(`about ${c.xp} xp at your level`));
-  if (c.tameable) out.push(green('Tameable'));
+  if (c.tameable) out.push(green(app.ch.cls === 3 ? 'Tameable: t tames it' : 'Tameable'));
   const wanted = app.g.state.questlog.quests.flatMap((qs) => {
     const q = app.ds.quest(qs.entry);
     const k = q?.killTargets.find((t) => t.creatureEntry === c.entry);
@@ -154,6 +155,7 @@ function worldView(app) {
     id: 'world', title: 'World', hint: 'Enter: open / fight',
     keys: {
       f: { hint: 'quick fight', fn: (a, row) => { if (row?.data?.creature) a.cmds.commands.fight(String(row.data.creature.entry)); } },
+      t: { fn: (a, row) => { const c = row?.data?.creature; if (!c) return; if (a.ch.cls !== 3) { a.flashMsg('Only hunters tame beasts.'); return; } a.result(a.g.tamePet(c.entry), `You tame ${c.name}.`); } },
       a: { hint: 'autopilot', fn: (a) => startAutopilot(a) },
     },
     rows(a) {
@@ -191,6 +193,8 @@ function worldView(app) {
       if (city.mail) { const unread = g.unreadMailCount(Date.now()); services.push({ text: `${brightBlue('Mailbox')}${unread ? yellow(`  ${unread} new`) : ''}`, detail: () => [bold('Mailbox'), 'Auction sales, refunds and overflow loot arrive here.', '', dim('Enter: read your mail')], act: () => a.push(mailDialog(a)) }); }
       if (services.length) rows.push({ text: '', header: true }, { text: 'Services', header: true }, ...services);
       rows.push(...portalRows(a));
+      const petRows = petWorldRows(a);
+      if (petRows.length) rows.push({ text: '', header: true }, { text: 'Pet', header: true }, ...petRows);
       if (people.length) rows.push({ text: '', header: true }, { text: `People (${people.length})`, header: true }, ...people);
       rows.push(...worldGatherRows(a));
       rows.push({ text: '', header: true }, { text: 'Exits', header: true });
@@ -832,6 +836,7 @@ function charView(app) {
       const skills = Object.entries(ch.skills ?? {});
       if (skills.length) rows.push(L(cyan('Professions')), ...skills.map(([k, v]) => L(`  ${ds.profession(k)?.name ?? k} ${v.value ?? v.rank ?? v}`)), L(''));
       rows.push(L(cyan('Home')), L(`  ${ch.hearthBind ? `${ch.hearthBind.name ?? ''} in ${ds.zone(ch.hearthBind.zone)?.name ?? ch.hearthBind.zone}` : 'none'}`));
+      if (hasPetClass(a)) rows.push(L(''), { text: `Pet: ${ch.pet ? ch.pet.name : dim('none out')}   ${dim('Enter: the pet page')}`, act: () => a.push(petDialog(a)) });
       return rows;
     },
   };

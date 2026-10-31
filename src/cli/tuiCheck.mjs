@@ -679,6 +679,49 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   home();
 }
 
+// ---- a hunter's pet: tame, orders, autocast, stable, pet trainer ----------------------------------------------
+{
+  const term2 = new HeadlessTerm(110, 34);
+  const app2 = new App({ term: term2, ds, repo });
+  term2.open();
+  const dwarf = ds.races().find((r) => r.name === 'Dwarf');
+  app2.startGame(newGameState(ds, dwarf.id, 3, 'Pettest', 99, 0), 'pettest', Date.now(), true);
+  const g2 = app2.g;
+  g2.state.char.level = 12; g2.state.char.gold = 1_000_000;
+  app2.render();
+  const at = (pred) => app2.rowsOf(app2.top()).findIndex((r) => !r.header && pred(r, strip(r.text)));
+  app2.top().cursor = at((r) => r.data?.creature?.tameable && r.data.creature.level <= 12); term2.press('t');
+  check('t on a tameable beast tames it', !!g2.state.char.pet);
+  app2.top().cursor = at((r, t) => /^Pet:/.test(t)); term2.press('return');
+  if (showFrames) console.log(`\n=== pet page ===\n${term2.text()}`);
+  check('the World tab Pet row opens the pet page', app2.top().id === 'pet');
+  app2.top().cursor = at((r, t) => /^Command:/.test(t)); term2.press('return');
+  check('Enter switches the pet to stay', g2.state.char.pet.command === 'stay');
+  app2.top().cursor = at((r, t) => /^Reaction:/.test(t)); term2.press('return');
+  check('Enter cycles its reaction', g2.state.char.pet.react === 'passive' || g2.state.char.pet.react === 'aggressive');
+  const ability = at((r, t) => /^✓ /.test(t));
+  app2.top().cursor = ability; term2.press('return');
+  check('Enter turns an ability off autocast', (g2.state.char.pet.autocastOff ?? []).length > 0);
+  app2.top().cursor = at((r, t) => /^Buy a stable slot/.test(t)); term2.press('return');
+  check('a stable slot can be bought', (g2.state.char.stableSlots ?? 0) === 1);
+  const name = g2.state.char.pet.name;
+  app2.top().cursor = at((r, t) => /^Stable /.test(t)); term2.press('return');
+  check('the pet goes into the stable', !g2.state.char.pet && g2.state.char.stablePets?.[0]?.name === name);
+  app2.top().cursor = at((r, t) => /Slot 1:/.test(t)); term2.press('return');
+  check('and comes back out', g2.state.char.pet?.name === name);
+  term2.press('escape');
+  g2.state.char.zoneId = 'dunmorogh'; app2.render();
+  const trainer = at((r, t) => /<Pet Trainer>/.test(t));
+  check('Dun Morogh lists a pet trainer', trainer > 0);
+  if (trainer > 0) {
+    app2.top().cursor = trainer; term2.press('return');
+    const rank = at((r, t) => !/level \d+/.test(t) && !/^✓/.test(t));
+    app2.top().cursor = rank; term2.press('return');
+    check('a pet trainer rank can be bought', (g2.state.char.petSpells ?? []).length > 0);
+  }
+  term2.close?.();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);
