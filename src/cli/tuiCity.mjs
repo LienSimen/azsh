@@ -5,9 +5,14 @@ import { bold, dim, cyan, yellow, green, red, qualityPaint, fit, secondsText, pl
 import { itemLines } from './tuiViews.mjs';
 import { moneyText } from '../domain/economy/money.ts';
 import { bagCapacity } from '../domain/items/equipment.ts';
+import { countItem } from '../domain/items/inventory.ts';
 import { bankCapacity, nextBankBagSlotCost } from '../domain/items/bank.ts';
 import { minNextBid, auctionDeposit } from '../domain/economy/auction.ts';
 import { AH_DURATIONS_MS } from '../engine/game/types.ts';
+import { MAX_MAIL_ITEMS, MAIL_POSTAGE_COPPER } from '../domain/economy/mail.ts';
+import { hasIdentity } from '../domain/items/itemInstance.ts';
+import { isConjuredItem } from '../domain/items/itemBonding.ts';
+import { areHostile } from '../domain/character/races.ts';
 
 /** Non-capital zones with a banker spawn (Unit.h UNIT_NPC_FLAG_BANKER): Ratchet/Crossroads, Booty Bay, Gadgetzan, Everlook. */
 const BANK_TOWN_ZONE_IDS = new Set(['barrens', 'stranglethorn', 'tanaris', 'winterspring']);
@@ -63,6 +68,7 @@ export function bankDialog(app, startMode = 'deposit') {
         if (cost == null) { a.flashMsg('You already own every bank bag slot.'); return; }
         a.confirm(`Buy a bank bag slot for ${moneyText(cost)}?`, () => a.result(a.g.buyBankBagSlot(), `Bought a bank bag slot for ${moneyText(cost)}.`));
       } },
+      D: { hint: 'deposit all of it', fn: (a, row) => { if (mode !== 'deposit' || !row?.data?.s) return; const e = row.data.s.item; const r = a.g.bankDeposit(e, countItem(a.g.state.inventory, e)); a.result(r, r.ok ? `Deposited every ${a.itemName(e)} (${r.moved}).` : ''); } },
       B: { hint: 'slot a bag', fn: (a, row) => {
         if (mode !== 'deposit' || !row?.data) { a.flashMsg('Pick a bag in your bags (deposit side) first.'); return; }
         const it = a.ds.item(row.data.s.item);
@@ -80,9 +86,17 @@ export function bankDialog(app, startMode = 'deposit') {
       const rows = [
         { text: `${bold('Bank')} ${dim(`${st.bank.stacks.length}/${bankCap}`)}   ${bold('Bags')} ${dim(`${st.inventory.stacks.length}/${bagCap}`)}   ${yellow(moneyText(a.ch.gold) || '0c')}`, header: true },
         { text: dim(`Bank bag slots: ${owned} owned, ${slotted} holding a bag${nextBankBagSlotCost(st.bankBags) != null ? `, next costs ${moneyText(nextBankBagSlotCost(st.bankBags))}` : ''}`), header: true },
+      ];
+      // Each bank bag slot: Enter takes the bag in it back to your bags (it has to be empty).
+      st.bankBags.forEach((b, slot) => {
+        if (b == null) { rows.push({ text: dim(`  Bank bag ${slot + 1}: empty   (B on a bag in your bags fills it)`), header: true }); return; }
+        const bag = ds.item(typeof b === 'object' ? b.item ?? b.entry : b);
+        rows.push({ text: `  Bank bag ${slot + 1}: ${bag?.name ?? b}${bag?.bagSlots ? dim(`  ${bag.bagSlots} slots`) : ''}   ${dim('Enter: take it out')}`, data: { bankBag: slot }, act: (a2) => a2.result(a2.g.unequipBankBag(slot), `${bag?.name ?? 'The bag'} is back in your bags.`) });
+      });
+      rows.push(
         { text: `${mode === 'deposit' ? bold('Your bags → bank') : dim('Your bags → bank')}   ${mode === 'withdraw' ? bold('Bank → your bags') : dim('Bank → your bags')}`, header: true },
         { text: '', header: true },
-      ];
+      );
       const list = mode === 'deposit' ? st.inventory.stacks : st.bank.stacks;
       if (!list.length) rows.push({ text: dim(mode === 'deposit' ? 'Your bags are empty.' : 'Your bank is empty.'), header: true });
       list.forEach((s, index) => {
@@ -235,6 +249,8 @@ export function mailDialog(app) {
     keys: {
       A: { hint: 'take all', fn: (a) => { const r = a.g.collectMail(); a.result(r, r.ok ? (r.abortedFull ? red('Your bags filled up before the mail was empty.') : r.moved ? `Collected ${r.moved} from the mail.` : 'Nothing to collect.') : ''); } },
       d: { hint: 'delete', fn: (a, row) => { if (row?.data?.mail) a.confirm(`Delete "${row.data.mail.subject}"?`, () => a.result(a.g.deleteMail(row.data.mail.id), 'Mail deleted.')); } },
+      r: { hint: 'return', fn: (a, row) => { if (row?.data?.mail) a.confirm(`Send "${row.data.mail.subject}" back to ${row.data.mail.sender}?`, () => { void returnToSender(a, row.data.mail); }); } },
+      s: { hint: 'send', fn: (a) => a.push(composeDialog(a)) },
     },
     rows(a) {
       const now = Date.now();
@@ -267,8 +283,94 @@ function takeMail(app, m) {
     const att = cur.attachments[0];
     const r = app.g.takeMailItem(m.id);
     if (!r.ok) { app.say(red(r.reason)); break; }
+    // Taking a COD item pays the sender: their payment letter goes to their mailbox.
+    if (r.remittance) void deliverNamedMail(app, r.remittance.to, r.remittance.mail);
     took++;
     app.say(green(`You take ${app.itemName(att.entry)}${att.quantity > 1 ? ` x${att.quantity}` : ''}.`));
   }
   if (!took) app.flashMsg('Nothing to take from this letter. d deletes it.');
+}
+
+// ---- mail between your own characters -------------------------------------------------------------
+// Every save in ~/.azsh/saves is a character on this realm: a letter to one is written into that save's
+// mailbox (phonecraft appInteractInputB.ts sendMailBatch path). Returned letters and COD payments land the same way.
+
+const sameName = (a, b) => String(a).toLowerCase() === String(b).toLowerCase();
+
+/** Put a letter in the named character's mailbox: yours, or another save's. False when nobody has that name. */
+export async function deliverNamedMail(app, toName, mail) {
+  if (sameName(toName, app.ch.name)) { app.g.state.mailbox = [...(app.g.state.mailbox ?? []), mail]; return true; }
+  const meta = (await app.repo.list()).find((s) => sameName(s.name, toName));
+  const dest = meta ? await app.repo.load(meta.slot) : null;
+  if (!dest) return false;
+  dest.state.mailbox = [...(dest.state.mailbox ?? []), mail];
+  dest.updatedAt = Date.now();
+  await app.repo.save(dest);
+  return true;
+}
+
+async function returnToSender(app, m) {
+  const r = app.g.returnMail(m.id, Date.now());
+  if (!app.result(r)) return;
+  const delivered = await deliverNamedMail(app, r.to, r.mail);
+  app.say(delivered ? green(`Returned to ${r.to}.`) : dim(`Returned. ${r.to} is not one of your characters, so it goes nowhere.`));
+  await app.persist();
+  app.render();
+}
+
+/** Write a letter to another of your characters: recipient, subject, money or COD, and up to 21 stacks. */
+export function composeDialog(app) {
+  const m = { to: null, subject: '', money: 0, cod: false, attach: new Set() };
+  const send = async (a) => {
+    if (!m.to) { a.flashMsg('Pick who it goes to first.'); a.render(); return; }
+    const dest = await a.repo.load(m.to.slot);
+    if (!dest) { a.say(red(`${m.to.name} cannot be found.`)); a.render(); return; }
+    const stacks = a.g.state.inventory.stacks;
+    const attachments = [...m.attach].sort((x, y) => x - y).filter((slot) => stacks[slot]).map((slot) => {
+      const stk = stacks[slot];
+      return { entry: stk.item, quantity: stk.count, slotIndex: slot, ...(hasIdentity(stk) ? { instance: stk } : {}), ...(isConjuredItem(a.ds.item(stk.item)) ? { conjured: true } : {}) };
+    });
+    const r = a.g.sendMailBatch({
+      recipientName: dest.state.char.name, recipientMailbox: dest.state.mailbox ?? [],
+      subject: m.subject || (attachments.length ? a.itemName(attachments[0].entry) : 'A letter'), body: '',
+      enclosedMoney: m.cod ? 0 : m.money, cod: m.cod ? m.money : 0, attachments, nowMs: Date.now(),
+      crossFaction: areHostile(a.ds, a.ch.race, dest.state.char.race),
+    });
+    if (!a.result(r)) { a.render(); return; }
+    dest.state.mailbox = r.destMailbox;
+    dest.updatedAt = Date.now();
+    await a.repo.save(dest);
+    a.say(green(`Mail sent to ${dest.state.char.name}.`) + dim(`  Postage ${moneyText(r.cost)}.`));
+    await a.persist();
+    if (a.top()?.id === 'mail-compose') a.pop(); else a.render();
+  };
+  const view = {
+    id: 'mail-compose', title: 'Send mail', hint: 'Enter: change / enclose',
+    keys: { S: { hint: 'send', fn: (a) => { view.sending = send(a); } } },
+    rows(a) {
+      const rows = [{ text: bold('Send mail'), header: true }, { text: '', header: true }];
+      rows.push({ text: `To       ${m.to ? cyan(m.to.name) : dim('pick one of your characters')}`, act: (a2) => { view.picking = pickAlt(a2, (s) => { m.to = s; }); } });
+      rows.push({ text: `Subject  ${m.subject || dim('(the first item, or "A letter")')}`, act: (a2) => a2.prompt('Subject: ', (t) => { m.subject = t.slice(0, 64); a2.render(); }, m.subject) });
+      rows.push({ text: `${m.cod ? 'COD     ' : 'Money   '} ${m.money ? yellow(moneyText(m.money)) : dim('none')}`, act: (a2) => a2.prompt(m.cod ? 'Cash on delivery: ' : 'Money to send: ', (t) => { const c = parseMoney(t); if (c == null) a2.flashMsg('Say a price like 2g 50s or 250.'); else m.money = c; a2.render(); }) });
+      rows.push({ text: `Pay      ${m.cod ? red('cash on delivery: they pay the money to take the items') : dim('the money is a gift')}`, act: () => { m.cod = !m.cod; } });
+      rows.push({ text: '', header: true }, { text: `Enclose  ${dim(`${m.attach.size}/${MAX_MAIL_ITEMS}`)}`, header: true });
+      a.g.state.inventory.stacks.forEach((s, slot) => {
+        const it = a.ds.item(s.item);
+        const on = m.attach.has(slot);
+        rows.push({
+          text: `${on ? green('✓') : dim('·')} ${qualityPaint(it?.quality)(it?.name ?? s.item)}${s.count > 1 ? ` x${s.count}` : ''}`, data: { slot },
+          act: () => { if (on) m.attach.delete(slot); else if (m.attach.size < MAX_MAIL_ITEMS) m.attach.add(slot); else a.flashMsg(`At most ${MAX_MAIL_ITEMS} stacks in one letter.`); },
+        });
+      });
+      rows.push({ text: '', header: true }, { text: green(`Send  ${dim(`S, postage ${moneyText(MAIL_POSTAGE_COPPER)}`)}`), act: () => { view.sending = send(a); } });
+      return rows;
+    },
+  };
+  return view;
+}
+
+async function pickAlt(app, onPick) {
+  const saves = (await app.repo.list()).filter((s) => !sameName(s.name, app.ch.name));
+  if (!saves.length) { app.flashMsg('You have no other characters to write to.'); app.render(); return; }
+  app.pick('Send it to', saves.map((s) => ({ label: `${s.name}  ${dim(`L${s.level}`)}`, value: s })), onPick);
 }

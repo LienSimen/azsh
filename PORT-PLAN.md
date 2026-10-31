@@ -228,8 +228,8 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
 
 ### Bank, mail, auction
 
-- [ ] S  `unequipBankBag`, `bankDeposit` by entry, `returnMail`.
-- [ ] M  Mail to your own alt: pick a save in `~/.azsh/saves`, `sendMailBatch({ recipientMailbox,
+- [x] S  `unequipBankBag`, `bankDeposit` by entry, `returnMail`.
+- [x] M  Mail to your own alt: pick a save in `~/.azsh/saves`, `sendMailBatch({ recipientMailbox,
       crossFaction })`, save the other slot through `fileRepository.mjs`. Ref `appInteractInputB.ts:1474`.
 
 ### PvP

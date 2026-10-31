@@ -1404,6 +1404,64 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   term6.close?.();
 }
 
+// Mail to your own characters: a letter with an item lands in the other save; they send it back. Bank bags and deposit-all.
+{
+  const { toSave, summarize } = await import('../persistence/saveShape.ts');
+  const tick = () => new Promise((r) => setTimeout(r, 0));
+  const store = new Map();
+  const repo7 = {
+    async list() { return [...store.values()].map(summarize); },
+    async load(slot) { const s = store.get(slot); return s ? structuredClone(s) : null; },
+    async save(save) { store.set(save.slot, structuredClone(save)); },
+  };
+  const now = Date.now();
+  store.set('alt', toSave('alt', newGameState(ds, human.id, 1, 'Alttest', 21, 0), now, now));
+  const term7 = new HeadlessTerm(110, 34);
+  const app7 = new App({ term: term7, ds, repo: repo7 });
+  term7.open();
+  const main = newGameState(ds, human.id, 1, 'Mailtest', 22, 0);
+  app7.startGame(main, 'main', now, true);
+  await repo7.save(toSave('main', app7.g.snapshot(), now, now));
+  const g7 = app7.g;
+  g7.state.char.gold = 100000; g7.state.char.zoneId = 'stormwind';
+  const linen = ds.allItems().find((it) => it.name === 'Linen Cloth');
+  g7.state.inventory = addItem(g7.state.inventory, linen.entry, 7, linen.stackable);
+  const at = (pred) => app7.rowsOf(app7.top()).findIndex((r) => !r.header && pred(r, strip(r.text)));
+  term7.press(':'); for (const ch of 'mail') term7.press(ch); term7.press('return'); await tick();
+  term7.press('s');
+  check('s in the mailbox opens a letter', app7.top()?.id === 'mail-compose');
+  const compose = app7.top();
+  app7.top().cursor = at((r, t) => t.startsWith('To')); term7.press('return'); await compose.picking;
+  app7.top().cursor = at((r, t) => t.startsWith('Alttest')); term7.press('return');
+  app7.top().cursor = at((r) => r.data?.slot === g7.state.inventory.stacks.findIndex((x) => x.item === linen.entry)); term7.press('return');
+  term7.press('S'); await compose.sending; await tick();
+  const altBox = store.get('alt').state.mailbox;
+  check('the letter lands in the other character\'s mailbox', altBox.length === 1 && altBox[0].attachments.some((x) => x.entry === linen.entry) && countItem(g7.state.inventory, linen.entry) === 0);
+  term7.close?.();
+  // The other character sends it back.
+  const term8 = new HeadlessTerm(110, 34);
+  const app8 = new App({ term: term8, ds, repo: repo7 });
+  term8.open();
+  const alt = await repo7.load('alt');
+  app8.startGame(alt.state, 'alt', alt.createdAt, false, alt.updatedAt);
+  term8.press(':'); for (const ch of 'mail') term8.press(ch); term8.press('return'); await tick();
+  app8.top().cursor = app8.rowsOf(app8.top()).findIndex((r) => r.data?.mail); term8.press('r'); term8.press('return');
+  for (let i = 0; i < 5; i++) await tick();
+  check('r returns it to the sender\'s mailbox', (store.get('main').state.mailbox ?? []).some((m) => m.attachments?.some((x) => x.entry === linen.entry)));
+  term8.close?.();
+  // Bank: a bag in a bank bag slot comes back out; D deposits every stack of an item.
+  const bag = ds.allItems().find((it) => it.slot === 'bag' && (it.bagSlots ?? 0) >= 4 && !it.bagFamily);
+  g7.state.inventory = addItem(addItem(g7.state.inventory, bag.entry, 1, 1), linen.entry, 25, linen.stackable);
+  app7.push((await import('./tuiCity.mjs')).bankDialog(app7));
+  term7.press('+'); term7.press('return');
+  app7.top().cursor = at((r) => r.data?.s?.item === bag.entry); term7.press('B');
+  check('B puts a bag in a bought bank bag slot', g7.state.bankBags.some((b) => b != null));
+  app7.top().cursor = at((r) => r.data?.bankBag != null); term7.press('return');
+  check('Enter on the bank bag takes it back out', g7.state.bankBags.every((b) => b == null) && countItem(g7.state.inventory, bag.entry) === 1);
+  app7.top().cursor = at((r) => r.data?.s?.item === linen.entry); term7.press('D');
+  check('D deposits every stack of the item', countItem(g7.state.inventory, linen.entry) === 0 && countItem(g7.state.bank, linen.entry) === 25);
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);
