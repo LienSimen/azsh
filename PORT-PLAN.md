@@ -168,7 +168,7 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
 - [x] S  Bag housekeeping: `moveItem`, `sortContainer`, split stacks, `discardBagStack`,
       `discardKeyringStack`, `openContainerItem`, `consumeItemAll`, `wrapItem`, `unwrapItem`,
       `learnSpellFromItem`, `learnProfessionRankFromItem`.
-- [ ] S  Bulk: bulk disenchant and bulk learn. Ref `panels/bagBulkPanel.ts`, `app/appInteractBulkBags.ts`.
+- [x] S  Bulk: bulk disenchant and bulk learn. Ref `panels/bagBulkPanel.ts`, `app/appInteractBulkBags.ts`.
 - [ ] S  Ammo: `setAmmo`, `clearAmmo` on the Gear tab for ranged users.
 - [ ] S  Auto consumables: `setAutoConsumable`, `clearAutoConsumable`.
 - [ ] M  Outfitter (gear sets): `ensureOutfitter`, `createOutfit`, `rename/deleteOutfit`,

@@ -49,6 +49,7 @@ const HELP_LINES = [
   '  ▲ marks an upgrade the equipment helper found; u puts on every upgrade at once, x takes a piece off.',
   '  Bags tab: Enter uses, equips, opens, unwraps or learns; m lists every verb for the stack. s sells to the open',
   '  vendor, j sells junk, b opens the bank, d destroys, S sorts, / splits a stack, [ ] move it, A uses the whole stack.',
+  '  D lists every green, blue or epic the group can disenchant; L lists every book someone can learn. G runs it.',
   '  Loot: with :autoloot off a corpse opens the loot window. Enter takes a row, a takes all, Esc leaves the rest.',
   '',
   'In a fight',

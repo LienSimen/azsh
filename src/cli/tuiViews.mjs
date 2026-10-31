@@ -23,6 +23,7 @@ import { squadJoinsPull } from './squad.mjs';
 import { barsDialog, playerBarsOwner } from './tuiBars.mjs';
 import { petWorldRows, petDialog, hasPetClass } from './tuiPet.mjs';
 import { portalRows } from './tuiDungeon.mjs';
+import { bulkDisenchantDialog, learnAllDialog } from './tuiBulk.mjs';
 import { useStack, itemMenu, useAll, splitStack, moveStack, destroyStack, sortBags, keyringRows, primaryVerb } from './tuiBags.mjs';
 
 const STAT_LABEL = { str: 'Strength', agi: 'Agility', sta: 'Stamina', int: 'Intellect', spi: 'Spirit' };
@@ -335,6 +336,8 @@ function bagsView(app) {
       j: { hint: 'sell junk', fn: (a) => { if (!a.vendor) { a.flashMsg('Open a vendor first (World tab).'); return; } sellJunk(a); } },
       d: { hint: 'destroy', fn: onStack((a, i) => destroyStack(a, i)) },
       S: { hint: 'sort', fn: (a) => sortBags(a) },
+      D: { hint: 'disenchant all', fn: (a) => a.push(bulkDisenchantDialog(a)) },
+      L: { hint: 'learn all', fn: (a) => a.push(learnAllDialog(a)) },
       A: { fn: onStack(useAll) },
       '/': { fn: onStack(splitStack) },
       '[': { fn: onStack((a, i) => moveStack(a, i, -1)) },

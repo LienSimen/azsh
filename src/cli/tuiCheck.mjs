@@ -825,6 +825,36 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   home();
 }
 
+// Bulk: disenchant a band and learn every book, both as a list you switch rows off in, then G.
+{
+  const g = app.g;
+  g.devLearnProfession('enchanting');
+  const { isDisenchantable, disenchantRuleFor } = await import('../domain/professions/enchanting.ts');
+  const green = ds.allItems().find((it) => it.quality === 2 && it.slot && it.slot !== 'bag' && isDisenchantable(it) && disenchantRuleFor(it, ds) && (it.itemLevel ?? 0) >= 15 && (it.itemLevel ?? 0) <= 25 && countItem(g.state.inventory, it.entry) === 0);
+  g.state.inventory = addItem(g.state.inventory, green.entry, 1, 1);
+  home(); app.switchTab(2); term.press('D'); show('disenchant all');
+  check('D opens Disenchant all on the greens', app.top().id === 'bulk-de' && /Greens/.test(strip(frame())));
+  const deRow = rowIndex((r, t) => t.includes(green.name));
+  check('the green in the bags is listed', deRow > 0);
+  app.top().cursor = deRow;
+  if (!/^✓/.test(strip(app.rowsOf(app.top())[deRow].text))) term.press('return');
+  term.press('G');
+  check('G breaks it down into enchanting mats', countItem(g.state.inventory, green.entry) === 0 && app.log.some((l) => /You create/.test(strip(l))));
+  term.press('tab'); check('Tab moves to the Blues band', /\[Blues/.test(strip(frame())));
+  term.press('escape');
+  const known = new Set(g.state.char.knownRecipes);
+  const book = ds.allItems().find((it) => it.teachRecipe != null && ds.recipe(it.teachRecipe)?.skill === 'tailoring' && !known.has(it.teachRecipe) && (ds.recipe(it.teachRecipe)?.requiredSkill ?? 0) <= 75 && (it.requiredLevel ?? 0) <= g.state.char.level);
+  if (book) {
+    g.state.inventory = addItem(g.state.inventory, book.entry, 1, 1);
+    term.press('L'); show('learn all');
+    check('L opens Learn all with the pattern', app.top().id === 'learn-all' && rowIndex((r, t) => t.includes(book.name)) > 0);
+    term.press('G');
+    check('G learns it and eats the book', g.state.char.knownRecipes.includes(book.teachRecipe) && countItem(g.state.inventory, book.entry) === 0);
+    term.press('escape');
+  } else check('the data has a tailoring pattern to learn', false);
+  home();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);
