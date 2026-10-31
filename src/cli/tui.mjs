@@ -53,6 +53,7 @@ const HELP_LINES = [
   '  vendor, j sells junk, b opens the bank, d destroys, S sorts, / splits a stack, [ ] move it, A uses the whole stack.',
   '  D lists every green, blue or epic the group can disenchant; L lists every book someone can learn. G runs it.',
   '  :settings sets auto-loot, the upgrade helper, auto-disenchant, the junk rules and which nodes get gathered.',
+  '  Spells tab: b edits your action bars, m your macros. :macro <name> runs one; a macro on bar 1 fires by its key in a fight.',
   '  Loot: with :autoloot off a corpse opens the loot window. Enter takes a row, a takes all, Esc leaves the rest.',
   '',
   'In a fight',
@@ -353,6 +354,15 @@ export class App {
       return;
     }
     if (c === 'settings' || c === 'options') { this.push(settingsDialog(this)); return; }
+    if (c === 'macro' || c === 'macros') {
+      const { macrosDialog, runMacro } = await import('./tuiMacros.mjs');
+      const name = args.trim();
+      if (!name) { this.push(macrosDialog(this)); return; }
+      const def = this.g.macroByName(name);
+      if (def) runMacro(this, def); else this.say(red(`No macro called ${name}.`));
+      this.afterAction();
+      return;
+    }
     if (c === 'outfit') {
       if (!args.trim()) { const { outfitterDialog } = await import('./tuiOutfitter.mjs'); this.push(outfitterDialog(this)); return; }
       // A bare name wears it; wear|unwear|toggle name are the macro forms. Companions with a set of that name follow.

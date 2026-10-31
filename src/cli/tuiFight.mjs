@@ -10,6 +10,7 @@ import { powerType } from '../domain/character/characterStats.ts';
 import { pullOpts, sessionLogNames } from './squad.mjs';
 import { slotContent, visibleBars } from './tuiBars.mjs';
 import { autoLootOn, openLoot } from './tuiLoot.mjs';
+import { createCombatMacroHost } from './macroHostCombat.ts';
 
 export const TICK_MS = 100; // one engine tick per 100 ms of real time, like the web client
 const POWER_PAINT = { mana: brightBlue, rage: red, energy: yellow, focus: yellow };
@@ -30,7 +31,7 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
     after, resolve, session, enemyName: b.enemyName, enemyEntry: b.enemyEntry, onEnd, label, withSquad: !!opts && (app.g.state.squad ?? []).length > 0,
     // A fight opened from a window (the dungeon run) takes the screen and hands the window back after.
     savedStack: app.stack,
-    auto: true, paused: false, speed: app.fightSpeed ?? 1, pressed: null, pressedTicks: 0, timer: null, pend: null, ended: false,
+    auto: true, paused: false, speed: app.fightSpeed ?? 1, pressed: null, pressedTicks: 0, follow: [], focus: null, macros: null, timer: null, pend: null, ended: false,
     frames: newFrameMemory(app), compact: false,
     names: sessionLogNames(session, { playerName: app.ch.name, enemyName: b.enemyName, spellName: (id) => app.ds.spell(id)?.name }),
     hint() { return `${this.auto ? 'a: manual play' : '1-0: your action bar   a: auto-play'}${session.alliesView().length ? '   t: orders' : ''}${app.g.state.instance ? '   p: pull +1' : ''}   space: ${this.paused ? 'resume' : 'pause'}   + -: speed ${this.speed}x   l: log   Esc: ${this.label ? 'run away, stop autopilot' : 'run away'}`; },
@@ -43,8 +44,15 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
     tick() {
       if (this.ended || this.paused) return;
       let action;
+      // A macro's later steps go out one per tick once the step before has left the queue.
+      if (this.pressed == null && this.follow.length) {
+        const st = this.follow.shift();
+        if (st.kind === 'cast') { this.pressed = st.ally ? { spell: st.spellId, ally: st.ally } : st.spellId; this.pressedTicks = 0; }
+        else this.useItem(st.entry, st.target);
+      }
       if (this.pressed != null) {
-        const ab = session.abilities().find((x) => x.spell.id === this.pressed);
+        const id = typeof this.pressed === 'object' ? this.pressed.spell : this.pressed;
+        const ab = session.abilities().find((x) => x.spell.id === id);
         if (ab?.usable) { action = this.pressed; this.pressed = null; }
         else if (++this.pressedTicks > 30 || !ab) { app.say(dim(`${ab ? ab.reason ?? 'Not ready.' : 'Lost that ability.'}`)); this.pressed = null; }
       }
@@ -144,8 +152,33 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       } else if (slot.item) {
         if (!slot.usable) { app.say(dim(`${slot.label}: ${slot.reason ?? 'not usable now'}`)); return; }
         session.aiPlayer = false; this.logEvents(session.tick({ item: slot.item })); session.aiPlayer = this.auto;
-      } else app.say(dim(`${slot.label}: macros run from the Spells tab, not in a fight yet.`));
+      } else if (slot.macro) {
+        const def = app.g.macroById(slot.macro);
+        if (def && !this.macroHost().press(def)) app.say(dim(`${def.name} did nothing.`));
+      }
       app.render();
+    },
+    useItem(entry, target) {
+      session.aiPlayer = false; this.logEvents(session.tick({ item: entry, ...(target ? { target } : {}) })); session.aiPlayer = this.auto;
+    },
+    /** The macro runtime for this fight: every step goes through the same queue a key press uses. */
+    macroHost() {
+      this.macros ??= createCombatMacroHost({
+        session: () => session,
+        ds: { spell: (id) => app.ds.spell(id), item: (entry) => app.ds.item(entry) },
+        macros: () => app.g.macros(),
+        stance: () => ({ classId: app.ch.cls, known: app.g.state.spellbook.known }),
+        equipped: () => app.ch.equipped,
+        mods: () => ({ shift: false, ctrl: false, alt: false }),
+        mouseoverSide: () => null,
+        focusSide: () => this.focus,
+        setFocusSide: (side) => { this.focus = side; },
+        queueAbility: (id, opts) => { this.pressed = opts?.ally ? { spell: id, ally: opts.ally } : id; this.pressedTicks = 0; },
+        queueItem: (entry, opts) => this.useItem(entry, opts?.target),
+        queueFollowUp: (steps) => { this.follow = [...steps]; },
+        notify: (m) => app.say(dim(m)),
+      });
+      return this.macros;
     },
     /** The number row: your action bar 1 by its keybinds (spells and bag items), else your first nine abilities. */
     abilityBar() {
@@ -164,7 +197,10 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
         } else if (c.kind === 'item') {
           const it = session.items().find((x) => x.item.entry === c.entry);
           out.push({ key, item: c.entry, label: `${app.itemName(c.entry)}${it ? ` x${it.count}` : ''}`, usable: !!it?.usable, reason: it ? it.reason : 'none left', cooldownRemainingMs: 0 });
-        } else out.push({ key, macro: c.id, label: `macro ${app.g.macroById?.(c.id)?.name ?? c.id}`, usable: false, cooldownRemainingMs: 0 });
+        } else {
+          const info = this.macroHost().info(c.id);
+          out.push({ key, macro: c.id, label: info?.name ?? app.g.macroById(c.id)?.name ?? c.id, usable: info?.usable !== false, reason: info?.reason, cooldownRemainingMs: info?.cooldownRemainingMs ?? 0 });
+        }
       }
       if (out.length) return out;
       return abs.filter((x) => !x.spell.passive).slice(0, 9).map((ab, i) => ({ key: String(i + 1), spell: ab.spell, label: ab.spell.name, usable: ab.usable, reason: ab.reason, cooldownRemainingMs: ab.cooldownRemainingMs }));

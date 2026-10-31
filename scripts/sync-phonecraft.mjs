@@ -30,6 +30,23 @@ const PATCHES = [
   ['autopilot/config.ts', '  recoverToPct: 0.9,     // mirrors the dev bot RECOVER_TO', '  recoverToPct: 1,'],
 ];
 
+// Phonecraft UI files the terminal runs unchanged apart from import paths: [phonecraft src path, azsh src path, extra patches].
+const ACTION_BAR_MACRO_INFO = `// Copied from phonecraft src/ui/macros/macroHostCombat.ts; only this type came from its action bar model.
+export interface ActionBarMacroInfo {
+  name: string;
+  icon?: string;
+  showSpellId?: number;
+  showItemEntry?: number;
+  /** Cooldown of the thing the macro would fire, so the button swipes like a normal one. */
+  cooldownRemainingMs?: number;
+  usable?: boolean;
+  reason?: string;
+}`;
+const UI_COPIES = [
+  ['ui/macros/macroHostWorld.ts', 'cli/macroHostWorld.ts', [['// Runs a macro out in the world', '// Copied from phonecraft src/ui/macros/macroHostWorld.ts (import paths only).' + String.fromCharCode(10) + '// Runs a macro out in the world']]],
+  ['ui/macros/macroHostCombat.ts', 'cli/macroHostCombat.ts', [["import type { ActionBarMacroInfo } from '../combat/actionBarModel.ts';", ACTION_BAR_MACRO_INFO]]],
+];
+
 const walk = (d, b = '') => (existsSync(join(d, b)) ? readdirSync(join(d, b), { withFileTypes: true }) : [])
   .flatMap((e) => (e.isDirectory() ? walk(d, join(b, e.name)) : [join(b, e.name)]));
 const posix = (p) => p.split(sep).join('/');
@@ -61,6 +78,20 @@ for (const [rel, text] of want) {
   mkdirSync(dirname(dest), { recursive: true });
   writeFileSync(dest, gz(rel) ? gzipSync(Buffer.from(text), { level: 9 }) : text);
   if (gz(rel) && existsSync(dest.slice(0, -3))) unlinkSync(dest.slice(0, -3));
+}
+for (const [from, to, patches] of UI_COPIES) {
+  const src = join(PC, 'src', from);
+  if (!existsSync(src)) { patchMiss.push(`${from}: missing in phonecraft`); continue; }
+  let text = lf(readFileSync(src)).replaceAll("'../../", "'../");
+  for (const [a, b] of patches) {
+    if (!text.includes(a)) { patchMiss.push(`${from}: ${a.trim()}`); continue; }
+    text = text.replace(a, b);
+  }
+  const dest = join(ROOT, 'src', to);
+  const have = existsSync(dest) ? lf(readFileSync(dest)) : null;
+  if (have === text) continue;
+  (have == null ? added : changed).push(to);
+  if (!dry) writeFileSync(dest, text);
 }
 for (const dir of DIRS) {
   for (const f of walk(join(ROOT, 'src', dir))) {

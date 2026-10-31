@@ -187,7 +187,7 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
       `setMacroActionSlot`, `setActionKey`. Ref `views/hudActionBarPaint.ts`, `combat/actionBarModel.ts`.
 - [x] S  Global action bar: `setGlobalItemSlot`, `setGlobalOutfitSlot`, `clearGlobalActionSlot`,
       `fireGlobalActionBar`, `fireGlobalActionSlot`.
-- [ ] M  Macros: `macros`, `macroById`, `macroByName`, `saveMacro`, `deleteMacro`, plus the two hosts
+- [x] M  Macros: `macros`, `macroById`, `macroByName`, `saveMacro`, `deleteMacro`, plus the two hosts
       (`macros/macroHostWorld.ts`, `macroHostCombat.ts`) over `domain/macro`. Terminal editor is a
       text field; templates from `macros/macroTemplates.ts`.
 - [ ] S  Cancel an aura (`cancelAura`, `canCancelAuraNow`) from the Character tab and the fight view.

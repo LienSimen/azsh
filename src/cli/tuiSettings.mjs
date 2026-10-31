@@ -13,13 +13,15 @@ const DE_STEPS = [null, 2, 3, 4]; // off, then the ceiling
 const onOff = (v) => (v ? green('on') : dim('off'));
 const box = (v) => (v ? green('✓') : dim('·'));
 
-/** The `createGame` options that back the every-character layers with the prefs file. */
+/** The `createGame` options that back the every-character layers (and account macros) with the prefs file. */
 export function globalSettingsOpts(prefs) {
   return {
     junkFilter: () => prefs.get('junkFilter'),
     onJunkFilterChange: (cfg) => prefs.set('junkFilter', cfg),
     autoDisenchant: () => prefs.get('autoDisenchant'),
     onAutoDisenchantChange: (cfg) => prefs.set('autoDisenchant', cfg),
+    accountMacros: () => prefs.get('accountMacros') ?? [],
+    onAccountMacrosChange: (list) => prefs.set('accountMacros', list),
   };
 }
 

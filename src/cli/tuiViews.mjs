@@ -27,6 +27,7 @@ import { bulkDisenchantDialog, learnAllDialog } from './tuiBulk.mjs';
 import { gearExtraRows, durabilityText, repairOne, slotRepairLines } from './tuiGear.mjs';
 import { outfitterDialog } from './tuiOutfitter.mjs';
 import { settingsDialog } from './tuiSettings.mjs';
+import { macrosDialog } from './tuiMacros.mjs';
 import { useStack, itemMenu, useAll, splitStack, moveStack, destroyStack, sortBags, keyringRows, primaryVerb } from './tuiBags.mjs';
 
 const STAT_LABEL = { str: 'Strength', agi: 'Agility', sta: 'Stamina', int: 'Intellect', spi: 'Spirit' };
@@ -493,10 +494,12 @@ function slotDialog(app, slot) {
 function spellsView(app) {
   return {
     id: 'spells', title: 'Spellbook', hint: 'Enter: cast',
-    keys: { b: { hint: 'action bars', fn: (a) => a.push(barsDialog(a, playerBarsOwner)) } },
+    keys: { b: { hint: 'action bars', fn: (a) => a.push(barsDialog(a, playerBarsOwner)) }, m: { hint: 'macros', fn: (a) => a.push(macrosDialog(a)) } },
     rows(a) {
       const known = knownUsableSpells(a.ch, a.g.state.spellbook, a.ds).sort((x, y) => x.name.localeCompare(y.name));
-      const head = [{ text: `Action bars ${dim(`${a.g.state.actionBars?.length ?? 0} bars   b`)}`, detail: () => [bold('Action bars'), '', 'Bar 1 is the number row in a fight: put spells and bag items on it and bind keys.'], act: () => a.push(barsDialog(a, playerBarsOwner)) }, { text: '', header: true }];
+      const head = [{ text: `Action bars ${dim(`${a.g.state.actionBars?.length ?? 0} bars   b`)}`, detail: () => [bold('Action bars'), '', 'Bar 1 is the number row in a fight: put spells and bag items on it and bind keys.'], act: () => a.push(barsDialog(a, playerBarsOwner)) },
+        { text: `Macros ${dim(`${a.g.macros().length}   m`)}`, detail: () => [bold('Macros'), '', 'Several casts, uses or gear swaps on one key, with conditions. Out of a fight r runs one; in a fight its key on bar 1 fires it.'], act: () => a.push(macrosDialog(a)) },
+        { text: '', header: true }];
       return [...head, ...known.map((sp) => {
         const cd = a.g.spellCooldownRemaining(sp.id);
         return {

@@ -986,6 +986,43 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   home();
 }
 
+// Macros: write one line by line, see what it would do, account macros in the prefs file, a template, fire it in a fight.
+{
+  const g = app.g;
+  const typeLine = (text) => { for (const ch of text) term.press(ch === ' ' ? 'space' : ch); term.press('return'); };
+  home(); term.press('5'); term.press('m'); show('macros');
+  check('m on Spells opens the macros', app.top().id === 'macros');
+  app.top().cursor = rowIndex((r, t) => t === '+ New macro'); term.press('return'); typeLine('Strike');
+  check('a new macro opens in the editor', app.top().id === 'macro-edit' && g.macroByName('Strike') != null);
+  app.top().cursor = rowIndex((r, t) => t === '+ Add a line'); term.press('return'); typeLine('/cast Heroic Strike');
+  show('macro editor');
+  check('a line goes into the body', g.macroByName('Strike').body.trim() === '/cast Heroic Strike');
+  check('the editor says what a press would do', /casts Heroic Strike/.test(strip(frame())));
+  app.top().cursor = rowIndex((r) => r.data?.line === 0); term.press('o'); typeLine('/cast Battle Shout');
+  check('o adds a line under it', g.macroByName('Strike').body.split('\n').length === 2);
+  app.top().cursor = rowIndex((r) => r.data?.line === 1); term.press('x');
+  check('x deletes a line', g.macroByName('Strike').body.split('\n').length === 1);
+  term.press('escape');
+  const acc = g.saveMacro('account', { name: 'Shared', body: '/cast Battle Shout' });
+  check('an account macro is kept in the prefs file', acc.ok && (app.prefs.get('accountMacros') ?? []).some((m) => m.name === 'Shared'));
+  const before = g.macros().length;
+  term.press('T'); term.press('return');
+  check('T adds a template macro', g.macros().length > before);
+  home();
+  const strike = g.macroByName('Strike');
+  g.setMacroActionSlot(0, 7, strike.id); g.setActionKey(0, 7, '8');
+  term.press('1');
+  const mob = app.rowsOf(app.top()).findIndex((r) => r.data?.creature);
+  if (mob >= 0) {
+    app.top().cursor = mob; term.press('return');
+    check('a macro on bar 1 shows on the fight number row', (app.fight?.abilityBar() ?? []).some((x) => x.key === '8' && x.macro === strike.id));
+    term.press('8');
+    check('its key queues the macro cast', app.fight?.pressed === 78);
+    finishFight();
+  } else check('a creature for the macro fight', false);
+  home();
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);
