@@ -72,7 +72,10 @@ to the companions whose recipes use them and upgrades go on whoever gains, after
 adventurers for hire with their gear and price. Each companion's page sets their role, seats or
 benches them, gears them (`Enter` on a slot picks from their bags and yours), gives and takes
 items, teaches them a profession and opens their recipe book or sends them on a gathering trip
-that pays out while you play. Fights are still solo in the terminal.
+that pays out while you play. The *Fights* row (`m`, or `:squad solo|elites|party`) says who comes along:
+Solo, companions only against elites, or the whole party on every pull. That rule covers live fights, `f`,
+`:fight` and the autopilot; party frames show each companion's role, target and cast, and `t` in a fight
+pauses it to give one of them an order (attack a target, cast an ability, hold ground).
 
 **Gear** shows every slot with what you wear. `Enter` on a slot lists everything in your bags
 (and in the bank, in a bank town) that fits it, with the stat, armor and damage difference in

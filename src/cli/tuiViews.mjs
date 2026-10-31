@@ -17,6 +17,7 @@ import { offeredQuests } from '../quests/quests.ts';
 import { cityAccess, bankDialog, auctionDialog, mailDialog } from './tuiCity.mjs';
 import { professionsView, profTrainerDialog, worldGatherRows, openSendGoods, reagentUses } from './tuiProfessions.mjs';
 import { companionsView } from './tuiCompanions.mjs';
+import { squadJoinsPull } from './squad.mjs';
 
 const STAT_LABEL = { str: 'Strength', agi: 'Agility', sta: 'Stamina', int: 'Intellect', spi: 'Spirit' };
 
@@ -87,6 +88,7 @@ export function creatureLines(app, c) {
     return k && qs.status === 'active' ? [`${yellow('Quest')} ${q.title}: ${qs.kills?.[String(c.entry)] ?? 0}/${k.count}`] : [];
   });
   out.push(...wanted);
+  if ((app.g.state.squad ?? []).length) out.push(squadJoinsPull(app.g, app.ds, c.entry) ? cyan('Your companions join this fight.') : dim('You take this one alone (squad mode, m on Companions).'));
   out.push('', dim('Enter: fight live   f: auto-resolve'));
   return out;
 }

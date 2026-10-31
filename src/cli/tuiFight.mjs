@@ -7,6 +7,7 @@ import { formatCombatLog, combatLogPlainText, POWER_MERGE_MS } from './combatLog
 import { moneyText } from '../domain/economy/money.ts';
 import { maxHealth, maxPower } from '../domain/character/character.ts';
 import { powerType } from '../domain/character/characterStats.ts';
+import { pullOpts, sessionLogNames } from './squad.mjs';
 
 export const TICK_MS = 100; // one engine tick per 100 ms of real time, like the web client
 const POWER_PAINT = { mana: brightBlue, rage: red, energy: yellow, focus: yellow };
@@ -16,15 +17,17 @@ const POWER_PAINT = { mana: brightBlue, rage: red, energy: yellow, focus: yellow
 export function startFight(app, creatureEntry, { onEnd, label } = {}) {
   if (app.fight) return { ok: false, reason: 'Already in a fight.' };
   if (app.isDead()) { app.flashMsg('You are dead.'); return { ok: false, reason: 'You are dead.' }; }
-  const b = app.g.beginFight(creatureEntry);
+  const opts = pullOpts(app.g, app.ds, app.cmds.buffPace, creatureEntry, (l) => app.say(cyan(l)));
+  const b = app.g.beginFight(creatureEntry, opts);
   if (!app.result(b)) { app.render(); return { ok: false, reason: b.reason || 'Cannot fight that.' }; }
   const session = b.session;
+  const squadXp = new Map((app.g.state.squad ?? []).map((c) => [c.id, c.xp ?? 0]));
   const ctl = {
-    session, enemyName: b.enemyName, enemyEntry: b.enemyEntry, onEnd, label,
+    session, enemyName: b.enemyName, enemyEntry: b.enemyEntry, onEnd, label, withSquad: !!opts,
     auto: true, paused: false, speed: app.fightSpeed ?? 1, pressed: null, pressedTicks: 0, timer: null, pend: null, ended: false,
-    frames: newFrameMemory(app),
-    names: { playerName: app.ch.name, enemyName: b.enemyName, spellName: (id) => app.ds.spell(id)?.name },
-    hint() { return `${this.auto ? 'a: manual play' : '1-9: press an ability   a: auto-play'}   space: ${this.paused ? 'resume' : 'pause'}   + -: speed ${this.speed}x   l: log   Esc: ${this.label ? 'run away, stop autopilot' : 'run away'}`; },
+    frames: newFrameMemory(app), compact: false,
+    names: sessionLogNames(session, { playerName: app.ch.name, enemyName: b.enemyName, spellName: (id) => app.ds.spell(id)?.name }),
+    hint() { return `${this.auto ? 'a: manual play' : '1-9: press an ability   a: auto-play'}${session.alliesView().length ? '   t: orders' : ''}   space: ${this.paused ? 'resume' : 'pause'}   + -: speed ${this.speed}x   l: log   Esc: ${this.label ? 'run away, stop autopilot' : 'run away'}`; },
     schedule() {
       if (this.timer) app.term.clearInterval(this.timer);
       this.timer = app.term.setInterval(() => this.tick(), Math.max(10, TICK_MS / this.speed));
@@ -75,6 +78,8 @@ export function startFight(app, creatureEntry, { onEnd, label } = {}) {
       if (r.goldGained) bits.push(`+${moneyText(r.goldGained)}`);
       app.say(`${tag} against ${this.enemyName}  ${dim(bits.join('  '))}`);
       for (const d of r.loot) app.say(`  ${yellow('You receive')} ${app.itemName(d.item)}${d.count > 1 ? ` x${d.count}` : ''}`);
+      const gained = (app.g.state.squad ?? []).filter((c) => (c.xp ?? 0) !== squadXp.get(c.id)).map((c) => `${c.name} ${(c.xp ?? 0) > (squadXp.get(c.id) ?? 0) ? `+${(c.xp ?? 0) - (squadXp.get(c.id) ?? 0)} xp` : 'levels up'}`);
+      if (gained.length) app.say(dim(`  Companions: ${gained.join(', ')}`));
       for (const lv of r.leveledTo) { app.say(bold(green(`  You have reached level ${lv}!`))); app.flashMsg(`Level ${lv}!`); }
       if (r.outcome === 'win') app.flashMsg(`${this.enemyName} dies.${r.xpGained ? `  +${r.xpGained} xp` : ''}`);
       // The lines above already tell the story; the engine's activity rows for this fight would repeat it.
@@ -101,6 +106,7 @@ export function startFight(app, creatureEntry, { onEnd, label } = {}) {
       if (k === 'pageup') { app.logScroll = Math.min(app.log.length, app.logScroll + 5); app.render(); return; }
       if (k === 'pagedown') { app.logScroll = Math.max(0, app.logScroll - 5); app.render(); return; }
       if (k === 'l') { app.openLog(); return; }
+      if (k === 't') { partyOrders(app, this); return; }
       if (/^[1-9]$/.test(k)) {
         const ab = this.abilityBar()[Number(k) - 1];
         if (!ab) return;
@@ -125,10 +131,19 @@ export function startFight(app, creatureEntry, { onEnd, label } = {}) {
       const pv = session.playerView(), now = session.t;
       lines.push(...unitFrame(app, this.frames, pv, W, now, true));
       const pet = session.petView();
-      if (pet) lines.push(...unitFrame(app, this.frames, pet, W, now, false));
-      for (const ally of session.alliesView()) lines.push(...unitFrame(app, this.frames, ally, W, now, false));
-      lines.push('');
+      const allies = session.alliesView();
       const enemies = session.enemiesView();
+      // Four companions and their pets do not fit two lines each: once the party outgrows the pane every
+      // ally drops to one line for the rest of the fight, so frames never jump between the two shapes.
+      const need = 3 + 2 * (1 + (pet ? 1 : 0) + allies.length + enemies.length) + (this.auto ? 0 : 3);
+      if (need > H) this.compact = true;
+      const nameOfSide = (side) => (side === 'player' ? app.ch.name : [...allies, ...enemies].find((v) => v.side === side)?.name ?? (pet?.side === side ? pet.name : null));
+      if (pet) lines.push(...unitFrame(app, this.frames, pet, W, now, false, false, { compact: this.compact }));
+      for (const ally of allies) {
+        const t = ally.hp > 0 ? session.targetOf?.(ally.side) : null;
+        lines.push(...unitFrame(app, this.frames, ally, W, now, false, false, { compact: this.compact, party: true, role: ally.groupRole, target: t ? nameOfSide(t) : null }));
+      }
+      lines.push('');
       for (const e of enemies) lines.push(...unitFrame(app, this.frames, e, W, now, false, e === session.enemyView()));
       if (this.auto) return lines.slice(0, H);
       lines.push('');
@@ -160,6 +175,38 @@ export function startFight(app, creatureEntry, { onEnd, label } = {}) {
   return { ok: true, ctl };
 }
 
+const STANCES = [['retaliate', 'Fight back (default)'], ['passive', 'Passive: walk, then stand'], ['hold', 'Hold ground: no moving, rotation keeps going']];
+
+/** t in a party fight: pick a companion, then an order (attack a target, cast one ability, change stance).
+ *  The fight pauses while the pickers are open and picks up where it was when the last one closes. */
+function partyOrders(app, ctl) {
+  const s = ctl.session;
+  const allies = s.alliesView().filter((v) => v.hp > 0);
+  if (!allies.length) { app.flashMsg('Nobody is fighting beside you.'); return; }
+  const wasPaused = ctl.paused;
+  ctl.paused = true;
+  ctl.onOrdersClosed = () => { ctl.paused = wasPaused; ctl.onOrdersClosed = null; };
+  const enemyName = (side) => s.enemiesView().find((e) => e.side === side)?.name ?? side;
+  app.pick('Orders: who?', allies.map((v) => {
+    const held = s.allyTargetOf(v.side);
+    return { label: `${ROLE_GLYPH[v.groupRole] ?? dim('·')} ${v.name}${held ? dim(`  holding ${enemyName(held)}`) : ''}`, value: v };
+  }), (v) => {
+    const opts = [];
+    for (const e of s.enemiesView().filter((x) => x.hp > 0)) opts.push({ label: `Attack ${e.name} ${dim(`${e.hp}/${e.maxHp}`)}`, value: { kind: 'target', side: e.side } });
+    if (s.allyTargetOf(v.side)) opts.push({ label: dim('Back to their own choice of target'), value: { kind: 'target', side: null } });
+    for (const ab of s.allyAbilities(v.side).filter((a) => !a.spell.passive && a.usable)) opts.push({ label: `Cast ${ab.spell.name}`, value: { kind: 'cast', id: ab.spell.id } });
+    if (s.setUnitStance) {
+      const cur = s.unitStanceOf?.(v.side) ?? 'retaliate';
+      for (const [st, label] of STANCES) opts.push({ label: `${st === cur ? green('● ') : '  '}${label}`, value: { kind: 'stance', stance: st } });
+    }
+    app.pick(`Orders: ${v.name}`, opts, (o) => {
+      if (o.kind === 'target') { if (s.setAllyTarget(v.side, o.side)) app.say(cyan(o.side ? `${v.name} attacks ${enemyName(o.side)}.` : `${v.name} picks their own targets again.`)); }
+      else if (o.kind === 'cast') app.say(s.queueAllyAction(v.side, o.id, s.allyTargetOf(v.side)) ? cyan(`${v.name} will cast ${app.ds.spell(o.id)?.name}.`) : red(`${v.name} cannot cast that now.`));
+      else if (s.setUnitStance(v.side, o.stance)) app.say(cyan(`${v.name}: ${STANCES.find(([x]) => x === o.stance)[1].toLowerCase()}.`));
+    });
+  });
+}
+
 const CAST_W = 30; // the cast/control slot on a frame's second line, so auras never move when a cast starts
 
 /** Per-fight memory that keeps frames steady: which units have used the cast slot, and the order auras
@@ -170,15 +217,21 @@ function newFrameMemory(app) {
   return { castSlot: new Set(app.playerCastSlot ? ['player'] : []), auraOrder: new Map([['player', app.playerAuraOrder]]) };
 }
 
-/** Two lines: name/level/HP/power, then a fixed cast slot + auras. `now` is the clock `casting` runs on. */
-function unitFrame(app, mem, v, W, now, isPlayer, focused = false) {
+const ROLE_GLYPH = { tank: cyan('T'), healer: green('H'), damage: red('D') };
+
+/** Two lines: name/level/HP/power, then a fixed cast slot + auras. `now` is the clock `casting` runs on. A party
+ *  frame carries its role letter and target; `compact` keeps it to the first line with the cast in it. */
+function unitFrame(app, mem, v, W, now, isPlayer, focused = false, { compact = false, party = false, role, target } = {}) {
   const dead = v.hp <= 0;
-  const namePaint = dead ? gray : isPlayer ? green : focused ? red : yellow;
+  const namePaint = dead ? gray : isPlayer ? green : focused ? red : party ? cyan : yellow;
   const barW = Math.max(10, Math.min(30, Math.floor((W - 48) / 2)));
   const hpBar = bar(v.hp, v.maxHp, barW, dead ? gray : v.hp / v.maxHp < 0.25 ? red : green);
   const pp = POWER_PAINT[v.powerType] ?? cyan;
   const pwBar = v.maxPower > 0 ? ` ${bar(v.power, v.maxPower, Math.floor(barW / 2), pp)} ${fit(`${v.power}`, 4)}` : '';
-  const head = ` ${fit(`${namePaint(bold(v.name))} ${dim(`L${v.level}`)}${focused ? red(' ◀') : ''}`, 26)} ${hpBar} ${fit(`${v.hp}/${v.maxHp}`, 11)}${pwBar}`;
+  const tag = party ? `${ROLE_GLYPH[role] ?? dim('·')} ` : '';
+  const after = dead ? gray('  dead') : target ? dim(`  → ${target}`) : '';
+  const head = ` ${fit(`${tag}${namePaint(bold(v.name))} ${dim(`L${v.level}`)}${focused ? red(' ◀') : ''}`, 26)} ${hpBar} ${fit(`${v.hp}/${v.maxHp}`, 11)}${pwBar}`;
+  if (compact) return [cut(`${head}${v.casting && !dead ? `  ${yellow(v.casting.name)}` : after}`, W)];
   // Cast slot: a cast bar, else crowd control, else stealth. Once a unit has used it the slot stays
   // reserved (blank when idle), so the auras after it hold still.
   let slot = '';
@@ -203,8 +256,8 @@ function unitFrame(app, mem, v, W, now, isPlayer, focused = false) {
   const aura = (a, paint) => paint(`${app.ds.spell(a.spellId)?.name ?? a.spellId}${a.stacks > 1 ? ` x${a.stacks}` : ''}${a.remainingMs != null ? dim(` ${auraTime(a.remainingMs)}`) : ''}`);
   const auras = [...placed(v.buffs).slice(0, 6).map((a) => aura(a, green)), ...placed(v.debuffs).slice(0, 6).map((a) => aura(a, red))].join('  ');
   const reserve = mem.castSlot.has(key);
-  if (!reserve && !auras) return [head];
-  return [head, cut(`   ${reserve ? `${fit(slot, CAST_W)}  ` : ''}${auras}`, W)];
+  if (!reserve && !auras) return [cut(`${head}${after}`, W)];
+  return [cut(`${head}${after}`, W), cut(`   ${reserve ? `${fit(slot, CAST_W)}  ` : ''}${auras}`, W)];
 }
 
 /** Aura time left at a fixed width: "  9s", " 12s", " 30m". */

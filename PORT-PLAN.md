@@ -46,27 +46,27 @@ the same path dungeon pulls use (`combatSession.ts:1417`). Party auras, threat, 
 companion XP and reputation on the kill, and per-ally durability all already work. Outdoor fights are solo
 only because no caller asks.
 
-- [ ] **Squad mode setting.** Three modes, stored in the autopilot config the engine already has:
+- [x] **Squad mode setting.** Three modes, stored in the autopilot config the engine already has:
       Solo (`questSquadAlways=false, questEliteMode!='squad'`), Elites (`questEliteMode='squad'`),
       Party (`questSquadAlways=true`). Mirror `src/ui/panels/squadModePicker.ts`. Put it on the
       Companions tab header and as `:squad solo|elites|party`.
-- [ ] **Manual fights.** `tuiFight.mjs:19` passes `{ withSquad }` from the rule
+- [x] **Manual fights.** `tuiFight.mjs:19` passes `{ withSquad }` from the rule
       `squad.length > 0 && (always || (mode==='squad' && creatureRank(ds, entry) > 0))`
       (phonecraft `src/ui/autopilot/autopilotController.ts:1039`).
-- [ ] **Autopilot fights.** Same rule in the driver (`repl.mjs:547` `createAutopilot`), both the live
+- [x] **Autopilot fights.** Same rule in the driver (`repl.mjs:547` `createAutopilot`), both the live
       path and the `g.fight` path. Also honour `prog.eliteNeedsSquad` from `plan.ts:175`.
-- [ ] **Quick fight and REPL verb.** `f` on World and `:fight` use `fight()`; after Phase 0 pass opts,
+- [x] **Quick fight and REPL verb.** `f` on World and `:fight` use `fight()`; after Phase 0 pass opts,
       or until then call `beginFight` + `session.runToEnd()` + `resolveFight`.
-- [ ] **Combat log names.** `tuiFight.mjs:24` only names player and enemy. Map `ally_N` sides through
+- [x] **Combat log names.** `tuiFight.mjs:24` only names player and enemy. Map `ally_N` sides through
       `allyIndexOfSide` (`src/engine/core/events.ts:50`) to `state.squad[i].name`; pets after the humans
       (`squadBattleParty().allyPetIndex`). Pattern: `runFullDungeon.ts:340`.
-- [ ] **Ally frames.** `alliesView()` is already drawn at `tuiFight.mjs:129`. Add role glyph, target
+- [x] **Ally frames.** `alliesView()` is already drawn at `tuiFight.mjs:129`. Add role glyph, target
       and a dead marker; keep frames stable when four allies plus pets are present (height budget).
-- [ ] **Pre-pull.** Call `applyPrePullBuffs()` and `refreshPartyWeaponCoats()` before a squad fight
+- [x] **Pre-pull.** Call `applyPrePullBuffs()` and `refreshPartyWeaponCoats()` before a squad fight
       when buffs are missing (the autopilot in phonecraft does this in `prepOoc`).
-- [ ] **In-fight orders (second pass).** `session.setAllyTarget`, `queueAllyAction`, `setUnitStance`
+- [x] **In-fight orders (second pass).** `session.setAllyTarget`, `queueAllyAction`, `setUnitStance`
       behind a `t` targeting dialog; not needed for v1.
-- [ ] **Check.** tuiCheck scenario: hire two companions, set Party, Enter on a creature, assert ally
+- [x] **Check.** tuiCheck scenario: hire two companions, set Party, Enter on a creature, assert ally
       frames and `ally_0` lines in the log, companion XP rises.
 
 ## Phase 2: dungeons as a text run

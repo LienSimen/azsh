@@ -1,9 +1,10 @@
 // The Companions tab: your party and bench, hiring at an inn, one page per companion (role, gear, bags,
-// professions) and their gathering trips. A trimmed port of phonecraft's companionsPanel.ts and
-// companionMissionsDesk.ts: raid lineups, action bars, talents and pets stay in the web client for now.
+// professions) and their gathering trips, and the squad mode that decides who fights beside you. A trimmed
+// port of phonecraft's companionsPanel.ts, companionMissionsDesk.ts and squadModePicker.ts.
 import { bold, dim, cyan, yellow, green, red, qualityPaint, fit, plural } from './text.mjs';
 import { itemLines } from './tuiViews.mjs';
 import { recipeBook, openSendGoods, companionsOf } from './tuiProfessions.mjs';
+import { SQUAD_MODES, SQUAD_MODE_LABEL, squadModeOf, setSquadMode } from './squad.mjs';
 import { moneyText } from '../domain/economy/money.ts';
 import { className, raceName } from '../domain/core/ids.ts';
 import { bagCapacity, EQUIP_SLOTS, SLOT_LABEL, itemSlotTargets } from '../domain/items/equipment.ts';
@@ -119,11 +120,12 @@ export function companionsView(app) {
       g: { hint: 'send goods', fn: (a) => openSendGoods(a) },
       u: { hint: 'gear everyone', fn: gearAll },
       c: { hint: 'collect trips', fn: collectAll },
+      m: { hint: 'squad mode', fn: (a) => pickSquadMode(a) },
     },
     rows(a) {
       const g = a.g, squad = g.state.squad ?? [], bench = Object.values(g.state.botRoster ?? {});
       const energy = g.companionPartyEnergy(Date.now());
-      const rows = [H(`Party ${squad.length}/${MAX_COMPANIONS}   ${dim(`trip energy ${energy}/${MAX_COMPANION_ENERGY}`)}   ${yellow(moneyText(a.ch.gold) || '0c')}`)];
+      const rows = [H(`Party ${squad.length}/${MAX_COMPANIONS}   ${dim(`trip energy ${energy}/${MAX_COMPANION_ENERGY}`)}   ${yellow(moneyText(a.ch.gold) || '0c')}`), squadModeRow(a)];
       const row = (c) => ({
         text: `${fit(c.name, 12)} ${fit(dim(`L${companionLevel(c, a.ch.level)} ${className(c.cls)}`), 12)} ${fit(roleText(c.role), 6)} ${c.mission ? yellow('away ') : ''}${profTags(compProfLines(a, c))}`,
         detail: () => [...compLines(a, c), '', dim('Enter: open their page')],
@@ -148,6 +150,26 @@ export function companionsView(app) {
       }
       return rows;
     },
+  };
+}
+
+/** Solo, elite support or party: the three autopilot knobs every world fight reads. */
+export function pickSquadMode(app) {
+  const cur = squadModeOf(app.g.autopilotConfig());
+  app.pick('How do your companions fight?', SQUAD_MODES.map((m) => ({
+    label: `${m === cur ? green('● ') : '  '}${SQUAD_MODE_LABEL[m].title}`,
+    detail: [bold(SQUAD_MODE_LABEL[m].title), '', SQUAD_MODE_LABEL[m].detail, '', dim('Live fights, f, the autopilot and :fight all follow it.')],
+    value: m,
+  })), (m) => { setSquadMode(app.g, m); app.say(green(`Squad mode: ${SQUAD_MODE_LABEL[m].title}.`)); });
+}
+
+function squadModeRow(app) {
+  const mode = squadModeOf(app.g.autopilotConfig());
+  const label = mode ? SQUAD_MODE_LABEL[mode] : { title: 'custom', detail: 'The autopilot knobs match none of the three modes.' };
+  return {
+    text: `Fights: ${cyan(label.title)} ${dim('m')}`,
+    detail: () => [bold('Squad mode'), '', label.detail, '', ...SQUAD_MODES.map((m) => `${m === mode ? green('●') : dim('·')} ${SQUAD_MODE_LABEL[m].title}`), '', dim('Enter or m: change   :squad solo|elites|party')],
+    act: () => pickSquadMode(app),
   };
 }
 

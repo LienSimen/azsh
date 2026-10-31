@@ -14,6 +14,7 @@ import { knownUsableSpells } from '../domain/character/characterSpells.ts';
 import { bagCapacity } from '../domain/items/equipment.ts';
 import { addItem } from '../domain/items/inventory.ts';
 import { planStep, noteQuestDefeat } from '../autopilot/plan.ts';
+import { pullOpts, squadLogNames, squadModeOf, setSquadMode, SQUAD_MODE_LABEL, SQUAD_MODE_WORDS, COMPANION_HINT_LINES } from './squad.mjs';
 
 const useColor = stdout.isTTY && !process.env.NO_COLOR;
 const paint = (code) => (s) => (useColor ? `\x1b[${code}m${s}\x1b[0m` : String(s));
@@ -81,6 +82,7 @@ const HELP = `
   char (c)              character sheet                        hearth / bind        hearthstone / set home at an inn
   release / reclaim     death: run to corpse, reclaim it       spirit               resurrect at the spirit healer
   auto [N] [farm <mob>] autopilot N steps (default 20)         log on|off           show or hide the combat log
+  squad [solo|elites|party]  who fights beside you: alone, companions on elites, or the whole party
   save                  write the save file                    quit                 save and leave
 `;
 
@@ -194,6 +196,9 @@ export function createCommands({ g, ds, out, persist, slot }) {
   // Quests the world autopilot gave up on this session; later runs skip them too.
   const questBlacklist = new Set();
   let lastActivity = g.state.activity[0];
+  // Party-buff pacing for squad pulls, and the one-shot "hire companions" hint.
+  const buffPace = {};
+  let companionHintShown = false;
 
   const flushActivity = () => {
     const act = g.state.activity;
@@ -209,9 +214,9 @@ export function createCommands({ g, ds, out, persist, slot }) {
     spellName: (id) => ds.spell(id)?.name,
   });
 
-  const printLog = (events, enemyName) => {
+  const printLog = (events, enemyName, logNames) => {
     if (!logOn) return;
-    const n = { ...names(), enemyName };
+    const n = { ...(logNames ?? names()), enemyName };
     const rows = [];
     const line = (t, row) => `${dim((t / 1000).toFixed(1).padStart(6) + 's')}  ${combatLogPlainText(row)}`;
     // Passive regen ticks arrive as merge rows; add them up per unit and power within one quantum, like
@@ -243,9 +248,16 @@ export function createCommands({ g, ds, out, persist, slot }) {
   const hp = () => `${g.state.char.health}/${maxHealth(g.state.char, ds)}`;
   const pw = () => `${g.state.char.power}/${maxPower(g.state.char, ds)}`;
 
-  const reportFight = (r, enemyName) => {
+  /** g.fight with the squad when the squad mode says so; the log names the companions. */
+  const quickFight = (entry) => {
+    const opts = pullOpts(g, ds, buffPace, entry, (l) => out(dim(`  ${l}`)));
+    const r = g.fight(entry, opts);
+    return { r, logNames: opts ? squadLogNames(g, entry, names()) : names() };
+  };
+
+  const reportFight = (r, enemyName, logNames) => {
     if (!r.ok) { out(red(`Cannot fight: ${r.reason}`)); return; }
-    printLog(r.result.events, enemyName);
+    printLog(r.result.events, enemyName, logNames);
     const tag = r.outcome === 'win' ? green('Victory') : r.outcome === 'defeat' ? red('Defeat') : yellow('Stalemate');
     const bits = [`${(r.result.durationMs / 1000).toFixed(1)} s`, `HP ${hp()}`];
     if (r.xpGained) bits.push(`+${r.xpGained} xp`);
@@ -320,8 +332,8 @@ export function createCommands({ g, ds, out, persist, slot }) {
       if (r.none) { out(red('No such creature here. Try look.')); return; }
       if (r.many) { out('Which one? ' + r.many.slice(0, 12).map((c) => c.name).join(', ')); return; }
       for (let i = 0; i < times; i++) {
-        const res = g.fight(r.one.entry);
-        reportFight(res, r.one.name);
+        const { r: res, logNames } = quickFight(r.one.entry);
+        reportFight(res, r.one.name, logNames);
         if (!res.ok || res.outcome !== 'win') break;
       }
     },
@@ -523,6 +535,14 @@ export function createCommands({ g, ds, out, persist, slot }) {
     spirit() { show(g.spiritHealerResurrect(), `The spirit healer returns you to life.  HP ${hp()}`); },
     log(args) { logOn = args.trim() !== 'off'; out(`Combat log ${logOn ? 'on' : 'off'}.`); },
     auto(args) { runAutopilot(args); },
+    squad(args) {
+      const want = SQUAD_MODE_WORDS[args.trim().toLowerCase()];
+      if (args.trim() && !want) { out(red('squad solo, squad elites or squad party')); return; }
+      if (want) setSquadMode(g, want);
+      const mode = squadModeOf(g.autopilotConfig());
+      out(`${want ? 'Squad mode is now' : 'Squad mode:'} ${bold(mode ? SQUAD_MODE_LABEL[mode].title : 'custom')}. ${dim(mode ? SQUAD_MODE_LABEL[mode].detail : 'Set in the autopilot settings.')}`);
+      if (!(g.state.squad ?? []).length) out(dim('  You have no companions seated. Innkeepers hire them out.'));
+    },
     async save() { await persist(); out(dim(`saved ${slot}`)); },
   };
 
@@ -596,6 +616,10 @@ export function createCommands({ g, ds, out, persist, slot }) {
       try {
         step = planStep(g.state, ds, mode, cfg, prog);
         lastKind = step.kind;
+        if (prog.eliteNeedsSquad && !companionHintShown && !(g.state.squad ?? []).length) {
+          companionHintShown = true;
+          for (const l of COMPANION_HINT_LINES) out(yellow(`  ${l}`));
+        }
         if (step.questEntry != null) lastQuest = step.questEntry;
         switch (step.kind) {
           case 'fight': {
@@ -605,7 +629,7 @@ export function createCommands({ g, ds, out, persist, slot }) {
               if (!started.ok) { sets.blockedFights.add(step.creatureEntry); line = red(`fight ${c?.name}: ${started.reason}`); }
               break;
             }
-            const r = g.fight(step.creatureEntry);
+            const { r } = quickFight(step.creatureEntry);
             if (!r.ok) { sets.blockedFights.add(step.creatureEntry); line = red(`fight ${c?.name}: ${r.reason}`); break; }
             settle(r, step);
             const loot = r.loot.map((d) => ds.item(d.item)?.name ?? d.item).join(', ');
@@ -655,5 +679,5 @@ export function createCommands({ g, ds, out, persist, slot }) {
     logOn = wasLog;
     out(ap.summary());
   }
-  return { commands, HELP, runAutopilot, createAutopilot, questBlacklist, flushActivity, printLog, isDead, hp, pw, zoneHere, getVendor: () => curVendor, setVendor: (v) => { curVendor = v; } };
+  return { commands, HELP, runAutopilot, createAutopilot, questBlacklist, buffPace, flushActivity, printLog, isDead, hp, pw, zoneHere, getVendor: () => curVendor, setVendor: (v) => { curVendor = v; } };
 }

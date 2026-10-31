@@ -46,6 +46,7 @@ const HELP_LINES = [
   '',
   'In a fight',
   '  1-9 press an ability    a toggle auto-play    space pause    + - speed    l log    Esc run away',
+  '  t gives a companion an order: attack a target, cast one ability, or hold ground (the fight waits).',
   '  The numbered ability bar shows in manual play (a); auto-play keeps the screen to the unit frames.',
   '',
   'Professions and Companions',
@@ -193,6 +194,12 @@ export class App {
     if (this.top()?.id === 'log' && (this.fight || this.auto)) {
       if (k === 'escape' || k === 'l') this.pop();
       else if (MOVE_KEYS.has(k)) this.viewKey(k);
+      return;
+    }
+    if (this.fight && this.stack.length) {
+      // Party orders sit over a paused fight: the pickers take the keys until the last one closes.
+      if (k === 'escape') this.pop(); else this.viewKey(k);
+      if (!this.stack.length) { this.fight?.onOrdersClosed?.(); this.render(); }
       return;
     }
     if (this.fight) { this.fight.key(k); return; }

@@ -390,8 +390,7 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
       const row = rowIndex((r, t) => t.startsWith(comp.name));
       app.top().cursor = row; term.press('return'); show('companion page');
       check('Enter opens their page', app.top().id === `comp-${comp.id}`);
-      // Make room for Tailoring: drop one primary when they hold two (never the last line: an empty set
-      // reads as "unassigned" and the hire's own professions come back).
+      // Make room for Tailoring: drop one primary when they hold two.
       const lines = g.companionProfessionsOf(comp.id)?.lines ?? [];
       const primaries = lines.filter((l) => l.kind !== 'secondary');
       if (!lines.some((l) => l.line === 'tailoring')) {
@@ -451,6 +450,62 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
     app.top().cursor = vein; term.press('return');
     check('Enter mines it', countItem(inv(), 2770) > 0);
   }
+}
+
+// ---- companions fight beside you (squad mode) -------------------------------------------------------------
+{
+  const g = app.g;
+  const tabOf = (id) => app.tabs.findIndex((t) => t.view.id === id);
+  if ((g.state.squad ?? []).length < 2) {
+    const cand = g.innCandidates()[0];
+    if (cand) g.hireCandidate(cand.bot.id, 'healer');
+  }
+  const squad = g.state.squad ?? [];
+  check(`two companions are seated (${squad.length})`, squad.length >= 2);
+  home(); app.switchTab(tabOf('companions'));
+  term.press('m'); show('squad mode picker');
+  check('m on Companions opens the squad mode picker', app.top().id === 'pick' && /How do your companions fight/.test(app.top().title));
+  app.top().cursor = rowIndex((r, t) => /^\S*\s*Party/.test(t)); term.press('return');
+  check('Party mode is set', g.autopilotConfig().questSquadAlways === true && /Fights: Party/.test(strip(frame())));
+  // A creature near your level so the companions earn xp from it.
+  home(); term.press('1');
+  const mobs = app.rowsOf(app.top()).map((r, i) => [r, i]).filter(([r]) => r.data?.creature && r.data.creature.level <= app.ch.level);
+  const [, mobAt] = mobs.sort(([a], [b]) => b.data.creature.level - a.data.creature.level)[0] ?? [null, -1];
+  app.g.regenTick(600, true);
+  const xpBefore = squad.map((c) => c.xp ?? 0);
+  const logFrom = app.log.length;
+  app.top().cursor = mobAt; term.press('return');
+  check('a party fight started', !!app.fight?.withSquad);
+  for (let n = 0; n < 8 && app.fight; n++) app.fight.tick();
+  show('party fight');
+  const f = strip(frame());
+  check('ally frames name both companions with a role letter', squad.every((c) => new RegExp(`[TDH·] ${c.name}`).test(f)));
+  // t: an order to the first companion. The fight waits while the pickers are open.
+  term.press('t');
+  check('t opens party orders and pauses the fight', app.top()?.title === 'Orders: who?' && app.fight.paused);
+  term.press('return'); show('orders for one companion');
+  const side = app.fight.session.alliesView()[0].side;
+  app.top().cursor = rowIndex((r, t) => /Hold ground/.test(t)); term.press('return');
+  check('a hold order lands and the fight resumes', app.fight.session.unitStanceOf?.(side) === 'hold' && !app.fight.paused && app.stack.length === 0);
+  term.press('t'); term.press('return');
+  const atk = rowIndex((r, t) => /^Attack /.test(t));
+  app.top().cursor = atk; term.press('return');
+  check('an attack order holds the companion on that target', !!app.fight.session.allyTargetOf(side));
+  finishFight();
+  const fightLog = app.log.slice(logFrom).map(strip);
+  check('the combat log names the companions, not ally_N', squad.some((c) => fightLog.some((l) => l.includes(c.name))) && !fightLog.some((l) => /ally_\d/.test(l)));
+  const xpNow = (c) => (g.state.squad ?? []).find((x) => x.id === c.id) ?? c;
+  check(`companion xp rose (${xpBefore.join(',')} -> ${squad.map((c) => xpNow(c).xp ?? 0).join(',')})`, squad.some((c, i) => (xpNow(c).xp ?? 0) > xpBefore[i] || xpNow(c).level > c.level));
+  // Solo mode keeps them home: the next pull has no allies.
+  term.press(':'); term.type('squad solo');
+  check(':squad solo sets Solo', g.autopilotConfig().questSquadAlways === false && g.autopilotConfig().questEliteMode === 'solo');
+  app.top().cursor = mobAt; term.press('return');
+  check('a solo pull brings nobody', !!app.fight && app.fight.session.alliesView().length === 0);
+  finishFight();
+  term.press(':'); term.type('squad party');
+  const quickFrom = app.log.length;
+  term.press(':'); term.type(`fight ${app.rowsOf(app.top())[mobAt].data.creature.entry}`);
+  check(':fight brings the party in Party mode', app.log.slice(quickFrom).some((l) => squad.some((c) => strip(l).includes(c.name))));
 }
 
 // Help overlay and escape.
