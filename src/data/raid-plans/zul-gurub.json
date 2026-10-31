@@ -1,0 +1,307 @@
+{
+ "raid": "zul-gurub",
+ "bosses": [
+  {
+   "entry": 14517,
+   "name": "High Priestess Jeklik",
+   "kinds": [
+    "kill-order",
+    "position",
+    "spread"
+   ],
+   "cite": "boss_jeklik.cpp:70-71,148-156 Frenzied Bat 14965 AttackStart random; :62,70-71 Bat Riders 14750 throw LIQUID_FIRE 23968 -> pools; creature_spell_list 1451701:0 Charge 22911 (spell rangeMin 8 rangeMax 25) and 1451701:2 Sonic Burst 23918 (SpellRadius index 9 = 20 yd pbaoe on the caster), both phase 1 only - list 1451702 has neither",
+   "encounterRows": [
+    {
+     "kind": "kill-order",
+     "label": "Kill Frenzied Bloodseeker Bats",
+     "cite": "boss_jeklik.cpp:70 NPC_FRENZIED_BAT 14965; :148-156 JustSummoned AttackStart random; creature_spell_list 1451701:3 Summon Frenzied Bats 23974 (8 bodies, 60 s)",
+     "rule": {
+      "id": "raid_enc_14517_kill",
+      "action": {
+       "kind": "kill_order",
+       "entries": [
+        14965
+       ]
+      },
+      "conditions": [],
+      "enabled": true
+     }
+    },
+    {
+     "kind": "position",
+     "label": "Hunter baits the Charge 21 yd off the raid",
+     "cite": "creature_spell_list 1451701:0 Charge 22911 on a random player; spell 22911 rangeMin 8 rangeMax 25 and chargeCastOk (pickAction.ts) refuses past rangeMax, so only a raider inside 25 yd can be picked. 23918 Sonic Burst is a 20 yd pbaoe centred on Jeklik, so the clap that follows a Charge clips whoever is within 20 yd of the bait, and 21 is the first clear yard (isWithinRadiusYd hits at <=). flee_raid orbits at the mover own radius to the focus and clamps its radial leg to the kit reach, so the hunter clears the raid without leaving Auto Shot range (35 yd); plain spread had neither and walked off its own band. Trigger ref and yd are ONE number: the condition is the latch, and a row released at 20 can never walk to 21",
+     "rule": {
+      "id": "raid_enc_14517_hunter_bait",
+      "action": {
+       "kind": "move",
+       "move": {
+        "kind": "flee_raid",
+        "yd": 21
+       }
+      },
+      "conditions": [
+       {
+        "subject": "self",
+        "metric": "isHunter",
+        "op": "==",
+        "value": 1
+       },
+       {
+        "subject": "self",
+        "metric": "alliesWithinYd",
+        "op": ">=",
+        "value": 1,
+        "ref": 21
+       }
+      ],
+      "enabled": true
+     }
+    },
+    {
+     "kind": "position",
+     "label": "Casters step out of Sonic Burst",
+     "cite": "spell 23918 Sonic Burst EffectRadiusIndex 9 -> SpellRadius.dbc 20 yd, rawEffects targetA 22 TARGET_CASTER_COORDINATES + targetB 15, so the disc is centred on Jeklik and reaches only who is inside 20 yd of HER: 21 is the first clear yard (isWithinRadiusYd hits at <=). The TRIGGER is deliberately wider than the park. A row released on the same yard it parks on re-arms on the bosss next step and cancels the cast in flight, which is how a caster spent a whole fight walking: 24 in / 21 out leaves 2.5 yd to stand and cast in, and the 25 yd ranged stand (stand.ts RANGED_STAND_DEFAULT_YD) sits outside the trigger so the camp is not armed all fight. Park stays inside that stand band on purpose - a park beyond it fights the motion arm and the caster shuffles for ever. isHunter == 0 leaves the Charge bait to its own row: unitIsCaster is true for a hunter (spec.rangedAuto)",
+     "rule": {
+      "id": "raid_enc_14517_range_23918",
+      "action": {
+       "kind": "move",
+       "move": {
+        "kind": "keep_range",
+        "minYd": 21,
+        "entry": 14517
+       }
+      },
+      "conditions": [
+       {
+        "subject": "self",
+        "metric": "isCaster",
+        "op": "==",
+        "value": 1
+       },
+       {
+        "subject": "self",
+        "metric": "isHunter",
+        "op": "==",
+        "value": 0
+       },
+       {
+        "subject": "self",
+        "metric": "creatureDistanceYd",
+        "op": "<=",
+        "value": 24,
+        "ref": 14517
+       }
+      ],
+      "enabled": true
+     }
+    },
+    {
+     "kind": "spread",
+     "label": "Spread 10 yd after the transform",
+     "cite": "boss_jeklik.cpp:201-213 JEKLIK_PHASE_2 GetHealthPercent() < 50.f strips BAT_FORM 23966 and swaps to list 1451702; :216-240 JEKLIK_PHASE_BATS < 35 % summons two 14750 Bat Riders, whose 23968 chain drops GO 180125 Liquid Fire - a trap casting 23972 Blaze, EffectRadiusIndex 8 -> SpellRadius.dbc 5 yd. 10 yd is that 5 plus FLEE_CLEAR_MARGIN_YD, the same margin every run-out row clears a payload by (raidRowTuning.ts:7, probe-vael-floor.mjs), so one pot cannot reach a second raider. The tank sits the row out: walking the aggro holder drags the boss across the camp",
+     "rule": {
+      "id": "raid_enc_14517_spread_p2",
+      "action": {
+       "kind": "move",
+       "move": {
+        "kind": "spread",
+        "minYd": 10
+       }
+      },
+      "conditions": [
+       {
+        "subject": "target",
+        "metric": "healthPct",
+        "op": "<",
+        "value": 50
+       },
+       {
+        "subject": "self",
+        "metric": "targetAttackingMe",
+        "op": "==",
+        "value": 0
+       },
+       {
+        "subject": "self",
+        "metric": "alliesWithinYd",
+        "op": ">",
+        "value": 0,
+        "ref": 10
+       }
+      ],
+      "enabled": true
+     }
+    },
+    {
+     "kind": "spread",
+     "label": "Step off the Liquid Fire (5 yd pool)",
+     "cite": "boss_jeklik.cpp:62 SPELL_LIQUID_FIRE 23968 \"script effect - triggers 23971\"; :95,233 the riders cast it. 23971 SUMMON_OBJECT_WILD -> gameobject_template 180125 Liquid Fire, trap.spellId 23972 Blaze (875-1125 fire, SpellRadius 5 yd), trap.diameter 0 and trap.cooldown 0 so GameObject.cpp:1532 re-arms it every 4 s; 23971 SpellDuration 18 = 20 s is how long the patch burns. The pool carries the summon id, which is what avoid_zone matches on",
+     "rule": {
+      "id": "raid_enc_14517_avoid_23971",
+      "action": {
+       "kind": "move",
+       "move": {
+        "kind": "avoid_zone",
+        "id": "23971"
+       }
+      },
+      "conditions": [
+       {
+        "subject": "self",
+        "metric": "hazardProximityYd",
+        "op": "<=",
+        "value": 0
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "entry": 14507,
+   "name": "High Priest Venoxis",
+   "kinds": [
+    "spread",
+    "resist"
+   ],
+   "cite": "boss_venoxis.cpp:44,104 SPELL_POISON_CLOUD 23861 on the snake-form change and on the phase 2/3 lists; the whole serpent kit (23861/23862/23867) is nature. Phase 1 owes a second spread for the Holy Wrath 23979 growth chain - blocked, see blockedBy",
+   "resist": "nature",
+   "encounterRows": [
+    {
+     "kind": "spread",
+     "label": "Step out of Poison Cloud (8 yd pool)",
+     "cite": "boss_venoxis.cpp:44 SPELL_POISON_CLOUD 23861 bakes aoe ground radiusYd 8 with a 10 s nature dot, so dynamicObject.ts isPersistentAreaEffect spawns a real pool; zulgurub.ts:95,99 schedules it every 15 s in both serpent phases",
+     "rule": {
+      "id": "raid_enc_14507_avoid_23861",
+      "action": {
+       "kind": "move",
+       "move": {
+        "kind": "avoid_zone",
+        "id": "23861"
+       }
+      },
+      "conditions": [
+       {
+        "subject": "self",
+        "metric": "hazardProximityYd",
+        "op": "<=",
+        "value": 0
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ],
+   "blockedBy": {
+    "spread": "the `spread` move verb cannot express it. A/B on probe-raid-collapse zul-gurub/high-priest-venoxis (2026-08-22, 20-man field kit): one Holy Wrath cast deals 14,651 raid damage without the row. WITH a spread minYd 11 row the per-cast damage falls to 2,709 but the fight is lost anyway - boss 0.0% at 128 s becomes stuck at 63.1% after 180 s. Two engine holes cause that: (1) pickAction RUNOUT_YIELD_AFTER_MS returns null with no altSpell, so a condition that a melee unit can never satisfy silences its whole rotation instead of the stated \"stand and fight\"; (2) sessionMotion stepAwayFrom clamps the aim to longestOffenseRangeYd of the focus with no floor, so spreading walked the raid from 25 yd in to 15 yd and Holy Nova 23858 (radiusYd 15) went 17,934 -> 55,525 damage. Both must land before a spread row here is worth shipping"
+   }
+  },
+  {
+   "entry": 14510,
+   "name": "High Priestess Mar'li",
+   "kinds": [],
+   "cite": "boss_marli.cpp:71-72,101-105,143-146 Enveloping Webs arms one Charge; Spawn of Mar'li 15041 are unordered adds the default rotation already picks up - no raid-side verb"
+  },
+  {
+   "entry": 11382,
+   "name": "Bloodlord Mandokir",
+   "kinds": [
+    "halt-dps"
+   ],
+   "cite": "boss_mandokir.cpp:49,169-181 THREATENING_GAZE 24314: gain threat while watched and he answers with CHARGE_GAZE 24315 / SUMMON_PLAYER 25104",
+   "encounterRows": [
+    {
+     "kind": "halt-dps",
+     "label": "Stop while he watches you",
+     "cite": "boss_mandokir.cpp:174-181 AI_EVENT_CUSTOM_B: getThreat(watchTarget) > m_targetThreat -> SPELL_CHARGE_GAZE 24315 / SPELL_SUMMON_PLAYER 25104, so the punishment is THREAT GAINED and not a school - a schoolless halt is the only shape that fits. zulgurub.ts:792,811-823 arms 24314 then charge_if_threat_up at SpellDuration index 32 = 6000 ms. Removed 2026-08-23 for a 1,800,100 ms stalemate; the cause was the latch, not the row (stepSession.ts:2252 Fighter.haltDpsUntil, gate src/dev/smoke/haltExpiry.mjs)",
+     "rule": {
+      "id": "raid_enc_11382_halt_gaze",
+      "action": {
+       "kind": "halt_dps"
+      },
+      "conditions": [
+       {
+        "subject": "self",
+        "metric": "debuffPresent",
+        "op": "==",
+        "value": 1,
+        "ref": 24314
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "entry": 14509,
+   "name": "High Priest Thekal",
+   "kinds": [
+    "kill-order"
+   ],
+   "cite": "boss_thekal.cpp:245-259,286-295 CanPreventAddsResurrect: Thekal and both zealots must be down together or SPELL_RESURRECT 24173 brings them back",
+   "encounterRows": [
+    {
+     "kind": "kill-order",
+     "label": "Zealot Lor'Khan, then Zath",
+     "cite": "boss_thekal.cpp:245-259 CanPreventAddsResurrect needs TYPE_ZATH and TYPE_LORKHAN both SPECIAL; :55 Lor'Khan carries GREAT_HEAL 24208 so the healer goes first. dungeonSpawns map 309 has 11347 x1 and 11348 x1 on the floor",
+     "rule": {
+      "id": "raid_enc_14509_kill",
+      "action": {
+       "kind": "kill_order",
+       "entries": [
+        11347,
+        11348
+       ]
+      },
+      "conditions": [],
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "entry": 14515,
+   "name": "High Priestess Arlokk",
+   "kinds": [],
+   "cite": "boss_arlokk.cpp:112-123,183-198 vanish plus panther form; two triggers 24247 send Zulian Prowlers (NPC 15101) every 5s (spell-data tickMs 5000)"
+  },
+  {
+   "entry": 11380,
+   "name": "Jin'do the Hexxer",
+   "kinds": [
+    "kill-order"
+   ],
+   "cite": "zulgurubScripts.cpp:159-175 Delusions 24308 and the Shade summons; the Powerful Healing Ward 14987 is the add whose order matters - it heals him",
+   "encounterRows": [
+    {
+     "kind": "kill-order",
+     "label": "Kill the Powerful Healing Ward before Jin’do",
+     "cite": "Powerful Healing Ward 24309 is Effect 87 SUMMON_TOTEM_SLOT1 miscValue 14987 at 1000 hp for 240 s, and 14987 is the add whose order matters because it heals him (zulgurubScripts.cpp:159-175). dungeonSpawns map 309 carries no 14987 and it does not need to: he plants it himself, and a creature-cast totem now lands as a body on his own side rather than being refused for want of a hostile totem side. Measured on a driven session in src/dev/smoke/hostileTotem.mjs: 2 casts of 24309, 1 Powerful Healing Ward body on the enemy side, 0 player totem slots taken. kill_order is a filter and spends no GCD, so firstLivingKillOrderEntry (evaluate.ts:578) returns null while no 14987 stands. Cite: Totem.cpp:100 Summon, :120-122 the TOTEM_PASSIVE self-cast.",
+     "rule": {
+      "id": "raid_enc_11380_kill",
+      "action": {
+       "kind": "kill_order",
+       "entries": [
+        14987
+       ]
+      },
+      "conditions": [],
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "entry": 14834,
+   "name": "Hakkar",
+   "kinds": [
+    "resist"
+   ],
+   "cite": "boss_hakkar.cpp:35-39 CORRUPTED_BLOOD 24328 and BLOOD_SIPHON 24324 are both shadow; WILL_OF_HAKKAR 24178 and CAUSE_INSANITY 24327 complete a shadow-only kit",
+   "resist": "shadow"
+  }
+ ]
+}

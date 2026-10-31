@@ -1,0 +1,63 @@
+{
+ "raid": "sm-graveyard",
+ "note": "Reviewed for E5.4 against eventai/sm-graveyard.ts, acid_classic.sql and the frozen src_creature_spell_list. Eight baked encounters, three distinct entries, and one earned row: Bloodmage Thalnos drops Flame Spike 8814, a 5 yd ground patch the engine centres on his TARGET rather than on him, and that is the one shape in this wing that spacing answers. Vishas and the rare graves come back kinds: [] - single-target melee, a dispel and a decurse, which are class rows.",
+ "bosses": [
+  {
+   "entry": 3983,
+   "name": "Interrogator Vishas",
+   "kinds": [],
+   "cite": "eventai/sm-graveyard.ts:398301-398305, acid_classic.sql:15908-15912 creature_id=3983 - four yells and one spawn cast, and there is no boss_ cpp for this wing (instance_scarlet_monastery.cpp:69-77 adds only Vorrel's death yell). Immolate 8981 is targetA 1 TARGET_UNIT_CASTER, aura 42 proc-trigger on 9034 with no radius and no duration, so the bake gives it no effects at all. Shadow Word: Pain 2767 (src_creature_spell_list 398301 Position 5, TargetId 121 random player aura not present) is targetA 6 at 30 yd, an 18 s shadow dot with dispel 1 - a dispel is a class row, and nothing here puts a shape on the floor."
+  },
+  {
+   "entry": 4543,
+   "name": "Bloodmage Thalnos",
+   "kinds": [
+    "spread",
+    "position"
+   ],
+   "cite": "src_creature_spell_list 454301 is the whole kit and there is no boss_ cpp: Flame Spike 8814, Fire Nova 12470, Flame Shock 8053, Shadow Bolt 9613, with ChanceRangedAttack 75 and acid_classic.sql:16019-16022 creature_id=4543 supplying only four yells plus action 57 range mode on spawn. There is NO Shadow Bolt Volley on him in the dump - 9613 is plain Shadow Bolt, targetA 6, radiusYd 0, rangeMax 40, castTimeMs 3000 - so the spacing this fight earns comes off Flame Spike's ground patch, not off a volley. Flame Shock 8053 is targetA 6 at 20 yd with dispel 1, a class dispel row.",
+   "encounterRows": [
+    {
+     "kind": "spread",
+     "label": "Stand 6 yd apart so one Flame Spike cannot catch two",
+     "cite": "Flame Spike 8814 bakes aoe ground radiusYd 5 castTimeMs 3000: 93-107 fire on impact plus Effect 27 persistent area, which dynamicObject.ts:220-223 isPersistentAreaEffect turns into a real 9 s pool ticking 50 every 3 s. src_creature_spell_list 454301 Position 0 fires it 10-35 s in and every 30-60 s after. Its rawEffects targetA is 16 TARGET_ENUM_UNITS_ENEMY_AOE_AT_DEST_LOC, which is NOT in combatGeometry.ts:329 CASTER_LOCATION_TARGET_A, so spellAoeFromCaster (combatGeometry.ts:351-366) is false and aoeCast.ts:80 centres the 5 yd fan on Thalnos's PRIMARY TARGET rather than on Thalnos - a distance between raiders, which is the one thing spacing can answer. minYd 6 is radiusYd 5 plus one, the same first-clear-yard rule the Herod row uses, and deliberately NOT radius plus FLEE_CLEAR_MARGIN_YD 5: clampAimToOwnReach (sessionMechanicMove.ts:114-131) pins a melee onto its MELEE_REACH_YD 5 ring (combatGeometry.ts:37, creatureAiConstants.ts:76), three melee cannot be 10 yd apart on a 5 yd ring, and spread owns motion past the give-up (pickAction.ts:775), so a 10 yd row would shuffle all fight and never settle. The tank sits it out on targetAttackingMe for the reason the Jeklik row gives - walking the aggro holder drags the boss - and the patch lands on the tank anyway.",
+     "rule": {
+      "id": "raid_enc_4543_spread_8814",
+      "action": {
+       "kind": "move",
+       "move": {
+        "kind": "spread",
+        "minYd": 6
+       }
+      },
+      "conditions": [
+       {
+        "subject": "self",
+        "metric": "targetAttackingMe",
+        "op": "==",
+        "value": 0
+       },
+       {
+        "subject": "self",
+        "metric": "alliesWithinYd",
+        "op": ">",
+        "value": 0,
+        "ref": 6
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ],
+   "blockedBy": {
+    "position": "Fire Nova 12470 is the other half of the kit and no verb reaches it. It bakes aoeShape pbaoe radiusYd 10 targetA 22 TARGET_LOCATION_CASTER_SRC tgtB 15, so it is a 10 yd disc centred on Thalnos for 148-170 fire, and src_creature_spell_list 454301 Position 1 fires it every 10-20 s. castTimeMs is 0 with no aura and no trigger spell, so there is nothing for buffPresent or castingPresent to gate on the way Herod's Whirlwind 8989 channel is gated, and an ungated keep_range 11 would park the melee outside 10 yd for the entire fight. avoid_zone is not the way in either, though the reason changed on 2026-08-26: groundAoeOf now gates a body hazard on spellAoeFromCaster, and 8814 is rangeMax 30 targetA 16 AT_DEST_LOC, so Thalnos is no longer published as a body and the old permanent-park trap is gone. What remains is that the pool lands on the RAIDER it was aimed at (applySpell.ts:1261 sites a ground pool on the primary target), so the distance that matters is raider-to-raider and spread is the verb that answers it. An avoid_zone 8814 row would also match the pool now, but it only moves whoever is already standing in it."
+   }
+  },
+  {
+   "entry": 6488,
+   "name": "Graveyard rare 1",
+   "kinds": [],
+   "cite": "src_creature_template Entry 6488 is Fallen Champion, a rank 2 rare undead at level 33, and it is the ONE entry behind all six Graveyard rare encounters: sm-graveyard.ts:439-458 builds one boss row per grave guid (:59, 1890342-1890347) with creatureEntry = candidates[0] = 6488 and poolCandidates [6488, 6489, 6490], so the swap to another candidate happens at fight start and the entry the gate matches on stays 6488. Its kit is melee only - acid_classic.sql:16030-16032 creature_id=6488 gives Berserker Stance 7366 (self shapeshift, no radius), Cleave 15496 and Execute 7160 at 20% target HP, and src_creature_template_spells 6488 adds Strike 19644, Rend 21949 and Cleave 19642, every one rangeMax 5 targetA 6 radiusYd 0, both Cleaves Effect 58 weapon-percent with no cone and no radius. The two candidates it can roll into are empty for the Stockade reason: Ironspine 6489 (acid_classic.sql:16034-16035) casts Curse of Weakness 21007, a 30 yd pbaoe decurse, and Poison Cloud 3815, a pbaoe radiusYd 8 nature dot centred on its own body that the melee are standing in because that is where melee happens; Azshir the Sleepless 6490 (acid_classic.sql:16037-16039) casts Call of the Grave 5137, Terrify 7399 (mechanic 5 fear, 4 s, targetA 6 at 5 yd, answered by a trinket or Tremor Totem) and Soul Siphon 9373, all targetA 6 at 5-10 yd."
+  }
+ ]
+}

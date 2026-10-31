@@ -1,0 +1,772 @@
+[
+  {
+    "levels": "1-19",
+    "spec": "Discipline",
+    "buffs": [
+      {
+        "spell": "Power Word: Fortitude",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Inner Fire",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Power Word: Shield",
+        "when": "most-hurt ally health < 90% AND no Weakened Soul",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 90
+          },
+          {
+            "subject": "self",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 6788
+          }
+        ]
+      },
+      {
+        "spell": "Lesser Heal",
+        "when": "most-hurt ally health < 75%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 75
+          }
+        ]
+      },
+      {
+        "spell": "Heal",
+        "when": "most-hurt ally health < 75%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 75
+          }
+        ]
+      },
+      {
+        "spell": "Renew",
+        "when": "most-hurt ally health < 90% AND triage target missing buff",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 90
+          },
+          {
+            "subject": "self",
+            "metric": "allyLowestBuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Shadow Word: Pain",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Smite",
+        "when": "always"
+      },
+      {
+        "spell": "Shoot",
+        "when": "always"
+      },
+      {
+        "spell": "Dispel Magic",
+        "when": "target.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Cure Disease",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 3
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Smite",
+        "when": "always"
+      },
+      {
+        "spell": "Shadow Word: Pain",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "20-39",
+    "spec": "Discipline",
+    "buffs": [
+      {
+        "spell": "Power Word: Fortitude",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Inner Fire",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Divine Spirit",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Psychic Scream",
+        "when": "self health < 40% AND pack on me",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 40
+          },
+          {
+            "subject": "self",
+            "metric": "enemiesWithinYd",
+            "op": ">=",
+            "value": 2,
+            "ref": 8
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Power Word: Shield",
+        "when": "most-hurt ally health < 90% AND no Weakened Soul",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 90
+          },
+          {
+            "subject": "self",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 6788
+          }
+        ]
+      },
+      {
+        "spell": "Flash Heal",
+        "when": "most-hurt ally health < 40%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 40
+          }
+        ]
+      },
+      {
+        "spell": "Prayer of Healing",
+        "when": ">= 2 allies below 75% AND self.nearbyAlliesBelowHpCount>=2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "alliesBelowHpCount",
+            "op": ">=",
+            "value": 2,
+            "ref": 75
+          },
+          {
+            "subject": "self",
+            "metric": "nearbyAlliesBelowHpCount",
+            "op": ">=",
+            "value": 2,
+            "ref": 30
+          }
+        ]
+      },
+      {
+        "spell": "Heal",
+        "when": "most-hurt ally health < 75%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 75
+          }
+        ]
+      },
+      {
+        "spell": "Renew",
+        "when": "most-hurt ally health < 90% AND triage target missing buff",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 90
+          },
+          {
+            "subject": "self",
+            "metric": "allyLowestBuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Shackle Undead",
+        "when": "control a second enemy while the party is topped",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "target",
+            "metric": "creatureTypeMask",
+            "op": "==",
+            "value": 1,
+            "ref": 32
+          },
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": ">=",
+            "value": 90
+          }
+        ]
+      },
+      {
+        "spell": "Shadow Word: Pain",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Smite",
+        "when": "always"
+      },
+      {
+        "spell": "Shoot",
+        "when": "always"
+      },
+      {
+        "spell": "Dispel Magic",
+        "when": "target.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Cure Disease",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 3
+          }
+        ]
+      },
+      {
+        "spell": "Abolish Disease",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 3
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Smite",
+        "when": "always"
+      },
+      {
+        "spell": "Shadow Word: Pain",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "40-60",
+    "spec": "Discipline",
+    "buffs": [
+      {
+        "spell": "Power Word: Fortitude",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Inner Fire",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Divine Spirit",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Psychic Scream",
+        "when": "self health < 40% AND pack on me",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 40
+          },
+          {
+            "subject": "self",
+            "metric": "enemiesWithinYd",
+            "op": ">=",
+            "value": 2,
+            "ref": 8
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Power Word: Shield",
+        "when": "most-hurt ally health < 85% AND no Weakened Soul",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 85
+          },
+          {
+            "subject": "self",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 6788
+          }
+        ]
+      },
+      {
+        "spell": "Flash Heal",
+        "when": "most-hurt ally health < 40%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 40
+          }
+        ]
+      },
+      {
+        "spell": "Prayer of Healing",
+        "when": ">= 2 allies below 75% AND self.nearbyAlliesBelowHpCount>=2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "alliesBelowHpCount",
+            "op": ">=",
+            "value": 2,
+            "ref": 75
+          },
+          {
+            "subject": "self",
+            "metric": "nearbyAlliesBelowHpCount",
+            "op": ">=",
+            "value": 2,
+            "ref": 30
+          }
+        ]
+      },
+      {
+        "spell": "Greater Heal",
+        "when": "most-hurt ally health < 70%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 70
+          }
+        ]
+      },
+      {
+        "spell": "Heal",
+        "when": "most-hurt ally health < 85%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 85
+          }
+        ]
+      },
+      {
+        "spell": "Renew",
+        "when": "most-hurt ally health < 90% AND triage target missing buff",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 90
+          },
+          {
+            "subject": "self",
+            "metric": "allyLowestBuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Shackle Undead",
+        "when": "control a second enemy while the party is topped",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "target",
+            "metric": "creatureTypeMask",
+            "op": "==",
+            "value": 1,
+            "ref": 32
+          },
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": ">=",
+            "value": 90
+          }
+        ]
+      },
+      {
+        "spell": "Shadow Word: Pain",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Smite",
+        "when": "always"
+      },
+      {
+        "spell": "Shoot",
+        "when": "always"
+      },
+      {
+        "spell": "Dispel Magic",
+        "when": "target.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Cure Disease",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 3
+          }
+        ]
+      },
+      {
+        "spell": "Abolish Disease",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 3
+          }
+        ]
+      },
+      {
+        "spell": "Holy Nova",
+        "when": "multi",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Smite",
+        "when": "always"
+      },
+      {
+        "spell": "Shadow Word: Pain",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ]
+  }
+]

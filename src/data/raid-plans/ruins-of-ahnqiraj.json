@@ -1,0 +1,110 @@
+{
+ "raid": "ruins-of-ahnqiraj",
+ "bosses": [
+  {
+   "entry": 15348,
+   "name": "Kurinnaxx",
+   "kinds": [
+    "tank-swap"
+   ],
+   "cite": "boss_kurinnaxx.cpp:35,99-102 SPELL_MORTAL_WOUND 25646 on victim",
+   "tankSwapAura": 25646
+  },
+  {
+   "entry": 15341,
+   "name": "General Rajaxx",
+   "kinds": [],
+   "cite": "boss_rajaxx.cpp:57-59 AURA_OF_COMMAND 25516 / BASH 25515 / STRIKE 22591; the fight is the Kaldorei wave escort (:196-228), which is trash sequencing, not a raid-side response"
+  },
+  {
+   "entry": 15340,
+   "name": "Moam",
+   "kinds": [
+    "kill-order"
+   ],
+   "cite": "boss_moam.cpp:40,158,176-183 SUMMON_MANAFIENDS 25684 fans out 3 Mana Fiends 15527 that must die before ENERGIZE 25685 refills him into ARCANE_ERUPTION 25672",
+   "encounterRows": [
+    {
+     "kind": "kill-order",
+     "label": "Kill the Mana Fiends before Moam refills",
+     "cite": "boss_moam.cpp:40,156-160 MOAM_MANA_FIENDS 25684 on a 90 s flat timer; :176-183 SummonManaFiendsMoam casts 25681 / 25682 / 25683, each effect 42 miscValue 15527 Mana Fiend on its own bearing. They drain the raid's mana into him, and boss_moam.cpp ENERGIZE 25685 turns that pool into ARCANE_ERUPTION 25672",
+     "rule": {
+      "id": "raid_enc_15340_kill",
+      "action": {
+       "kind": "kill_order",
+       "entries": [
+        15527
+       ]
+      },
+      "conditions": [],
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "entry": 15370,
+   "name": "Buru the Gorger",
+   "kinds": [
+    "kill-order"
+   ],
+   "cite": "boss_buru.cpp BURU_NEW_TARGET chase-focus",
+   "encounterRows": [
+    {
+     "kind": "kill-order",
+     "label": "Buru Eggs first",
+     "cite": "boss_buru.cpp:50 NPC_BURU_EGG 15514; npc_buru_egg JustDied explode/hatch",
+     "rule": {
+      "id": "raid_enc_15370_kill",
+      "action": {
+       "kind": "kill_order",
+       "entries": [
+        15514
+       ]
+      },
+      "conditions": [],
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "entry": 15369,
+   "name": "Ayamiss the Hunter",
+   "kinds": [],
+   "cite": "boss_ayamiss.cpp air at 70% — boss-side GAP, no raid row until altitude exists"
+  },
+  {
+   "entry": 15339,
+   "name": "Ossirian the Unscarred",
+   "kinds": [
+    "use-object"
+   ],
+   "cite": "boss_ossirian.cpp GO 180619 crystal click",
+   "encounterRows": [
+    {
+     "kind": "use-object",
+     "label": "Click an Ossirian Crystal (strip Supreme)",
+     "cite": "ruins_of_ahnqiraj.h:40 GO_OSSIRIAN_CRYSTAL 180619; boss_ossirian.cpp:312-318 GOUse_go_ossirian_crystal; Supreme 25176",
+     "rule": {
+      "id": "raid_enc_15339_crystal",
+      "action": {
+       "kind": "use_object",
+       "goEntry": 180619
+      },
+      "conditions": [
+       {
+        "subject": "target",
+        "metric": "buffPresent",
+        "op": "==",
+        "value": 1,
+        "ref": 25176
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ]
+  }
+ ]
+}

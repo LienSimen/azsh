@@ -1,0 +1,577 @@
+// The terminal game: a line-based command loop over the Game facade (src/engine/game/types.ts).
+// Every verb here is a facade call the web client also makes; this file only reads and prints.
+import { createInterface } from 'node:readline';
+import { stdin, stdout } from 'node:process';
+import { bootDataStore } from './bootData.mjs';
+import { FileSaveRepository } from './fileRepository.mjs';
+import { formatCombatLog, combatLogPlainText } from './combatLogFormat.ts';
+import { createGame, newGameState } from '../engine/game.ts';
+import { toSave } from '../persistence/saveShape.ts';
+import { className, raceName } from '../domain/core/ids.ts';
+import { moneyText } from '../domain/economy/money.ts';
+import { maxHealth, maxPower } from '../domain/character/character.ts';
+import { knownUsableSpells } from '../domain/character/characterSpells.ts';
+import { bagCapacity } from '../domain/items/equipment.ts';
+import { addItem } from '../domain/items/inventory.ts';
+import { planStep } from '../autopilot/plan.ts';
+
+const useColor = stdout.isTTY && !process.env.NO_COLOR;
+const paint = (code) => (s) => (useColor ? `\x1b[${code}m${s}\x1b[0m` : String(s));
+const dim = paint(2), bold = paint(1), yellow = paint(33), green = paint(32), red = paint(31), cyan = paint(36);
+
+const QUALITY = ['poor', 'common', 'uncommon', 'rare', 'epic', 'legendary', 'artifact'];
+const WRAP = 78;
+
+const GENDER_TOKEN = /\$[Gg]\s*([^:]*):([^;]*);/g;
+/** $N name, $C class, $R race, $B break, $G male:female; (SharedDefines.h:26). Same codes as phonecraft questText. */
+function questText(raw, ch) {
+  return String(raw ?? '')
+    .replace(GENDER_TOKEN, (_m, male, female) => (ch.gender === 1 ? female : male))
+    .replace(/\$[Bb]/g, '\n')
+    .replace(/\$[Nn]/g, () => ch.name)
+    .replace(/\$[Cc]/g, () => className(ch.cls))
+    .replace(/\$[Rr]/g, () => raceName(ch.race));
+}
+
+function wrap(text, ch, indent = '  ') {
+  const out = [];
+  for (const para of questText(text, ch).split('\n')) {
+    let line = '';
+    for (const w of para.split(/\s+/).filter(Boolean)) {
+      if ((line + ' ' + w).trim().length > WRAP - indent.length) { out.push(line); line = w; }
+      else line = (line ? line + ' ' : '') + w;
+    }
+    out.push(line);
+  }
+  return out.map((l) => indent + l.trim()).join('\n');
+}
+
+/** Match `q` against a list: a number is an id, otherwise exact name, then prefix, then substring. */
+function pick(list, q, nameOf, idOf) {
+  const query = String(q ?? '').trim().toLowerCase();
+  if (!query) return { many: list };
+  if (/^\d+$/.test(query)) {
+    const hit = list.find((x) => idOf(x) === Number(query));
+    return hit ? { one: hit } : { none: true };
+  }
+  const named = list.filter((x) => nameOf(x));
+  const exact = named.filter((x) => nameOf(x).toLowerCase() === query);
+  if (exact.length === 1) return { one: exact[0] };
+  const prefix = named.filter((x) => nameOf(x).toLowerCase().startsWith(query));
+  if (prefix.length === 1) return { one: prefix[0] };
+  const sub = named.filter((x) => nameOf(x).toLowerCase().includes(query));
+  if (sub.length === 1) return { one: sub[0] };
+  if (sub.length === 0) return { none: true };
+  return { many: sub };
+}
+
+const HELP = `
+  look (l)              zone: mobs, quests, NPCs, exits        travel <zone>        go to a neighbouring zone
+  fight <mob> [xN]      fight a mob here, N times              rest [sec]           sit and regenerate (default 60 s)
+  quests (q)            quest log with progress                quest <id>           quest text and rewards
+  accept <quest>        take a quest offered here              turnin <quest> [n]   hand in, n = reward choice
+  abandon <quest>       drop a quest                           talk <npc>           speak to an NPC by name
+  bags (i)              inventory                              gear                 equipped items
+  equip <item>          wear or wield an item                  unequip <slot>       take an item off
+  use <item>            eat, drink, read or use an item        sell <item> [qty]    sell to the vendor you opened
+  junk                  sell all grey items                    vendor [npc]         list vendors, or open one
+  buy <item> [qty]      buy from the open vendor               repair               repair at the open vendor
+  trainer               class trainer offers here              train <spell>|all    learn from the trainer
+  spells                spellbook                              cast <spell>         cast out of combat
+  char (c)              character sheet                        hearth / bind        hearthstone / set home at an inn
+  release / reclaim     death: run to corpse, reclaim it       spirit               resurrect at the spirit healer
+  auto [N] [farm <mob>] autopilot N steps (default 20)         log on|off           show or hide the combat log
+  save                  write the save file                    quit                 save and leave
+`;
+
+export async function main(argv = []) {
+  const rl = createInterface({ input: stdin, output: stdout, terminal: stdin.isTTY === true });
+  // Buffered reader: piped input emits every line at once, and readline's question() drops the
+  // ones that arrive while no question is pending. Null means the input ended.
+  const queue = [];
+  let waiter = null;
+  let closed = false;
+  rl.on('line', (l) => { if (waiter) { const w = waiter; waiter = null; w(l); } else queue.push(l); });
+  rl.on('close', () => { closed = true; if (waiter) { const w = waiter; waiter = null; w(null); } });
+  const askRaw = (q) => {
+    stdout.write(q);
+    if (queue.length) return Promise.resolve(queue.shift());
+    if (closed) return Promise.resolve(null);
+    return new Promise((r) => { waiter = r; });
+  };
+  const ask = async (q) => {
+    const a = await askRaw(q);
+    if (a == null) throw new Error('input ended');
+    return a.trim();
+  };
+  console.log(bold('azsh') + dim('  Azeroth shell. WoW Classic 1.12 data via CMaNGOS. Type help.'));
+  const t0 = performance.now();
+  const ds = bootDataStore((s) => stdout.write(dim(`${s} `)));
+  console.log(dim(`ready in ${Math.round(performance.now() - t0)} ms`));
+  const repo = new FileSaveRepository();
+
+  let save = null;
+  const saves = await repo.list();
+  const wantNew = argv.includes('--new');
+  if (saves.length && !wantNew) {
+    console.log('\nCharacters:');
+    saves.forEach((m, i) => console.log(`  ${i + 1}. ${bold(m.name)}  L${m.level} ${className(m.cls)}  ${dim(new Date(m.updatedAt).toLocaleString())}`));
+    const a = await ask('Pick a number, or "new": ');
+    const i = Number(a);
+    if (i >= 1 && i <= saves.length) save = await repo.load(saves[i - 1].slot);
+  }
+  let state = save?.state ?? null;
+  let slot = save?.slot ?? null;
+  let createdAt = save?.createdAt ?? Date.now();
+  if (!state) {
+    state = await createCharacter(ds, ask);
+    slot = `${state.char.name.toLowerCase()}-${Date.now().toString(36)}`;
+  }
+
+  const g = createGame(ds, state, { travelPace: 'instant' });
+  if (g.state.char.journey) g.completeJourneyNow();
+  // Real createInfo has no starting weapon (ETL gap KI-003); phonecraft's harness.mjs hands one over too.
+  if (!save && g.state.char.equipped.mainhand == null) {
+    const weapon = ds.allItems().find((i) => i.slot === 'mainhand' && i.requiredLevel <= 1);
+    if (weapon) { g.state.inventory = addItem(g.state.inventory, weapon.entry, 1, 1); g.equip(weapon.entry); }
+  }
+
+  const persist = async () => { await repo.save(toSave(slot, g.snapshot(), Date.now(), createdAt)); };
+  let logOn = true;
+  let curVendor = null;
+  let lastActivity = g.state.activity[0];
+
+  const flushActivity = () => {
+    const act = g.state.activity;
+    const idx = lastActivity == null ? act.length : act.indexOf(lastActivity);
+    const fresh = act.slice(0, idx < 0 ? act.length : idx);
+    for (const line of fresh.reverse()) console.log(dim('  · ' + line));
+    lastActivity = act[0];
+  };
+
+  const names = () => ({
+    playerName: g.state.char.name,
+    enemyName: '',
+    spellName: (id) => ds.spell(id)?.name,
+  });
+
+  const printLog = (events, enemyName) => {
+    if (!logOn) return;
+    const n = { ...names(), enemyName };
+    const rows = [];
+    for (const ev of events) {
+      const row = formatCombatLog(ev, n);
+      if (!row) continue;
+      // Passive power ticks: the web client merges these; a zero tick (rage decay) is noise here.
+      if (row.merge && row.merge.amount <= 0) continue;
+      rows.push(`${dim((ev.t / 1000).toFixed(1).padStart(6) + 's')}  ${combatLogPlainText(row)}`);
+    }
+    const MAX = 150;
+    if (rows.length > MAX) {
+      console.log(dim(`  … ${rows.length - MAX} earlier lines hidden (log off to silence)`));
+      rows.splice(0, rows.length - MAX);
+    }
+    for (const r of rows) console.log(r);
+  };
+
+  const zoneHere = () => ds.zone(g.state.char.zoneId);
+  const hp = () => `${g.state.char.health}/${maxHealth(g.state.char, ds)}`;
+  const pw = () => `${g.state.char.power}/${maxPower(g.state.char, ds)}`;
+
+  const reportFight = (r, enemyName) => {
+    if (!r.ok) { console.log(red(`Cannot fight: ${r.reason}`)); return; }
+    printLog(r.result.events, enemyName);
+    const tag = r.outcome === 'win' ? green('Victory') : r.outcome === 'defeat' ? red('Defeat') : yellow('Stalemate');
+    const bits = [`${(r.result.durationMs / 1000).toFixed(1)} s`, `HP ${hp()}`];
+    if (r.xpGained) bits.push(`+${r.xpGained} xp`);
+    if (r.goldGained) bits.push(`+${moneyText(r.goldGained)}`);
+    console.log(`${tag} vs ${enemyName}  ${dim(bits.join('  '))}`);
+    for (const d of r.loot) console.log(`  ${yellow('loot')} ${ds.item(d.item)?.name ?? d.item}${d.count > 1 ? ` x${d.count}` : ''}`);
+    for (const lv of r.leveledTo) console.log(bold(green(`  You have reached level ${lv}!`)));
+    if (r.outcome === 'defeat') deathHint();
+  };
+
+  // deathFlowStatus() is null while alive.
+  const isDead = () => { const s = g.deathFlowStatus(); return !!s && s.deathState !== 'ALIVE' && s.deathState !== 'JUST_ALIVED'; };
+  const deathHint = () => {
+    const s = g.deathFlowStatus();
+    console.log(red(`  You are dead (${s?.deathState ?? 'corpse'}).`) + dim(' Type release to run to your corpse, then reclaim; or spirit for the spirit healer.'));
+  };
+
+  const show = (res, okText) => {
+    if (res.ok) { if (okText) console.log(green(okText)); }
+    else console.log(red(res.reason || 'Nothing happened.'));
+    return res.ok;
+  };
+
+  const questsHere = () => (zoneHere()?.quests ?? []).map((e) => ds.quest(e)).filter(Boolean);
+  const questLogRows = () => g.state.questlog.quests.map((qs) => ({ qs, q: ds.quest(qs.entry) })).filter((x) => x.q);
+  const countInBags = (item) => g.state.inventory.stacks.filter((s) => s.item === item).reduce((n, s) => n + s.count, 0);
+
+  const objectiveLines = (q, qs) => {
+    const out = [];
+    for (const k of q.killTargets) out.push(`${ds.creature(k.creatureEntry)?.name ?? k.creatureEntry} slain: ${qs?.kills?.[String(k.creatureEntry)] ?? 0}/${k.count}`);
+    for (const it of q.itemTargets) out.push(`${ds.item(it.item)?.name ?? it.item}: ${Math.min(countInBags(it.item), it.count)}/${it.count}`);
+    for (const o of q.objectTargets) out.push(`${ds.gameObject?.(o.objectEntry)?.name ?? `object ${o.objectEntry}`}: ${qs?.objects?.[String(o.objectEntry)] ?? 0}/${o.count}`);
+    return out;
+  };
+
+  const commands = {
+    help() { console.log(HELP); },
+    l() { this.look(); },
+    look() {
+      const z = zoneHere();
+      if (!z) { console.log(red('You are nowhere.')); return; }
+      console.log(bold(z.name) + dim(`  levels ${z.levelRange[0]}-${z.levelRange[1]}${z.faction ? `, ${z.faction}` : ''}`));
+      const mobs = z.huntable.map((e) => ds.creature(e)).filter(Boolean).sort((a, b) => a.level - b.level);
+      if (mobs.length) {
+        console.log(cyan('Creatures:'));
+        for (const m of mobs.slice(0, 30)) console.log(`  ${m.name} ${dim(`L${m.level} #${m.entry}`)}`);
+        if (mobs.length > 30) console.log(dim(`  … ${mobs.length - 30} more`));
+      }
+      const have = new Set(g.state.questlog.quests.map((q) => q.entry));
+      const offered = questsHere().filter((q) => !have.has(q.entry));
+      if (offered.length) {
+        console.log(cyan('Quests offered:'));
+        for (const q of offered.slice(0, 25)) {
+          const mark = q.minLevel <= g.state.char.level ? yellow('!') : dim('·');
+          console.log(`  ${mark} ${q.title} ${dim(`L${q.questLevel} #${q.entry}`)}`);
+        }
+        if (offered.length > 25) console.log(dim(`  … ${offered.length - 25} more`));
+      }
+      const npc = [];
+      for (const t of z.trainers ?? []) if (t.cls === g.state.char.cls) npc.push(`${ds.trainer(t.entry)?.name ?? t.entry} (${className(t.cls)} trainer)`);
+      for (const v of z.vendors ?? []) { const d = ds.vendor(v); if (d) npc.push(`${d.name}${d.subname ? ` <${d.subname}>` : ''}`); }
+      for (const p of z.profTrainers ?? []) { const d = ds.profTrainer(p); if (d) npc.push(`${d.name} (profession trainer)`); }
+      for (const i of z.innkeepers ?? []) npc.push(`${i.name} (innkeeper)`);
+      if (npc.length) { console.log(cyan('People:')); for (const n of npc.slice(0, 30)) console.log('  ' + n); if (npc.length > 30) console.log(dim(`  … ${npc.length - 30} more`)); }
+      console.log(cyan('Exits: ') + z.neighbors.map((id) => ds.zone(id)?.name ?? id).join(', '));
+    },
+    fight(args) {
+      const m = args.match(/^(.*?)(?:\s+x(\d+))?$/i);
+      const q = m[1].trim(); const times = Math.min(Number(m[2] ?? 1), 50);
+      const mobs = (zoneHere()?.huntable ?? []).map((e) => ds.creature(e)).filter(Boolean);
+      const r = pick(mobs, q, (c) => c.name, (c) => c.entry);
+      if (r.none) { console.log(red('No such creature here. Try look.')); return; }
+      if (r.many) { console.log('Which one? ' + r.many.slice(0, 12).map((c) => c.name).join(', ')); return; }
+      for (let i = 0; i < times; i++) {
+        const res = g.fight(r.one.entry);
+        reportFight(res, r.one.name);
+        if (!res.ok || res.outcome !== 'win') break;
+      }
+    },
+    rest(args) {
+      const secs = Math.max(1, Math.min(Number(args) || 60, 3600));
+      g.regenTick(secs, true);
+      console.log(`You rest for ${secs} s.  HP ${hp()}  power ${pw()}`);
+    },
+    q() { this.quests(); },
+    quests() {
+      const rows = questLogRows();
+      if (!rows.length) { console.log('Your quest log is empty.'); return; }
+      for (const { qs, q } of rows) {
+        const st = qs.status === 'complete' ? green('complete') : qs.status === 'failed' ? red('failed') : qs.status === 'turnedIn' ? dim('done') : yellow('active');
+        console.log(`${bold(q.title)} ${dim(`L${q.questLevel} #${q.entry}`)}  ${st}`);
+        if (qs.status === 'active' || qs.status === 'complete') for (const o of objectiveLines(q, qs)) console.log('    ' + o);
+      }
+    },
+    quest(args) {
+      const all = [...questsHere(), ...questLogRows().map((x) => x.q)];
+      const r = pick(all, args, (q) => q.title, (q) => q.entry);
+      if (!r.one) { console.log(red('No such quest here or in your log.')); return; }
+      const q = r.one;
+      console.log(bold(q.title) + dim(`  L${q.questLevel}, requires ${q.minLevel}  #${q.entry}`));
+      console.log(wrap(q.detailsText, g.state.char));
+      console.log(cyan('  Objectives'));
+      console.log(wrap(q.objectivesText, g.state.char));
+      for (const o of objectiveLines(q, g.state.questlog.quests.find((s) => s.entry === q.entry))) console.log('    ' + o);
+      const rew = [];
+      if (q.rewMoney) rew.push(moneyText(q.rewMoney));
+      if (q.rewXP) rew.push(`${q.rewXP} xp`);
+      for (const it of q.rewItems) rew.push(`${ds.item(it.item)?.name ?? it.item}${it.count > 1 ? ` x${it.count}` : ''}`);
+      if (rew.length) console.log(cyan('  Rewards: ') + rew.join(', '));
+      if (q.rewChoiceItems?.length) console.log(cyan('  Choose one: ') + q.rewChoiceItems.map((it, i) => `[${i}] ${ds.item(it.item)?.name ?? it.item}`).join('  '));
+    },
+    accept(args) {
+      const r = pick(questsHere(), args, (q) => q.title, (q) => q.entry);
+      if (!r.one) { console.log(red(r.many ? 'Which quest? ' + r.many.map((q) => q.title).join(', ') : 'No such quest offered here.')); return; }
+      show(g.acceptQuest(r.one.entry), `Quest accepted: ${r.one.title}`);
+    },
+    turnin(args) {
+      const m = args.match(/^(.*?)(?:\s+(\d+))?$/);
+      const r = pick(questLogRows().map((x) => x.q), m[1], (q) => q.title, (q) => q.entry);
+      if (!r.one) { console.log(red('No such quest in your log.')); return; }
+      const q = r.one;
+      if (q.rewChoiceItems?.length && m[2] == null) {
+        console.log('Pick a reward: ' + q.rewChoiceItems.map((it, i) => `[${i}] ${ds.item(it.item)?.name ?? it.item}`).join('  '));
+        console.log(dim(`  turnin ${q.entry} <n>`));
+        return;
+      }
+      const res = g.turnInQuest(q.entry, Number(m[2] ?? 0));
+      if (!show(res, `Quest complete: ${q.title}`)) return;
+      const bits = [];
+      if (res.xp) bits.push(`+${res.xp} xp`);
+      if (res.money) bits.push(`+${moneyText(res.money)}`);
+      for (const it of res.items) bits.push(`${ds.item(it.item)?.name ?? it.item}${it.count > 1 ? ` x${it.count}` : ''}`);
+      for (const s of res.spells ?? []) bits.push(`learned ${s.name ?? s.spellId ?? ''}`.trim());
+      if (bits.length) console.log('  ' + bits.join(', '));
+      for (const lv of res.leveledTo) console.log(bold(green(`  You have reached level ${lv}!`)));
+    },
+    abandon(args) {
+      const r = pick(questLogRows().map((x) => x.q), args, (q) => q.title, (q) => q.entry);
+      if (!r.one) { console.log(red('No such quest in your log.')); return; }
+      show(g.abandonQuest(r.one.entry), `Abandoned ${r.one.title}.`);
+    },
+    talk(args) {
+      if (!args) { console.log('talk <npc name>'); return; }
+      show(g.talkToNpc({ npcName: args }), `You speak with ${args}.`);
+    },
+    i() { this.bags(); },
+    bags() {
+      const st = g.state.inventory.stacks;
+      console.log(bold(`Bags ${st.length}/${bagCapacity(g.state.char, ds)}`) + dim(`  ${moneyText(g.state.char.gold)}`));
+      for (const s of st) {
+        const it = ds.item(s.item);
+        const qn = QUALITY[it?.quality ?? 1] ?? '';
+        console.log(`  ${it?.name ?? s.item}${s.count > 1 ? ` x${s.count}` : ''} ${dim(`${qn}${it?.slot ? ` ${it.slot}` : ''} #${s.item}`)}`);
+      }
+    },
+    gear() {
+      for (const [slotName, entry] of Object.entries(g.state.char.equipped)) {
+        if (entry == null) continue;
+        const it = ds.item(typeof entry === 'object' ? entry.entry : entry);
+        console.log(`  ${slotName.padEnd(9)} ${it?.name ?? entry}`);
+      }
+    },
+    equip(args) {
+      const stacks = g.state.inventory.stacks;
+      const r = pick(stacks, args, (s) => ds.item(s.item)?.name, (s) => s.item);
+      if (!r.one) { console.log(red('No such item in your bags.')); return; }
+      show(g.equip(r.one.item), `Equipped ${ds.item(r.one.item)?.name}.`);
+    },
+    unequip(args) { show(g.unequip(args.trim()), `Removed ${args.trim()}.`); },
+    use(args) {
+      const r = pick(g.state.inventory.stacks, args, (s) => ds.item(s.item)?.name, (s) => s.item);
+      if (!r.one) { console.log(red('No such item in your bags.')); return; }
+      show(g.consumeItem(r.one.item), `You use ${ds.item(r.one.item)?.name}.  HP ${hp()}  power ${pw()}`);
+    },
+    sell(args) {
+      const m = args.match(/^(.*?)(?:\s+(\d+))?$/);
+      const r = pick(g.state.inventory.stacks, m[1], (s) => ds.item(s.item)?.name, (s) => s.item);
+      if (!r.one) { console.log(red('No such item in your bags.')); return; }
+      const res = g.sellItem(r.one.item, m[2] ? Number(m[2]) : undefined);
+      show(res, res.ok ? `Sold ${res.qty} for ${moneyText(res.earned)}.` : '');
+    },
+    junk() { const res = g.sellAllJunk(); show(res, res.ok ? `Sold ${res.count} grey items for ${moneyText(res.earned)}.` : ''); },
+    vendor(args) {
+      const vendors = (zoneHere()?.vendors ?? []).map((v) => ds.vendor(v)).filter(Boolean);
+      if (!vendors.length) { console.log('No vendors here.'); return; }
+      if (!args) { for (const v of vendors) console.log(`  ${v.name}${v.subname ? ` <${v.subname}>` : ''}${v.canRepair ? dim(' repairs') : ''}`); return; }
+      const r = pick(vendors, args, (v) => v.name, (v) => v.entry);
+      if (!r.one) { console.log(red(r.many ? 'Which vendor? ' + r.many.map((v) => v.name).join(', ') : 'No such vendor here.')); return; }
+      curVendor = r.one;
+      console.log(bold(curVendor.name) + dim(curVendor.canRepair ? '  (repairs)' : ''));
+      for (const o of g.vendorOffers(curVendor.entry)) {
+        const it = ds.item(o.itemEntry);
+        const stock = o.stockRemaining == null ? '' : dim(`  ${o.stockRemaining} in stock`);
+        console.log(`  ${it?.name ?? o.itemEntry}${o.unitsPerPurchase > 1 ? ` x${o.unitsPerPurchase}` : ''}  ${yellow(moneyText(o.pricePerPurchase))}${stock}${it?.requiredLevel > 1 ? dim(`  L${it.requiredLevel}`) : ''}`);
+      }
+    },
+    buy(args) {
+      if (!curVendor) { console.log('Open a vendor first: vendor <name>'); return; }
+      const m = args.match(/^(.*?)(?:\s+(\d+))?$/);
+      const offers = g.vendorOffers(curVendor.entry);
+      const r = pick(offers, m[1], (o) => ds.item(o.itemEntry)?.name, (o) => o.itemEntry);
+      if (!r.one) { console.log(red('The vendor does not sell that.')); return; }
+      const res = g.buyItem(curVendor.entry, r.one.itemEntry, Number(m[2] ?? 1));
+      show(res, res.ok ? `Bought ${ds.item(r.one.itemEntry)?.name} for ${moneyText(res.spent)}.` : '');
+    },
+    repair() {
+      const res = g.repairAll(curVendor?.entry);
+      show(res, res.ok ? `Repaired for ${moneyText(res.spent)}.` : '');
+    },
+    trainer() {
+      const list = trainersHere();
+      if (!list.length) { console.log(`No ${className(g.state.char.cls)} trainer here.`); return; }
+      for (const t of list) {
+        console.log(bold(t.name));
+        const rows = learnable(t);
+        if (!rows.length) console.log(dim('  nothing new to learn at your level'));
+        for (const { sp, ts } of rows) console.log(`  ${sp.name}${sp.rank ? ` (Rank ${sp.rank})` : ''}  ${yellow(moneyText(ts.cost))} ${dim(`L${ts.reqLevel} #${sp.id}`)}`);
+      }
+    },
+    train(args) {
+      const list = trainersHere();
+      if (!list.length) { console.log(`No ${className(g.state.char.cls)} trainer here.`); return; }
+      const rows = list.flatMap((t) => learnable(t).map((x) => ({ ...x, t })));
+      if (args.trim() === 'all') {
+        let n = 0;
+        for (const { sp, t } of rows) if (g.learnFromTrainer(t.entry, sp.id).ok) { n++; console.log(green(`  Learned ${sp.name}${sp.rank ? ` (Rank ${sp.rank})` : ''}.`)); }
+        if (!n) console.log('Nothing learned.');
+        return;
+      }
+      const r = pick(rows, args, (x) => x.sp.name, (x) => x.sp.id);
+      if (!r.one) { console.log(red(r.many ? 'Which spell? ' + r.many.map((x) => `${x.sp.name} #${x.sp.id}`).join(', ') : 'The trainer does not teach that yet.')); return; }
+      show(g.learnFromTrainer(r.one.t.entry, r.one.sp.id), `Learned ${r.one.sp.name}.`);
+    },
+    spells() {
+      const known = knownUsableSpells(g.state.char, g.state.spellbook, ds).sort((a, b) => a.name.localeCompare(b.name));
+      for (const sp of known) {
+        const cd = g.spellCooldownRemaining(sp.id);
+        console.log(`  ${sp.name}${sp.rank ? ` (Rank ${sp.rank})` : ''} ${dim(`${sp.cost ? `${sp.cost} ${sp.powerType}` : ''}${cd > 0 ? `  cooldown ${Math.ceil(cd / 1000)} s` : ''} #${sp.id}`)}`);
+      }
+    },
+    cast(args) {
+      const known = knownUsableSpells(g.state.char, g.state.spellbook, ds);
+      const r = pick(known, args, (s) => s.name, (s) => s.id);
+      if (!r.one) { console.log(red(r.many ? 'Which spell? ' + r.many.map((s) => `${s.name}${s.rank ? ` r${s.rank}` : ''} #${s.id}`).join(', ') : 'You do not know that spell.')); return; }
+      show(g.castOutOfCombat(r.one.id), `You cast ${r.one.name}.`);
+    },
+    c() { this.char(); },
+    char() {
+      const ch = g.state.char;
+      console.log(bold(ch.name) + `  level ${ch.level} ${raceName(ch.race)} ${className(ch.cls)}`);
+      console.log(`  xp ${ch.xp}/${ds.xpToNext(ch.level)}  HP ${hp()}  power ${pw()}  ${moneyText(ch.gold)}`);
+      console.log(`  zone ${zoneHere()?.name ?? ch.zoneId}${ch.hearth ? `, home ${ds.zone(ch.hearth.zoneId ?? ch.hearth)?.name ?? ''}` : ''}`);
+      const skills = Object.entries(ch.skills ?? {});
+      if (skills.length) console.log('  skills ' + skills.map(([k, v]) => `${ds.profession(k)?.name ?? k} ${v.value ?? v.rank ?? v}`).join(', '));
+    },
+    travel(args) {
+      const z = zoneHere();
+      const dests = (z?.neighbors ?? []).map((id) => ds.zone(id)).filter(Boolean);
+      let r = pick(dests, args, (d) => d.name, () => -1);
+      if (!r.one) r = pick(ds.zones(), args, (d) => d.name, () => -1);
+      if (!r.one) { console.log(red(r.many ? 'Which zone? ' + r.many.map((d) => d.name).join(', ') : 'No such zone.')); return; }
+      const pv = g.previewTravel(r.one.id);
+      if (!show(pv)) return;
+      const res = g.travelTo(r.one.id);
+      if (!show(res)) return;
+      g.completeJourneyNow();
+      console.log(`You travel to ${bold(r.one.name)}.  ${dim(`${Math.round(pv.totalSeconds)} s${pv.totalCopper ? `, ${moneyText(pv.totalCopper)}` : ''}`)}`);
+      curVendor = null;
+      this.look();
+    },
+    hearth() { const res = g.castHearth(); if (show(res)) { g.completeJourneyNow(); console.log(`You hearth to ${zoneHere()?.name}.`); curVendor = null; } },
+    bind() { show(g.bindHearth(), `Your home is now ${zoneHere()?.name}.`); },
+    release() { show(g.runToCorpse(), 'You release your spirit and run to your corpse.'); },
+    reclaim() { show(g.reclaimCorpse(), `You return to life.  HP ${hp()}`); },
+    spirit() { show(g.spiritHealerResurrect(), `The spirit healer returns you to life.  HP ${hp()}`); },
+    log(args) { logOn = args.trim() !== 'off'; console.log(`Combat log ${logOn ? 'on' : 'off'}.`); },
+    auto(args) { runAutopilot(args); },
+    async save() { await persist(); console.log(dim(`saved ${slot}`)); },
+  };
+
+  function trainersHere() {
+    return (zoneHere()?.trainers ?? []).filter((t) => t.cls === g.state.char.cls).map((t) => ds.trainer(t.entry)).filter(Boolean);
+  }
+  function learnable(t) {
+    const known = new Set(g.state.spellbook.known);
+    return t.spells
+      .filter((ts) => ts.reqLevel <= g.state.char.level && !known.has(ts.spell))
+      .map((ts) => ({ ts, sp: ds.spell(ts.spell) }))
+      .filter((x) => x.sp)
+      .sort((a, b) => a.ts.reqLevel - b.ts.reqLevel || a.sp.name.localeCompare(b.sp.name));
+  }
+
+  function runAutopilot(args) {
+    const m = args.match(/^(\d+)?\s*(?:farm\s+(.+))?$/i);
+    const steps = Math.min(Number(m?.[1] ?? 20), 500);
+    let mode = { kind: 'quest' };
+    if (m?.[2]) {
+      const r = pick((zoneHere()?.huntable ?? []).map((e) => ds.creature(e)).filter(Boolean), m[2], (c) => c.name, (c) => c.entry);
+      if (!r.one) { console.log(red('No such creature here.')); return; }
+      mode = { kind: 'farm', creatureEntry: r.one.entry };
+    }
+    const sets = { blockedAccepts: new Set(), blockedSpeaks: new Set(), blockedObjects: new Set(), blockedTurnins: new Set(), blockedUses: new Set(), blockedFights: new Set(), blockedTravels: new Set(), blockedQuests: new Set() };
+    const prog = { elapsedMs: 0, recovering: false, consecutiveDefeats: 0, questDefeats: new Map(), ...sets };
+    const cfg = g.autopilotConfig();
+    const wasLog = logOn; logOn = false;
+    const nm = (id) => ds.quest(id)?.title ?? `quest ${id}`;
+    for (let i = 1; i <= steps; i++) {
+      if (isDead()) {
+        g.runToCorpse();
+        if (!g.reclaimCorpse().ok) g.spiritHealerResurrect();
+        console.log(dim(`  ${i}. back to life, HP ${hp()}`));
+        continue;
+      }
+      const step = planStep(g.state, ds, mode, cfg, prog);
+      let line = '';
+      switch (step.kind) {
+        case 'fight': {
+          const c = ds.creature(step.creatureEntry);
+          const r = g.fight(step.creatureEntry);
+          if (!r.ok) { sets.blockedFights.add(step.creatureEntry); line = red(`fight ${c?.name}: ${r.reason}`); break; }
+          prog.consecutiveDefeats = r.outcome === 'defeat' ? prog.consecutiveDefeats + 1 : 0;
+          const loot = r.loot.map((d) => ds.item(d.item)?.name ?? d.item).join(', ');
+          line = `${r.outcome === 'win' ? 'killed' : r.outcome} ${c?.name}  HP ${hp()}${r.xpGained ? `  +${r.xpGained} xp` : ''}${loot ? `  ${yellow(loot)}` : ''}`;
+          for (const lv of r.leveledTo) console.log(bold(green(`  Level ${lv}!`)));
+          break;
+        }
+        case 'consume': { const r = g.consumeItem(step.itemEntry, step.effect); line = r.ok ? `${step.effect}: ${ds.item(step.itemEntry)?.name}` : red(`cannot ${step.effect}: ${r.reason}`); break; }
+        case 'cannibalize': { const r = g.cannibalize(); line = r.ok ? 'cannibalize' : red(r.reason); break; }
+        case 'wait': g.regenTick(10, true); prog.elapsedMs += 10_000; line = dim(`rest  HP ${hp()}  power ${pw()}`); break;
+        case 'turnin': { const r = g.turnInQuest(step.questEntry, 0); if (!r.ok) sets.blockedTurnins.add(step.questEntry); line = r.ok ? green(`turned in ${nm(step.questEntry)}`) : red(`turn-in ${nm(step.questEntry)}: ${r.reason}`); break; }
+        case 'accept': { const r = g.acceptQuest(step.questEntry); if (!r.ok) sets.blockedAccepts.add(step.questEntry); line = r.ok ? `accepted ${nm(step.questEntry)}` : dim(`skip ${nm(step.questEntry)}: ${r.reason}`); break; }
+        case 'object': { const r = g.interactObject(step.objectEntry); if (!r.ok) sets.blockedObjects.add(step.objectEntry); line = r.ok ? `used ${ds.gameObject?.(step.objectEntry)?.name ?? step.objectEntry}` : dim(`object ${step.objectEntry}: ${r.reason}`); break; }
+        case 'use': { const r = g.useQuestItemOnTarget({ itemEntry: step.itemEntry, targetCreatureEntry: step.targetCreatureEntry }); if (!r.ok) sets.blockedUses.add(step.itemEntry); line = r.ok ? `used ${ds.item(step.itemEntry)?.name}` : dim(`use ${ds.item(step.itemEntry)?.name}: ${r.reason}`); break; }
+        case 'speak': { const r = g.talkToNpc({ npcName: step.npcName }); if (!r.ok) sets.blockedSpeaks.add(step.questEntry); line = r.ok ? `spoke to ${step.npcName}` : dim(`speak ${step.npcName}: ${r.reason}`); break; }
+        case 'travel': { const r = g.travelTo(step.zoneId); if (r.ok) g.completeJourneyNow(); else sets.blockedTravels.add(step.zoneId); line = r.ok ? cyan(`travel to ${ds.zone(step.zoneId)?.name} (${step.reason})`) : dim(`travel ${step.zoneId}: ${r.reason}`); break; }
+        case 'equip': { const r = g.equip(step.itemEntry); line = r.ok ? `equipped ${ds.item(step.itemEntry)?.name}` : dim(`equip: ${r.reason}`); break; }
+        case 'event': { const r = g.finishEscort(step.questEntry); if (!r.ok) sets.blockedQuests.add(step.questEntry); line = r.ok ? `event done for ${nm(step.questEntry)}` : dim(`event: ${r.reason}`); break; }
+        case 'gather': { const r = g.gather(step.nodeId); line = r.ok ? `gathered ${r.yielded.map((d) => ds.item(d.item)?.name).join(', ')}` : dim(`gather: ${r.reason}`); break; }
+        case 'skin': { const r = g.skin(); line = r.ok ? `skinned: ${r.yielded.map((d) => ds.item(d.item)?.name).join(', ')}` : dim(`skin: ${r.reason}`); break; }
+        case 'buy': { const r = g.buyItem(step.vendorEntry, step.itemEntry, step.count); line = r.ok ? `bought ${ds.item(step.itemEntry)?.name} x${step.count}` : dim(`buy: ${r.reason}`); break; }
+        case 'stop': console.log(yellow(`  autopilot stopped: ${step.reason}${step.detail ? ` (${step.detail})` : ''}`)); i = steps + 1; break;
+        default: line = dim(`unhandled step ${step.kind}`);
+      }
+      if (line) console.log(dim(`  ${String(i).padStart(3)}.`) + ' ' + line);
+      prog.elapsedMs += 1000;
+    }
+    logOn = wasLog;
+    console.log(`Level ${g.state.char.level}, ${moneyText(g.state.char.gold)}, ${zoneHere()?.name}.`);
+  }
+
+  const prompt = () => {
+    const ch = g.state.char;
+    const dead = isDead() ? red(' dead') : '';
+    return `${bold(ch.name)} ${dim(`L${ch.level}`)} ${cyan(zoneHere()?.name ?? ch.zoneId)} ${dim(`hp ${hp()} ${pw()}`)}${dead}\n> `;
+  };
+
+  console.log();
+  commands.look();
+  while (true) {
+    const line = await askRaw(prompt());
+    if (line == null) break;
+    const [, cmd = '', args = ''] = line.trim().match(/^(\S+)\s*(.*)$/) ?? [];
+    if (!cmd) continue;
+    if (cmd === 'quit' || cmd === 'exit') break;
+    const fn = commands[cmd.toLowerCase()];
+    if (!fn) { console.log(dim(`Unknown command "${cmd}". Type help.`)); continue; }
+    try { await fn.call(commands, args); }
+    catch (err) { console.log(red(`Error: ${err instanceof Error ? err.message : String(err)}`)); if (process.env.AZSH_DEBUG) console.log(err.stack); }
+    flushActivity();
+    try { await persist(); } catch (err) { console.log(red(`save failed: ${err.message}`)); }
+  }
+  await persist();
+  console.log(dim(`Saved ${g.state.char.name}. Farewell.`));
+  rl.close();
+}
+
+async function createCharacter(ds, ask) {
+  const races = ds.races();
+  console.log('\nRaces:');
+  races.forEach((r, i) => console.log(`  ${i + 1}. ${r.name.padEnd(10)} ${dim(r.faction)}`));
+  let race;
+  while (!race) { const i = Number(await ask('Race: ')); race = races[i - 1]; }
+  const classes = race.classes.filter((c) => ds.createInfo(race.id, c));
+  console.log('Classes:');
+  classes.forEach((c, i) => console.log(`  ${i + 1}. ${className(c)}`));
+  let cls;
+  while (!cls) { const i = Number(await ask('Class: ')); cls = classes[i - 1]; }
+  const gender = (await ask('Gender (m/f): ')).toLowerCase().startsWith('f') ? 1 : 0;
+  let name = '';
+  while (!/^[A-Za-z]{2,12}$/.test(name)) name = await ask('Name (2-12 letters): ');
+  name = name[0].toUpperCase() + name.slice(1).toLowerCase();
+  const seed = (Date.now() ^ (Math.random() * 0x7fffffff)) >>> 0;
+  return newGameState(ds, race.id, cls, name, seed, gender);
+}

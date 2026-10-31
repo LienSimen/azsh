@@ -1,0 +1,328 @@
+{
+ "raid": "blackwing-lair",
+ "bosses": [
+  {
+   "entry": 12435,
+   "name": "Razorgore the Untamed",
+   "kinds": [
+    "use-object",
+    "mc",
+    "kill-order"
+   ],
+   "cite": "boss_razorgore.cpp orb + eggs + death-prevention",
+   "encounterRows": [
+    {
+     "kind": "kill-order",
+     "label": "Legionnaires, mages, dragonspawn (not Razorgore)",
+     "cite": "blackwing_lair.h:45-47 NPC_BLACKWING_LEGIONNAIRE 12416, MAGE 12420, DRAGONSPAWN 12422; boss_razorgore.cpp:67,83 SetDeathPrevention until last egg",
+     "rule": {
+      "id": "raid_enc_12435_kill",
+      "action": {
+       "kind": "kill_order",
+       "entries": [
+        12416,
+        12420,
+        12422
+       ]
+      },
+      "conditions": [],
+      "enabled": true
+     }
+    },
+    {
+     "kind": "use-object",
+     "label": "Click the Orb of Domination",
+     "cite": "blackwing_lair.h:57 GO_ORB_OF_DOMINATION 177808 trigger 19832; one bake spawn on map 469",
+     "rule": {
+      "id": "raid_enc_12435_orb",
+      "action": {
+       "kind": "use_object",
+       "goEntry": 177808
+      },
+      "conditions": [],
+      "enabled": true
+     }
+    }
+   ],
+   "blockedBy": {
+    "mc": "blackwingLair.ts:13 SPELL_POSSESS 19832 orb transfer is a residual - the raid never becomes Razorgore, so there is no MC body to author a row for"
+   }
+  },
+  {
+   "entry": 13020,
+   "name": "Vaelastrasz the Corrupt",
+   "kinds": [
+    "flee",
+    "tank-swap",
+    "position",
+    "resist"
+   ],
+   "cite": "boss_vaelastrasz.cpp:289-325 the Burning Adrenaline pair, two frontal cones and a 100 yd nova",
+   "resist": "fire",
+   "tankSwapAura": 18173,
+   "fleeAuras": [
+    {
+     "aura": 23620,
+     "radiusYd": 10,
+     "cite": "boss_vaelastrasz.cpp:295-301 RANDOM|PLAYER|POWER_MANA; aura-remove.ts:59 23620 -> 23478 radiusYd 10 (+ 23644 instakill on the holder)"
+    }
+   ],
+   "encounterRows": [
+    {
+     "kind": "position",
+     "label": "Get off his axis (flank him)",
+     "cite": "boss_vaelastrasz.cpp:304 FLAME_BREATH 23461 on GetVictim(); :322 TAIL_SWEEP 15847 on self - spell_cone 82 forward and -82 behind, so only the flank clears both",
+     "rule": {
+      "id": "raid_enc_13020_behind",
+      "action": {
+       "kind": "move",
+       "move": {
+        "kind": "flank_target"
+       }
+      },
+      "conditions": [
+       {
+        "subject": "self",
+        "metric": "targetAttackingMe",
+        "op": "==",
+        "value": 0
+       },
+       {
+        "subject": "self",
+        "metric": "inTargetCone",
+        "op": "==",
+        "value": 1
+       },
+       {
+        "subject": "self",
+        "metric": "debuffPresent",
+        "op": "==",
+        "value": 0,
+        "ref": 23620
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "entry": 12017,
+   "name": "Broodlord Lashlayer",
+   "kinds": [],
+   "cite": "boss_broodlord_lashlayer.cpp:35-38 CLEAVE / KNOCK_AWAY 18670 / BLAST_WAVE 23331 / MORTAL_STRIKE 24573. 24573 bakes healing_taken_pct -50 for 5000 ms and does not stack, so it expires inside one taunt cycle - not a tank-swap aura like 23340 or 25646"
+  },
+  {
+   "entry": 11983,
+   "name": "Firemaw",
+   "kinds": [
+    "cloak",
+    "resist"
+   ],
+   "cite": "boss_firemaw.cpp:32 SPELL_SHADOW_FLAME 22539; Flame Buffet is not a tank-swap aura",
+   "resist": "fire",
+   "cloak": {
+    "item": 15138,
+    "dummySpell": 22683,
+    "who": "tanks"
+   }
+  },
+  {
+   "entry": 14601,
+   "name": "Ebonroc",
+   "kinds": [
+    "cloak",
+    "resist",
+    "tank-swap"
+   ],
+   "cite": "boss_ebonroc.cpp:34,87-90 SPELL_SHADOW_OF_EBONROC 23340 on victim; :32 Shadow Flame",
+   "resist": "fire",
+   "cloak": {
+    "item": 15138,
+    "dummySpell": 22683,
+    "who": "tanks"
+   },
+   "tankSwapAura": 23340
+  },
+  {
+   "entry": 11981,
+   "name": "Flamegor",
+   "kinds": [
+    "cloak",
+    "resist"
+   ],
+   "cite": "boss_flamegor.cpp:32 SPELL_SHADOW_FLAME 22539; Frenzy is Tranq, not a tank-swap aura",
+   "resist": "fire",
+   "cloak": {
+    "item": 15138,
+    "dummySpell": 22683,
+    "who": "tanks"
+   }
+  },
+  {
+   "entry": 14020,
+   "name": "Chromaggus",
+   "kinds": [
+    "halt-dps"
+   ],
+   "cite": "boss_chromaggus.cpp:113 elemental shield; :134 brood afflictions",
+   "encounterRows": [
+    {
+     "kind": "halt-dps",
+     "label": "Only fire (Elemental Shield)",
+     "cite": "SpellEffects.cpp:819-829 case 22276 CastSpell(m_caster, elemshields[urand(0,4)]); spell 22277 bake +1100 schoolMask is fire, durationIndex 21 until-cancelled",
+     "rule": {
+      "id": "raid_enc_14020_halt_22277",
+      "action": {
+       "kind": "halt_dps",
+       "school": [
+        "holy",
+        "nature",
+        "frost",
+        "shadow",
+        "arcane"
+       ]
+      },
+      "conditions": [
+       {
+        "subject": "target",
+        "metric": "buffPresent",
+        "op": "==",
+        "value": 1,
+        "ref": 22277
+       }
+      ],
+      "enabled": true
+     }
+    },
+    {
+     "kind": "halt-dps",
+     "label": "Only frost (Elemental Shield)",
+     "cite": "SpellEffects.cpp:819-829 case 22276 CastSpell(m_caster, elemshields[urand(0,4)]); spell 22278 bake +1100 schoolMask is frost, durationIndex 21 until-cancelled",
+     "rule": {
+      "id": "raid_enc_14020_halt_22278",
+      "action": {
+       "kind": "halt_dps",
+       "school": [
+        "holy",
+        "fire",
+        "nature",
+        "shadow",
+        "arcane"
+       ]
+      },
+      "conditions": [
+       {
+        "subject": "target",
+        "metric": "buffPresent",
+        "op": "==",
+        "value": 1,
+        "ref": 22278
+       }
+      ],
+      "enabled": true
+     }
+    },
+    {
+     "kind": "halt-dps",
+     "label": "Only shadow (Elemental Shield)",
+     "cite": "SpellEffects.cpp:819-829 case 22276 CastSpell(m_caster, elemshields[urand(0,4)]); spell 22279 bake +1100 schoolMask is shadow, durationIndex 21 until-cancelled",
+     "rule": {
+      "id": "raid_enc_14020_halt_22279",
+      "action": {
+       "kind": "halt_dps",
+       "school": [
+        "holy",
+        "fire",
+        "nature",
+        "frost",
+        "arcane"
+       ]
+      },
+      "conditions": [
+       {
+        "subject": "target",
+        "metric": "buffPresent",
+        "op": "==",
+        "value": 1,
+        "ref": 22279
+       }
+      ],
+      "enabled": true
+     }
+    },
+    {
+     "kind": "halt-dps",
+     "label": "Only nature (Elemental Shield)",
+     "cite": "SpellEffects.cpp:819-829 case 22276 CastSpell(m_caster, elemshields[urand(0,4)]); spell 22280 bake +1100 schoolMask is nature, durationIndex 21 until-cancelled",
+     "rule": {
+      "id": "raid_enc_14020_halt_22280",
+      "action": {
+       "kind": "halt_dps",
+       "school": [
+        "holy",
+        "fire",
+        "frost",
+        "shadow",
+        "arcane"
+       ]
+      },
+      "conditions": [
+       {
+        "subject": "target",
+        "metric": "buffPresent",
+        "op": "==",
+        "value": 1,
+        "ref": 22280
+       }
+      ],
+      "enabled": true
+     }
+    },
+    {
+     "kind": "halt-dps",
+     "label": "Only arcane (Elemental Shield)",
+     "cite": "SpellEffects.cpp:819-829 case 22276 CastSpell(m_caster, elemshields[urand(0,4)]); spell 22281 bake +1100 schoolMask is arcane, durationIndex 21 until-cancelled",
+     "rule": {
+      "id": "raid_enc_14020_halt_22281",
+      "action": {
+       "kind": "halt_dps",
+       "school": [
+        "holy",
+        "fire",
+        "nature",
+        "frost",
+        "shadow"
+       ]
+      },
+      "conditions": [
+       {
+        "subject": "target",
+        "metric": "buffPresent",
+        "op": "==",
+        "value": 1,
+        "ref": 22281
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "entry": 11583,
+   "name": "Nefarian",
+   "kinds": [
+    "cloak",
+    "resist"
+   ],
+   "cite": "boss_nefarian.cpp landing Shadow Flame; class calls",
+   "resist": "fire",
+   "cloak": {
+    "item": 15138,
+    "dummySpell": 22683,
+    "who": "raid"
+   }
+  }
+ ]
+}

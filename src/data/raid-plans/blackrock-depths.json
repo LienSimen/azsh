@@ -1,0 +1,419 @@
+{
+  "raid": "blackrock-depths",
+  "note": "Reviewed for E5.4 against the four boss cpps, blackrock_depths.cpp, eventai/blackrock-depths.ts and acid_classic.sql:13914-14311. Twenty-two encounters, sixteen come back kinds: [] - the wing's standard shape is a disc at or inside melee reach, which the melee have to stand in to fight at all, and the ranged stand is already outside it. Six earn a row: Lord Roccor and Phalanx each carry a 20 yd disc centred on themselves, which is the Archaedas shape; Lord Incendius and Bael'Gar each put a 5 yd area on a random raider; and General Angerforge and Ambassador Flamelash each summon a named body the fight is actually about.",
+  "bosses": [
+    {
+      "entry": 9025,
+      "name": "Lord Roccor",
+      "kinds": [
+        "position"
+      ],
+      "note": "Ground Tremor stuns everything within 20 yd of Roccor every 9 to 14 seconds. The melee have to eat it. The ranged only need to stand a yard further back.",
+      "cite": "eventai/blackrock-depths.ts:329-362 scripts 902501-902503, acid_classic.sql:14139-14141 creature_id=9025. Flame Shock 13729 is targetA 6 rangeMax 20, a single-target dot; Earth Shock 13728 is targetA 6 rangeMax 20 with Effect 68 INTERRUPT_CAST. Ground Tremor 6524 is the raid-side one, and it is the SAME spell id Archaedas casts in Uldaman.",
+      "encounterRows": [
+        {
+          "kind": "position",
+          "label": "Casters step out of Ground Tremor",
+          "cite": "spell 6524 Ground Tremor bakes aoeShape pbaoe radiusYd 20, rawEffects targetA 22 TARGET_LOCATION_CASTER_SRC and targetB 15, mechanic 12, a 2000 ms stun, castTimeMs 0, cooldownMs 5000. Script 902501-902503 fires it on a 5-15 s opener then every 9-14 s at TARGET_T 17 NEAREST_AOE_TARGET (aiTargeting.ts:42), which picks who it centres on but not where the disc sits - a pbaoe is always on the caster. That makes this the uldaman.json Archaedas row spell for spell: isWithinRadiusYd hits at <=, so 21 is the first clear yard, and the trigger is deliberately wider than the park because a row released on the yard it parks on re-arms on the boss's next step and cancels its own walk. 24 in / 21 out leaves 2.5 yd to stand and cast in, and the 25 yd ranged stand (stand.ts:20 RANGED_STAND_DEFAULT_YD) sits outside the trigger so the camp is not armed all fight. isCaster keeps the melee out of it: 21 yd is four times MIN_AGGRO_DISTANCE 5 (creatureAiConstants.ts:76) and a permanent park there would end melee for a 2 s stun. A hunter on the 20 yd floor (stand.ts:18 RANGED_STAND_MIN_YD, which the disc reaches at <=) takes the same one-yard step. He leaves no aura and has no cast bar, so this is a standing position rule and not a reaction.",
+          "rule": {
+            "id": "raid_enc_9025_range_6524",
+            "action": {
+              "kind": "move",
+              "move": {
+                "kind": "keep_range",
+                "minYd": 21,
+                "entry": 9025
+              }
+            },
+            "conditions": [
+              {
+                "subject": "self",
+                "metric": "isCaster",
+                "op": "==",
+                "value": 1
+              },
+              {
+                "subject": "self",
+                "metric": "creatureDistanceYd",
+                "op": "<=",
+                "value": 24,
+                "ref": 9025
+              }
+            ],
+            "enabled": true
+          }
+        }
+      ]
+    },
+    {
+      "entry": 9018,
+      "name": "High Interrogator Gerstahn",
+      "kinds": [],
+      "cite": "boss_high_interrogator_gerstahn.cpp:28-116; there are no ACID rows for 9018 (acid_classic.sql:14127 names the cpp instead) and creatures.json 9018 carries the kit on charmSpells only, so the schedule is the port at scriptdev/blackrockDepths.ts:287-345. Shadow Word: Pain 14032 is targetA 6 rangeMax 30, a single-target dot; Mana Burn 14033 is targetA 6 Effect 62 on a mana holder; Shadow Shield 12040 is targetA 1, a 199 absorb on herself. Psychic Scream 13704 is the only shaped one: pbaoe radiusYd 8, targetA 22 and tgtB 15, mechanic 5 fear, 6 s, castTimeMs 0, every 30 s. That is the Dextren Ward disc - the melee are inside 8 yd because that is where melee happens, the 20-25 yd stand is already outside it, and what answers a repeated melee fear is Fear Ward, Tremor Totem, Berserker Rage or a trinket, which are class rows."
+    },
+    {
+      "entry": 9398,
+      "name": "Commander Gor'shak - Jail Defense",
+      "kinds": [],
+      "cite": "blackrock-depths.ts:498-524 BRD_GORSHAK_JAIL and :942-973. This encounter is a quest-3982 timed gauntlet, not a creature fight: wave 1 at 3 s is 3x Anvilrage Guardsman 8891, wave 2 at 45 s is 1x Twilight's Hammer Executioner 9398 plus 2x 8891, and 9398 is the primary only because floorGauntletWaves wants the final wave's entry. Its kit is acid_classic.sql:14245-14246 creature_id=9398: Battle Fury 3631 is Effect 35 APPLY_AREA_AURA_PARTY targetA 1 radiusYd 10, a +24% melee haste aura on his own side that a purge answers, and Decimate 13459 is targetA 25 aura 51 with no radius. Neither is area damage and neither has ground to stand out of."
+    },
+    {
+      "entry": 9319,
+      "name": "Houndmaster Grebmar",
+      "kinds": [],
+      "cite": "eventai/blackrock-depths.ts:657-700 scripts 931901-931904, acid_classic.sql:14240-14243 creature_id=9319. Demoralizing Shout 13730 is aoeShape pbaoe radiusYd 10, targetA 22 and tgtB 15, castTimeMs 0, aura 99 attack power -11 for 30 s - a debuff disc with no damage, so there is nothing a step-out saves. Pummel 15615 is targetA 6 rangeMax 5 with Effect 68 INTERRUPT_CAST on whoever he is hitting. Bloodlust 21049 is targetA 21 TARGET_UNIT_FRIEND at 30 yd, fired on EVENT_T 16 FRIENDLY_MISSING_BUFF, so it is a haste buff he puts on a bloodhound - dispel 1 magic names the answer and a purge is a class row. Flees for assist at 15%."
+    },
+    {
+      "entry": 9027,
+      "name": "Ring of Law",
+      "kinds": [
+        "position"
+      ],
+      "note": "The arena rolls one of six champions per attempt, so a plan row written here reaches the roll one time in six.",
+      "cite": "blackrock-depths.ts:993-1031 builds this encounter on ENTRY.gorosh 9027 as a PLACEHOLDER, and :302-325 materializeRingOfLawEncounter replaces both the trash type and the final wave at fight start from BRD_RING_OF_LAW.bossPool (:257-264): 9027 Gorosh the Dervish, 9028 Grizzle, 9029 Eviscerator, 9030 Ok'thor the Breaker, 9031 Anub'shiah, 9032 Hedrum the Creeper, one urand roll each run (blackrock_depths.cpp aRingBoss[] :202). Judged on the entry the row would actually key to: creatures.json 9027 is Mortal Strike 15708 (targetA 6 rangeMax 5), Bloodlust 21049 (friendly buff) and Whirlwind 13736, and 13736 is the only shape. It is targetA 1 aura 23 periodic-trigger amplitude 2000 with duration 2000, firing 15589 - aoeShape pbaoe radiusYd 8. That is the Herod disc at a TWENTIETH of the window: 8989 runs 10 s and sm-armory.json gates keep_range 9 on buffPresent 8989, while 13736 is gone in 2 s, which is less than the walk out and back. 15589 is also Effect 17 SPELL_EFFECT_WEAPON_DAMAGE, which the bake has no mapper for, so spell-data 15589 ships effects: [] and it lands nothing on this floor today. acid_classic.sql:14143-14145 creature_id=9027, eventai/blackrock-depths.ts:368-401 scripts 902701-902703.",
+      "encounterRows": [
+        {
+          "kind": "position",
+          "label": "Casters step out of Grizzle's Ground Tremor",
+          "cite": "Grizzle 9028 is one of the six the arena rolls (blackrock-depths.ts:257-264 bossPool, blackrock_depths.cpp:202 aRingBoss[]) and the only one of the six carrying a row-worthy disc. acid_classic.sql:14147-14149 creature_id=9028, eventai/blackrock-depths.ts:407-442 script 902801 fires Ground Tremor 6524 every 7-14 s. That is the SAME spell id Lord Roccor casts above and Archaedas casts in Uldaman, so this row is his spell for spell: 6524 bakes aoeShape pbaoe radiusYd 20, rawEffects targetA 22 TARGET_LOCATION_CASTER_SRC and targetB 15, mechanic 12, a 2000 ms stun, castTimeMs 0. isWithinRadiusYd hits at <=, so 21 is the first clear yard, and the 24 yd trigger is deliberately wider than the park so a row released on the yard it parks on cannot re-arm on the boss's next step and cancel its own walk. isCaster keeps the melee out of it - a permanent park at 21 yd would end melee for a 2 s stun. What made this unauthorable until 2026-08-27 was not the spell but the FILING: buildEncounterRowIndex keyed a boss's rows on its own entry plus whatever a kill-order named, and 9027 is a placeholder the fight overwrites at materialize (:302-325), so a row filed under it was off five runs in six. A row now also files under the body its keep_range NAMES, and all 13 move rows in the shipped packs name their own boss, so nothing else moved.",
+          "rule": {
+            "id": "raid_enc_9027_range_6524_grizzle",
+            "action": {
+              "kind": "move",
+              "move": {
+                "kind": "keep_range",
+                "minYd": 21,
+                "entry": 9028
+              }
+            },
+            "conditions": [
+              {
+                "subject": "self",
+                "metric": "isCaster",
+                "op": "==",
+                "value": 1
+              },
+              {
+                "subject": "self",
+                "metric": "creatureDistanceYd",
+                "op": "<=",
+                "value": 24,
+                "ref": 9028
+              }
+            ],
+            "enabled": true
+          }
+        }
+      ]
+    },
+    {
+      "entry": 9024,
+      "name": "Pyromancer Loregrain",
+      "kinds": [],
+      "cite": "eventai/blackrock-depths.ts:280-323 scripts 902401-902404, acid_classic.sql:14134-14137 creature_id=9024. Molten Blast 15095 is targetA 6 rangeMax 30 castTimeMs 2000, and Flame Shock 15616 is targetA 6 rangeMax 20 - both single target with no radiusYd. Fire Ward 15041 is targetA 1, a 119 fire absorb on himself. Scorching Totem 15038 is Effect 87 summon_totem of creature 9637 with 5 HP for 35 s, which is a body and not a party verb, and the body is inert anyway: creatures.json 9637 carries its Attack 15037 on charmSpells with an empty spells array, so the totem swings nothing on this floor."
+    },
+    {
+      "entry": 9017,
+      "name": "Lord Incendius",
+      "kinds": [
+        "spread",
+        "position"
+      ],
+      "note": "Fire Storm drops a burning 5 yd patch under a random party member and it keeps ticking for 30 seconds. Step off it.",
+      "cite": "eventai/blackrock-depths.ts:226-274 scripts 901701-901705, acid_classic.sql:14122-14126 creature_id=9017. Curse of the Elemental Lord 26977 is pbaoe radiusYd 45 - the whole room - and it is aura 22 fire resistance -101, dispel 2 curse, so a decurse answers it and that is a class row. Mighty Blow 14099 is targetA 6 rangeMax 10 single target. Fiery Burst 13900 is the second ground spell and is handled in blockedBy. Fire Storm 13899 is the row.",
+      "encounterRows": [
+        {
+          "kind": "spread",
+          "label": "Step out of Fire Storm (5 yd pool)",
+          "cite": "spell 13899 Fire Storm bakes aoe ground radiusYd 5 castTimeMs 2000: 324-376 fire on impact plus Effect 27 persistent area (aura 3, amplitude 3000) that dynamicObject.ts:220-223 isPersistentAreaEffect turns into a real pool ticking 185 every 3 s for 30 s. Script 901704 fires it at TARGET_T 4 HOSTILE_RANDOM every 11-14 s, so the patch lands on a random raider, and applySpell.ts:1261 sites the pool on the TARGET for a ground shape (aoeFanFromCaster is false for 'ground', combatGeometry.ts:317-319) rather than on Incendius. Incendius's own body is not published as a hazard beside it: hazards.ts:81 requires spellAoeFromCaster, and 13899 is targetA 16 AT_DEST_LOC with rangeMax 30, which combatGeometry.ts:328 CASTER_LOCATION_TARGET_A does not contain, so the only thing avoid_zone \"13899\" can match is the pool itself. That is the Faerlina / Huhuran / Venoxis row shape exactly, gated the same way on hazardProximityYd, so it disarms the moment the raider is clear and never becomes a standing park.",
+          "rule": {
+            "id": "raid_enc_9017_avoid_13899",
+            "action": {
+              "kind": "move",
+              "move": {
+                "kind": "avoid_zone",
+                "id": "13899"
+              }
+            },
+            "conditions": [
+              {
+                "subject": "self",
+                "metric": "hazardProximityYd",
+                "op": "<=",
+                "value": 0
+              }
+            ],
+            "enabled": true
+          }
+        }
+      ],
+      "blockedBy": {
+        "position": "Fiery Burst 13900 is the other half of the kit and no verb reaches it. It bakes aoe ground radiusYd 10 castTimeMs 1500 for 509 base fire with NO dot, so isPersistentAreaEffect is false and no pool is created for avoid_zone to match. Script 901702 fires it at TARGET_T 1 HOSTILE, i.e. centred on whoever he is tanking, every 9-16 s - so every melee is inside the 10 yd fan by construction. spread cannot answer that either: minYd would be 11, and CORRECTED 2026-08-27, and this clause is now DEAD twice over: clampAimToOwnReach no longer pins a melee onto a flat ring at all - sessionMechanicMove.ts:130 floors it at meleeContactYd(false, f.spec.combatReachYd, focus.spec.combatReachYd), so entry 9017 at combat_reach 3.00 gives a 6.38 ring, not (combatGeometry.ts:37, creatureAiConstants.ts:76), where three melee cannot be 11 yd apart, so the row would shuffle all fight and never settle. That is the same refusal sm-graveyard.json records for a 10 yd fan. STALE AS OF 2026-08-26, and only this clause: 1a2b3512d floored clampAimToOwnReach at the PAIR contact ring instead of the flat 5. Lord Incendius carries combat_reach 3.00, so the ring is 6.38 and two melee on opposite sides of him stand 12.76 yd apart - outside the radiusYd 10 fan, where at the old flat 5 they were 10.00 apart and inside it. So a spread minYd 11 is now geometrically satisfiable without leaving melee reach, and the walk fits the cast: each mover covers about half the 9 yd of separation, ~640 ms against a 1500 ms cast. The OTHER clause still stands and is what keeps this blocked: the burst bakes no dot, so isPersistentAreaEffect is false, no pool exists and avoid_zone has nothing to match. NO row is authored on arithmetic alone - the tank eats the fan by construction and whether the other melee actually end up on opposite arcs is a placement question that wants a floor measurement."
+      }
+    },
+    {
+      "entry": 9041,
+      "name": "Warder Stilgiss",
+      "kinds": [],
+      "cite": "eventai/blackrock-depths.ts:706-770 scripts 904101-904107, acid_classic.sql:14220-14226 creature_id=9041. 904101 puts him in SET_RANGED_MODE 2 at 35 yd; Frostbolt 12675 is targetA 6 rangeMax 40 castTimeMs 3000 single target, and Frost Armor 12544 / 12556 and Frost Ward 15044 are all targetA 1 self buffs. Frost Nova 12674 is the only shaped one: aoeShape pbaoe radiusYd 10, targetA 22 and tgtB 15, castTimeMs 0, mechanic 7 root, 97 frost plus an 8 s root, every 14-18 s. Ten yards on a mob that stands at 35 lands on whoever chased him, which is the melee, and there is no cast bar and no aura on him to gate a walk on. A trinket or a Free Action Potion answers a root and both are class rows."
+    },
+    {
+      "entry": 9056,
+      "name": "Fineous Darkvire",
+      "kinds": [],
+      "cite": "eventai/blackrock-depths.ts:595-651 scripts 905601-905606, acid_classic.sql:14231-14236 creature_id=9056. Holy Strike 13953 is Effect 58 targetA 6 rangeMax 5, Kick 11978 is targetA 6 with Effect 68 INTERRUPT_CAST on EVENT_T TARGET_CASTING, and Seal of Reckoning 15346 is targetA 21 aura 42 on himself. Devotion Aura 8258 is Effect 35 APPLY_AREA_AURA_PARTY radiusYd 30 for +20 armor - a friendly buff, so a purge is the answer and that is a class row. Holy Light 15493 at 60% and 40% HP is a 467-541 self-heal with castTimeMs 2500 and interruptFlags 15, which is a kick or an Earth Shock - also a class row. Nothing in the kit carries an enemy radiusYd."
+    },
+    {
+      "entry": 9016,
+      "name": "Bael'Gar",
+      "kinds": [
+        "spread"
+      ],
+      "note": "Bael'Gar drops a 5 yd fire blast on one party member at 80, 60, 40 and 20 percent health. Standing apart means it only ever catches one.",
+      "cite": "eventai/blackrock-depths.ts:172-220 scripts 901601-901605, acid_classic.sql:14116-14120 creature_id=9016. Magma Splash 23378 is targetA 1 aura 42 proc-trigger of 23379, and it does nothing here twice over: spell-data 23378 ships effects: [] and spell_proc_event gives it customChance 25 with a 3,000,000 ms cooldown. Summon Spawn of Bael'Gar 13895 is the whole fight and it is the row.",
+      "encounterRows": [
+        {
+          "kind": "spread",
+          "label": "Stand 6 yd apart so one Spawn blast cannot catch two",
+          "cite": "spell 13895 bakes aoe ground radiusYd 5 castTimeMs 4000 rangeMax 30 for 1388-1612 fire. Its rawEffects targetA is 16 AT_DEST_LOC, which combatGeometry.ts:328 CASTER_LOCATION_TARGET_A does not contain, so spellAoeFromCaster is false and aoeCast.ts:80 centres the 5 yd fan on the CAST'S target rather than on Bael'Gar - a distance between raiders, which is the one thing spacing can answer. Scripts 901602-901605 fire it at TARGET_T 4 HOSTILE_RANDOM on the 80 / 60 / 40 / 20% HP thresholds, so it is a random raider four times a fight at roughly a level-55 party member's whole health bar. minYd 6 is radiusYd 5 plus one, the same first-clear-yard rule the Thalnos row uses, and deliberately not radius plus FLEE_CLEAR_MARGIN_YD 5: clampAimToOwnReach pins a melee onto its MELEE_REACH_YD 5 ring (combatGeometry.ts:37), and three melee cannot be 10 yd apart on a 5 yd ring. The tank sits it out on targetAttackingMe, because walking the aggro holder drags the boss across the camp. Honest about the second half: rawEffects also carries Effect 42 SUMMON miscValue 9436 Spawn of Bael'Gar, and the bake does not map it - spell-data 13895 ships direct_damage only, so no Spawn body reaches this floor and the row is spacing against the nuke alone.",
+          "rule": {
+            "id": "raid_enc_9016_spread_13895",
+            "action": {
+              "kind": "move",
+              "move": {
+                "kind": "spread",
+                "minYd": 6
+              }
+            },
+            "conditions": [
+              {
+                "subject": "self",
+                "metric": "targetAttackingMe",
+                "op": "==",
+                "value": 0
+              },
+              {
+                "subject": "self",
+                "metric": "alliesWithinYd",
+                "op": ">",
+                "value": 0,
+                "ref": 6
+              }
+            ],
+            "enabled": true
+          }
+        }
+      ]
+    },
+    {
+      "entry": 9033,
+      "name": "General Angerforge",
+      "kinds": [
+        "kill-order"
+      ],
+      "note": "Below 30 percent Angerforge sounds the alarm and two Anvilrage Medics arrive with him. They heal him for 878 a cast. Kill the medics.",
+      "cite": "boss_general_angerforge.cpp:28-125; acid_classic.sql:14167 names the cpp and creatures.json 9033 has no spells array, so the kit is the port at scriptdev/blackrockDepths.ts:369-491. His own three are Flurry 15088 (targetA 1, proc-trigger 17687), Enrage 15097 (targetA 1, proc-trigger 15061) and Sunder Armor 15572 (targetA 6 rangeMax 5) - all self or single target, nothing with a radiusYd. The fight is the alarm.",
+      "encounterRows": [
+        {
+          "kind": "kill-order",
+          "label": "Kill the Anvilrage Medics before Angerforge",
+          "cite": "boss_general_angerforge.cpp:92-108 Alarm at GetHealthPercent() < 30.0f summons 8x Anvilrage Reservist 8901 and 2x NPC_ANVILRAGE_MEDIC 8894, re-arming every 3 minutes (:104), and scriptdev/blackrockDepths.ts:415-465 arms both as real summonWaves so the bodies land on the floor. Only one of the two is a healer: creatures.json 8894 Anvilrage Medic carries spells [13864, 15586, 15585, 15587] off acid_classic.sql:13914-13919, so it casts Heal 15586 for 878 on EVENT_T 14 FRIENDLY_MISSING_HP and Prayer of Healing 15585 for 373 to everything within 30 yd, on a boss the party has already taken to 30%. The reservists are not on the list: creatures.json 8901 is Battle Shout 9128, Hamstring 9080, Strike 11976 and Shoot 6660, 760 HP, and nothing in the DB says a plain add outranks the boss. kill_order is a filter and spends no GCD (evaluate.ts:578 firstLivingKillOrderEntry returns null while no 8894 is in hostileCreatureEntries), so it no-ops for the whole first 70% of the fight and only bites once the medics exist.",
+          "rule": {
+            "id": "raid_enc_9033_kill",
+            "action": {
+              "kind": "kill_order",
+              "entries": [
+                8894
+              ]
+            },
+            "conditions": [],
+            "enabled": true
+          }
+        }
+      ]
+    },
+    {
+      "entry": 8983,
+      "name": "Golem Lord Argelmach",
+      "kinds": [],
+      "cite": "eventai/blackrock-depths.ts:118-166 scripts 898301-898305, acid_classic.sql:14110-14114 creature_id=8983. Chain Lightning 15305 is targetA 6 rangeMax 30 castTimeMs 3000 and Shock 15605 is targetA 6 rangeMax 20, both single-target nukes with no radiusYd. Lightning Shield 15507 is targetA 1 aura 43, a damage shield he re-applies on EVENT_T MISSING_AURA - it hits whoever melees him, which makes it a purge or a decision about swinging, and both are class rows. Nothing here has an area shape."
+    },
+    {
+      "entry": 9537,
+      "name": "Hurley Blackbreath",
+      "kinds": [],
+      "cite": "blackrock_depths.cpp:1441-1573 npc_hurley_blackbreathAI, ported at scriptdev/blackrockDepths.ts:960-1010; acid_classic.sql:14284 names the cpp and creatures.json 9537 has no spells array. Two abilities. Drunken Rage 14872 at <31% HP is targetA 1, +50% haste and +50% damage on himself for 15 s, a tank-and-healer problem with no ground to stand out of. Flame Breath 9573 is a genuine frontal cone - src_spell_cone Id=9573 ConeDegrees 53, radiusYd 8, castTimeMs 2000, targetA 24, on the victim every 10 s - but it is the Ironaya wedge and not the Sarevess one: 8 yd reaches melee only, and the product already answers it. sessionChase.ts:440-461 meleeFlankSlot reads coneArcsOfKit off the baked kit and slides every non-tank melee out of the front half plus each kit cone (combatGeometry.ts:567-586), while coneCovers refuses an arc past its own radiusYd, so a raider at the 20-25 yd stand is never inside this one. The 53 degree cone that DID earn a behind_target, Lady Sarevess's Forked Lightning 8435, has radiusYd 30 and reaches the ranged; this one cannot."
+    },
+    {
+      "entry": 9502,
+      "name": "Phalanx",
+      "kinds": [
+        "position"
+      ],
+      "note": "Under half health Phalanx starts throwing a fireball volley 20 yd around himself every 15 seconds. The ranged only need one more yard.",
+      "cite": "blackrock_depths.cpp:545-685 npc_phalanxAI, ported at scriptdev/blackrockDepths.ts:787-844; acid_classic.sql:14282 names the cpp and creatures.json 9502 carries the kit on charmSpells, so the schedule is the IR plus the encounter's own bossSpells (blackrock-depths.ts:663). Thunderclap 15588 is aoeShape pbaoe radiusYd 10 for 70 physical and a slow - a disc at melee reach, the Stockade shape. Mighty Blow 14099 is targetA 6 rangeMax 10 single target with a knockback. Fireball Volley 15285 is the row.",
+      "encounterRows": [
+        {
+          "kind": "position",
+          "label": "Casters step out of Fireball Volley",
+          "cite": "spell 15285 Fireball Volley bakes aoeShape pbaoe radiusYd 20, rawEffects targetA 22 TARGET_LOCATION_CASTER_SRC and targetB 15, castTimeMs 0, 128-172 fire. blackrock_depths.cpp:594,666-671 arms it at GetHealthPercent() < 51.0f and re-arms every 15 s, which scriptdev/blackrockDepths.ts:817-831 ports as hpPctMax 51 - so the row carries the same HP gate and is not armed for the top half of the fight. Same 20 yd disc and the same target ids as Archaedas's Ground Tremor, so it is that row: isWithinRadiusYd hits at <=, 21 is the first clear yard, and the 24 yd trigger is deliberately wider than the park so the row does not re-arm on the boss's next step and cancel its own walk. The 25 yd ranged stand (stand.ts:20) sits outside the trigger, so this only ever moves a caster who has drifted in or a hunter sitting on the 20 yd floor (stand.ts:18), which the disc reaches at <=. isCaster keeps the melee out of it - a permanent 21 yd park is four times MELEE_REACH_YD and would end melee to dodge 128 fire. Instant with no aura, so like the Archaedas row this is a standing position rule and not a reaction.",
+          "rule": {
+            "id": "raid_enc_9502_range_15285",
+            "action": {
+              "kind": "move",
+              "move": {
+                "kind": "keep_range",
+                "minYd": 21,
+                "entry": 9502
+              }
+            },
+            "conditions": [
+              {
+                "subject": "target",
+                "metric": "healthPct",
+                "op": "<",
+                "value": 51
+              },
+              {
+                "subject": "self",
+                "metric": "isCaster",
+                "op": "==",
+                "value": 1
+              },
+              {
+                "subject": "self",
+                "metric": "creatureDistanceYd",
+                "op": "<=",
+                "value": 24,
+                "ref": 9502
+              }
+            ],
+            "enabled": true
+          }
+        }
+      ]
+    },
+    {
+      "entry": 9543,
+      "name": "Ribbly Screwspigot",
+      "kinds": [],
+      "cite": "eventai/blackrock-depths.ts:806-837 scripts 954301-954303, acid_classic.sql:14289-14291 creature_id=9543. Gouge 12540 on EVENT_T 33 FACING_TARGET is targetA 6 rangeMax 5, mechanic 14, a 4 s incapacitate on whoever he is facing; Hamstring 9080 is targetA 6 rangeMax 5, mechanic 11, a 10 s snare. Both are single target with no radiusYd, and both are answered by a trinket, which is a class row. Flees for assist at 15%, and instance_blackrock_depths.cpp:546-555 turns his DEATH into the bar patrol (1x 8911 + 2x 8895, blackrock-depths.ts:347-354) - a spawn, not a party verb."
+    },
+    {
+      "entry": 9499,
+      "name": "Plugger Spazzring",
+      "kinds": [],
+      "cite": "blackrock_depths.cpp:1614-1808 boss_plugger_spazzringAI, ported at scriptdev/blackrockDepths.ts:855-950; acid_classic.sql:14280 names the cpp and creatures.json 9499 carries the kit on charmSpells. Every one is single target or self: Shadow Bolt 12739 targetA 6 rangeMax 40 castTimeMs 3000, Immolate 12742 targetA 6 rangeMax 30, Curse of Tongues 13338 targetA 6 dispel 2 curse on a mana holder, Demon Armor 13787 targetA 1. Banish 8994 is the only one that costs the party a body - targetA 6, mechanic 18, 15 s, dispel 1 magic, on a random raider every 26-28 s - and a trinket or a dispel answers it, which are class rows. None of the five has a radiusYd."
+    },
+    {
+      "entry": 9156,
+      "name": "Ambassador Flamelash",
+      "kinds": [
+        "kill-order"
+      ],
+      "note": "Burning Spirits walk out of the seven runes and feed themselves to Flamelash, and each one that reaches him leaves a damage buff for three minutes. Kill them on the way in.",
+      "cite": "boss_ambassador_flamelash.cpp:29-154, ported at scriptdev/blackrockDepths.ts:513-615; acid_classic.sql:14237 names the cpp and creatures.json 9156 has no spells array. His only own cast is Fire Blast 15573 on aggro, targetA 1 aura 42 proc-trigger of 15574, and spell-data 15573 ships effects: [] so it pays nothing here. Everything else is bodies: 4x Fireguard Destroyer 8911 at :88-91, and one Burning Spirit 9178 per rune every 15-30 s at :60-66,127-137.",
+      "encounterRows": [
+        {
+          "kind": "kill-order",
+          "label": "Kill the Burning Spirits before they reach him",
+          "cite": "boss_ambassador_flamelash.cpp:69-78 MoveInLineOfSight: a tracked NPC_BURNING_SPIRIT 9178 that gets within 2*CONTACT_DISTANCE casts SPELL_BURNING_SPIRIT 13489 on Flamelash, and SpellEffects.cpp:497-502 turns that dummy into 14744 on him - spell-data 14744 bakes it as spell_power +30 for 180 s with stackAmount 50 - from a spirit that instakills itself doing it. Both halves are live in this tree, which is what makes the row real: eventAi.ts:1227-1265 runScriptDevReachCasts fires the reach-cast at FLAMELASH_SPIRIT_REACH_YD 2, and dummy-script-tail.ts:334-340 pushes 14744 as the trigger. The spirits are cheap and they do not fight back - creatures.json 9178 is level 30 with 1003 HP against a level 57 boss, and eventAi.ts:1218-1222 sets them REACT_PASSIVE with threat cleared per cpp:112 MoveFollow - so ordering them first costs the party a swing each and no GCD (kill_order is a filter, evaluate.ts:578). The Fireguard Destroyers 8911 are NOT on the list: nothing in the cpp says they precede the boss, they are 7599 HP elites that would swallow the fight, and their Fireball Volley 15285 is a 20 yd disc a kill-order cannot answer anyway.",
+          "rule": {
+            "id": "raid_enc_9156_kill",
+            "action": {
+              "kind": "kill_order",
+              "entries": [
+                9178
+              ]
+            },
+            "conditions": [],
+            "enabled": true
+          }
+        }
+      ]
+    },
+    {
+      "entry": 8923,
+      "name": "Panzor the Invincible",
+      "kinds": [],
+      "cite": "eventai/blackrock-depths.ts:104-112 script 892301, acid_classic.sql:14082 creature_id=8923 - one row, and it is his whole kit. Spell Reflection 9941 on spawn is targetA 1, aura 28, DurationIndex 21 which is the permanent 4294967295 sentinel, so it is a passive and not a window, and spell-data 9941 ships effects: [] so it reflects nothing on this floor. There is no ACTION_T_CAST at all beyond that, no ScriptDev cpp for 8923, and creatures.json 8923 carries only [9941]. Pure creature_template melee - tank and spank."
+    },
+    {
+      "entry": 9039,
+      "name": "Doom'rel",
+      "kinds": [
+        "position"
+      ],
+      "cite": "eventai/blackrock-depths.ts:1148-1198 scripts 903901-903905, acid_classic.sql:14205-14209 creature_id=9039. Immolate 12742 and Curse of Weakness 12493 are targetA 6 single-target, Demon Armor 13787 is targetA 1, and Summon Voidwalkers 15092 on aggro is Effect 42 miscValue 8996 plus triggers 15093 / 15094 - bodies with no kit of their own (creatures.json 8996 has no spells array) and nothing in the cpp or the DB says they must die before him. Shadow Bolt Volley 15245 is the only shaped ability and it is handled in blockedBy.",
+      "encounterRows": [
+        {
+          "kind": "position",
+          "label": "Casters step out of Shadow Bolt Volley",
+          "cite": "spell 15245 Shadow Bolt Volley bakes aoeShape pbaoe radiusYd 30, castTimeMs 3000, and entry 9039's spell list repeats it every 8-12 s. The refusal this replaces imported the Old Serra'kis argument, and that argument does not transfer: Serra'kis is refused because aura 8434 NEVER DROPS, so a keep_range gated on it arms on pull and camps all fight. 15245 has a 3000 ms CAST BAR, so the row is a reaction and not a camp - which is exactly the difference blackrock-depths.json Lord Roccor records from the other side (\"He leaves no aura and has no cast bar, so this is a standing position rule and not a reaction\"). The shipped precedent for this shape is wailing-caverns.json Verdan: keep_range gated on target.castingSpellId for a 1000 ms cast. isWithinRadiusYd hits at <=, so 31 is the first clear yard past radiusYd 30. keep_range is NOT clamped onto the mover's own reach - clampAimToOwnReach runs only in the flee_raid and spread branches of sessionMechanicMove.ts, never the keep_range one - so the park is mechanically reachable even though RANGED_STAND_MAX_YD 30 caps the STAND. The walk fits the cast with room: a caster stands 20-30 yd (stand.ts:18,20), so 1.5-11.5 yd at BASE_RUN_SPEED 7.0 is 0.21-1.64 s against a 3000 ms cast and RUNOUT_YIELD_AFTER_MS 4000. isCaster keeps the melee out: 5 to 31.5 is 3.8 s and would miss the cast. The boss's current victim is exempt (sessionMechanicMove.ts:563-566), so the tank is not walked. FLOOR MEASURED 2026-08-27 off the committed blackrock-depths navmesh rather than asserted: at Doom'rel's spawn (1281.1, -282.2, -78.1), 51 of 72 bearings hold walkable floor at r=31.5 - the SAME 71% as at r=25, the caster stand, so there is no cliff between the stand and the park. Cite: evaluate.ts:56 castingSpellId; :159 creatureDistanceYd; :200 isCaster.",
+          "note": "NOT MEASURED: whether the trade pays. Each volley is 128-172 shadow avoided against roughly a second of walk each way inside an 8-12 s cycle, and the cost depends on where the caster was standing - 1.5 yd from the 30 yd outer stand, 6.5 yd from the 25 yd default. Verdan's row is justified by a 10 s ROOT; this one only by chip damage, which is the weaker case. Authored because it is recoverable and the player owns it: raidEncounterTactics.ts:8 says a row is the default the Raid tab opens with and the player switches it off or writes their own on top. A floor session is what settles it.",
+          "rule": {
+            "id": "raid_enc_9039_keep_range_15245",
+            "action": {
+              "kind": "move",
+              "move": {
+                "kind": "keep_range",
+                "minYd": 31,
+                "entry": 9039
+              }
+            },
+            "conditions": [
+              {
+                "subject": "self",
+                "metric": "isCaster",
+                "op": "==",
+                "value": 1
+              },
+              {
+                "subject": "target",
+                "metric": "castingSpellId",
+                "op": "==",
+                "value": 15245
+              },
+              {
+                "subject": "self",
+                "metric": "creatureDistanceYd",
+                "op": "<=",
+                "value": 34,
+                "ref": 9039
+              }
+            ],
+            "enabled": true
+          }
+        }
+      ]
+    },
+    {
+      "entry": 9938,
+      "name": "Magmus",
+      "kinds": [
+        "spread"
+      ],
+      "cite": "src_creature_spell_list Id=993801 (acid_classic.sql:14311 points at it; creatures.json 9938 spells [15593, 15668]). Two abilities. War Stomp 15593 every 30-60 s is aoeShape pbaoe radiusYd 5, targetA 22 and tgtB 15, castTimeMs 0, mechanic 12, an 8 s stun plus a weapon hit - five yards is melee reach exactly, the Smoke Bomb shape, and the 20-25 yd stand is already outside it. A repeated melee stun is answered by a trinket, Tremor Totem or Berserker Rage, which are class rows. Fiery Burst 15668 is handled in blockedBy.",
+      "blockedBy": {
+        "spread": "Fiery Burst 15668 bakes aoe ground radiusYd 10 castTimeMs 2000 for 254 base fire and no dot, so isPersistentAreaEffect is false and no pool exists for avoid_zone to match. src_creature_spell_list 993801 Position 2 casts it at TargetId 1 CURRENT (aiTargeting.ts:55 SPELL_LIST_TARGET.CURRENT) every 6-12 s, i.e. centred on whoever he is tanking, so every melee is inside the fan by construction. spread would need minYd 11, and CORRECTED 2026-08-27, and this clause is now DEAD twice over: clampAimToOwnReach no longer pins a melee onto a flat ring at all - sessionMechanicMove.ts:130 floors it at meleeContactYd(false, f.spec.combatReachYd, focus.spec.combatReachYd), so entry 9938 at combat_reach 3.50 gives a 6.88 ring, not (combatGeometry.ts:37), where three melee cannot be 11 yd apart - the row would shuffle all fight and never settle. Same refusal as Lord Incendius's Fiery Burst 13900, which is the same shape at the same radius. STALE AS OF 2026-08-26, and only this clause: 1a2b3512d floored clampAimToOwnReach at the PAIR contact ring instead of the flat 5. Magmus carries combat_reach 3.50, so the ring is 6.88 and two melee on opposite sides of him stand 13.76 yd apart - outside the radiusYd 10 fan, where at the old flat 5 they were 10.00 apart and inside it. So a spread minYd 11 is now geometrically satisfiable without leaving melee reach, and the walk fits the cast: each mover covers about half the 9 yd of separation, ~640 ms against a 1500 ms cast. The OTHER clause still stands and is what keeps this blocked: the burst bakes no dot, so isPersistentAreaEffect is false, no pool exists and avoid_zone has nothing to match. NO row is authored on arithmetic alone - the tank eats the fan by construction and whether the other melee actually end up on opposite arcs is a placement question that wants a floor measurement."
+      }
+    },
+    {
+      "entry": 8929,
+      "name": "Princess Moira Bronzebeard",
+      "kinds": [],
+      "cite": "boss_emperor_dagran_thaurissan.cpp:145-234 boss_moira_bronzebeardAI, ported at scriptdev/blackrockDepths.ts:709-777; creatures.json 8929 carries [15586, 8362, 15587] on charmSpells and the schedule is the IR. She is a pure caster - cpp:167-168 sets m_attackDistance 25 and m_meleeEnabled false - and every cast is single target or friendly: Mind Blast 15587 targetA 6 rangeMax 30 castTimeMs 1500, Shadow Word: Pain 15654 and Smite 10934 on the victim, Heal 15586 targetA 21 and Renew 8362 targetA 21 aura 8. Not one carries a radiusYd, so there is no shape to stand out of; what answers a 3500 ms Heal is a kick, and that is a class row."
+    },
+    {
+      "entry": 9019,
+      "name": "Emperor Dagran Thaurissan",
+      "kinds": [
+        "kill-order"
+      ],
+      "cite": "boss_emperor_dagran_thaurissan.cpp:41-127, ported at scriptdev/blackrockDepths.ts:633-706; creatures.json 9019 carries [15636, 17492] on charmSpells. Hand of Thaurissan 17492 is targetA 6 rangeMax 30, 239 fire plus mechanic 12, a 5 s stun on a random raider every 5-10 s - single target, no radius, a trinket answers it. Avatar of Flame 15636 reads like a ground effect and is not one: its implicit target is 1 TARGET_UNIT_CASTER, it is a 10 s self buff, and its aura 42 proc-trigger pays through Flames 15643, which is targetA 6 rangeMax 5 for 169 on whoever he hits. Nothing in the fight has a radiusYd.",
+      "blockedBy": {
+        "kill-order": "the Moira interaction is a PHASE GATE and it points the other way. boss_emperor_dagran_thaurissan.cpp:68 CallForHelp(VISIBLE_RANGE 166) pulls her into his fight, and liveAggroStream.ts:952-966 expandThroneCallForHelp puts that on the floor here, so she really is a second body. But cpp:71-88 JustDied then sets the Princess to FACTION_NEUTRAL 734 and EnterEvadeMode, so killing the Emperor ENDS her participation for free - the focus is already the body a kill-order would have to name first, and there is no order left to impose. The one thing that would justify a healer-first row is Heal 15586 for 878 on him every 10 s (cpp:218-226), and it is not on this floor: scriptdev/blackrockDepths.ts:754-757 deliberately omits that timer from her schedule, naming the concurrent ally cast as a product GAP, so a kill-order on 8929 would order a kill against a healer that never heals. She is also her own encounter here (blackrock-depths.ts:1327-1336 princess-moira), so the party can already take her first by hand."
+      }
+    }
+  ]
+}

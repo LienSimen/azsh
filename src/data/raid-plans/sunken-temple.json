@@ -1,0 +1,159 @@
+{
+ "raid": "sunken-temple",
+ "note": "Reviewed for E5.4 against sunken_temple.cpp, sunken_templeScripts.cpp, eventai/sunken-temple.ts and acid_classic.sql. Ten of the twelve come back kinds: [] and the six trolls are the headline - the only ordered thing in this instance is the STATUE puzzle, not the Atal'ai Defenders. Atal'alarion casts spell 6524 Ground Tremor, the same id and the same 20 yd disc Archaedas already has a row for in uldaman.json, so he gets that row. Jammal'an is the one boss in the wing that puts fire on the floor instead of a disc on himself.",
+ "bosses": [
+  {
+   "entry": 8580,
+   "name": "Atal'alarion",
+   "kinds": [
+    "position"
+   ],
+   "note": "Ground Tremor stuns everything within 20 yd of the guardian every 9.7 to 32.2 seconds. The melee have to eat it. The ranged only need to stand a yard further back.",
+   "cite": "eventai/sunken-temple.ts:270-303 scripts 858001-858004, acid_classic.sql:16905-16908 creature_id=8580. Ground Tremor 6524 is the SAME SPELL Archaedas casts, so this is uldaman.json raid_enc_2748_range_6524 with the entry changed: aoeShape pbaoe radiusYd 20, rawEffects targetA 22 TARGET_LOCATION_CASTER_SRC and targetB 15, mechanic 12, a 2000 ms stun, castTimeMs 0. Sweeping Slam 12887 is the only other ability and it is a frontal wedge, not a disc - src_spell_cone Id 12887 ConeDegrees 71, aoeShape cone radiusYd 5, rangeMax 10 - so it is the Ironaya shape and the product already answers it: sessionChase.ts:440-457 meleeFlankSlot reads coneArcsOfKit off his kit and slides every non-tank melee out, and coneCovers (combatGeometry.ts:475-485) refuses an arc past its own radiusYd, so nobody at range is ever in it. He is summon-only, spawned by the six-statue puzzle (sunken-temple.ts:650-668), so the row is off until he is on the floor.",
+   "encounterRows": [
+    {
+     "kind": "position",
+     "label": "Casters step out of Ground Tremor",
+     "cite": "spell 6524 Ground Tremor, spell-data aoeShape pbaoe radiusYd 20, rawEffects targetA 22 targetB 15, mechanic 12, durMs 2000, castTimeMs 0, on creatures.json 8580 creatureCasts scriptId 858004 every 20.5-32.2 s after a 9.7-18.9 s opener. isWithinRadiusYd hits at <=, so 21 is the first clear yard, and the trigger at 24 is deliberately wider than the park because a row released on the yard it parks on re-arms on the boss's next step. That leaves 2.5 yd to stand and cast in, and the 25 yd ranged stand (stand.ts:20 RANGED_STAND_DEFAULT_YD) sits outside the trigger so the camp is not armed all fight. isCaster keeps the melee out of it: 21 yd is four times MIN_AGGRO_DISTANCE 5 (creatureAiConstants.ts:76) and a permanent park there would end melee for a 2 s stun. A hunter sitting on the 20 yd floor (stand.ts:18 RANGED_STAND_MIN_YD, which the disc reaches at <=) takes the same one-yard step. castTimeMs 0 and no aura left behind, so like the Archaedas row this is a standing position rule and not a reaction.",
+     "rule": {
+      "id": "raid_enc_8580_range_6524",
+      "action": {
+       "kind": "move",
+       "move": {
+        "kind": "keep_range",
+        "minYd": 21,
+        "entry": 8580
+       }
+      },
+      "conditions": [
+       {
+        "subject": "self",
+        "metric": "isCaster",
+        "op": "==",
+        "value": 1
+       },
+       {
+        "subject": "self",
+        "metric": "creatureDistanceYd",
+        "op": "<=",
+        "value": 24,
+        "ref": 8580
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "entry": 5712,
+   "name": "Zolo",
+   "kinds": [],
+   "cite": "eventai/sunken-temple.ts:356-384 scripts 571201-571203, acid_classic.sql:16827-16829 creature_id=5712. Chain Lightning 12058 is targetA 6 at rangeMax 30 with castTimeMs 3000, a single-target nuke with no radiusYd. Atal'ai Skeleton Totem 12506 is Effect 74 summon_totem of creature 8510, a body and not a party verb, and Green Channeling 13540 is targetA 1 on himself out of combat. Nothing in the kit has an area shape.",
+   "note": "One of the six Atal'ai Defenders. Order-free: see Mijan."
+  },
+  {
+   "entry": 5713,
+   "name": "Gasher",
+   "kinds": [],
+   "cite": "eventai/sunken-temple.ts:390-407 scripts 571301-571302, acid_classic.sql:16831-16832 creature_id=5713. Two rows total, and one of them is the out-of-combat Green Channeling 13540. Strike 15580 is rangeMax 5 targetA 6, single target with no radius and no aura. Pure tank-and-spank.",
+   "note": "One of the six Atal'ai Defenders. Order-free: see Mijan."
+  },
+  {
+   "entry": 5714,
+   "name": "Loro",
+   "kinds": [],
+   "cite": "eventai/sunken-temple.ts:413-448 scripts 571401-571404, acid_classic.sql:16834-16837 creature_id=5714. Shield Spike 12782 (aura 43 damage shield) and Improved Blocking 3639 (aura 51) are targetA 1 self buffs, and Hate to Zero 9205 is targetA 1 with trigger 9204 - a threat wipe, which the engine answers by re-acquiring, not by walking. Shield Slam 8242 is rangeMax 5 targetA 6, a single-target 2 s stun plus 19 damage - the same spell Kam Deepfury carries in the-stockade.json, and 15655 on his charm bar is the rank-2 copy of it. Nothing area.",
+   "note": "One of the six Atal'ai Defenders. Order-free: see Mijan."
+  },
+  {
+   "entry": 5715,
+   "name": "Hukku",
+   "kinds": [],
+   "cite": "eventai/sunken-temple.ts:454-504 scripts 571501-571506, acid_classic.sql:16839-16845 creature_id=5715. Hukku's Guardians 12790 is three Effect 42 SUMMON_GUARDIAN slots - 8656 Voidwalker, 8657 Succubus, 8658 Felhunter - on an OUT-OF-COMBAT 1 s timer, so all three are already standing when the party pulls, and nothing in the C++ or in classic-db names an order among them. Curse of Blood 12279 is targetA 6, dispel 2, a decurse. Shadow Bolt 12471 is targetA 6 at 40 yd. Shadow Bolt Volley 9081 is the only shaped ability and it is too big to leave: aoeShape pbaoe radiusYd 30, targetA 22 targetB 15, castTimeMs 3000, and he holds at SET_RANGED_MODE 2 / 35 yd (571503), so 31 yd off him would put a caster past his own 30-40 yd reach on him. Same call as Deep Sleep in sm-cathedral.json - a disc that covers the room is not a disc you step out of.",
+   "note": "One of the six Atal'ai Defenders. Order-free: see Mijan."
+  },
+  {
+   "entry": 5716,
+   "name": "Zul'Lor",
+   "kinds": [],
+   "cite": "eventai/sunken-temple.ts:510-537 scripts 571601-571603, acid_classic.sql:16846-16848 creature_id=5716. Cleave 15584 is rangeMax 5 targetA 6, single target with no radiusYd and no src_spell_cone row, so it is not an arc. Frailty 12530 is aoeShape pbaoe radiusYd 10, targetA 22 targetB 15, aura 29 for -11 to a stat over 60 s, dispel 1 magic, castTimeMs 0 - ten yards on a melee mob is inside the melee band and inside RANGED_STAND_MIN_YD 20 (stand.ts:18), so the melee are in it because that is where melee happens and the ranged are already out. What answers a dispellable stat drain is a dispel in the class rotation.",
+   "note": "One of the six Atal'ai Defenders. Order-free: see Mijan."
+  },
+  {
+   "entry": 5717,
+   "name": "Mijan",
+   "kinds": [],
+   "cite": "This is where the kill-order question for all six Atal'ai Defenders is answered, and the answer is no. sunken_temple.cpp:129-151 OnCreatureDeath hands every one of 5712-5717 the same SetData(TYPE_PROTECTORS, DONE), and :162-179 only decrements m_uiProtectorsRemaining and opens the Jammal'an barrier when the counter reaches zero - any order, all six. The ordered thing in this instance is the STATUE puzzle: ProcessStatueEvent (cpp:329-354) checks m_uiStatueCounter == i against m_aAtalaiStatueEvents and trips a trap on a miss, and sunken_temple.h:91-92 names that order S, N, SW, SE, NW, NE. Those are gameobjects 148830-148835, already ported at sunken-temple.ts:148-165, not creatures, so no kill_order row can carry it. Mijan is the only Defender a healer-first order could even name and there is nobody for him to heal: sunken-temple.ts:684-734 makes each of the six its own one-body encounter with its own death flag, so they are never up together. His kit is Renew 8362 (targetA 21 friendly, EVENT_T 14 FRIENDLY_HP), Healing Wave 12492 (targetA 21, 476, at <=50% HP), Healing Ward 11899 (Effect 87 summon_totem 8179) and Thorns Aura 8148 (Effect 35 area aura party, targetA 1 on himself, aura 15 damage shield) - an interrupt and a purge, which are class rows.",
+   "note": "One of the six Atal'ai Defenders. All six must die and the C++ does not care in what order."
+  },
+  {
+   "entry": 5710,
+   "name": "Jammal'an the Prophet",
+   "kinds": [
+    "position"
+   ],
+   "note": "Jammal'an drops a burning patch on the floor for 8 seconds. Step off it.",
+   "cite": "acid_classic.sql:16811-16819 creature_id=5710; eventai/sunken-temple.ts:29-41 carries ONLY his death script 571002, so his casts come off creatures.json 5710 creatureCasts (combatEnemySpec.ts:99-108 falls back to creatureCasts when the overlay has no ACTION_T_CAST row). Flamestrike 12468 is the one row here and it is a floor patch, not a disc. Hex of Jammal'an 12479 is NOT a run-out bomb: it is castTimeMs 0 targetA 6 on one raider for 10 s, and sunken_templeScripts.cpp:273-285 HexOfJammalanAura fires 12480 and 12483 only on AURA_REMOVE_BY_EXPIRE - both targetA 6, neither carries a radiusYd, so there is no payload to flee. That expire chain is already ported at aura-remove.ts:86, and 12480 is dispel 2, so a decurse before the 10 s runs out stops the +399% damage taken and the charm outright - a class row. Earthgrab Totem 8376 is Effect 42 summoning creature 6066, a body. Healing Wave 12492 at <=50% HP is an interrupt. Ogom the Wretched 5711 stands in his pack (sunken-temple.ts:774) and is Shadow Bolt and two single-target curses.",
+   "encounterRows": [
+    {
+     "kind": "position",
+     "label": "Get out of Flamestrike",
+     "cite": "spell 12468 Flamestrike bakes aoeShape ground, radiusYd 5, castTimeMs 3000, rawEffects effect 2 targetA 16 AT_DEST_LOC for 114-132 fire and effect 27 targetA 28 AT_DYNOBJ_LOC, auraName 3, amplitude 2000, durationIndex 31 for 8000 ms. spell-data 12468 carries aoe true plus a dot effect, which is exactly what dynamicObject.ts:220-224 isPersistentAreaEffect accepts, so applySpell.ts:1271-1290 creates a real GroundPool with spellId 12468, radius 5 and an 8 s life. That is a hazard with a published id: hazards.ts:94-107 lists every live pool and hazardMatches (:128-131) matches a row's id against String(spellId), so avoid_zone \"12468\" names this pool and nothing else. The row is the app's own avoid verb copied field for field - raidCustomRows.ts:410-421 builds avoid as avoid_zone on the spell id gated on hazardProximityYd <= 0, and it is the one move case there that deliberately does NOT add notTanking, because the pool is where the pool is and the tank is standing in it too. combatGeometry.ts:317-319 aoeFanFromCaster returns false for a ground shape, so applySpell.ts:1261 sites the pool on the TARGET side, and creatures.json 5710 creatureCasts scriptId 571009 casts it at EventAI target 1, the current victim - the patch lands under the tank every 20.1-52.9 s after an 8-24 s opener. Unlike a pbaoe the patch does not follow anybody: it is static for 8 s, so walking off it costs one step and not the fight. pickAction.ts:770-774 moveOwnsPastDeadline exempts avoid_zone from the 4000 ms give-up while the pool is alive, so the walk finishes. Not driven on the floor - CLAUDE.md section 3 - so the shape and every number above are sourced and the row is shipped-unverified.",
+     "rule": {
+      "id": "raid_enc_5710_avoid_12468",
+      "action": {
+       "kind": "move",
+       "move": {
+        "kind": "avoid_zone",
+        "id": "12468"
+       }
+      },
+      "conditions": [
+       {
+        "subject": "self",
+        "metric": "hazardProximityYd",
+        "op": "<=",
+        "value": 0
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "entry": 5719,
+   "name": "Morphaz",
+   "kinds": [],
+   "cite": "eventai/sunken-temple.ts:156-179 scripts 571901-571902, acid_classic.sql:16856-16857 creature_id=5719. Both abilities are frontal wedges and both stop short of the ranged stand. Acid Breath 12884 is src_spell_cone ConeDegrees 53, aoeShape cone radiusYd 10, rangeMax 5, targetA 24, a 45 s dot plus 9 damage. Wing Flap 12882 is ConeDegrees 71, aoeShape cone radiusYd 10, a knockback with no aura. Ten yards is the Ironaya case, not the Tuten'kash case: coneCovers (combatGeometry.ts:475-485) refuses an arc past its own radiusYd, so nobody at RANGED_STAND_MIN_YD 20 (stand.ts:18) is ever inside one, and sessionChase.ts:440-457 meleeFlankSlot already reads coneArcsOfKit off his kit and slides every non-tank melee out of the front. A behind_target row would only re-do what the melee slot solver has already done.",
+   "note": "Wing Flap knocks back whoever is in front of him. That is his whole shape."
+  },
+  {
+   "entry": 5722,
+   "name": "Hazzas",
+   "kinds": [],
+   "cite": "eventai/sunken-temple.ts:241-264 scripts 572201-572202, acid_classic.sql:16867-16868 creature_id=5722. Same two spells and the same timers as Morphaz - Acid Breath 12884 (cone 53 degrees, radiusYd 10) every 6-18 s and Wing Flap 12882 (cone 71 degrees, radiusYd 10) every 15-25 s - so the same verdict: both wedges stop at 10 yd, inside the 20 yd ranged floor, and meleeFlankSlot already walks the melee out of them.",
+   "note": "The same drake kit as Morphaz, shared roost and all."
+  },
+  {
+   "entry": 8443,
+   "name": "Avatar of Hakkar",
+   "kinds": [
+    "kill-order"
+   ],
+   "cite": "The kit IS baked, which was the open question: creatures.json 8443 spells [12889, 6607, 12888], creatureCasts 844303-844305, and eventai/sunken-temple.ts:310-350 registers the overlay at :600. It is all curse and charm. Curse of Tongues 12889 is aoeShape pbaoe radiusYd 20, targetA 22 targetB 15, aura 65 for -51% casting speed over 15 s, dispel 2, castTimeMs 0 - a 20 yd disc that does reach past the melee, but this is the Curse of Tuten'kash call from razorfen-downs.json and not the Ground Tremor call: a decurse is a class row, and unlike a 2 s stun the debuff is already off the raider before a walk would have finished. Lash 6607 is rangeMax 5 targetA 6, mechanic 12, a 2 s stun plus trigger 6608. Cause Insanity 12888 is targetA 6 with no radius, aura 6 charm for 6 s, dispel 1 magic. Nothing here is ground and nothing here is an order.",
+   "note": "Summoned by the fourth Eternal Flame, when the Shade of Hakkar changes into him.",
+   "blockedBy": {
+    "kill-order": "The ritual really does have a body that must die on a clock, and it is not one this row can name. sunken_temple.cpp:200-204 starts a 20 s m_suppressionTimer the moment the Shade of Hakkar 8440 gains Suppression 12623, and :398-415 FAILs the whole event if the aura is still on him when it expires - so the Nightmare Suppressor 8497 is a hard kill-order add. Two things block the row. The Suppressor is cast at the Shade 8440, not at the Avatar, and 8443 does not exist yet: sunken_templeScripts.cpp:232-245 SummonHakkar UpdateEntry morphs the Shade INTO the Avatar only on the fourth flame, and sunken-temple.ts:336-342 ST_AVATAR_WAVES models that faithfully - waves 1-3 are one Suppressor each, wave 4 is the Avatar alone, so they never share the floor. And encounter rows are keyed on the focus entry (raidEncounterTactics.ts encounterTacticRows), so a kill_order hung on 8443 could not fire during the window it is for. The 20 s clock is already ported as ST_AVATAR_RITUAL.suppressionFailMs (sunken-temple.ts:319); what is missing is an encounter to hang the order on, not a verb."
+   }
+  },
+  {
+   "entry": 5709,
+   "name": "Shade of Eranikus",
+   "kinds": [],
+   "cite": "eventai/sunken-temple.ts:47-103 scripts 570901-570906, acid_classic.sql:16804-16809 creature_id=5709, no ScriptDev boss file. War Stomp 11876 is aoeShape pbaoe radiusYd 5, targetA 22 targetB 15, mechanic 12, a 5 s stun plus a knockback, castTimeMs 0 - five yards on a melee boss is the Stockade shape exactly, and a repeated melee stun is a trinket or Tremor Totem or Berserker Rage, which are class rows. Acid Breath 12891 is the Morphaz cone at ConeDegrees 53 radiusYd 10, already owned by meleeFlankSlot. Deep Slumber 12890 is targetA 6 with no radius, aura 12 for 15 s, castTimeMs 1000, dispel 1 - one raider, and an interrupt or a dispel answers it. Thrash 3391 is Effect 19 extra_attacks on himself and 12535 is the out-of-combat sleep visual. He stays immune until Jammal'an dies (cpp:100-105, sunken-temple.ts:264).",
+   "note": "Nothing to walk out of. War Stomp is a five-yard stun the melee are standing in by definition."
+  }
+ ]
+}

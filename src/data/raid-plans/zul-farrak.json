@@ -1,0 +1,156 @@
+{
+ "raid": "zul-farrak",
+ "note": "Reviewed for E5.4 against boss_zumrah.cpp, zulfarrak.cpp, instance_zulfarrak.cpp, eventai/zul-farrak.ts and acid_classic.sql. Ten of the twelve come back kinds: [] and that is the finding - the discs in this wing are 10 yd or narrower, which is the yard band the melee have to stand in to fight at all, and everything else is a single-target stun, root, snare, disease or curse that a trinket or a dispel answers. Two earn a row. Gahz'rilla Slam is a 20 yd disc with the same target ids as Archaedas's Ground Tremor, so the casters get the same one-yard step. Sergeant Bly does not turn on the party alone: three of his crew flip with him and one of them heals.",
+ "bosses": [
+  {
+   "entry": 8127,
+   "name": "Antu'sul",
+   "kinds": [
+    "kill-order"
+   ],
+   "cite": "eventai/zul-farrak.ts:88-174 scripts 812701-812707, acid_classic.sql:17461-17467 creature_id=8127. Earthgrab Totem 8376 is Effect 42 miscValue 6066 with an empty effects[], so summonCast.ts:96-107 takes the rawEffects 41/42 fallback and puts a body at his feet; that totem's kit is 8378 (creature_template_spells 6066), aura 23 every 5000 ms triggering 8377 Earthgrab, aoeShape pbaoe radiusYd 10, targetA 22 tgtB 15, mechanic 7, a 4 s root. Ten yards on a body standing in melee is the Galgann Firehammer shape: the melee are in it because that is where melee happens, and RANGED_STAND_MIN_YD 20 (stand.ts:18) is already clear of it. Antu'sul's Minion 11894 is Effect 42 miscValue 8156, one Servant at 75% and two at 25%; the Servant's whole kit is Petrify 11020, targetA 6 rangeMax 5, mechanic 12, an 8 s stun on one player (acid_classic.sql:17473). Healing Wave of Antu'sul 11895 is targetA 1, a 2220-2580 self heal at 20% with castTimeMs 1000, so an interrupt answers it and that is a class row. The four Sul'lithuz Broodlings 8138 at 3 s carry Thrash 3391 and a poison proc, radiusYd 0 on both.",
+   "encounterRows": [
+    {
+     "kind": "kill-order",
+     "label": "Kill the Greater Healing Wards before Antu’sul",
+     "cite": "Healing Ward 11899 is Effect 87 SUMMON_TOTEM_SLOT1 miscValue 8179 for 30 s, and Greater Healing Ward 8179's kit is 11901 Healing Ward V Passive - aura 23 on a 3000 ms amplitude triggering 11900 Healing Aura, which is pbaoe radiusYd 10, targetA 22 and targetB 30 TARGET_AREAEFFECT_PARTY, 150 healed a pulse, about 1500 HP back over one ward's life. The ward is the body whose order matters and it now exists: applySpellLate refused every non-player totem caster, because sideForTotemSlot (totem.ts:49) hands back the fixed player-team totem_<slot> sides and an enemy ward built there would have spawned as one of YOUR units. A creature-cast totem now goes down the summon path instead - a body on the caster's own side, built from 8179's own creature row, which self-casts its passive template spells the moment it lands (Totem.cpp:33 default TOTEM_PASSIVE, :120-122 CastSpell(nullptr, spellId, TRIGGERED), :179-191 SetTypeBySummonSpell - 11901 is castTimeMs 0, so passive). Measured on a driven session in src/dev/smoke/hostileTotem.mjs: 2 casts, 1 ward body on the enemy side, 847 Healing Aura pulses, 0 player totem slots taken. kill_order is a filter and spends no GCD, so firstLivingKillOrderEntry (evaluate.ts:578) returns null while no 8179 stands and the row no-ops until one does.",
+     "rule": {
+      "id": "raid_enc_8127_kill",
+      "action": {
+       "kind": "kill_order",
+       "entries": [
+        8179
+       ]
+      },
+      "conditions": [],
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "entry": 10081,
+   "name": "Dustwraith",
+   "kinds": [],
+   "cite": "acid_classic.sql:17490-17492 creature_id=10081 - no eventai overlay (the zul-farrak overlay list at :607-618 carries 10080 and 10082 but not this one), so ACID plus creatures.json spells [12254, 15667] is the whole kit. Virulent Poison Proc 12254 is targetA 1 on spawn, aura 42, triggering 12251 Virulent Poison, 17 nature every 3 s for 30 s on whoever he hits, dispel 4. Sinister Strike 15667 is Effect 17 targetA 6 rangeMax 5. Flees for assist at 15%. radiusYd 0 on both, so there is no shape on the floor: a rare elite that is tank-and-spank, and Cure Poison answers the only debuff."
+  },
+  {
+   "entry": 7272,
+   "name": "Theka the Martyr",
+   "kinds": [],
+   "cite": "eventai/zul-farrak.ts:312-332 scripts 727201-727202, acid_classic.sql:17386-17387 creature_id=7272. Fevered Plague 8600 is targetA 6 rangeMax 30, castTimeMs 4500, 250 nature plus 11 every 5 s for 180 s, dispel 3 disease - one target, no radius, and Abolish Disease answers it. Theka Transform 11089 at 30% is targetA 1 on himself: aura 56 transform to 7791 plus two aura 39 rows the bake reads as school_immunity schoolMask 1 and schoolMask 32 for 30 s. That is the only DPS-stop-shaped window in the wing and no verb fits it. halt_dps is scoped by SCHOOL, not by creature (types.ts:360, the same wall sm-cathedral.json hit on Mograine's Divine Shield), swinging into an immunity costs rage and nothing else, and the 30 s runs on its own clock whether the party attacks or not."
+  },
+  {
+   "entry": 7271,
+   "name": "Witch Doctor Zum'rah",
+   "kinds": [],
+   "cite": "No ACID rows for 7271, and creatures.json 7271 holds 12491/12739/15245/11086 under charmSpells only (combatEnemySpec.ts:138 never schedules a charm slot), so the kit is the ScriptDev port at src/domain/scriptdev/zulfarrak.ts:190-307 and its IR timers are what makes it fire. Shadow Bolt 12739 is targetA 6 rangeMax 40, one target every 3.5-5 s (boss_zumrah.cpp:163-172). Shadow Bolt Volley 15245 is aoeShape pbaoe radiusYd 30, targetA 22 tgtB 15, castTimeMs 3000, 128-172 shadow every 10-18 s (cpp:174-180): 30 yd reaches past the whole party stand, RANGED_STAND_DEFAULT_YD is 25 (stand.ts:20), and the first clear yard at 31 is outside a 30 yd caster's own range, so this is a flat nuke the healer eats. Healing Wave 12491 is a 3000 ms friendly heal (cpp:190-199), an interrupt and a class row. Ward of Zum'rah 11086 never reaches the floor: it bakes as summon_totem with slot 'none' and applySpellLate.ts:127-128 refuses it twice, once for the enemy caster and once for the missing slot. Summon Zul'Farrak Zombies 10247 (Effect 41 targetA 18, miscValue 7286 and 7276) drops a pair every 20 s (cpp:141-157), but Zul'Farrak Zombie 7286 carries only a death announce 10747 and Dead Hero 7276 a single-target Infected Wound 3427 (acid_classic.sql:17406-17409), so neither outranks the other and there is no order to impose."
+  },
+  {
+   "entry": 10080,
+   "name": "Sandarr Dunereaver",
+   "kinds": [],
+   "cite": "eventai/zul-farrak.ts:509-551 scripts 1008001-1008004, acid_classic.sql:17485-17488 creature_id=10080. Demoralizing Shout 13730 is the only shaped ability: aoeShape pbaoe radiusYd 10, targetA 22 tgtB 15, castTimeMs 0, aura 99 attack power -10 for 30 s. Ten yards is the Galgann shape again - inside the melee band, and RANGED_STAND_MIN_YD 20 is already outside it - and a debuff that has landed is not something a move verb takes back. Strike 14516 and Pummel 15615 are targetA 6 rangeMax 5, single target, the second a 5 s interrupt lockout; zul-farrak.ts:293 also lists 11976 Strike and 12555 Pummel, the same two shapes with smaller numbers. Flees for assist at 15%."
+  },
+  {
+   "entry": 10082,
+   "name": "Zerillis",
+   "kinds": [],
+   "cite": "eventai/zul-farrak.ts:557-605 scripts 1008201-1008205, acid_classic.sql:17494-17498 creature_id=10082. Ranged mode 25 on aggro. Net 6533 is targetA 6 rangeMax 20, mechanic 7, a 10 s root on one player plus a trigger of 11920. Frost Shot 12551 is targetA 6, mechanic 11, -60% speed for 10 s, dispel 1 magic. Shoot 15547 is targetA 6, one target. Every one is single target with radiusYd 0, so there is no ground to leave; a Free Action Potion or a dispel answers the root and the snare, and both are class rows. Flees for assist at 15%."
+  },
+  {
+   "entry": 7796,
+   "name": "Nekrum Gutchewer",
+   "kinds": [],
+   "cite": "eventai/zul-farrak.ts:452-465 script 779601, acid_classic.sql:17451 creature_id=7796 - one row, and it is the whole kit. Fevered Plague 8600 is targetA 6 rangeMax 30, castTimeMs 4500, 250 nature plus a 180 s disease at 11 per 5 s, dispel 3, every 16.9-21.7 s. One target, radiusYd 0, so this is tank-and-spank and the dispel is a class row. He arrives on the pyramid's final wave beside Sezz'ziz (zul-farrak.ts:170-176), but a wave is a body count and not a place to stand."
+  },
+  {
+   "entry": 7604,
+   "name": "Sergeant Bly",
+   "kinds": [
+    "kill-order"
+   ],
+   "note": "Bly turns on the party with three of his crew. Murta Grimgut is the one who heals them, so she dies first.",
+   "cite": "His own hostile kit is not empty, but every row in it is single target. acid_classic.sql:17411-17413 creature_id=7604 is the source (no eventai overlay for 7604, and creatures.json 7604 carries spells [3637, 5301, 12170, 11972] with creatureCasts, so those ACID rows are what fire). Improved Blocking III 3637 and Defensive State 5301 are targetA 1 procs on spawn. Revenge 12170 is targetA 6 rangeMax 5, 16-20 physical. Shield Bash 11972 is targetA 6 rangeMax 5, an 8 s interrupt lockout. Nothing in the kit carries a radiusYd, so what this fight asks is not where to stand but which body dies first.",
+   "encounterRows": [
+    {
+     "kind": "kill-order",
+     "label": "Kill Murta Grimgut before Sergeant Bly",
+     "cite": "The gossip challenge flips Bly and three of his crew together: liveGauntletEscort.ts:554-560 walks ZF_BLY.crewEntries [7605, 7606, 7608] and sets each hostile, matching dbscripts_on_gossip 94101 faction 14 at +6 s (zul-farrak.ts:186-199), and dungeonSpawns map 209 carries one static body for each of 7604, 7605, 7606 and 7608. Only Murta Grimgut 7608 heals: acid_classic.sql:17430-17435 gives her Heal 11642 (castTimeMs 3500, 394-456, on a friendly 3000 HP down within 40 yd every 15 s), Renew 11640 and Power Word: Shield 11974 (137 absorbed, 30 s), all on EVENT_T_FRIENDLY_HP or FRIENDLY_MISSING_BUFF, and creatures.json 7608 holds all four under spells with creatureCasts so they schedule. The other two are damage and nothing in the DB ranks either above the boss: Raven 7605 is Gouge 12540 and Backstab 7159 (acid_classic.sql:17415-17417), Oro Eyegouge 7606 is Immolate 11962, Rain of Fire 11990 and Curse of Weakness 12741 (:17419-17423). Weegli Blastfuse 7607 is deliberately not on the crew list because he stays friendly and bombs the end door. The Bly encounter def (zul-farrak.ts:569-581) authors no pack, so on the instance-encounter path no crew body exists, firstLivingKillOrderEntry (evaluate.ts:578) returns null and the row no-ops.",
+     "rule": {
+      "id": "raid_enc_7604_kill",
+      "action": {
+       "kind": "kill_order",
+       "entries": [
+        7608
+       ]
+      },
+      "conditions": [],
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "entry": 7795,
+   "name": "Hydromancer Velratha",
+   "kinds": [],
+   "cite": "eventai/zul-farrak.ts:401-446 scripts 779501-779505, acid_classic.sql:17445-17449 creature_id=7795. Ranged mode 35 on aggro. Shadow Bolt Volley 15245 is the same 30 yd disc Zum'rah casts (aoeShape pbaoe radiusYd 30, targetA 22 tgtB 15, castTimeMs 3000) and gets the same reading: 31 yd is the first clear yard and no caster can work from there, so it is healed through. Shadow Bolt 12739 is targetA 6 at 40 yd, single target. Healing Wave 12491 at 50% HP is a 3000 ms friendly heal, an interrupt. Ward of Zum'rah 11086 is the same slotless summon_totem applySpellLate.ts:127-128 refuses, so no ward body stands on her floor either."
+  },
+  {
+   "entry": 7273,
+   "name": "Gahz'rilla",
+   "kinds": [
+    "position"
+   ],
+   "note": "Gahz'rilla slams the ground about every 20 seconds and it reaches 20 yards. The melee have to eat it. The casters only need to stand a yard further back.",
+   "cite": "eventai/zul-farrak.ts:180-213 scripts 727301-727303, acid_classic.sql:17389-17391 creature_id=7273 - there is no ScriptDev cpp for him, and zulfarrak.cpp:39-55 only arms the gong summon. Gahz'rilla Slam 11902 is the one raid-side ability and it has the row below. Freeze Solid 11836 is targetA 6 rangeMax 30, mechanic 12, a 10 s stun on one player with a 93-per-3 s frost dot, dispel 1 magic - single target, so a trinket or a dispel answers it and both are class rows. Icicle 11131 is targetA 6 at 60 yd, 350-400 frost, single target. Nothing in the ACID rows or the dump names an Earthquake on 7273.",
+   "encounterRows": [
+    {
+     "kind": "position",
+     "label": "Casters step out of Gahz'rilla Slam",
+     "cite": "Spell 11902 Gahz'rilla Slam is aoeShape pbaoe radiusYd 20, rawEffects targetA 22 TARGET_LOCATION_CASTER_SRC and targetB 15 on both effects, castTimeMs 0, every 16.9-28.9 s (acid_classic.sql:17390). That is the same disc as Archaedas's Ground Tremor 6524 and High Priestess Jeklik's Sonic Burst 23918, so it takes the same row and the numbers hold for the same reasons: isWithinRadiusYd hits at <=, so 21 is the first clear yard, and the 24 yd trigger is deliberately wider than the park because a row released on the yard it parks on re-arms on the boss's next step. RANGED_STAND_DEFAULT_YD 25 (stand.ts:20) sits outside the trigger so the camp is not armed all fight, while RANGED_STAND_MIN_YD 20 (stand.ts:18) is inside the disc at <=, and that is the yard this row exists to correct. What a raider inside 20 yd actually takes is the weapon strike plus strikeBonus 50, not a knockback: rawEffect 98 KNOCK_BACK is absent from the baked effects[], so the rider filter at stepSession.ts:931-937 has nothing to apply, and the fan is the AoE weapon-strike path at stepSession.ts:942-959, which selects secondaries on spell.radiusYd. isCaster keeps the melee out of it - a permanent park at 21 yd would end melee for flat physical damage - and hunters are not excluded, the same call the Archaedas row made, because there is no bait row here to protect. He is instant and leaves no aura, so this is a standing position rule and not a reaction.",
+     "rule": {
+      "id": "raid_enc_7273_range_11902",
+      "action": {
+       "kind": "move",
+       "move": {
+        "kind": "keep_range",
+        "minYd": 21,
+        "entry": 7273
+       }
+      },
+      "conditions": [
+       {
+        "subject": "self",
+        "metric": "isCaster",
+        "op": "==",
+        "value": 1
+       },
+       {
+        "subject": "self",
+        "metric": "creatureDistanceYd",
+        "op": "<=",
+        "value": 24,
+        "ref": 7273
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "entry": 7267,
+   "name": "Chief Ukorz Sandscalp",
+   "kinds": [],
+   "cite": "eventai/zul-farrak.ts:219-306 scripts 726701-726709, acid_classic.sql:17370-17378 creature_id=7267. Wide Slash 11837 is the only shaped ability: aoeShape cone, src_spell_cone.ConeDegrees 53, radiusYd 10, rangeMax 5, targetA 24 TARGET_IN_FRONT_OF_CASTER, on next swing. The product already answers it - sessionChase.ts:440-461 meleeFlankSlot reads coneArcsOfKit(tgt.spec.spells) and slides every non-tank melee out of the front half plus each kit cone, and coneCovers (combatGeometry.ts:475-485) refuses an arc past its own radiusYd, so nobody at the 20-25 yd ranged stand is ever inside a 10 yd wedge. Cleave 15623 is Effect 58 targetA 6 with radiusYd 0, one target (15496 on the charm bar is the same shape). Enrage 8269 at 60% and Berserker Stance 7366 are targetA 1 self buffs, and Hate to Zero 11838 fires on spawn. The 30% wave is Summon Sandfury Slave 11904 (Effect 42 miscValue 7787, basePoints 3) plus four ACTION_T_SUMMON_ID rows, but 7787 Sandfury Slave has no spells, no ai and no creatureCasts in the bake, so there is nothing among them to order."
+  },
+  {
+   "entry": 7797,
+   "name": "Ruuzlu",
+   "kinds": [],
+   "cite": "eventai/zul-farrak.ts:471-503 scripts 779701-779703, acid_classic.sql:17453-17455 creature_id=7797. Execute 7160 is Effect 58 targetA 6 rangeMax 5, fired when his target drops below 20% HP. Cleave 15623 is Effect 58 targetA 6 with radiusYd 0, one target. Berserker Stance 7366 is targetA 1 on himself. Three rows, no radius anywhere, no summon and no phase: pure tank-and-spank beside Ukorz."
+  }
+ ]
+}

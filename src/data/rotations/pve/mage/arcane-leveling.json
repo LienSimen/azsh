@@ -1,0 +1,1798 @@
+[
+  {
+    "levels": "1-3",
+    "spec": "arcane leveling",
+    "buffs": [
+      {
+        "spell": "Arcane Intellect",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Frost Armor",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Fireball",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Fireball",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Shoot",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "4-9",
+    "spec": "arcane leveling",
+    "buffs": [
+      {
+        "spell": "Arcane Intellect",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Food",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 5349
+          }
+        ]
+      },
+      {
+        "spell": "Frost Armor",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Water",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 5350
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Fireball",
+        "when": "always"
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "always"
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Fire Blast",
+        "when": "always"
+      },
+      {
+        "spell": "Fireball",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Arcane Missiles",
+        "when": "always"
+      },
+      {
+        "spell": "Shoot",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "10-13",
+    "spec": "arcane leveling",
+    "buffs": [
+      {
+        "spell": "Arcane Intellect",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Food",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 1113
+          }
+        ]
+      },
+      {
+        "spell": "Frost Armor",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Dampen Magic",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Water",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 2288
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Fire Blast",
+        "when": "always"
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Polymorph",
+        "when": "multi — control a second enemy",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Frost Nova",
+        "when": "debuff absent AND multi",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "always"
+      },
+      {
+        "spell": "Arcane Missiles",
+        "when": "always"
+      },
+      {
+        "spell": "Shoot",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "14-19",
+    "spec": "arcane leveling",
+    "buffs": [
+      {
+        "spell": "Arcane Intellect",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Food",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 1113
+          }
+        ]
+      },
+      {
+        "spell": "Frost Armor",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Dampen Magic",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Water",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 2288
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Fire Blast",
+        "when": "always"
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Polymorph",
+        "when": "multi — control a second enemy",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Frost Nova",
+        "when": "debuff absent AND multi",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Arcane Explosion",
+        "when": "multi",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "always"
+      },
+      {
+        "spell": "Arcane Missiles",
+        "when": "always"
+      },
+      {
+        "spell": "Shoot",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      },
+      {
+        "spell": "Remove Lesser Curse",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "20-29",
+    "spec": "arcane leveling",
+    "buffs": [
+      {
+        "spell": "Arcane Intellect",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Food",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 1114
+          }
+        ]
+      },
+      {
+        "spell": "Frost Armor",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Dampen Magic",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Agate",
+        "when": "item count < 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5514
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Water",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 2136
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Fire Blast",
+        "when": "always"
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Evocation",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Polymorph",
+        "when": "multi — control a second enemy",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Frost Nova",
+        "when": "debuff absent AND multi",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Arcane Explosion",
+        "when": "multi",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "always"
+      },
+      {
+        "spell": "Arcane Missiles",
+        "when": "always"
+      },
+      {
+        "spell": "Shoot",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      },
+      {
+        "spell": "Remove Lesser Curse",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "30-39",
+    "spec": "arcane leveling",
+    "buffs": [
+      {
+        "spell": "Arcane Intellect",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Mage Armor",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Food",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 1487
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Agate",
+        "when": "item count < 2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 2,
+            "ref": 5514
+          }
+        ]
+      },
+      {
+        "spell": "Dampen Magic",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Jade",
+        "when": "item count < 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5513
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Water",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 3772
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Fire Blast",
+        "when": "always"
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Evocation",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Polymorph",
+        "when": "multi — control a second enemy",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Frost Nova",
+        "when": "debuff absent AND multi",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Arcane Explosion",
+        "when": "multi",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "always"
+      },
+      {
+        "spell": "Arcane Missiles",
+        "when": "always"
+      },
+      {
+        "spell": "Shoot",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      },
+      {
+        "spell": "Remove Lesser Curse",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "40-49",
+    "spec": "arcane leveling",
+    "buffs": [
+      {
+        "spell": "Arcane Intellect",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Mage Armor",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Food",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 8075
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Agate",
+        "when": "item count < 2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 2,
+            "ref": 5514
+          }
+        ]
+      },
+      {
+        "spell": "Dampen Magic",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Jade",
+        "when": "item count < 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5513
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Water",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 8077
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Citrine",
+        "when": "item count < 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 8007
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Fire Blast",
+        "when": "always"
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Evocation",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Polymorph",
+        "when": "multi — control a second enemy",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Frost Nova",
+        "when": "debuff absent AND multi",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Arcane Explosion",
+        "when": "multi",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "always"
+      },
+      {
+        "spell": "Arcane Missiles",
+        "when": "always"
+      },
+      {
+        "spell": "Shoot",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      },
+      {
+        "spell": "Remove Lesser Curse",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "50-59",
+    "spec": "arcane leveling",
+    "buffs": [
+      {
+        "spell": "Arcane Intellect",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Mage Armor",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Food",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 8076
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Agate",
+        "when": "item count < 2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 2,
+            "ref": 5514
+          }
+        ]
+      },
+      {
+        "spell": "Dampen Magic",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Jade",
+        "when": "item count < 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5513
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Water",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 8078
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Citrine",
+        "when": "item count < 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 8007
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Ruby",
+        "when": "item count < 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 8008
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "always"
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Evocation",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Polymorph",
+        "when": "multi — control a second enemy",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Frost Nova",
+        "when": "debuff absent AND multi",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Arcane Explosion",
+        "when": "multi",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "always"
+      },
+      {
+        "spell": "Arcane Missiles",
+        "when": "always"
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      },
+      {
+        "spell": "Shoot",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      },
+      {
+        "spell": "Remove Lesser Curse",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "60",
+    "spec": "arcane leveling",
+    "buffs": [
+      {
+        "spell": "Arcane Intellect",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Mage Armor",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Food",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 8076
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Ruby",
+        "when": "item count < 2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 2,
+            "ref": 8008
+          }
+        ]
+      },
+      {
+        "spell": "Dampen Magic",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Agate",
+        "when": "item count < 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5514
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Jade",
+        "when": "item count < 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5513
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Water",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 8079
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Citrine",
+        "when": "item count < 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 8007
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "always"
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Evocation",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Polymorph",
+        "when": "multi — control a second enemy",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Frost Nova",
+        "when": "debuff absent AND multi",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Arcane Explosion",
+        "when": "multi",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "always"
+      },
+      {
+        "spell": "Arcane Missiles",
+        "when": "always"
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      },
+      {
+        "spell": "Shoot",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      },
+      {
+        "spell": "Remove Lesser Curse",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 2
+          }
+        ]
+      }
+    ]
+  }
+]

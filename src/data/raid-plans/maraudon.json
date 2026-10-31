@@ -1,0 +1,102 @@
+{
+ "raid": "maraudon",
+ "note": "Reviewed for E5.4 against boss_noxxion.cpp, eventai/maraudon.ts and acid_classic.sql. All nine bosses come back kinds: [] and that is the finding. The shaped abilities in this wing split three ways and none of them is a move verb: two discs are 45 and 100 yards wide, which is the whole room rather than a shape anyone can walk out of; the rest are 5 to 15 yard discs at melee reach that the melee have to stand in to fight at all; and the one 20 yard disc that would have earned Archaedas's keep_range row, Princess Theradras's Dust Field, never lands because its payload spell is not in her kit. Two bosses here publish a live hazard body, which the packs so far assumed a five-man never does, and neither of them wants an avoid_zone row.",
+ "bosses": [
+  {
+   "entry": 13282,
+   "name": "Noxxion",
+   "kinds": [
+    "position"
+   ],
+   "cite": "boss_noxxion.cpp:28-119 owns this fight: there are no ACID rows for 13282 and the kit is the ScriptDev port at src/domain/scriptdev/maraudon.ts:103-181. Toxic Volley 21687 is aoeShape pbaoe radiusYd 45, targetA 22 and targetB 15, castTimeMs 0, 75-125 nature plus a 15 s poison dot (dispel 4) every 9 s - forty-five yards centred on him is wider than RANGED_STAND_MAX_YD 30 and than STAND_YARDS_MAX 40 (stand.ts:17-19), so every stand the game has is inside it and the answer is Abolish Poison, a class row. Uppercut 22916 is targetA 6 rangeMax 10 on the victim only. The split is NOT a kill-order: m_uiSummonTimer is a flat timer, 19 s then 40 s on CAST_OK (cpp:48, :81), there is no HP phase gate anywhere in the file, and JustSummoned (cpp:51-55) sends each of the five 13456 at ATTACKING_TARGET_RANDOM, so the DB names no add as first. What moves the party off him is 21708's UNIT_FLAG_UNINTERACTIBLE for 15 s (cpp:104, ported as set_unattackable at scriptdev/maraudon.ts:164-168), a targeting flag the engine already honours rather than anything a verb decides.",
+   "blockedBy": {
+    "position": "Spore Cloud 21547 is aoeShape ground radiusYd 13, targetA 18 and targetB 16, a 1 s dot for 5 s. It USED TO publish Noxxion as a hazards.ts BODY at 13 yd, so avoid_zone \"21547\" matched a disc that was live from the first tick over a spell nothing casts: 21547 is a charm-bar slot only (creatures.json 13282 spells null, charmSpells [21687, 21547, 21707]) and the ScriptDev schedule never fires it, while pickAction.ts:770-774 moveOwnsPastDeadline never yields on a match, so the row parked the melee 14 yd off him for the whole fight. THAT HALF IS FIXED as of 2026-08-26: a body hazard now needs its spell on the creature's own creatureCasts or spellList (hazards.ts groundAoeOf; UnitAI.cpp:106 and :1170, a disabled spell list does not self-cast), and src/dev/smoke/bodyHazardScheduled.mjs holds the population, with Noxxion among the 6 that no longer leak. That population is 9 as of 2026-08-27, not the 29 this line first recorded: a body whose ground spell also makes a pool stopped publishing, which took 19 more of them. No row is owed now, for the opposite reason: there is no hazard to avoid because nothing casts the spell."
+   }
+  },
+  {
+   "entry": 12258,
+   "name": "Razorlash",
+   "kinds": [],
+   "cite": "eventai/maraudon.ts:173-194 scripts 1225801-1225802, acid_classic.sql:15518-15519 creature_id=12258. Thrash 8876 and Puncture 15978 are both targetA 1 self auras (aura 42) that hang a payload on his swings: 3391 is extra_attacks 2 and 15976 is a single-target bleed at rangeMax 5, mechanic 15, 10 s. Cleave 11427 is rangeMax 5 targetA 6 with chainTargets 3, so it splashes the melee already standing on the tank. Nothing in the kit carries a radiusYd or an aoeShape, so there is no shape to stand out of."
+  },
+  {
+   "entry": 12236,
+   "name": "Lord Vyletongue",
+   "kinds": [],
+   "cite": "eventai/maraudon.ts:279-327 scripts 1223601-1223605, acid_classic.sql:15483-15487 creature_id=12236. Smoke Bomb 7964 is the Bazil Thredd shape to the number: aoeShape pbaoe radiusYd 5, targetA 22 and targetB 15, mechanic 12, a 4 s stun every 14-21 s. Five yards is melee reach and the ranged stand is 20-30 (stand.ts:18-19), so standing out of it means not meleeing him at all; a trinket or Berserker Rage answers a repeated melee stun and that is a class row. Blink 21655 moves HIM (Effect 29 leap, radiusYd 20), and Multi-Shot 21390 (targetA 6, rangeMax 30, chainTargets 5) and Shoot 16100 (targetA 6, rangeMax 30) are both fired from the 25 yd ranged mode 1223601 puts him in, neither with a radius."
+  },
+  {
+   "entry": 12237,
+   "name": "Meshlok the Harvester",
+   "kinds": [],
+   "cite": "acid_classic.sql:15489-15490 creature_id=12237. There is no eventai/maraudon.ts overlay for him, so those two ACID rows are the whole schedule. The armed stomp is War Stomp 15593: aoeShape pbaoe radiusYd 5, targetA 22 and targetB 15, mechanic 12, an 8 s stun every 15-21 s, a disc at melee reach. The wide War Stomp 24375 (radiusYd 15) is never cast - creatures.json 12237 has spells [13446, 15593] against charmSpells [24375, 15580], and combatEnemySpec.ts:130-138 refuses a cast row for a charm-bar slot that is not also a mob spell - so the 15 yd reading that would put a hunter on the 20 yd floor at risk is not on this floor. Strike 13446 is targetA 6 rangeMax 5."
+  },
+  {
+   "entry": 12225,
+   "name": "Celebras the Cursed",
+   "kinds": [],
+   "cite": "eventai/maraudon.ts:80-129 scripts 1222501-1222505, acid_classic.sql:15477-15481 creature_id=12225. Twisted Tranquility 21793 is real and it is the whole room: aoeShape ground radiusYd 45, targetA 18 and targetB 16 so it is centred on him, a 10 s channel every 50-60 s carrying 69 nature every 2 s and a -300 haste debuff. Forty-five yards is wider than every stand this game has - MELEE_REACH_YD 5, RANGED_STAND_MIN_YD 20, RANGED_STAND_DEFAULT_YD 25, RANGED_STAND_MAX_YD 30, STAND_YARDS_MAX 40 at stand.ts:11-19 - so clearing it means parking at 46 yd, past the stand clamp and past his own Wrath 21807 rangeMax 40, and the walk back is another ~6.4 s against a 10 s field. The verb itself WORKS and that is the point: avoidZone.ydFromWideField in the capability ledger measures a raider reaching 46 yd off this exact spell (src/dev/capabilities/avoidZone.mjs:160-195), which is why the give-up exception at pickAction.ts:758-774 cites it. It is still the wrong row, and for a second reason: 21793 is in his combat kit (creatures.json 12225 spells [21807, 12747, 21968, 21793]) and is ground-shaped, damaging and cast from the caster, so hazards.ts:69-79 groundAoeOf publishes Celebras as a 45 yd BODY hazard from the first tick and moveOwnsPastDeadline never yields while it lives - the row would own the party for the whole fight, not the 10 s window. The rest asks nothing positional: Corrupt Forces of Nature 21968 summons 3x Corrupt Force of Nature 13743 (rawEffect 42 miscValue 13743 basePoints 2, count basePoints+1 at summonCast.ts:96-107), Wrath 21807 is a 2000 ms single-target nuke at 40 yd, and Entangling Roots 12747 is a single-target root a decurse answers."
+  },
+  {
+   "entry": 12203,
+   "name": "Landslide",
+   "kinds": [],
+   "cite": "eventai/maraudon.ts:135-167 scripts 1220301-1220303, acid_classic.sql:15441-15443 creature_id=12203. Landslide 21808 is aoeShape ground radiusYd 100 with an 8 s stun (targetA 18, targetB 16, aura 12) and it fires inside the first second of the pull, then every 60 s: a hundred yards is the whole instance and there is no ground outside it to send anyone to. Its other effect is aura 23 amplitude 2000 triggering 21809 Summon Theradrim Shardling (rawEffect 41, miscValue 11783), and that payload never lands - stepSession.ts:1732-1733 resolves a periodic trigger only through spellFromKit(src.spec.spells) and 21809 is in no kit for 12203 (creatures.json spells [21808, 5568, 18670], charmSpells none). Trample 5568 is aoeShape pbaoe radiusYd 10, inside the melee band and inside RANGED_STAND_MIN_YD 20, and Knock Away 18670 is targetA 6 rangeMax 10 on the victim."
+  },
+  {
+   "entry": 13601,
+   "name": "Tinkerer Gizlock",
+   "kinds": [],
+   "cite": "eventai/maraudon.ts:222-273 scripts 1360101-1360105, acid_classic.sql:15539-15543 creature_id=13601; 1360101 puts him in ranged mode at 25 yd on aggro. Flash Bomb 29419 is aoeShape ground radiusYd 5, mechanic 5 fear for 10 s, dropped on a HOSTILE_RANDOM raider every 25 s, and Bomb 9143 is aoeShape ground radiusYd 5 with a 2000 ms cast on the victim: five yards is melee reach either way, so the only unit a spread could move is a melee raider giving up melee, and Fear Ward or Tremor Totem is the class answer to the fear. Goblin Dragon Gun 21833 is the one cone in the wing, and it is answered twice over: the wedge lives on the payload 21910 (src_spell_cone ConeDegrees 53, radiusYd 10, pulsed every 1000 ms for 8 s), which is not in creatures.json 13601 spells [29419, 9143, 21833, 16100] so the same spellFromKit gap at stepSession.ts:1732-1733 stops it firing at all, and combatGeometry.ts:567-586 meleeSlotIsExposed already treats the whole front HALF as exposed, so sessionChase.ts:440-461 slides every non-tank melee outside a 53 degree wedge before a row could. Shoot 16100 is targetA 6 rangeMax 30."
+  },
+  {
+   "entry": 13596,
+   "name": "Rotgrip",
+   "kinds": [],
+   "cite": "eventai/maraudon.ts:200-216 scripts 1359601-1359602, acid_classic.sql:15534-15535 creature_id=13596. Puncture 15978 is a targetA 1 self aura (aura 42) triggering 15976 on his swings, a single-target bleed at rangeMax 5, mechanic 15, 10 s. Fatal Bite 16495 is targetA 6 rangeMax 5, a health_leech on the victim every 11-15 s. Two scripts, no radiusYd and no aoeShape anywhere in the kit, so this is tank-and-spank."
+  },
+  {
+   "entry": 12201,
+   "name": "Princess Theradras",
+   "kinds": [
+    "position"
+   ],
+   "cite": "eventai/maraudon.ts:25-74 scripts 1220101-1220105, acid_classic.sql:15435-15439 creature_id=12201; no ScriptDev cpp. Repulsive Gaze 21869 is aoeShape pbaoe radiusYd 8, targetA 22 and targetB 15, mechanic 5, an 8 s fear every 20-25 s - the same disc as Dextren Ward's Intimidating Shout and the same answer, Fear Ward and Tremor Totem in the class rotation. Boulder 21832 is targetA 6 rangeMax 30 with a 2000 ms cast on a random raider, single target, and Thrash 3391 is extra_attacks 2 on herself. Dust Field 21909 is the one ability in this wing that asks the party for a position and cannot be given one - see blockedBy.",
+   "note": "Dust Field roots her and pulses 132-168 nature inside 20 yd, eight times, every 20 to 25 seconds. The melee have to eat it. The ranged only need to stand a yard further back.",
+   "encounterRows": [
+    {
+     "kind": "position",
+     "label": "Casters step out of Dust Field",
+     "cite": "Dust Field 21909 roots HER for 8 s (aura 26, so the disc does not chase) and triggers 21868 every 1000 ms; 21868 is aoeShape pbaoe radiusYd 20, rawEffects targetA 22 TARGET_LOCATION_CASTER_SRC and targetB 15, castTimeMs 0, 132-168 nature a pulse. That is Archaedas's Ground Tremor 6524 disc to the yard and the same two target ids, so this is raid_enc_2748_range_6524 with her entry: isWithinRadiusYd hits at <= (combatGeometry.ts:216-228), so 21 is the first clear yard, and the trigger arms wider at 24 because a row released on the yard it parks on re-arms on her next step. RANGED_STAND_DEFAULT_YD 25 (stand.ts:20) already sits outside 24, so the camp is not armed all fight. isCaster keeps the melee out of it - 21 yd is four times MIN_AGGRO_DISTANCE 5 (creatureAiConstants.ts:76) and parking there would end melee for a pulse they can heal through. Hunters are not excluded: like Archaedas she has no Charge bait, so a hunter on the 20 yd floor (stand.ts:18 RANGED_STAND_MIN_YD, which the disc reaches at <=) takes the same one-yard step. She leaves no aura and 21909 has no cast bar, so this is a standing position rule and not a reaction. Rows are keyed on the focus entry (raidEncounterTactics.ts:111), so it is off while a raider is on Landslide or a Nightmare Scalebane. Cite: eventai/maraudon.ts:33-42 script 1220102, initial 8-13 s repeat 20-25 s.",
+     "rule": {
+      "id": "raid_enc_12201_range_21868",
+      "action": {
+       "kind": "move",
+       "move": {
+        "kind": "keep_range",
+        "minYd": 21,
+        "entry": 12201
+       }
+      },
+      "conditions": [
+       {
+        "subject": "self",
+        "metric": "isCaster",
+        "op": "==",
+        "value": 1
+       },
+       {
+        "subject": "self",
+        "metric": "creatureDistanceYd",
+        "op": "<=",
+        "value": 24,
+        "ref": 12201
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ]
+  }
+ ]
+}

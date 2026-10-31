@@ -1,0 +1,94 @@
+{
+ "raid": "dire-maul-east",
+ "note": "Reviewed for E5.4 against eventai/dire-maul-east.ts, acid_classic.sql:14996-15231 and the Dire Maul cpp. There is no per-boss script in the core - dire_maul.cpp:33-346 is the warlock Dreadsteed ritual and nothing else, and instance_dire_maul.cpp only records Zevrim's death for the Ironbark door (:417-418) - so every kit in this wing is EventAI plus the baked charm bar, and only 13280 and 11492 have an in-tree overlay at all (eventai/dire-maul-east.ts:321-324). All six bosses come back kinds: []. Zevrim Thornhoof is the one fight that asks for a real run-out, and both verbs that could answer a 20 yd circle fail on him for sourced reasons - his blockedBy writes them out.",
+ "bosses": [
+  {
+   "entry": 14354,
+   "name": "Pusillin",
+   "kinds": [],
+   "cite": "acid_classic.sql:15156-15160 creature_id=14354 is the whole kit; he has no overlay in eventai/dire-maul-east.ts. 1435401 puts him in ranged mode at 35 yd, and from there Fireball 15228 (targetA 6, rangeMax 40, castTimeMs 3000) and Fire Blast 14145 (targetA 6, rangeMax 20) are single-target nukes with no radiusYd. Blast Wave 22424 is the only shape in the kit: aoeShape pbaoe radiusYd 10, targetA 22 tgtB 15, castTimeMs 0, 243-281 fire plus a 51% snare for 6 s - an instant disc thrown by a mob standing 35 yd out, so it only ever reaches whoever chased him, and there is no cast bar and no aura for a walk to gate on. He is faction 35 until the fifth gossip flips dme-pusillin-hostile (dire-maul-east.ts:110, :393-394), so the chase is a gossip chain and not a positional ask either."
+  },
+  {
+   "entry": 11490,
+   "name": "Zevrim Thornhoof",
+   "kinds": [
+    "position"
+   ],
+   "cite": "acid_classic.sql:14996-14997 creature_id=11490 - two cast rows, no overlay in eventai/dire-maul-east.ts. Sacrifice 22651 every 16-24 s is targetA 6 tgtB 17 TARGET_LOCATION_DATABASE at rangeMax 40: it teleports one raider onto the altar, stuns them 8 s and leeches 300 a second off them for the duration. The spell MOVES its own victim, so no move verb can pre-empt it and the answer is a heal. Intense Pain 22478 every 12-18 s is the shape that does ask for a response - aoeShape ground radiusYd 20, tgtA 18 TARGET_LOCATION_CASTER_DEST tgtB 16, castTimeMs 1000, a 200 shadow tick every 3 s for 15 s, dispel 1 magic - and neither verb reaches it, see blockedBy.",
+   "note": "Intense Pain drops a 20 yd circle on Zevrim every 12 to 18 seconds, 200 shadow a tick for 15 seconds. The melee have to eat it. The ranged only need to stand a yard further back.",
+   "encounterRows": [
+    {
+     "kind": "position",
+     "label": "Casters step out of Intense Pain",
+     "cite": "Intense Pain 22478 is aoeShape ground radiusYd 20, rawEffects targetA 18 TARGET_LOCATION_CASTER_DEST and targetB 16, castTimeMs 1000, a 200 shadow tick every 3 s for 15 s, cast every 12-18 s (acid_classic.sql:14996-14997 creature_id=11490). The circle is ON HIM: applySpell.ts:1262 sites a ground pool with spellAoeFromCaster, and 22478 has rangeMax 0 so that returns true on its first line (combatGeometry.ts:357). keep_range with minYd 21 and entry 11490 is therefore the same row Archaedas and Princess Theradras carry - isWithinRadiusYd hits at <= (combatGeometry.ts:216-228) so 21 is the first clear yard, armed wider at 24 so a row released on the yard it parks on does not re-arm on his next step, and RANGED_STAND_DEFAULT_YD 25 (stand.ts:20) sits outside 24 so the camp is not armed all fight. isCaster keeps the melee out of it. avoid_zone is still the WRONG verb here and that half of the old reason stands: 22478 is caster-centred, so hazards.ts:114-128 publishes Zevrim’s own body as a permanent 20 yd hazard, hazardMatches (:134-136) matches the id against that body as well as the pool, and sessionMechanicMove.ts:492-523 steps away from the DEEPEST match - which would hold the tank 20.5 yd off him for the whole fight. Sacrifice 22651 is not a position ask at all: it teleports its own victim onto the altar, so no move verb can pre-empt it and the answer is a heal.",
+     "rule": {
+      "id": "raid_enc_11490_range_22478",
+      "action": {
+       "kind": "move",
+       "move": {
+        "kind": "keep_range",
+        "minYd": 21,
+        "entry": 11490
+       }
+      },
+      "conditions": [
+       {
+        "subject": "self",
+        "metric": "isCaster",
+        "op": "==",
+        "value": 1
+       },
+       {
+        "subject": "self",
+        "metric": "creatureDistanceYd",
+        "op": "<=",
+        "value": 24,
+        "ref": 11490
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "entry": 13280,
+   "name": "Hydrospawn",
+   "kinds": [
+    "position"
+   ],
+   "cite": "eventai/dire-maul-east.ts:38-79 scripts 1328001-1328004, acid_classic.sql:15062-15065 creature_id=13280, a block whose own header says NEED MORE OFFICIAL DATA. Riptide 22419 every 14.3-25.3 s is aoeShape pbaoe radiusYd 10 targetA 22 tgtB 15 castTimeMs 0, 85-115 frost plus a knock-back, and Submersion 22420 every 3-6 s is pbaoe radiusYd 15 castTimeMs 0, dispel 1 magic, -10 stamina for 60 s. Both are instant with no aura on him, so nothing exists for buffPresent or castingPresent to gate a walk on, and the 20-25 yd ranged stand (stand.ts:18,20) is already outside both while the melee are inside because that is where melee happens. Summon Hydroling 22714 at 40% is Effect 42 miscValue 14350, a body whose whole kit is Hydrojet 22716 on spawn (acid_classic.sql:15148).",
+   "blockedBy": {
+    "position": "Massive Geyser 22421 is the one thing here a raider should step off, and there is no window to step in. It is Effect 41 tgtA 53 miscValue 14122 with castTimeMs 1500, cast on a random raider (acid_classic.sql:15064, target 4), so it plants a Massive Geyser body at that raider's feet - and that body fires on the tick it arrives: acid_classic.sql:15069 creature_id=14122 is a single EVENT_T 11 SPAWNED script that casts Water 22422, then disables its own movement and melee. 22422 is aoeShape pbaoe radiusYd 10 for 463-537 frost plus a knock-back, and as of 2026-08-26 that knock is real - effect 98 was dropped by the mapper and 22422 now bakes knock_back horizontal 10 vertical 10 beside its direct_damage. 22421's Effect 41 bakes too (summon_wild creature 14122 count 1), so the body really does plant. A keep_range on entry 14122 could only fire after the blast has already landed, and the only real window is the 1500 ms cast of 22421, which names a point nobody knows until the summon exists. avoid_zone has nothing to name either: 22422 is pbaoe, not ground, so hazards.ts:75-85 refuses it and no hazard is published."
+   }
+  },
+  {
+   "entry": 14327,
+   "name": "Lethtendris",
+   "kinds": [],
+   "cite": "acid_classic.sql:15135-15140 creature_id=14327, no overlay in eventai/dire-maul-east.ts. Shadow Bolt Volley 17228 is the only shape: aoeShape pbaoe radiusYd 30, targetA 22 tgtB 15, castTimeMs 0, 128-172 shadow - a 30 yd disc centred on her that already reaches past the 25 yd ranged stand (stand.ts:20), instant so there is nothing to react to, and a park at 31 yd would put the casters outside their own 30 yd range. That is a flat unavoidable nuke, not a position. The rest is single target or a curse: Void Bolt 22709 (castTimeMs 4000, rangeMax 100, 925-1075), Immolate 12742, Curse of Tongues 13338 and Curse of Thorns 16247 (both dispel 2, a decurse), and Enlarge 22710, a 30 s +100% haste buff she puts on her imp Pimgib 14349 (acid_classic.sql:15139), dispel 1 and so a purge. Every answer here lives in the class rotation."
+  },
+  {
+   "entry": 11492,
+   "name": "Alzzin the Wildshaper",
+   "kinds": [
+    "kill-order"
+   ],
+   "cite": "eventai/dire-maul-east.ts:85-319 scripts 1149201-1149221, acid_classic.sql:15000-15020 creature_id=11492. He cycles Dire Wolf Form 22660 and Tree Form 22688 off a phase mask and not one ability in any of the three phases carries a radiusYd: Wither 22662 and Enervate 22661 are targetA 6 at rangeMax 40, Vicious Bite 19319, Mangle 22689, Disarm 22691 and Knock Away 10101 are targetA 6 at rangeMax 5 to 10, and both forms are targetA 1 self buffs. The two things the party does answer are class rows - Thorns 22128 on aggro is targetA 21 friendly with dispel 1, a purge, and Wild Regeneration 7948 is a 3000 ms self heal, an interrupt. Honest about the payloads: 19319 and 10101 bake with effects: [], because the DBC opcodes are 58 WEAPON_DAMAGE and 98 KNOCK_BACK, which the bake has no mapper for.",
+   "blockedBy": {
+    "kill-order": "at 40% HP he drops both forms, calls for help at 100 yd and summons FIFTEEN Alzzin's Minion 11460 in one burst (acid_classic.sql:15012-15018, summon ids 41-55 at eventai/dire-maul-east.ts:16-32). Fifteen bodies at once is the shape a kill order exists for, and nothing in the DB names one: acid_classic.sql:14895 creature_id=11460 is their ONLY script, a Hate to Zero 10095 on spawn, so no minion heals him, none buffs him, and all fifteen are the same entry. A kill_order over fifteen copies of one entry is the default rotation with extra words."
+   }
+  },
+  {
+   "entry": 16097,
+   "name": "Isalien",
+   "kinds": [
+    "kill-order"
+   ],
+   "cite": "acid_classic.sql:15223-15231 creature_id=16097, the Tier 0.5 Brazier of Beckoning summon wired at dire-maul-east.ts:118-127 (goEntry 181047, Alzzin's room). 1609701 puts her in ranged mode at 25 yd and the whole kit is single target with no radiusYd and no aoeShape: Net 12024 (rangeMax 20, mechanic 7, a 5 s root), Starshards 27636 (500 arcane a second for 6 s at rangeMax 100), Multi-Shot 14443 and Shoot 22907 (targetA 6, range 5-30). Regrowth 27637 at 80% is a 2000 ms heal for 4625-5375, which is an interrupt and a class row, and Call Pet 27639 at 90% is Effect 42 miscValue 16098 - a body, not a party verb.",
+   "blockedBy": {
+    "kill-order": "the pet is the obvious candidate and the DB punishes taking it first. acid_classic.sql:15225 arms script 1609703 on EVENT_T 25 with param1 16098, so when the Empyrean DIES Isalien casts Vengeance 25164 on herself: targetA 1, a 30 s +50% haste buff in the bake. Killing the pet first hands the boss that buff, so there is no order worth imposing, and the Empyrean's own kit is a second melee body and nothing more - Sundering Cleave 17963, Rake 27638, Enrage 8599 at 50% and Thrash 3391, all targetA 6 or targetA 1 at rangeMax 5 (acid_classic.sql:15233-15236)."
+   }
+  }
+ ]
+}

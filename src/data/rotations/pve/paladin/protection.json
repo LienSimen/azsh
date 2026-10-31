@@ -1,0 +1,962 @@
+[
+  {
+    "levels": "1-9",
+    "spec": "Protection",
+    "buffs": [
+      {
+        "spell": "Blessing of Might",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Devotion Aura",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Seal of Righteousness",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Holy Light",
+        "when": "self health < 50%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 50
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Holy Light",
+        "when": "party healer dead or out of mana, and most-hurt ally below 75%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "offHealAllowed",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "healerPowerPct",
+            "op": "<",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 75
+          }
+        ]
+      },
+      {
+        "spell": "Seal of Righteousness",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Judgement",
+        "when": "buff present",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 1,
+            "ref": 21084
+          }
+        ]
+      },
+      {
+        "spell": "Purify",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 3
+          }
+        ]
+      },
+      {
+        "spell": "Divine Protection",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "10-19",
+    "spec": "Protection",
+    "buffs": [
+      {
+        "spell": "Righteous Fury",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Blessing of Might",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Devotion Aura",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Seal of Righteousness",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Hammer of Justice",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Holy Light",
+        "when": "self health < 50%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 50
+          }
+        ]
+      },
+      {
+        "spell": "Lay on Hands",
+        "when": "self health < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Holy Light",
+        "when": "party healer dead or out of mana, and most-hurt ally below 75%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "offHealAllowed",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "healerPowerPct",
+            "op": "<",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 75
+          }
+        ]
+      },
+      {
+        "spell": "Seal of Righteousness",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Judgement",
+        "when": "buff present",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 1,
+            "ref": 20288
+          }
+        ]
+      },
+      {
+        "spell": "Hammer of Justice",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Purify",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 3
+          }
+        ]
+      },
+      {
+        "spell": "Divine Protection",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "20-39",
+    "spec": "Protection",
+    "buffs": [
+      {
+        "spell": "Righteous Fury",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Devotion Aura",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Seal of Righteousness",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Hammer of Justice",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Holy Light",
+        "when": "self health < 50%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 50
+          }
+        ]
+      },
+      {
+        "spell": "Divine Protection",
+        "when": "self health < 25%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          }
+        ]
+      },
+      {
+        "spell": "Lay on Hands",
+        "when": "self health < 15%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 15
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Flash of Light",
+        "when": "self health < 50%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 50
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Holy Light",
+        "when": "party healer dead or out of mana, and most-hurt ally below 75%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "offHealAllowed",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "healerPowerPct",
+            "op": "<",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 75
+          }
+        ]
+      },
+      {
+        "spell": "Consecration",
+        "when": "AoE mode is not single",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "aoeMode",
+            "op": "!=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Seal of Righteousness",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Judgement",
+        "when": "buff present",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 1,
+            "ref": 20290
+          }
+        ]
+      },
+      {
+        "spell": "Hammer of Justice",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Purify",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 3
+          }
+        ]
+      },
+      {
+        "spell": "Divine Protection",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Divine Shield",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Exorcism",
+        "when": "target.creatureTypeMask==1",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "creatureTypeMask",
+            "op": "==",
+            "value": 1,
+            "ref": 36
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "40-60",
+    "spec": "Protection",
+    "buffs": [
+      {
+        "spell": "Righteous Fury",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Devotion Aura",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Seal of Righteousness",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Hammer of Justice",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Holy Light",
+        "when": "self health < 50%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 50
+          }
+        ]
+      },
+      {
+        "spell": "Divine Protection",
+        "when": "self health < 25%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          }
+        ]
+      },
+      {
+        "spell": "Lay on Hands",
+        "when": "self health < 15%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 15
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Flash of Light",
+        "when": "self health < 50%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 50
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Holy Light",
+        "when": "party healer dead or out of mana, and most-hurt ally below 75%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "offHealAllowed",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "healerPowerPct",
+            "op": "<",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 75
+          }
+        ]
+      },
+      {
+        "spell": "Consecration",
+        "when": "AoE mode is not single",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "aoeMode",
+            "op": "!=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Holy Shield",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Seal of Righteousness",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Judgement",
+        "when": "buff present",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 1,
+            "ref": 20293
+          }
+        ]
+      },
+      {
+        "spell": "Hammer of Justice",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Holy Wrath",
+        "when": "multi AND target.creatureTypeMask==1 AND AoE mode is not single",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "target",
+            "metric": "creatureTypeMask",
+            "op": "==",
+            "value": 1,
+            "ref": 36
+          },
+          {
+            "subject": "self",
+            "metric": "aoeMode",
+            "op": "!=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Purify",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 3
+          }
+        ]
+      },
+      {
+        "spell": "Cleanse",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 4
+          }
+        ]
+      },
+      {
+        "spell": "Divine Protection",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Divine Shield",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Exorcism",
+        "when": "target.creatureTypeMask==1",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "creatureTypeMask",
+            "op": "==",
+            "value": 1,
+            "ref": 36
+          }
+        ]
+      },
+      {
+        "spell": "Hammer of Wrath",
+        "when": "target health < 20%",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      }
+    ]
+  }
+]

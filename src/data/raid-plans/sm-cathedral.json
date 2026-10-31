@@ -1,0 +1,72 @@
+{
+ "raid": "sm-cathedral",
+ "note": "Reviewed for E5.4 against boss_mograine_and_whitemane.cpp, eventai/sm-cathedral.ts and acid_classic.sql. Fairbanks is single-target plus a 5 yd sleep the melee are standing in. The pair is the one ordering fight in Scarlet Monastery: the resurrection puts a full-health Mograine back on the floor while Whitemane is still up at half, and the kill-order row names her first.",
+ "bosses": [
+  {
+   "entry": 4542,
+   "name": "High Inquisitor Fairbanks",
+   "kinds": [],
+   "cite": "eventai/sm-cathedral.ts:454201-454206, acid_classic.sql:16009-16014 creature_id=4542 - and the file's own header at :16008 marks the Sleep and Fear rows as reconstruction, 'NEED MORE DATA (No Official Sleep or Fear Data)'. Sleep 8399 is the only area effect he has: targetA 22 then 15, radiusYd 5.0, aura 12 mechanic 10 for 10 s on a flat 30 s timer - a disc inside melee reach, so clearing it means not meleeing him, and the ranged stand at DEFAULT_OPEN_YD 18 (combatGeometry.ts:66) is already outside it. Curse of Blood 8282 (aura 14, dispel 2), Dispel Magic 15090 and Fear 12096 (aura 7, mechanic 5, 8 s) are all single-target, and Heal 12039 at <=30% with Power Word: Shield 11647 at <=25% are self-rescue an interrupt or a purge answers from the class rotation."
+  },
+  {
+   "entry": 3976,
+   "name": "Scarlet Commander Mograine & High Inquisitor Whitemane",
+   "kinds": [
+    "kill-order",
+    "halt-dps"
+   ],
+   "cite": "boss_mograine_and_whitemane.cpp:44-56 both kits; acid_classic.sql:15902-15903 hands 3976 and 3977 to the two cpp scripts. Deep Sleep 9256 is targetA 22 then 15 with radiusYd 100.0, aura 12 for 10 s - a hundred-yard disc is the whole cathedral, so no position verb touches it, and Dominate Mind 14515 (aura 6, mechanic 1, 15 s on a random player) is a dispel. What the fight really asks is an order, because the resurrection leaves two bodies up at once.",
+   "encounterRows": [
+    {
+     "kind": "kill-order",
+     "label": "Whitemane first once Mograine is back up",
+     "cite": "The resurrection is degraded to three waves in this tree: 3976 alone, then 3977 alone, then a fresh 3976 injected while Whitemane is STILL ALIVE (sm-cathedral.ts:154-158 SM_MOGRAINE_WHITEMANE.waves, liveGauntletEscort.ts:608-656, :651 'final wave - Mograine inject; Whitemane stays in spawned'). The inject is gated on Whitemane at or below 50% HP with Mograine already down (canScarletResurrect, sm-cathedral.ts:167-176; cpp:477 GetHealthPercent() <= 50.0f), so the both-up phase always opens with Mograine at full and Whitemane at half. She is the body to finish: Heal 12039 for 589 every 13 s, Power Word: Shield 22187 for 205 absorb every 22-45 s, Holy Smite 9481 for 134 every 2-3 s, and Dominate Mind 14515 charming a raider for 15 s every 20-30 s once the res phase is armed (scarletMonastery.ts:658-672). kill_order is a filter and does not win the GCD (types.ts:366-375), and raidEncounterTactics.ts:174-180 registers the rule under 3977 as well as 3976, so it keeps holding while the focus is Whitemane. In wave 0 there is no 3977 alive and the row falls straight through to Mograine.",
+     "rule": {
+      "id": "raid_enc_3976_kill",
+      "action": {
+       "kind": "kill_order",
+       "entries": [
+        3977,
+        3976
+       ]
+      },
+      "conditions": [],
+      "enabled": true
+     }
+    },
+    {
+     "kind": "halt-dps",
+     "label": "Casters hold while the Divine Shield is up",
+     "cite": "Divine Shield 1020, mechanic 25 invulnerability for 12 s in his baked kit (creature_template_spells 3976 spell3; 642 for 10 s in boss_mograine_and_whitemane.cpp), fired once at <=50% HP and then disabled (cpp:301-307 DisableCombatAction; scarletMonastery.ts:525-545 MOGRAINE_PHASE_SHIELD). Wave 0 is Mograine ALONE (sm-cathedral.ts:154-158 waves), so the shield eats the whole party's damage and mana for its full duration with nothing else to hit. This row was blocked until 2026-08-27 because halt_dps was scoped by SCHOOL only, so arming it in the both-up wave stopped damage on Whitemane too - the body the kill-order row above just named. `entries` closes that: the halt refuses a cast only when the unit's current target is 3976 (rotation/types.ts halt_dps `entries`; haltDpsCoversEntry in rotation/evaluate.ts). PHYSICAL is deliberately NOT in the school list. A halt that also stops white swings takes the tank's threat and the combat flag off the boss for twelve seconds, which is the Mandokir shape stepSession.ts:2278 records as a 1,800,100 ms stalemate. Melee keep swinging and holding him; the casters stop paying mana into an invulnerable body, which is what the window actually costs.",
+     "rule": {
+      "id": "raid_enc_3976_halt_1020",
+      "action": {
+       "kind": "halt_dps",
+       "school": [
+        "holy",
+        "fire",
+        "nature",
+        "frost",
+        "shadow",
+        "arcane"
+       ],
+       "entries": [
+        3976
+       ]
+      },
+      "conditions": [
+       {
+        "subject": "target",
+        "metric": "buffPresent",
+        "op": "==",
+        "value": 1,
+        "ref": 1020
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ]
+  }
+ ]
+}

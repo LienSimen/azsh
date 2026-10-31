@@ -1,0 +1,570 @@
+[
+  {
+    "levels": "60",
+    "spec": "Fire",
+    "buffs": [
+      {
+        "spell": "Arcane Intellect",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Ice Armor",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Dampen Magic",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Fireball",
+        "when": "always"
+      }
+    ],
+    "combat": [
+      {
+        "item": "Free Action Potion",
+        "when": "rooted AND I carry one",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 5634
+          }
+        ]
+      },
+      {
+        "item": "Free Action Potion",
+        "when": "snared AND I carry one",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "snared",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 5634
+          }
+        ]
+      },
+      {
+        "item": "Spider Belt",
+        "when": "rooted AND I wear one",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Spider Belt",
+        "when": "snared AND I wear one",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "snared",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting a heal",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingIsHeal",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Frost Nova",
+        "when": "a melee enemy is on me AND root DR is fresh",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "==",
+            "value": 0,
+            "ref": 2
+          }
+        ],
+        "after": {
+          "stepBackYd": 10
+        }
+      },
+      {
+        "move": {
+          "kind": "keep_range",
+          "minYd": 20
+        },
+        "when": "target inside 20 yd AND it fights in melee AND it is rooted or snared AND I am not casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "targetDistanceYd",
+            "op": "<=",
+            "value": 20
+          },
+          {
+            "subject": "target",
+            "metric": "isCaster",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "snared",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "spell": "Blink",
+        "when": "a melee enemy is on me",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Remove Lesser Curse",
+        "when": "a curse is on me",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Cone of Cold",
+        "when": "a melee enemy is on me",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          }
+        ],
+        "after": {
+          "stepBackYd": 10
+        }
+      },
+      {
+        "spell": "Arcane Explosion",
+        "when": "target is a hunter AND it is in melee with me",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "classId",
+            "op": "==",
+            "value": 3
+          },
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Fire Ward",
+        "when": "target is a warlock AND buff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "classId",
+            "op": "==",
+            "value": 9
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Fire Ward",
+        "when": "target is not a warlock AND it fights at range AND buff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "classId",
+            "op": "!=",
+            "value": 9
+          },
+          {
+            "subject": "target",
+            "metric": "isCaster",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "item": "Gyrofreeze Ice Reflector",
+        "when": "enemy is casting frost AND I wear one",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingSchool",
+            "op": "==",
+            "value": 4
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Hyper-Radiant Flame Reflector",
+        "when": "enemy is casting fire AND I wear one",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingSchool",
+            "op": "==",
+            "value": 2
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Ultra-Flash Shadow Reflector",
+        "when": "enemy is casting shadow AND I wear one",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingSchool",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Thorium Grenade",
+        "when": "enemy is casting out of melee AND I carry one",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Iron Grenade",
+        "when": "enemy is casting out of melee AND I carry one",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Gnomish Rocket Boots",
+        "when": "target is more than 15 yd away AND I wear them",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "targetDistanceYd",
+            "op": ">",
+            "value": 15
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Goblin Rocket Boots",
+        "when": "target is more than 15 yd away AND I wear them",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "targetDistanceYd",
+            "op": ">",
+            "value": 15
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "spell": "Mana Shield",
+        "when": "self health < 40%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 40
+          }
+        ]
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "always"
+      },
+      {
+        "spell": "Polymorph",
+        "when": "a second body is up AND polymorph DR is fresh",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "==",
+            "value": 0,
+            "ref": 5
+          }
+        ],
+        "target": "other"
+      },
+      {
+        "spell": "Dampen Magic",
+        "when": "target fights at range AND buff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "isCaster",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Fireball",
+        "when": "always"
+      },
+      {
+        "spell": "Scorch",
+        "when": "always"
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Ice Armor",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 30%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 30
+          }
+        ]
+      }
+    ]
+  }
+]

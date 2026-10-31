@@ -1,0 +1,176 @@
+{
+ "raid": "lbrs",
+ "note": "Reviewed for E5.4 against eventai/lbrs.ts, blackrockSpire.ts and acid_classic.sql. Thirteen of the fifteen come back kinds: [] and that is the finding - every shaped ability in this wing is an 8 to 10 yd disc on a melee boss, which the melee have to stand in to fight at all, and Mother Smolderweb's Crystallize cone stops at 10 yd, inside the 10.5 yd band the melee slot solver already clears. Two earn a row, and neither is centred on the boss: Quartermaster Zigris throws Stun Bomb at a random raider, and Mor Grayhoof's Hurricane is the first ground pool in a five-man that an avoid_zone can name.",
+ "bosses": [
+  {
+   "entry": 9219,
+   "name": "Spirestone Butcher",
+   "kinds": [],
+   "cite": "acid_classic.sql has no creature_id=9219 block at all - the Spirestone run goes 9216 Warlord (:14420) to 9217 Lord Magus (:14424) to 9218 Battle Lord (:14432) and skips him - and there is no src_creature_template_spells row, so creatures.json 9219 ships no spells, no ai and no creatureCasts. lbrs.ts:130 carries him as a pool-rolled rare. His whole kit is the creature_template melee, so there is nothing on the floor to stand out of."
+  },
+  {
+   "entry": 9218,
+   "name": "Spirestone Battle Lord",
+   "kinds": [],
+   "cite": "acid_classic.sql:14433 creature_id=9218 is one row, 921801 ACTION_T_TEXT Random Say on Aggro, and there is no ACTION_T_CAST anywhere in it. src_creature_template_spells has no row for him either, so creatures.json 9218 has no spells array and no creatureCasts. Pure tank-and-spank."
+  },
+  {
+   "entry": 9217,
+   "name": "Spirestone Lord Magus",
+   "kinds": [],
+   "cite": "acid_classic.sql:14425-14431 creature_id=9217, creature_template_spells 16170/13323/8365/15230. 921702 sets ranged mode 35 yd; Polymorph 13323 is targetA 6 at rangeMax 30, castTimeMs 1500, dispel 1, a 20 s incapacitate on one random non-top raider, and Arcane Bolt 15230 is targetA 6 at 40 yd. Bloodlust 6742 and 16170 and Enlarge 8365 are targetA 21 friendly buffs at 30 yd, which is the purge the class rotations already own. Nothing in the kit carries a radiusYd or a src_spell_cone row."
+  },
+  {
+   "entry": 9196,
+   "name": "Highlord Omokk",
+   "kinds": [],
+   "cite": "eventai/lbrs.ts:21-61 scripts 919601-919604, acid_classic.sql:14393-14396 creature_id=9196, creature_template_spells 10101/8269. Enrage 8269 at 20% HP is targetA 1 self, +49% damage and +59% melee haste for 120 s with no dispel type in the bake. Knock Away 10101 is targetA 6 at rangeMax 10, Effect 98 knock-back on whoever he is hitting, and spell-data 10101 gives it no aoeShape and no radiusYd - one displaced tank, not a shape."
+  },
+  {
+   "entry": 9236,
+   "name": "Shadow Hunter Vosh'gajin",
+   "kinds": [],
+   "cite": "eventai/lbrs.ts:67-90 scripts 923601-923602, acid_classic.sql:14435-14436 creature_id=9236. Both spells are 10 yd discs centred on her: Hex 16097 is targetA 22 targetB 15 radiusYd 10, castTimeMs 0, a 10 s polymorph with dispel 1, and Curse of Blood 16098 is the same shape at castTimeMs 2000 for physical damage taken +2% over 600 s, dispel 2 curse. Ten yards is the Galgann Firehammer shape (uldaman.json 7291): the melee are in it because that is where melee happens, and RANGED_STAND_MIN_YD 20 (stand.ts:18) is already outside it. A dispel and a decurse are class rows."
+  },
+  {
+   "entry": 9237,
+   "name": "War Master Voone",
+   "kinds": [],
+   "cite": "eventai/lbrs.ts:96-169 scripts 923701-923707, acid_classic.sql:14438-14444 creature_id=9237. Seven casts and not one carries a radiusYd or a src_spell_cone row: Pummel 15615, Snap Kick 15618, Cleave 15754 and Mortal Strike 15708 are all targetA 6 at rangeMax 5, Uppercut 10966 is a targetA 6 knock-back at 10 yd, Throw Axe 16075 is targetA 6 at 40 yd with a 2 s stun, and Thrash 3391 is Effect 19 extra_attacks on himself. The two stuns are single target, so a trinket answers them and that lives in the class rotation."
+  },
+  {
+   "entry": 10376,
+   "name": "Crystal Fang",
+   "kinds": [],
+   "cite": "No overlay in eventai/lbrs.ts and no ScriptDev cpp; acid_classic.sql:14685 creature_id=10376 is his one row, 1037601 casting Summon Spire Spiderling 16416 at 10-30 s then every 20-30 s. 16416 is Effect 41 SUMMON_WILD, targetA 18, EffectMiscValue 10375 Spire Spiderling, EffectBasePoints 7, with no radiusYd and no damage effect. A summon puts bodies on the floor and asks the party for nothing positional, and nothing in acid_classic.sql or creature_template ranks 10375 ahead of him."
+  },
+  {
+   "entry": 10596,
+   "name": "Mother Smolderweb",
+   "kinds": [
+    "kill-order"
+   ],
+   "cite": "eventai/lbrs.ts:350-378 scripts 1059601-1059603, acid_classic.sql:14717-14719 creature_id=10596, creatures.json 10596 spells 16103/16468/16104. Crystallize 16104 is the only shaped ability and it is a real cone - src_spell_cone Id 16104 ConeDegrees 53, targetA 24 TARGET_ENUM_UNITS_ENEMY_IN_CONE_24, radiusYd 10, castTimeMs 0, a 6 s stun (mechanic 12) every 8-18 s - but it stops at 10 yd, and meleeFlankSlot only ever engages inside MELEE_REACH_YD + MELEE_PARK_SLACK_YD + MELEE_REACH_YD, which is 10.5 (sessionChase.ts:445, combatGeometry.ts:37 and :48). So every body the wedge can reach is already inside the band where coneArcsOfKit reads it off her kit (combatGeometry.ts:451, called at sessionChase.ts:457) and slides the non-tank melee out of it. That is the Ironaya verdict (uldaman.json 7228) rather than the Tuten'kash one (razorfen-downs.json 7355), where the same 53 degree wedge runs to 20 yd and reaches raiders the solver never touches. Mother's Milk 16468 is aoeShape pbaoe radiusYd 10 but its one DBC effect is aura 4 SPELL_AURA_DUMMY with EffectBasePoints 0, so spell-data 16468 ships effects: [] - there is no payload to stand out of.",
+   "blockedBy": {
+    "kill-order": "the Little Ones are a DEATH summon, not an add wave. acid_classic.sql:14717 script 1059601 is EVENT_T 6 DEATH casting Summon Spire Spiderling 16103 - Effect 41 SUMMON_WILD, targetA 18, EffectMiscValue 10375 Spire Spiderling, EffectBasePoints 3, radiusYd 1 - so the bodies arrive after she is already dead and there is no order to impose inside the fight. Nothing in acid_classic.sql or in creature_template ranks 10375 ahead of anything, and the default rotation picks them up unordered."
+   }
+  },
+  {
+   "entry": 10584,
+   "name": "Urok Doomhowl",
+   "kinds": [],
+   "cite": "eventai/lbrs.ts:303-344 scripts 1058401-1058404, acid_classic.sql:14712-14715 creature_id=10584, creature_template_spells 16508/16509/15580. Intimidating Roar 16508 is the only shaped ability: DBC eff1 is targetA 6 aura 26 root on the current target and eff2 is targetA 22 targetB 15 radiusYd 8 aura 7 fear, so spell-data 16508 bakes aoeShape pbaoe radiusYd 8, mechanic fear, an 8 s hold. That is the Dextren Ward disc (the-stockade.json 1663, Intimidating Shout 19134 radiusYd 8) - melee reach on a melee boss, answered by Fear Ward, Tremor Totem or Berserker Rage in a class rotation. Rend 16509 and Strike 15580 are targetA 6 at rangeMax 5, and Summoned Urok 16473 fires once on SPAWNED with no radius."
+  },
+  {
+   "entry": 9596,
+   "name": "Bannok Grimaxe",
+   "kinds": [],
+   "cite": "acid_classic.sql:14545-14546 creature_id=9596 is two rows: 959601 sets stand state on aggro, 959602 casts Mortal Strike 13737 every 7-11 s. 13737 is targetA 6 at rangeMax 5, Effect 31 weapon damage plus a 50% healing debuff for 5 s, single target with no radiusYd. There is no overlay in eventai/lbrs.ts and no ScriptDev cpp, so one melee strike is the whole kit."
+  },
+  {
+   "entry": 9736,
+   "name": "Quartermaster Zigris",
+   "kinds": [
+    "spread"
+   ],
+   "note": "One Stun Bomb catches everyone within 5 yd of whoever it lands on. Standing 6 yd apart makes that one raider instead of three.",
+   "cite": "eventai/lbrs.ts:175-221 scripts 973601-973605, acid_classic.sql:14581-14585 creature_id=9736, creature_template_spells 15504/15609/16496/16497. 973601 sets ranged mode 25 yd; Shoot 16496 is targetA 6 at 30 yd and Drink Healing Potion 15504 at 50% HP is a self heal an interrupt answers, both class rows. Hooked Net 15609 is aoeShape pbaoe radiusYd 10 centred on him (targetA 22 targetB 15), a 10 s root plus 139-161 physical - the Galgann disc again, and no move verb clears it without giving up melee. Stun Bomb 16497 is the one a verb reaches, because it is the only thing in this wing that lands on a raider rather than on the boss.",
+   "encounterRows": [
+    {
+     "kind": "spread",
+     "label": "Stand 6 yd apart so one Stun Bomb cannot catch two",
+     "cite": "spell 16497 Stun Bomb bakes aoe ground radiusYd 5, castTimeMs 2000, a 5 s stun (mechanic 12), and acid_classic.sql:14583 fires it on EventAI target 4 HOSTILE_RANDOM at 15-20 s then every 20-30 s. Its rawEffects targetA is 16 TARGET_ENUM_UNITS_ENEMY_AOE_AT_DEST_LOC, which is not in combatGeometry.ts:329 CASTER_LOCATION_TARGET_A, so spellAoeFromCaster (combatGeometry.ts:351) is false and aoeCast.ts:79-80 centres the 5 yd disc on the raider he picked instead of on Zigris - a distance between raiders, which is the one thing spacing can answer. aoeCast.ts:45 fans a cc effect to every unit inside that radius, so a clump is three stunned instead of one. minYd 6 is radiusYd 5 plus one, the same first-clear-yard rule the Thalnos row uses (sm-graveyard.json 4543) and deliberately not radius plus 5: clampAimToOwnReach (sessionMechanicMove.ts:114) pins a melee onto its MELEE_REACH_YD 5 ring, and three melee cannot be 10 yd apart on it. The tank sits it out on targetAttackingMe because walking the aggro holder drags the boss across the party. No hazard exists to name instead: the payload is a cc and not a dot, so dynamicObject.ts:220 isPersistentAreaEffect is false and no pool is ever created, and groundAoeOf (hazards.ts:69) refuses Zigris's body for the same targetA 16 reason.",
+     "rule": {
+      "id": "raid_enc_9736_spread_16497",
+      "action": {
+       "kind": "move",
+       "move": {
+        "kind": "spread",
+        "minYd": 6
+       }
+      },
+      "conditions": [
+       {
+        "subject": "self",
+        "metric": "targetAttackingMe",
+        "op": "==",
+        "value": 0
+       },
+       {
+        "subject": "self",
+        "metric": "alliesWithinYd",
+        "op": ">",
+        "value": 0,
+        "ref": 6
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "entry": 9718,
+   "name": "Ghok Bashguud",
+   "kinds": [],
+   "cite": "acid_classic.sql:14577-14579 creature_id=9718, creatures.json 9718 spells 8269/11972. 971802 casts Enrage 8269 at 30% HP, targetA 1 on himself, and 971803 is EVENT_T 13 TARGET_CASTING casting Shield Bash 11972, targetA 6 at rangeMax 5 - an interrupt plus 9 damage on whoever he is hitting. Neither carries a radiusYd or a cone, and 971801 only strips his own idle visual 16093 on aggro. There is no overlay in eventai/lbrs.ts and no ScriptDev cpp."
+  },
+  {
+   "entry": 10220,
+   "name": "Halycon",
+   "kinds": [
+    "kill-order"
+   ],
+   "cite": "eventai/lbrs.ts:227-258 scripts 1022001-1022003, acid_classic.sql:14615-14617 creature_id=10220, creature_template_spells 13738. Rend 13738 is targetA 6 at rangeMax 5, a 15 s bleed, and Thrash 3391 is Effect 19 extra_attacks on himself - neither has a radiusYd, an aoeShape or a src_spell_cone row, so the fight itself is tank-and-spank. 1.12 does summon Gizrul, and it is on death: see blockedBy.",
+   "blockedBy": {
+    "kill-order": "Gizrul the Slavener 10268 is real in 1.12 and it is a DEATH summon. acid_classic.sql:14615 script 1022001 is EVENT_T 6 DEATH with ACTION_T_TEXT 5548 then ACTION_T_SUMMON_ID 10268 at summon point 20, which eventai/lbrs.ts:13-15 carries as x -167.538 y -415.014 z 76.1469 with spawnTimeSecs 10800000. He arrives after Halycon is dead, so there is no order to impose inside this fight - lbrs.ts:118 lists him as summon-only, and his own kit (acid_classic.sql:14636-14638: Enrage 8269 at 20%, Infected Bite 16128, Fatal Bite 16495) is entirely targetA 6 single target."
+   }
+  },
+  {
+   "entry": 9568,
+   "name": "Overlord Wyrmthalak",
+   "kinds": [
+    "kill-order"
+   ],
+   "cite": "acid_classic.sql:14539 is a header comment deferring to boss_overlord_wyrmthalak and there are no ACID rows, no creature_template_spells row and no spells array on creatures.json 9568 - the kit is the ScriptDev port at blackrockSpire.ts:370, which combatEnemySpec.ts:103 resolves as the schedule. Blast Wave 11130 (cpp:30, and note src_spell_template names 11130 Knock Away, not Blast Wave) and Knock Away 20686 (cpp:33) both bake aoeShape pbaoe radiusYd 10 with effects: [] - Effect 98 knock-back and nothing else, so there is no payload to dodge and clampDisplacementToFloor owns where a body lands. Demoralizing Shout 23511 is pbaoe radiusYd 10 for attack power -40 over 30 s, a hostile buff a purge answers, and Cleave 20691 is targetA 6 at rangeMax 15 with no radiusYd and no src_spell_cone row.",
+   "blockedBy": {
+    "kill-order": "boss_overlord_wyrmthalak.cpp:124-139 summons TWO adds once below 51% HP from the pool {9583 Bloodaxe Veteran, 9268 Smolderthorn Berserker, 9216 Spirestone Warlord} and walks each to a fixed point; blackrockSpire.ts WYRMTHALAK_PHASE_ADDS fixes the roll to 9583+9268, and lbrs.ts:8-10 records the true urand(0,2) per add as a determinism GAP. Nothing in the cpp or in classic-db ranks one add ahead of the other or ahead of Wyrmthalak - JustSummoned (cpp:69-79) just points each at a random attacker - so there is no order for a kill-order row to impose."
+   }
+  },
+  {
+   "entry": 16080,
+   "name": "Mor Grayhoof",
+   "kinds": [
+    "flee"
+   ],
+   "note": "Hurricane drops an 8 yd patch under a random raider for 10 seconds. Walk out of it.",
+   "cite": "acid_classic.sql:14789-14805 creature_id=16080 is the whole kit and there is no ScriptDev cpp - he is the Brazier summon (lbrs.ts:161 LBRS_FLAGS.morGrayhoof; trigger 16044 at acid_classic.sql:14768-14769 on spellhit 27184 / 27203). Moonfire 27737 is aoeShape pbaoe radiusYd 18, targetA 22 targetB 15, for 438-562 arcane plus a 12 s dot, and 18 yd stops SHORT of RANGED_STAND_MIN_YD 20 (stand.ts:18), so the ranged band is already clear and only the melee are in it - the Galgann shape, one step wider. Demoralizing Roar 27551 is pbaoe radiusYd 10 for attack power -300, a hostile buff; the three form phases are single-target melee (Maul 27553, Swipe 27554, Shred 27555, Rake 27556, Ferocious Bite 27557) and phase 4 is Reflection 27564 on himself plus Chain Lightning 27567 at 30 yd. Hurricane is the one raid-side ability. One honest note: creatures.json 16080 creatureCasts drops the ACID phase masks, so every row above arms on its own timer whatever form he is in.",
+   "encounterRows": [
+    {
+     "kind": "flee",
+     "label": "Step out of the Hurricane",
+     "cite": "spell 27530 Hurricane is Effect 27 PERSISTENT_AREA_AURA, targetA 28 AT_DYNOBJ_LOC, EffectRadiusIndex 14 radiusYd 8, aura 3 periodic damage at amplitude 1000 for 10000 ms, and spell-data 27530 bakes aoe true with a nature dot of 500 a second - so dynamicObject.ts:220 isPersistentAreaEffect is true and applySpell.ts:1205 and :1271-1273 lay a real GroundPool named Hurricane carrying spellId 27530. Because aoeShape is ground, applySpell.ts:1261 sites that pool at the TARGET, and creatures.json 16080 creatureCasts fires it on EventAI target 4 HOSTILE_RANDOM at 16-18 s then every 48-52 s, so the patch lands under a random raider rather than on him. hazards.ts:94-105 publishes the live pool and hazardMatches (hazards.ts:128) accepts a spell id as the row's name, which is why the id is the string 27530 - the same shape as High Priest Venoxis's Poison Cloud 23861 (zul-gurub.json 14507), same radiusYd 8, same 10 s, same nature dot. His BODY is deliberately not published alongside it, which is the trap the Thalnos row names: groundAoeOf (hazards.ts:69-80) requires spellAoeFromCaster, and targetA 28 is not in combatGeometry.ts:329 CASTER_LOCATION_TARGET_A, so this row can never park the party off Mor Grayhoof himself. Gated exactly like the three landed avoid_zone rows, on hazardProximityYd <= 0, which pickAction.ts:1591-1602 computes as max(0, distance - radius) over the same hazard list the move reads.",
+     "rule": {
+      "id": "raid_enc_16080_avoid_27530",
+      "action": {
+       "kind": "move",
+       "move": {
+        "kind": "avoid_zone",
+        "id": "27530"
+       }
+      },
+      "conditions": [
+       {
+        "subject": "self",
+        "metric": "hazardProximityYd",
+        "op": "<=",
+        "value": 0
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ]
+  }
+ ]
+}

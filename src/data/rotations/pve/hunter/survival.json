@@ -1,0 +1,1373 @@
+[
+  {
+    "levels": "1-9",
+    "spec": "Survival",
+    "pull": [
+      {
+        "spell": "Hunter's Mark",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Aspect of the Monkey",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Serpent Sting",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Raptor Strike",
+        "when": "self.inMelee==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Arcane Shot",
+        "when": "always"
+      },
+      {
+        "spell": "Auto Shot",
+        "when": "always"
+      }
+    ]
+  },
+  {
+    "levels": "10-19",
+    "spec": "Survival",
+    "buffs": [
+      {
+        "spell": "Revive Pet",
+        "when": "pet not alive",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "alive",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "spell": "Aspect of the Hawk",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Call Pet",
+        "when": "pet not alive",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "alive",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Mend Pet",
+        "when": "pet health < 60%",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 60
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Serpent Sting",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Immolation Trap",
+        "when": "a melee enemy is on me",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Wing Clip",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Raptor Strike",
+        "when": "always"
+      },
+      {
+        "spell": "Mongoose Bite",
+        "when": "after target dodges",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dodgedRecently",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Arcane Shot",
+        "when": "always"
+      },
+      {
+        "spell": "Multi-Shot",
+        "when": "multi",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Auto Shot",
+        "when": "always"
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Hunter's Mark",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "20-29",
+    "spec": "Survival",
+    "buffs": [
+      {
+        "spell": "Revive Pet",
+        "when": "pet not alive",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "alive",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "spell": "Aspect of the Hawk",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Call Pet",
+        "when": "pet not alive",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "alive",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Mend Pet",
+        "when": "pet health < 60%",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 60
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Freezing Trap",
+        "when": "multi — control a second enemy",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Serpent Sting",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Immolation Trap",
+        "when": "a melee enemy is on me",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Wing Clip",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Raptor Strike",
+        "when": "always"
+      },
+      {
+        "spell": "Mongoose Bite",
+        "when": "after target dodges",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dodgedRecently",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Arcane Shot",
+        "when": "always"
+      },
+      {
+        "spell": "Multi-Shot",
+        "when": "multi",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Aimed Shot",
+        "when": "always"
+      },
+      {
+        "spell": "Auto Shot",
+        "when": "always"
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Hunter's Mark",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "30-39",
+    "spec": "Survival",
+    "buffs": [
+      {
+        "spell": "Revive Pet",
+        "when": "pet not alive",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "alive",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "spell": "Aspect of the Hawk",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Call Pet",
+        "when": "pet not alive",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "alive",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Mend Pet",
+        "when": "pet health < 60%",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 60
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Feign Death",
+        "when": "has aggro",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "hasAggro",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Immolation Trap",
+        "when": "a melee enemy is on me",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Freezing Trap",
+        "when": "multi — control a second enemy",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Serpent Sting",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Wing Clip",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Raptor Strike",
+        "when": "always"
+      },
+      {
+        "spell": "Mongoose Bite",
+        "when": "after target dodges",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dodgedRecently",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Counterattack",
+        "when": "after block or parry",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "defenseReactRecently",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Scatter Shot",
+        "when": "always"
+      },
+      {
+        "spell": "Arcane Shot",
+        "when": "always"
+      },
+      {
+        "spell": "Multi-Shot",
+        "when": "multi",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Aimed Shot",
+        "when": "always"
+      },
+      {
+        "spell": "Auto Shot",
+        "when": "always"
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Hunter's Mark",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "40-49",
+    "spec": "Survival",
+    "buffs": [
+      {
+        "spell": "Revive Pet",
+        "when": "pet not alive",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "alive",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "spell": "Aspect of the Hawk",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Call Pet",
+        "when": "pet not alive",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "alive",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Mend Pet",
+        "when": "pet health < 60%",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 60
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Feign Death",
+        "when": "has aggro",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "hasAggro",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Explosive Trap",
+        "when": "a melee enemy is on me",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Freezing Trap",
+        "when": "multi — control a second enemy",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Serpent Sting",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Wing Clip",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Raptor Strike",
+        "when": "always"
+      },
+      {
+        "spell": "Mongoose Bite",
+        "when": "after target dodges",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dodgedRecently",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Counterattack",
+        "when": "after block or parry",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "defenseReactRecently",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Scatter Shot",
+        "when": "always"
+      },
+      {
+        "spell": "Arcane Shot",
+        "when": "always"
+      },
+      {
+        "spell": "Multi-Shot",
+        "when": "multi",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Volley",
+        "when": "multi",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Aimed Shot",
+        "when": "always"
+      },
+      {
+        "spell": "Auto Shot",
+        "when": "always"
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Hunter's Mark",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "50-59",
+    "spec": "Survival",
+    "buffs": [
+      {
+        "spell": "Revive Pet",
+        "when": "pet not alive",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "alive",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "spell": "Aspect of the Hawk",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Call Pet",
+        "when": "pet not alive",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "alive",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Mend Pet",
+        "when": "pet health < 60%",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 60
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Feign Death",
+        "when": "has aggro",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "hasAggro",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Explosive Trap",
+        "when": "a melee enemy is on me",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Freezing Trap",
+        "when": "multi — control a second enemy",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Serpent Sting",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Wing Clip",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Raptor Strike",
+        "when": "always"
+      },
+      {
+        "spell": "Mongoose Bite",
+        "when": "after target dodges",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dodgedRecently",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Counterattack",
+        "when": "after block or parry",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "defenseReactRecently",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Scatter Shot",
+        "when": "always"
+      },
+      {
+        "spell": "Arcane Shot",
+        "when": "always"
+      },
+      {
+        "spell": "Multi-Shot",
+        "when": "multi",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Volley",
+        "when": "multi",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Aimed Shot",
+        "when": "always"
+      },
+      {
+        "spell": "Auto Shot",
+        "when": "always"
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Hunter's Mark",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "60",
+    "spec": "Survival",
+    "buffs": [
+      {
+        "spell": "Revive Pet",
+        "when": "pet not alive",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "alive",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "spell": "Aspect of the Hawk",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Call Pet",
+        "when": "pet not alive",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "alive",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Mend Pet",
+        "when": "pet health < 60%",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 60
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Feign Death",
+        "when": "has aggro",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "hasAggro",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Explosive Trap",
+        "when": "a melee enemy is on me",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Tranquilizing Shot",
+        "when": "target is enraged",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 9
+          }
+        ]
+      },
+      {
+        "spell": "Freezing Trap",
+        "when": "multi — control a second enemy",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Serpent Sting",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Wing Clip",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Raptor Strike",
+        "when": "always"
+      },
+      {
+        "spell": "Mongoose Bite",
+        "when": "after target dodges",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dodgedRecently",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Counterattack",
+        "when": "after block or parry",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "defenseReactRecently",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Scatter Shot",
+        "when": "always"
+      },
+      {
+        "spell": "Arcane Shot",
+        "when": "always"
+      },
+      {
+        "spell": "Multi-Shot",
+        "when": "multi",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Volley",
+        "when": "multi",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Aimed Shot",
+        "when": "always"
+      },
+      {
+        "spell": "Auto Shot",
+        "when": "always"
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Hunter's Mark",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ]
+  }
+]

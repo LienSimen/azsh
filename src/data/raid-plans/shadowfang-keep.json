@@ -1,0 +1,87 @@
+{
+ "raid": "shadowfang-keep",
+ "note": "Reviewed for E5.4 against shadowfang_keep.cpp, eventai/shadowfang-keep.ts and acid_classic.sql:16346-16385. Eight of the nine bosses come back kinds: [] and that is the finding - the only two spells in the wing with a radius are Arugal's Thundershock, a 5 yd disc the melee are standing in because that is where melee happens, and Odo's Howling Rage, which buffs his own side and never touches a player. Everything else is a single-target root, curse, stun, snare or poison that a dispel or a trinket answers, and those are class rows. The one row this wing earns is Wolf Master Nandos: his third Call Worg puts a body on the floor that summons two more.",
+ "bosses": [
+  {
+   "entry": 3914,
+   "name": "Rethilgore",
+   "kinds": [],
+   "cite": "eventai/shadowfang-keep.ts:57-66 script 391402, acid_classic.sql:16360-16364 creature_id=3914. Soul Drain 7295 is his only ACTION_T_CAST: targetA 6 at rangeMax 40, Effect 9 health leech 34 plus aura 26 root for 10 s on whoever he is hitting, dispel 1. One target and no radius - the root is answered by a dispel, a free-action potion or a shapeshift, all class rows. The other three scripts are SET_INST_DATA on aggro, death and evade."
+  },
+  {
+   "entry": 3886,
+   "name": "Razorclaw the Butcher",
+   "kinds": [],
+   "cite": "eventai/shadowfang-keep.ts:19-23 script 388601, acid_classic.sql:16356-16357 creature_id=3886. Butcher Drain 7486 is the whole kit and it fires on SPAWNED with targetA 1 - aura 42 proc-trigger on himself, firing 7485 (Effect 8 power drain, 350 mana, targetA 6). A self proc plus a single-target mana drain, radiusYd 0 on both, so there is nothing on the floor to stand out of."
+  },
+  {
+   "entry": 3887,
+   "name": "Baron Silverlaine",
+   "kinds": [],
+   "cite": "eventai/shadowfang-keep.ts:33-43 script 388701, acid_classic.sql:16358-16359 creature_id=3887. Veil of Shadow 7068 is targetA 6 at rangeMax 20, aura 118 for -75% healing taken over 15 s, dispel 2, recast every 22.3-35.1 s. One target, and a curse: Remove Curse answers it and the healer eats it when nobody can, which is a class row either way."
+  },
+  {
+   "entry": 4278,
+   "name": "Commander Springvale",
+   "kinds": [],
+   "cite": "eventai/shadowfang-keep.ts:178-197 scripts 427801-427802, acid_classic.sql:16378-16380 creature_id=4278. Hammer of Justice 5588 is targetA 6, mechanic 12, a 4 s stun on one player at rangeMax 10, every 61.1-63.5 s. Holy Light 1026 is targetA 21 TARGET_UNIT_FRIEND, a 310-356 heal thrown at an ally 800 HP down within 40 yd on EVENT_T_FRIENDLY_HP. A trinket answers the stun and a kick answers the heal - two class rows, and neither is a place to stand."
+  },
+  {
+   "entry": 4279,
+   "name": "Odo the Blindwatcher",
+   "kinds": [],
+   "cite": "eventai/shadowfang-keep.ts:207-232 scripts 427901-427904, acid_classic.sql:16381-16385 creature_id=4279. Howling Rage 7481/7483/7484 at 75/50/25% HP is aoeShape pbaoe radiusYd 10, targetA 22 with tgtB 30 TARGET_AREAEFFECT_PARTY, so the disc buffs HIM and his own side inside 10 yd (aura 13, +9/19/34 damage done, 300 s) and never lands on a player. There is no ground for a raider to leave, and dispel 0 means it cannot be purged either. CALL_FOR_HELP 30 on aggro brings the chapel bats, which the tank picks up."
+  },
+  {
+   "entry": 3872,
+   "name": "Deathsworn Captain",
+   "kinds": [],
+   "cite": "acid_classic.sql:16346-16349 creature_id=3872 - no eventai overlay and no ScriptDev cpp, so ACID is the whole kit. Battle Stance 7165 is targetA 1 on spawn; Cleave 15584 is rangeMax 5 targetA 6, a single-target melee hit with no arc, the same shape Herod's 15496 was reviewed as; Hamstring 9080 is rangeMax 5, mechanic 11, -60% speed for 10 s on one player. A rare elite with one static body on map 33 and no radius anywhere: pure tank-and-spank."
+  },
+  {
+   "entry": 4274,
+   "name": "Fenrus the Devourer",
+   "kinds": [
+    "kill-order"
+   ],
+   "cite": "eventai/shadowfang-keep.ts:150-158 script 427402, acid_classic.sql:16372-16376 creature_id=4274. Toxic Saliva 7125 is his only cast: targetA 6 at rangeMax 5, 17 nature damage every 6 s for 120 s, dispel 4. One target, radiusYd 0 - Cure Poison and Abolish Poison answer it and both are class rows. The other three scripts are SET_INST_DATA plus a sound on aggro.",
+   "blockedBy": {
+    "kill-order": "instance_shadowfang_keep.cpp:184-189 puts the temp Arugal in the room on TYPE_FENRUS DONE and shadowfang_keep.cpp:441-461 is what summons the four 4627 voidwalkers - all of it AFTER Fenrus dies, so his own fight has no add to order. The four are one entry (dungeonSpawns map 33 carries 0 static 4627), so a kill_order list has nothing to sort; their Dark Offering 7154 heals a friendly within 10 yd (shadowfang_keep.cpp:324-327) and an interrupt is the class answer."
+   }
+  },
+  {
+   "entry": 3927,
+   "name": "Wolf Master Nandos",
+   "kinds": [
+    "kill-order"
+   ],
+   "note": "Nandos calls one worg roughly every 30 to 70 seconds. The Lupine Horror is the one that summons more, so it dies first.",
+   "cite": "eventai/shadowfang-keep.ts:92-120 scripts 392702-392704, acid_classic.sql:16365-16371 creature_id=3927. All three of his casts are Effect 42 summons at targetA 18, his own feet: Call Bleak Worg 7487 miscValue 3861 at 30-45 s, Call Slavering Worg 7488 miscValue 3862 at 45-50 s, Call Lupine Horror 7489 miscValue 3863 at 60-70 s. He has no AoE and nothing with a radius, so the only thing this fight asks the party is which body dies first.",
+   "encounterRows": [
+    {
+     "kind": "kill-order",
+     "label": "Kill the Lupine Horror before Nandos",
+     "cite": "Of the three worgs Nandos summons only 3863 Lupine Horror multiplies: creatures.json 3863 carries spells [7132], and 7132 Summon Lupine Delusions is Effect 42 miscValue 5097 with basePoints 1, which summonCast.ts:103 reads as count = basePoints + 1, so two Lupine Delusions per cast. 3861 Bleak Worg carries only Wavering Will 7127 (one target, -25% haste, 60 s) and 3862 Slavering Worg carries no template spell at all, so neither is on the list - nothing in the DB says a plain worg outranks the boss. firstLivingKillOrderEntry (evaluate.ts:578) returns null while no 3863 is up, so the row no-ops on a kill that lands before the 60-70 s cast. 3863 is also 7 static bodies on the top floor (dungeonSpawns map 33), so the row can fire on a trash pull, where killing the Lupine Horror first is the same correct call.",
+     "rule": {
+      "id": "raid_enc_3927_kill",
+      "action": {
+       "kind": "kill_order",
+       "entries": [
+        3863
+       ]
+      },
+      "conditions": [],
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "entry": 4275,
+   "name": "Archmage Arugal",
+   "kinds": [],
+   "note": "Arugal ports between three perches and roots himself for 10 seconds each time. There is nothing on the floor to leave: the melee stun is a stun break, the curse is Remove Curse.",
+   "cite": "shadowfang_keep.cpp:388-557 boss_arugalAI, ported at src/domain/scriptdev/shadowfangKeep.ts:103-140 - acid_classic.sql:16377 is a comment with no rows and there is no eventai overlay, and creatures.json 4275 holds 22709/7803 under charmSpells only (combatEnemySpec.ts:138 never schedules a charm slot), so the IR timers are what makes this kit fire. Thundershock 7803 is the only spell in the fight with a radius and it is the Bazil Thredd shape: aoeShape pbaoe radiusYd 5, mechanic 12 for a 5 s stun plus 64-86 nature, and cpp:477-481 fires it only when a target is IN MELEE RANGE, every 30-38 s. Standing outside 5 yd of Arugal means not meleeing Arugal and the ranged stand is already clear of it, so the answer is a trinket or a stun break in the class rotation. Void Bolt (cpp 7588, bake 22709) is a single-target nuke every 2.9-4.8 s; Arugal's Curse 7621 is targetA 6 on a random non-tank (cpp:486), a 10 s incapacitate with dispel 2; and the three Shadow Ports 7586/7587/7136 are Effect 5 teleport_units targetA 1 tgtB 17, so he moves HIMSELF to one of three logged points on map 33 and roots himself for 10 s - no ground for the party to give up, and move_to cannot name a destination cpp:496 rolls at random from three."
+  }
+ ]
+}

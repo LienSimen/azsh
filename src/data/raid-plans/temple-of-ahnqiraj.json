@@ -1,0 +1,163 @@
+{
+  "raid": "temple-of-ahnqiraj",
+  "bosses": [
+    {
+      "entry": 15263,
+      "name": "The Prophet Skeram",
+      "kinds": [
+        "camp-split"
+      ],
+      "cite": "boss_skeram.cpp:43-46,239-254 SUMMON_IMAGES 747 + INITIALIZE_IMAGES 794 at three HP checks: one camp per body, and a wrong split lets an image finish the raid",
+      "blockedBy": {
+        "camp-split": "747 Summon Images resolves summon_wild, so the images ARE bodies (and bfddc15d0 splits him at 75 / 50 / 25 %). What blocks the camps is identity: templeOfAhnqiraj.ts:24 CORRECTED 2026-08-27: the HP-scale half is no longer a GAP - templeOfAhnqiraj.ts:22-24 records 794/3730 as PORTED on 2026-08-23 as engine/combat/skeramImages.ts and summonCast.ts:253 wires it. What still blocks the row is identity alone, and identity is the reason and 794 Initialize Images resolves script_handled_noop, so no row can tell the real Skeram from a copy"
+      }
+    },
+    {
+      "entry": 15511,
+      "name": "The Bug Family",
+      "kinds": [
+        "kill-order"
+      ],
+      "cite": "boss_bug_trio.cpp:151,214,267,325 each death fires m_deathAbility on the survivors, so the order decides whether the raid eats a 150 % haste enrage",
+      "encounterRows": [
+        {
+          "kind": "kill-order",
+          "label": "Yauj, then Kri, then Vem last",
+          "cite": "boss_bug_trio.cpp:50,350 Yauj 15543 self-heals with GREAT_HEAL 25807 (69-80k in the bake) so she goes first; :267 Vem 15544 hands the survivors VENGEANCE 25790 (+150 % haste, 10 min, 100 yd) on death so he goes last. All three baked on map 531",
+          "rule": {
+            "id": "raid_enc_15511_kill",
+            "action": {
+              "kind": "kill_order",
+              "entries": [
+                15543,
+                15511,
+                15544
+              ]
+            },
+            "conditions": [],
+            "enabled": true
+          }
+        }
+      ]
+    },
+    {
+      "entry": 15516,
+      "name": "Battleguard Sartura",
+      "kinds": [],
+      "cite": "boss_sartura.cpp:39-44 WHIRLWIND 26083 / SUNDERING_CLEAVE 25174 / BERSERK 27680; her cpp carries no link to Sartura's Royal Guard 15984, so no C++ reason an order matters"
+    },
+    {
+      "entry": 15510,
+      "name": "Fankriss the Unyielding",
+      "kinds": [
+        "tank-swap"
+      ],
+      "cite": "boss_fankriss.cpp:39,137 SPELL_MORTAL_WOUND 25646 on the victim, the same stacking healing_taken_pct -10 Kurinnaxx uses",
+      "tankSwapAura": 25646
+    },
+    {
+      "entry": 15517,
+      "name": "Ouro",
+      "kinds": [
+        "spread"
+      ],
+      "cite": "boss_ouro.cpp:47,51-52,55-56 the submerge leaves 5 Dirt Mounds pulsing QUAKE 26093 and DREAM_FOG 24780 to walk out of",
+      "blockedBy": {
+        "spread": "24780 Dream Fog resolves proc_trigger -> 24781, and 24781 resolves script_handled_noop, so the fog pulses nothing a raider can sense. The mounds themselves DO walk the floor now (2940396a8), so the missing half is the fog payload, not the bodies"
+      }
+    },
+    {
+      "entry": 15509,
+      "name": "Princess Huhuran",
+      "kinds": [
+        "spread",
+        "resist"
+      ],
+      "cite": "boss_huhuran.cpp:38-41 FRENZY 26051 -> 26052 volley (15 CLOSEST, radiusYd 100); NOXIOUS_POISON 26053 is the spread driver: radiusYd 15 ground pool, 8 s nature DoT + silence",
+      "resist": "nature",
+      "encounterRows": [
+        {
+          "kind": "spread",
+          "label": "Step out of Noxious Poison (15 yd pool)",
+          "cite": "boss_huhuran.cpp:39 SPELL_NOXIOUS_POISON 26053 bakes aoe ground radiusYd 15 with a dot effect, so dynamicObject.ts:211-215 isPersistentAreaEffect spawns a real pool; templeOfAhnqiraj.ts:134 schedules it every 12-24 s",
+          "rule": {
+            "id": "raid_enc_15509_avoid_26053",
+            "action": {
+              "kind": "move",
+              "move": {
+                "kind": "avoid_zone",
+                "id": "26053"
+              }
+            },
+            "conditions": [
+              {
+                "subject": "self",
+                "metric": "hazardProximityYd",
+                "op": "<=",
+                "value": 0
+              }
+            ],
+            "enabled": true
+          }
+        }
+      ]
+    },
+    {
+      "entry": 15275,
+      "name": "The Twin Emperors",
+      "kinds": [
+        "camp-split",
+        "resist"
+      ],
+      "cite": "boss_twinemperors.cpp:292,332-356 TWIN_TELEPORT 799 swap; Vek'lor caster 40yd",
+      "resist": "shadow"
+    },
+    {
+      "entry": 15299,
+      "name": "Viscidus",
+      "kinds": [
+        "halt-dps",
+        "resist"
+      ],
+      "cite": "boss_viscidus.cpp:294-331,553-565 frost hit-count -> FREEZE 25937, then melee-only shatter",
+      "resist": "frost",
+      "encounterRows": [
+        {
+          "kind": "halt-dps",
+          "label": "Stop frost; melee the freeze",
+          "cite": "boss_viscidus.cpp:258 SPELL_VISCIDUS_FREEZE 25937; :319-326 melee shatter while frozen",
+          "rule": {
+            "id": "raid_enc_15299_halt_frost",
+            "action": {
+              "kind": "halt_dps",
+              "school": [
+                "frost"
+              ]
+            },
+            "conditions": [
+              {
+                "subject": "target",
+                "metric": "debuffPresent",
+                "op": "==",
+                "value": 1,
+                "ref": 25937
+              }
+            ],
+            "enabled": true
+          }
+        }
+      ]
+    },
+    {
+      "entry": 15727,
+      "name": "C'Thun",
+      "kinds": [
+        "camp-split"
+      ],
+      "cite": "boss_cthun.cpp Dark Glare / stomach - camps once the Eye is a real fight",
+      "blockedBy": {
+        "camp-split": "templeOfAhnqiraj.ts:590 boss_cthun.cpp:207-218 Dark Glare 40 s rotate sub-phase is a named GAP (orientation control) - camps would have nothing to dodge"
+      }
+    }
+  ]
+}

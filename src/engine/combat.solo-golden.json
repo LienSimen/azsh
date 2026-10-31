@@ -1,0 +1,2242 @@
+{
+ "warrior-vs-caster": [
+  {
+   "t": 0,
+   "kind": "start",
+   "playerName": "Goldenkriger",
+   "enemyName": "Kobold Geomancer",
+   "playerHp": 260,
+   "enemyHp": 220
+  },
+  {
+   "t": 0,
+   "kind": "melee",
+   "actor": "player",
+   "result": "crit",
+   "amount": 44
+  },
+  {
+   "t": 0,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 11,
+   "delta": 10.7
+  },
+  {
+   "t": 0,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 11,
+   "delta": 0.5
+  },
+  {
+   "t": 0,
+   "kind": "melee",
+   "actor": "enemy",
+   "result": "hit",
+   "amount": 7
+  },
+  {
+   "t": 0,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 1,
+   "delta": -10
+  },
+  {
+   "t": 0,
+   "kind": "aura",
+   "actor": "player",
+   "name": "Battle Shout",
+   "applied": true,
+   "spellId": 6673
+  },
+  {
+   "t": 0,
+   "kind": "cast_start",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball",
+   "castMs": 2500
+  },
+  {
+   "t": 2400,
+   "kind": "melee",
+   "actor": "player",
+   "result": "hit",
+   "amount": 26
+  },
+  {
+   "t": 2400,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 7,
+   "delta": 6.3
+  },
+  {
+   "t": 2500,
+   "kind": "cast_finish",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball"
+  },
+  {
+   "t": 2500,
+   "kind": "resource",
+   "actor": "enemy",
+   "power": "mana",
+   "value": 160,
+   "delta": -40
+  },
+  {
+   "t": 2500,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 8,
+   "delta": 0.7999999999999998
+  },
+  {
+   "t": 2500,
+   "kind": "spell_hit",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball",
+   "result": "hit",
+   "amount": 11,
+   "school": "fire"
+  },
+  {
+   "t": 2500,
+   "kind": "melee",
+   "actor": "enemy",
+   "result": "dodge",
+   "amount": 0
+  },
+  {
+   "t": 2500,
+   "kind": "cast_start",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball",
+   "castMs": 2500
+  },
+  {
+   "t": 4800,
+   "kind": "melee",
+   "actor": "player",
+   "result": "hit",
+   "amount": 27
+  },
+  {
+   "t": 4800,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 15,
+   "delta": 6.6
+  },
+  {
+   "t": 4800,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 5,
+   "delta": -10
+  },
+  {
+   "t": 4800,
+   "kind": "aura",
+   "actor": "enemy",
+   "name": "Rend",
+   "applied": true
+  },
+  {
+   "t": 5000,
+   "kind": "cast_finish",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball"
+  },
+  {
+   "t": 5000,
+   "kind": "resource",
+   "actor": "enemy",
+   "power": "mana",
+   "value": 120,
+   "delta": -40
+  },
+  {
+   "t": 5000,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 6,
+   "delta": 1
+  },
+  {
+   "t": 5000,
+   "kind": "spell_hit",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball",
+   "result": "hit",
+   "amount": 13,
+   "school": "fire"
+  },
+  {
+   "t": 5000,
+   "kind": "melee",
+   "actor": "enemy",
+   "result": "parry",
+   "amount": 0
+  },
+  {
+   "t": 5000,
+   "kind": "cast_start",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball",
+   "castMs": 2500
+  },
+  {
+   "t": 7200,
+   "kind": "melee",
+   "actor": "player",
+   "result": "dodge",
+   "amount": 0
+  },
+  {
+   "t": 7500,
+   "kind": "cast_finish",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball"
+  },
+  {
+   "t": 7500,
+   "kind": "resource",
+   "actor": "enemy",
+   "power": "mana",
+   "value": 80,
+   "delta": -40
+  },
+  {
+   "t": 7500,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 7,
+   "delta": 1.2999999999999998
+  },
+  {
+   "t": 7500,
+   "kind": "spell_hit",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball",
+   "result": "crit",
+   "amount": 17,
+   "school": "fire"
+  },
+  {
+   "t": 7500,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 8,
+   "delta": 0.40000000000000036
+  },
+  {
+   "t": 7500,
+   "kind": "melee",
+   "actor": "enemy",
+   "result": "hit",
+   "amount": 6
+  },
+  {
+   "t": 7500,
+   "kind": "cast_start",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball",
+   "castMs": 2500
+  },
+  {
+   "t": 7800,
+   "kind": "dot_tick",
+   "actor": "player",
+   "spellId": 772,
+   "name": "Rend",
+   "amount": 5,
+   "school": "physical"
+  },
+  {
+   "t": 9600,
+   "kind": "melee",
+   "actor": "player",
+   "result": "hit",
+   "amount": 23
+  },
+  {
+   "t": 9600,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 13,
+   "delta": 5.6000000000000005
+  },
+  {
+   "t": 10000,
+   "kind": "cast_finish",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball"
+  },
+  {
+   "t": 10000,
+   "kind": "resource",
+   "actor": "enemy",
+   "power": "mana",
+   "value": 40,
+   "delta": -40
+  },
+  {
+   "t": 10000,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 14,
+   "delta": 1
+  },
+  {
+   "t": 10000,
+   "kind": "spell_hit",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball",
+   "result": "hit",
+   "amount": 13,
+   "school": "fire"
+  },
+  {
+   "t": 10000,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 15,
+   "delta": 0.5
+  },
+  {
+   "t": 10000,
+   "kind": "melee",
+   "actor": "enemy",
+   "result": "hit",
+   "amount": 7
+  },
+  {
+   "t": 10000,
+   "kind": "cast_start",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball",
+   "castMs": 2500
+  },
+  {
+   "t": 10800,
+   "kind": "dot_tick",
+   "actor": "player",
+   "spellId": 772,
+   "name": "Rend",
+   "amount": 5,
+   "school": "physical"
+  },
+  {
+   "t": 12000,
+   "kind": "melee",
+   "actor": "player",
+   "result": "hit",
+   "amount": 26
+  },
+  {
+   "t": 12000,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 21,
+   "delta": 6.300000000000001
+  },
+  {
+   "t": 12000,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 6,
+   "delta": -15
+  },
+  {
+   "t": 12000,
+   "kind": "spell_hit",
+   "actor": "player",
+   "spellId": 78,
+   "name": "Heroic Strike",
+   "result": "dodge",
+   "amount": 0,
+   "school": "physical"
+  },
+  {
+   "t": 12500,
+   "kind": "cast_finish",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball"
+  },
+  {
+   "t": 12500,
+   "kind": "resource",
+   "actor": "enemy",
+   "power": "mana",
+   "value": 0,
+   "delta": -40
+  },
+  {
+   "t": 12500,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 7,
+   "delta": 1
+  },
+  {
+   "t": 12500,
+   "kind": "spell_hit",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball",
+   "result": "hit",
+   "amount": 13,
+   "school": "fire"
+  },
+  {
+   "t": 12500,
+   "kind": "melee",
+   "actor": "enemy",
+   "result": "miss",
+   "amount": 0
+  },
+  {
+   "t": 13800,
+   "kind": "dot_tick",
+   "actor": "player",
+   "spellId": 772,
+   "name": "Rend",
+   "amount": 5,
+   "school": "physical"
+  },
+  {
+   "t": 14400,
+   "kind": "melee",
+   "actor": "player",
+   "result": "crit",
+   "amount": 47
+  },
+  {
+   "t": 14400,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 18,
+   "delta": 11.399999999999999
+  },
+  {
+   "t": 14400,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 3,
+   "delta": -15
+  },
+  {
+   "t": 14400,
+   "kind": "spell_hit",
+   "actor": "player",
+   "spellId": 78,
+   "name": "Heroic Strike",
+   "result": "miss",
+   "amount": 0,
+   "school": "physical"
+  },
+  {
+   "t": 14500,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 4,
+   "delta": 0.5
+  },
+  {
+   "t": 14500,
+   "kind": "melee",
+   "actor": "enemy",
+   "result": "hit",
+   "amount": 7
+  },
+  {
+   "t": 16500,
+   "kind": "melee",
+   "actor": "enemy",
+   "result": "parry",
+   "amount": 0
+  },
+  {
+   "t": 16800,
+   "kind": "dot_tick",
+   "actor": "player",
+   "spellId": 772,
+   "name": "Rend",
+   "amount": 5,
+   "school": "physical"
+  },
+  {
+   "t": 16800,
+   "kind": "melee",
+   "actor": "player",
+   "result": "hit",
+   "amount": 27
+  },
+  {
+   "t": 16800,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 10,
+   "delta": 6.6
+  },
+  {
+   "t": 16800,
+   "kind": "death",
+   "actor": "enemy"
+  }
+ ],
+ "priest-with-pet": [
+  {
+   "t": 0,
+   "kind": "start",
+   "playerName": "Goldenprest",
+   "enemyName": "Defias Thug",
+   "playerHp": 170,
+   "enemyHp": 260
+  },
+  {
+   "t": 0,
+   "kind": "melee",
+   "actor": "player",
+   "result": "crit",
+   "amount": 16
+  },
+  {
+   "t": 0,
+   "kind": "melee",
+   "actor": "pet",
+   "result": "hit",
+   "amount": 11
+  },
+  {
+   "t": 0,
+   "kind": "melee",
+   "actor": "enemy",
+   "result": "hit",
+   "amount": 7
+  },
+  {
+   "t": 0,
+   "kind": "resource",
+   "actor": "player",
+   "power": "mana",
+   "value": 375,
+   "delta": -45
+  },
+  {
+   "t": 0,
+   "kind": "aura",
+   "actor": "enemy",
+   "name": "Shadow Word: Pain",
+   "applied": true
+  },
+  {
+   "t": 0,
+   "kind": "cast_start",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball",
+   "castMs": 2500
+  },
+  {
+   "t": 1500,
+   "kind": "cast_start",
+   "actor": "player",
+   "spellId": 585,
+   "name": "Smite",
+   "castMs": 2000
+  },
+  {
+   "t": 1600,
+   "kind": "melee",
+   "actor": "pet",
+   "result": "hit",
+   "amount": 11
+  },
+  {
+   "t": 2500,
+   "kind": "cast_finish",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball"
+  },
+  {
+   "t": 2500,
+   "kind": "resource",
+   "actor": "enemy",
+   "power": "mana",
+   "value": 160,
+   "delta": -40
+  },
+  {
+   "t": 2500,
+   "kind": "spell_hit",
+   "actor": "enemy",
+   "target": "pet",
+   "spellId": 20793,
+   "name": "Fireball",
+   "result": "hit",
+   "amount": 11,
+   "school": "fire"
+  },
+  {
+   "t": 2500,
+   "kind": "melee",
+   "actor": "enemy",
+   "target": "pet",
+   "result": "hit",
+   "amount": 8
+  },
+  {
+   "t": 2500,
+   "kind": "cast_start",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball",
+   "castMs": 2500
+  },
+  {
+   "t": 3000,
+   "kind": "dot_tick",
+   "actor": "player",
+   "spellId": 589,
+   "name": "Shadow Word: Pain",
+   "amount": 6,
+   "school": "shadow"
+  },
+  {
+   "t": 3200,
+   "kind": "melee",
+   "actor": "pet",
+   "result": "hit",
+   "amount": 11
+  },
+  {
+   "t": 3500,
+   "kind": "cast_finish",
+   "actor": "player",
+   "spellId": 585,
+   "name": "Smite"
+  },
+  {
+   "t": 3500,
+   "kind": "resource",
+   "actor": "player",
+   "power": "mana",
+   "value": 345,
+   "delta": -30
+  },
+  {
+   "t": 3500,
+   "kind": "spell_hit",
+   "actor": "player",
+   "spellId": 585,
+   "name": "Smite",
+   "result": "hit",
+   "amount": 18,
+   "school": "holy"
+  },
+  {
+   "t": 3500,
+   "kind": "melee",
+   "actor": "player",
+   "result": "hit",
+   "amount": 8
+  },
+  {
+   "t": 3500,
+   "kind": "cast_start",
+   "actor": "player",
+   "spellId": 585,
+   "name": "Smite",
+   "castMs": 2000
+  },
+  {
+   "t": 4800,
+   "kind": "melee",
+   "actor": "pet",
+   "result": "crit",
+   "amount": 23
+  },
+  {
+   "t": 5000,
+   "kind": "cast_finish",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball"
+  },
+  {
+   "t": 5000,
+   "kind": "resource",
+   "actor": "enemy",
+   "power": "mana",
+   "value": 120,
+   "delta": -40
+  },
+  {
+   "t": 5000,
+   "kind": "spell_hit",
+   "actor": "enemy",
+   "target": "pet",
+   "spellId": 20793,
+   "name": "Fireball",
+   "result": "hit",
+   "amount": 11,
+   "school": "fire"
+  },
+  {
+   "t": 5000,
+   "kind": "melee",
+   "actor": "enemy",
+   "target": "pet",
+   "result": "hit",
+   "amount": 9
+  },
+  {
+   "t": 5000,
+   "kind": "cast_start",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball",
+   "castMs": 2500
+  },
+  {
+   "t": 5500,
+   "kind": "cast_finish",
+   "actor": "player",
+   "spellId": 585,
+   "name": "Smite"
+  },
+  {
+   "t": 5500,
+   "kind": "resource",
+   "actor": "player",
+   "power": "mana",
+   "value": 315,
+   "delta": -30
+  },
+  {
+   "t": 5500,
+   "kind": "spell_hit",
+   "actor": "player",
+   "spellId": 585,
+   "name": "Smite",
+   "result": "hit",
+   "amount": 16,
+   "school": "holy"
+  },
+  {
+   "t": 5500,
+   "kind": "cast_start",
+   "actor": "player",
+   "spellId": 585,
+   "name": "Smite",
+   "castMs": 2000
+  },
+  {
+   "t": 6000,
+   "kind": "dot_tick",
+   "actor": "player",
+   "spellId": 589,
+   "name": "Shadow Word: Pain",
+   "amount": 6,
+   "school": "shadow"
+  },
+  {
+   "t": 6400,
+   "kind": "melee",
+   "actor": "pet",
+   "result": "hit",
+   "amount": 13
+  },
+  {
+   "t": 7500,
+   "kind": "cast_finish",
+   "actor": "player",
+   "spellId": 585,
+   "name": "Smite"
+  },
+  {
+   "t": 7500,
+   "kind": "resource",
+   "actor": "player",
+   "power": "mana",
+   "value": 285,
+   "delta": -30
+  },
+  {
+   "t": 7500,
+   "kind": "spell_hit",
+   "actor": "player",
+   "spellId": 585,
+   "name": "Smite",
+   "result": "hit",
+   "amount": 18,
+   "school": "holy"
+  },
+  {
+   "t": 7500,
+   "kind": "cast_finish",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball"
+  },
+  {
+   "t": 7500,
+   "kind": "resource",
+   "actor": "enemy",
+   "power": "mana",
+   "value": 80,
+   "delta": -40
+  },
+  {
+   "t": 7500,
+   "kind": "spell_hit",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball",
+   "result": "miss",
+   "amount": 0,
+   "school": "fire"
+  },
+  {
+   "t": 7500,
+   "kind": "melee",
+   "actor": "player",
+   "result": "hit",
+   "amount": 7
+  },
+  {
+   "t": 7500,
+   "kind": "melee",
+   "actor": "enemy",
+   "result": "hit",
+   "amount": 8
+  },
+  {
+   "t": 7500,
+   "kind": "cast_start",
+   "actor": "player",
+   "spellId": 585,
+   "name": "Smite",
+   "castMs": 2000
+  },
+  {
+   "t": 7500,
+   "kind": "cast_start",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball",
+   "castMs": 2500
+  },
+  {
+   "t": 8000,
+   "kind": "melee",
+   "actor": "pet",
+   "result": "hit",
+   "amount": 10
+  },
+  {
+   "t": 9000,
+   "kind": "dot_tick",
+   "actor": "player",
+   "spellId": 589,
+   "name": "Shadow Word: Pain",
+   "amount": 6,
+   "school": "shadow"
+  },
+  {
+   "t": 9500,
+   "kind": "cast_finish",
+   "actor": "player",
+   "spellId": 585,
+   "name": "Smite"
+  },
+  {
+   "t": 9500,
+   "kind": "resource",
+   "actor": "player",
+   "power": "mana",
+   "value": 255,
+   "delta": -30
+  },
+  {
+   "t": 9500,
+   "kind": "spell_hit",
+   "actor": "player",
+   "spellId": 585,
+   "name": "Smite",
+   "result": "hit",
+   "amount": 22,
+   "school": "holy"
+  },
+  {
+   "t": 9500,
+   "kind": "cast_start",
+   "actor": "player",
+   "spellId": 585,
+   "name": "Smite",
+   "castMs": 2000
+  },
+  {
+   "t": 9600,
+   "kind": "melee",
+   "actor": "pet",
+   "result": "crit",
+   "amount": 25
+  },
+  {
+   "t": 10000,
+   "kind": "cast_finish",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball"
+  },
+  {
+   "t": 10000,
+   "kind": "resource",
+   "actor": "enemy",
+   "power": "mana",
+   "value": 40,
+   "delta": -40
+  },
+  {
+   "t": 10000,
+   "kind": "spell_hit",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball",
+   "result": "hit",
+   "amount": 14,
+   "school": "fire"
+  },
+  {
+   "t": 10000,
+   "kind": "melee",
+   "actor": "enemy",
+   "result": "hit",
+   "amount": 8
+  },
+  {
+   "t": 10000,
+   "kind": "cast_start",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball",
+   "castMs": 2500
+  },
+  {
+   "t": 11200,
+   "kind": "melee",
+   "actor": "pet",
+   "result": "hit",
+   "amount": 13
+  },
+  {
+   "t": 11500,
+   "kind": "cast_finish",
+   "actor": "player",
+   "spellId": 585,
+   "name": "Smite"
+  },
+  {
+   "t": 11500,
+   "kind": "resource",
+   "actor": "player",
+   "power": "mana",
+   "value": 225,
+   "delta": -30
+  },
+  {
+   "t": 11500,
+   "kind": "spell_hit",
+   "actor": "player",
+   "spellId": 585,
+   "name": "Smite",
+   "result": "hit",
+   "amount": 18,
+   "school": "holy"
+  },
+  {
+   "t": 11500,
+   "kind": "melee",
+   "actor": "player",
+   "result": "hit",
+   "amount": 8
+  },
+  {
+   "t": 11500,
+   "kind": "death",
+   "actor": "enemy"
+  }
+ ],
+ "pack-of-three": [
+  {
+   "t": 0,
+   "kind": "start",
+   "playerName": "Goldenkriger",
+   "enemyName": "Riverpaw Runt",
+   "playerHp": 260,
+   "enemyHp": 120
+  },
+  {
+   "t": 0,
+   "kind": "flavor",
+   "text": "3 foes engage (Riverpaw Runt, Riverpaw Mongrel, Riverpaw Bandit)."
+  },
+  {
+   "t": 0,
+   "kind": "melee",
+   "actor": "player",
+   "target": "enemy",
+   "result": "hit",
+   "amount": 22
+  },
+  {
+   "t": 0,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 5,
+   "delta": 5.3
+  },
+  {
+   "t": 0,
+   "kind": "melee",
+   "actor": "pet",
+   "target": "enemy",
+   "result": "hit",
+   "amount": 11
+  },
+  {
+   "t": 0,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 6,
+   "delta": 0.5
+  },
+  {
+   "t": 0,
+   "kind": "melee",
+   "actor": "enemy",
+   "target": "player",
+   "result": "hit",
+   "amount": 7
+  },
+  {
+   "t": 0,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 6,
+   "delta": 0.40000000000000036
+  },
+  {
+   "t": 0,
+   "kind": "melee",
+   "actor": "enemy_1",
+   "target": "player",
+   "result": "hit",
+   "amount": 6
+  },
+  {
+   "t": 0,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 7,
+   "delta": 0.5
+  },
+  {
+   "t": 0,
+   "kind": "melee",
+   "actor": "enemy_2",
+   "target": "player",
+   "result": "block",
+   "amount": 7
+  },
+  {
+   "t": 0,
+   "kind": "cast_start",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball",
+   "castMs": 2500
+  },
+  {
+   "t": 0,
+   "kind": "cast_start",
+   "actor": "enemy_1",
+   "spellId": 20793,
+   "name": "Fireball",
+   "castMs": 2500
+  },
+  {
+   "t": 0,
+   "kind": "cast_start",
+   "actor": "enemy_2",
+   "spellId": 20793,
+   "name": "Fireball",
+   "castMs": 2500
+  },
+  {
+   "t": 1600,
+   "kind": "melee",
+   "actor": "pet",
+   "target": "enemy",
+   "result": "hit",
+   "amount": 11
+  },
+  {
+   "t": 2400,
+   "kind": "melee",
+   "actor": "player",
+   "target": "enemy",
+   "result": "hit",
+   "amount": 20
+  },
+  {
+   "t": 2400,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 12,
+   "delta": 4.8
+  },
+  {
+   "t": 2400,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 2,
+   "delta": -10
+  },
+  {
+   "t": 2400,
+   "kind": "aura",
+   "actor": "player",
+   "name": "Battle Shout",
+   "applied": true,
+   "spellId": 6673
+  },
+  {
+   "t": 2500,
+   "kind": "cast_finish",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball"
+  },
+  {
+   "t": 2500,
+   "kind": "resource",
+   "actor": "enemy",
+   "power": "mana",
+   "value": 160,
+   "delta": -40
+  },
+  {
+   "t": 2500,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 2,
+   "delta": 0.7999999999999998
+  },
+  {
+   "t": 2500,
+   "kind": "spell_hit",
+   "actor": "enemy",
+   "target": "player",
+   "spellId": 20793,
+   "name": "Fireball",
+   "result": "hit",
+   "amount": 10,
+   "school": "fire"
+  },
+  {
+   "t": 2500,
+   "kind": "cast_finish",
+   "actor": "enemy_1",
+   "spellId": 20793,
+   "name": "Fireball"
+  },
+  {
+   "t": 2500,
+   "kind": "resource",
+   "actor": "enemy_1",
+   "power": "mana",
+   "value": 160,
+   "delta": -40
+  },
+  {
+   "t": 2500,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 3,
+   "delta": 1
+  },
+  {
+   "t": 2500,
+   "kind": "spell_hit",
+   "actor": "enemy_1",
+   "target": "player",
+   "spellId": 20793,
+   "name": "Fireball",
+   "result": "hit",
+   "amount": 13,
+   "school": "fire"
+  },
+  {
+   "t": 2500,
+   "kind": "cast_finish",
+   "actor": "enemy_2",
+   "spellId": 20793,
+   "name": "Fireball"
+  },
+  {
+   "t": 2500,
+   "kind": "resource",
+   "actor": "enemy_2",
+   "power": "mana",
+   "value": 160,
+   "delta": -40
+  },
+  {
+   "t": 2500,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 4,
+   "delta": 1
+  },
+  {
+   "t": 2500,
+   "kind": "spell_hit",
+   "actor": "enemy_2",
+   "target": "player",
+   "spellId": 20793,
+   "name": "Fireball",
+   "result": "hit",
+   "amount": 13,
+   "school": "fire"
+  },
+  {
+   "t": 2500,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 5,
+   "delta": 0.40000000000000036
+  },
+  {
+   "t": 2500,
+   "kind": "melee",
+   "actor": "enemy",
+   "target": "player",
+   "result": "hit",
+   "amount": 6
+  },
+  {
+   "t": 2500,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 5,
+   "delta": 0.5999999999999996
+  },
+  {
+   "t": 2500,
+   "kind": "melee",
+   "actor": "enemy_1",
+   "target": "player",
+   "result": "hit",
+   "amount": 8
+  },
+  {
+   "t": 2500,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 6,
+   "delta": 0.40000000000000036
+  },
+  {
+   "t": 2500,
+   "kind": "melee",
+   "actor": "enemy_2",
+   "target": "player",
+   "result": "hit",
+   "amount": 5
+  },
+  {
+   "t": 2500,
+   "kind": "cast_start",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball",
+   "castMs": 2500
+  },
+  {
+   "t": 2500,
+   "kind": "cast_start",
+   "actor": "enemy_1",
+   "spellId": 20793,
+   "name": "Fireball",
+   "castMs": 2500
+  },
+  {
+   "t": 2500,
+   "kind": "cast_start",
+   "actor": "enemy_2",
+   "spellId": 20793,
+   "name": "Fireball",
+   "castMs": 2500
+  },
+  {
+   "t": 3200,
+   "kind": "melee",
+   "actor": "pet",
+   "target": "enemy",
+   "result": "miss",
+   "amount": 0
+  },
+  {
+   "t": 4800,
+   "kind": "melee",
+   "actor": "player",
+   "target": "enemy",
+   "result": "hit",
+   "amount": 26
+  },
+  {
+   "t": 4800,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 12,
+   "delta": 6.3
+  },
+  {
+   "t": 4800,
+   "kind": "melee",
+   "actor": "pet",
+   "target": "enemy",
+   "result": "hit",
+   "amount": 13
+  },
+  {
+   "t": 4800,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 2,
+   "delta": -10
+  },
+  {
+   "t": 4800,
+   "kind": "aura",
+   "actor": "enemy",
+   "name": "Rend",
+   "applied": true
+  },
+  {
+   "t": 5000,
+   "kind": "cast_finish",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball"
+  },
+  {
+   "t": 5000,
+   "kind": "resource",
+   "actor": "enemy",
+   "power": "mana",
+   "value": 120,
+   "delta": -40
+  },
+  {
+   "t": 5000,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 3,
+   "delta": 0.7999999999999998
+  },
+  {
+   "t": 5000,
+   "kind": "spell_hit",
+   "actor": "enemy",
+   "target": "player",
+   "spellId": 20793,
+   "name": "Fireball",
+   "result": "hit",
+   "amount": 11,
+   "school": "fire"
+  },
+  {
+   "t": 5000,
+   "kind": "cast_finish",
+   "actor": "enemy_1",
+   "spellId": 20793,
+   "name": "Fireball"
+  },
+  {
+   "t": 5000,
+   "kind": "resource",
+   "actor": "enemy_1",
+   "power": "mana",
+   "value": 120,
+   "delta": -40
+  },
+  {
+   "t": 5000,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 4,
+   "delta": 1.2000000000000002
+  },
+  {
+   "t": 5000,
+   "kind": "spell_hit",
+   "actor": "enemy_1",
+   "target": "player",
+   "spellId": 20793,
+   "name": "Fireball",
+   "result": "hit",
+   "amount": 15,
+   "school": "fire"
+  },
+  {
+   "t": 5000,
+   "kind": "cast_finish",
+   "actor": "enemy_2",
+   "spellId": 20793,
+   "name": "Fireball"
+  },
+  {
+   "t": 5000,
+   "kind": "resource",
+   "actor": "enemy_2",
+   "power": "mana",
+   "value": 120,
+   "delta": -40
+  },
+  {
+   "t": 5000,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 5,
+   "delta": 0.7999999999999998
+  },
+  {
+   "t": 5000,
+   "kind": "spell_hit",
+   "actor": "enemy_2",
+   "target": "player",
+   "spellId": 20793,
+   "name": "Fireball",
+   "result": "hit",
+   "amount": 11,
+   "school": "fire"
+  },
+  {
+   "t": 5000,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 5,
+   "delta": 0.5999999999999996
+  },
+  {
+   "t": 5000,
+   "kind": "melee",
+   "actor": "enemy",
+   "target": "player",
+   "result": "hit",
+   "amount": 8
+  },
+  {
+   "t": 5000,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 6,
+   "delta": 0.5999999999999996
+  },
+  {
+   "t": 5000,
+   "kind": "melee",
+   "actor": "enemy_1",
+   "target": "player",
+   "result": "hit",
+   "amount": 8
+  },
+  {
+   "t": 5000,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 7,
+   "delta": 0.7000000000000002
+  },
+  {
+   "t": 5000,
+   "kind": "melee",
+   "actor": "enemy_2",
+   "target": "player",
+   "result": "hit",
+   "amount": 9
+  },
+  {
+   "t": 5000,
+   "kind": "cast_start",
+   "actor": "enemy",
+   "spellId": 20793,
+   "name": "Fireball",
+   "castMs": 2500
+  },
+  {
+   "t": 5000,
+   "kind": "cast_start",
+   "actor": "enemy_1",
+   "spellId": 20793,
+   "name": "Fireball",
+   "castMs": 2500
+  },
+  {
+   "t": 5000,
+   "kind": "cast_start",
+   "actor": "enemy_2",
+   "spellId": 20793,
+   "name": "Fireball",
+   "castMs": 2500
+  },
+  {
+   "t": 6400,
+   "kind": "melee",
+   "actor": "pet",
+   "target": "enemy",
+   "result": "dodge",
+   "amount": 0
+  },
+  {
+   "t": 7200,
+   "kind": "melee",
+   "actor": "player",
+   "target": "enemy",
+   "result": "hit",
+   "amount": 24
+  },
+  {
+   "t": 7200,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 13,
+   "delta": 5.800000000000001
+  },
+  {
+   "t": 7200,
+   "kind": "death",
+   "actor": "enemy"
+  },
+  {
+   "t": 7200,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 3,
+   "delta": -10
+  },
+  {
+   "t": 7200,
+   "kind": "aura",
+   "actor": "enemy_1",
+   "name": "Rend",
+   "applied": true
+  },
+  {
+   "t": 7500,
+   "kind": "cast_finish",
+   "actor": "enemy_1",
+   "spellId": 20793,
+   "name": "Fireball"
+  },
+  {
+   "t": 7500,
+   "kind": "resource",
+   "actor": "enemy_1",
+   "power": "mana",
+   "value": 80,
+   "delta": -40
+  },
+  {
+   "t": 7500,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 4,
+   "delta": 1.1
+  },
+  {
+   "t": 7500,
+   "kind": "spell_hit",
+   "actor": "enemy_1",
+   "target": "player",
+   "spellId": 20793,
+   "name": "Fireball",
+   "result": "hit",
+   "amount": 14,
+   "school": "fire"
+  },
+  {
+   "t": 7500,
+   "kind": "cast_finish",
+   "actor": "enemy_2",
+   "spellId": 20793,
+   "name": "Fireball"
+  },
+  {
+   "t": 7500,
+   "kind": "resource",
+   "actor": "enemy_2",
+   "power": "mana",
+   "value": 80,
+   "delta": -40
+  },
+  {
+   "t": 7500,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 5,
+   "delta": 1.1
+  },
+  {
+   "t": 7500,
+   "kind": "spell_hit",
+   "actor": "enemy_2",
+   "target": "player",
+   "spellId": 20793,
+   "name": "Fireball",
+   "result": "hit",
+   "amount": 14,
+   "school": "fire"
+  },
+  {
+   "t": 7500,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 5,
+   "delta": 0.7000000000000002
+  },
+  {
+   "t": 7500,
+   "kind": "melee",
+   "actor": "enemy_1",
+   "target": "player",
+   "result": "hit",
+   "amount": 9
+  },
+  {
+   "t": 7500,
+   "kind": "melee",
+   "actor": "enemy_2",
+   "target": "player",
+   "result": "parry",
+   "amount": 0
+  },
+  {
+   "t": 7500,
+   "kind": "cast_start",
+   "actor": "enemy_1",
+   "spellId": 20793,
+   "name": "Fireball",
+   "castMs": 2500
+  },
+  {
+   "t": 7500,
+   "kind": "cast_start",
+   "actor": "enemy_2",
+   "spellId": 20793,
+   "name": "Fireball",
+   "castMs": 2500
+  },
+  {
+   "t": 7800,
+   "kind": "dot_tick",
+   "actor": "player",
+   "target": "enemy",
+   "spellId": 772,
+   "name": "Rend",
+   "amount": 0,
+   "school": "physical"
+  },
+  {
+   "t": 8000,
+   "kind": "melee",
+   "actor": "pet",
+   "target": "enemy_1",
+   "result": "hit",
+   "amount": 12
+  },
+  {
+   "t": 9600,
+   "kind": "melee",
+   "actor": "player",
+   "target": "enemy_1",
+   "result": "hit",
+   "amount": 27
+  },
+  {
+   "t": 9600,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 12,
+   "delta": 6.6
+  },
+  {
+   "t": 9600,
+   "kind": "melee",
+   "actor": "pet",
+   "target": "enemy_1",
+   "result": "hit",
+   "amount": 12
+  },
+  {
+   "t": 10000,
+   "kind": "cast_finish",
+   "actor": "enemy_1",
+   "spellId": 20793,
+   "name": "Fireball"
+  },
+  {
+   "t": 10000,
+   "kind": "resource",
+   "actor": "enemy_1",
+   "power": "mana",
+   "value": 40,
+   "delta": -40
+  },
+  {
+   "t": 10000,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 13,
+   "delta": 0.8000000000000007
+  },
+  {
+   "t": 10000,
+   "kind": "spell_hit",
+   "actor": "enemy_1",
+   "target": "player",
+   "spellId": 20793,
+   "name": "Fireball",
+   "result": "hit",
+   "amount": 10,
+   "school": "fire"
+  },
+  {
+   "t": 10000,
+   "kind": "cast_finish",
+   "actor": "enemy_2",
+   "spellId": 20793,
+   "name": "Fireball"
+  },
+  {
+   "t": 10000,
+   "kind": "resource",
+   "actor": "enemy_2",
+   "power": "mana",
+   "value": 40,
+   "delta": -40
+  },
+  {
+   "t": 10000,
+   "kind": "spell_hit",
+   "actor": "enemy_2",
+   "target": "player",
+   "spellId": 20793,
+   "name": "Fireball",
+   "result": "miss",
+   "amount": 0,
+   "school": "fire"
+  },
+  {
+   "t": 10000,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 13,
+   "delta": 0.40000000000000036
+  },
+  {
+   "t": 10000,
+   "kind": "melee",
+   "actor": "enemy_1",
+   "target": "player",
+   "result": "hit",
+   "amount": 6
+  },
+  {
+   "t": 10000,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 14,
+   "delta": 0.40000000000000036
+  },
+  {
+   "t": 10000,
+   "kind": "melee",
+   "actor": "enemy_2",
+   "target": "player",
+   "result": "hit",
+   "amount": 6
+  },
+  {
+   "t": 10000,
+   "kind": "cast_start",
+   "actor": "enemy_1",
+   "spellId": 20793,
+   "name": "Fireball",
+   "castMs": 2500
+  },
+  {
+   "t": 10000,
+   "kind": "cast_start",
+   "actor": "enemy_2",
+   "spellId": 20793,
+   "name": "Fireball",
+   "castMs": 2500
+  },
+  {
+   "t": 10200,
+   "kind": "dot_tick",
+   "actor": "player",
+   "target": "enemy_1",
+   "spellId": 772,
+   "name": "Rend",
+   "amount": 5,
+   "school": "physical"
+  },
+  {
+   "t": 10800,
+   "kind": "dot_tick",
+   "actor": "player",
+   "target": "enemy",
+   "spellId": 772,
+   "name": "Rend",
+   "amount": 0,
+   "school": "physical"
+  },
+  {
+   "t": 11200,
+   "kind": "melee",
+   "actor": "pet",
+   "target": "enemy_1",
+   "result": "hit",
+   "amount": 13
+  },
+  {
+   "t": 12000,
+   "kind": "melee",
+   "actor": "player",
+   "target": "enemy_1",
+   "result": "hit",
+   "amount": 25
+  },
+  {
+   "t": 12000,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 20,
+   "delta": 6.100000000000001
+  },
+  {
+   "t": 12000,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 5,
+   "delta": -15
+  },
+  {
+   "t": 12000,
+   "kind": "spell_hit",
+   "actor": "player",
+   "target": "enemy_1",
+   "spellId": 78,
+   "name": "Heroic Strike",
+   "result": "hit",
+   "amount": 34,
+   "school": "physical"
+  },
+  {
+   "t": 12500,
+   "kind": "cast_finish",
+   "actor": "enemy_1",
+   "spellId": 20793,
+   "name": "Fireball"
+  },
+  {
+   "t": 12500,
+   "kind": "resource",
+   "actor": "enemy_1",
+   "power": "mana",
+   "value": 0,
+   "delta": -40
+  },
+  {
+   "t": 12500,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 6,
+   "delta": 1.2999999999999998
+  },
+  {
+   "t": 12500,
+   "kind": "spell_hit",
+   "actor": "enemy_1",
+   "target": "player",
+   "spellId": 20793,
+   "name": "Fireball",
+   "result": "hit",
+   "amount": 16,
+   "school": "fire"
+  },
+  {
+   "t": 12500,
+   "kind": "cast_finish",
+   "actor": "enemy_2",
+   "spellId": 20793,
+   "name": "Fireball"
+  },
+  {
+   "t": 12500,
+   "kind": "resource",
+   "actor": "enemy_2",
+   "power": "mana",
+   "value": 0,
+   "delta": -40
+  },
+  {
+   "t": 12500,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 7,
+   "delta": 0.7999999999999998
+  },
+  {
+   "t": 12500,
+   "kind": "spell_hit",
+   "actor": "enemy_2",
+   "target": "player",
+   "spellId": 20793,
+   "name": "Fireball",
+   "result": "hit",
+   "amount": 11,
+   "school": "fire"
+  },
+  {
+   "t": 12500,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 7,
+   "delta": 0.5
+  },
+  {
+   "t": 12500,
+   "kind": "melee",
+   "actor": "enemy_1",
+   "target": "player",
+   "result": "hit",
+   "amount": 7
+  },
+  {
+   "t": 12500,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 8,
+   "delta": 0.5
+  },
+  {
+   "t": 12500,
+   "kind": "melee",
+   "actor": "enemy_2",
+   "target": "player",
+   "result": "hit",
+   "amount": 7
+  },
+  {
+   "t": 12800,
+   "kind": "melee",
+   "actor": "pet",
+   "target": "enemy_1",
+   "result": "miss",
+   "amount": 0
+  },
+  {
+   "t": 13200,
+   "kind": "dot_tick",
+   "actor": "player",
+   "target": "enemy_1",
+   "spellId": 772,
+   "name": "Rend",
+   "amount": 5,
+   "school": "physical"
+  },
+  {
+   "t": 13800,
+   "kind": "dot_tick",
+   "actor": "player",
+   "target": "enemy",
+   "spellId": 772,
+   "name": "Rend",
+   "amount": 0,
+   "school": "physical"
+  },
+  {
+   "t": 14400,
+   "kind": "melee",
+   "actor": "player",
+   "target": "enemy_1",
+   "result": "dodge",
+   "amount": 0
+  },
+  {
+   "t": 14400,
+   "kind": "melee",
+   "actor": "pet",
+   "target": "enemy_1",
+   "result": "hit",
+   "amount": 11
+  },
+  {
+   "t": 14400,
+   "kind": "death",
+   "actor": "enemy_1"
+  },
+  {
+   "t": 14500,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 8,
+   "delta": 0.5999999999999996
+  },
+  {
+   "t": 14500,
+   "kind": "melee",
+   "actor": "enemy_2",
+   "target": "player",
+   "result": "hit",
+   "amount": 8
+  },
+  {
+   "t": 16000,
+   "kind": "melee",
+   "actor": "pet",
+   "target": "enemy_2",
+   "result": "hit",
+   "amount": 11
+  },
+  {
+   "t": 16200,
+   "kind": "dot_tick",
+   "actor": "player",
+   "target": "enemy_1",
+   "spellId": 772,
+   "name": "Rend",
+   "amount": 0,
+   "school": "physical"
+  },
+  {
+   "t": 16500,
+   "kind": "melee",
+   "actor": "enemy_2",
+   "target": "pet",
+   "result": "hit",
+   "amount": 7
+  },
+  {
+   "t": 16800,
+   "kind": "dot_tick",
+   "actor": "player",
+   "target": "enemy",
+   "spellId": 772,
+   "name": "Rend",
+   "amount": 0,
+   "school": "physical"
+  },
+  {
+   "t": 16800,
+   "kind": "melee",
+   "actor": "player",
+   "target": "enemy_2",
+   "result": "hit",
+   "amount": 24
+  },
+  {
+   "t": 16800,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 14,
+   "delta": 5.800000000000001
+  },
+  {
+   "t": 16800,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 4,
+   "delta": -10
+  },
+  {
+   "t": 16800,
+   "kind": "aura",
+   "actor": "enemy_2",
+   "name": "Rend",
+   "applied": true
+  },
+  {
+   "t": 17600,
+   "kind": "melee",
+   "actor": "pet",
+   "target": "enemy_2",
+   "result": "hit",
+   "amount": 12
+  },
+  {
+   "t": 18500,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 5,
+   "delta": 0.5
+  },
+  {
+   "t": 18500,
+   "kind": "melee",
+   "actor": "enemy_2",
+   "target": "player",
+   "result": "hit",
+   "amount": 7
+  },
+  {
+   "t": 19200,
+   "kind": "dot_tick",
+   "actor": "player",
+   "target": "enemy_1",
+   "spellId": 772,
+   "name": "Rend",
+   "amount": 0,
+   "school": "physical"
+  },
+  {
+   "t": 19200,
+   "kind": "melee",
+   "actor": "player",
+   "target": "enemy_2",
+   "result": "hit",
+   "amount": 23
+  },
+  {
+   "t": 19200,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 10,
+   "delta": 5.6
+  },
+  {
+   "t": 19200,
+   "kind": "melee",
+   "actor": "pet",
+   "target": "enemy_2",
+   "result": "hit",
+   "amount": 10
+  },
+  {
+   "t": 19800,
+   "kind": "dot_tick",
+   "actor": "player",
+   "target": "enemy_2",
+   "spellId": 772,
+   "name": "Rend",
+   "amount": 5,
+   "school": "physical"
+  },
+  {
+   "t": 20500,
+   "kind": "resource",
+   "actor": "player",
+   "power": "rage",
+   "value": 11,
+   "delta": 0.5999999999999996
+  },
+  {
+   "t": 20500,
+   "kind": "melee",
+   "actor": "enemy_2",
+   "target": "player",
+   "result": "hit",
+   "amount": 8
+  },
+  {
+   "t": 20500,
+   "kind": "death",
+   "actor": "player"
+  }
+ ]
+}

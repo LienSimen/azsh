@@ -1,0 +1,57 @@
+// PAYLOADS THAT ARE A C++ BRANCH, NOT A DBC COLUMN: the proc handler picks these from the victim's
+// school or the target's class, and the holder's row names none of them, so a kit walk misses silently.
+import {
+  ADAPTIVE_WARDING_SPELL_ID,
+  ADAPTIVE_WARDING_BY_SCHOOL,
+  HOLY_POWER_SET_SPELL_ID,
+  HOLY_POWER_ARMOR_SPELL_ID,
+  HOLY_POWER_ATTACK_POWER_SPELL_ID,
+  HOLY_POWER_SPELL_POWER_SPELL_ID,
+  HOLY_POWER_MANA_REGEN_SPELL_ID,
+  TOTEMIC_POWER_SET_SPELL_ID,
+  TOTEMIC_POWER_ARMOR_SPELL_ID,
+  TOTEMIC_POWER_ATTACK_POWER_SPELL_ID,
+  TOTEMIC_POWER_SPELL_POWER_SPELL_ID,
+  TOTEMIC_POWER_MANA_REGEN_SPELL_ID,
+  VESTMENTS_GREATER_HEAL_SPELL_ID,
+  VESTMENTS_GREATER_HEAL_TRIGGER_SPELL_ID,
+  CHEAT_DEATH_SPELL_ID,
+  CHEAT_DEATH_HEALING_TAKEN_SPELL_ID,
+  IDOL_HEALING_TOUCH_REFUND_SPELL_ID,
+  IDOL_HEALING_TOUCH_REFUND_TRIGGER_SPELL_ID,
+  TOTEM_LESSER_HEALING_WAVE_SPELL_ID,
+  TOTEM_LESSER_HEALING_WAVE_TRIGGER_SPELL_ID,
+} from './cmangos-special-cases-s20.ts';
+import {
+  OBSIDIAN_ARMOR_SPELL_ID,
+  OBSIDIAN_ARMOR_BY_SCHOOL,
+} from './cmangos-special-cases-s19.ts';
+
+const TABLE: ReadonlyMap<number, readonly number[]> = new Map<number, readonly number[]>([
+  [ADAPTIVE_WARDING_SPELL_ID, Object.freeze([...new Set(Object.values(ADAPTIVE_WARDING_BY_SCHOOL))])],
+  [OBSIDIAN_ARMOR_SPELL_ID, Object.freeze([...new Set(Object.values(OBSIDIAN_ARMOR_BY_SCHOOL))])],
+  [HOLY_POWER_SET_SPELL_ID, Object.freeze([
+    HOLY_POWER_MANA_REGEN_SPELL_ID,
+    HOLY_POWER_SPELL_POWER_SPELL_ID,
+    HOLY_POWER_ATTACK_POWER_SPELL_ID,
+    HOLY_POWER_ARMOR_SPELL_ID,
+  ])],
+  [TOTEMIC_POWER_SET_SPELL_ID, Object.freeze([
+    TOTEMIC_POWER_MANA_REGEN_SPELL_ID,
+    TOTEMIC_POWER_SPELL_POWER_SPELL_ID,
+    TOTEMIC_POWER_ATTACK_POWER_SPELL_ID,
+    TOTEMIC_POWER_ARMOR_SPELL_ID,
+  ])],
+  [VESTMENTS_GREATER_HEAL_SPELL_ID, Object.freeze([VESTMENTS_GREATER_HEAL_TRIGGER_SPELL_ID])],
+  [CHEAT_DEATH_SPELL_ID, Object.freeze([CHEAT_DEATH_HEALING_TAKEN_SPELL_ID])],
+  [IDOL_HEALING_TOUCH_REFUND_SPELL_ID, Object.freeze([IDOL_HEALING_TOUCH_REFUND_TRIGGER_SPELL_ID])],
+  [TOTEM_LESSER_HEALING_WAVE_SPELL_ID, Object.freeze([TOTEM_LESSER_HEALING_WAVE_TRIGGER_SPELL_ID])],
+]);
+
+/** Every payload id a special-case picker can return for this holder. Empty when it is not one. */
+export function specialCasePayloadIds(holderSpellId: number): readonly number[] {
+  return TABLE.get(holderSpellId | 0) ?? [];
+}
+
+/** Holder count, for a gate that has to notice the table going empty. */
+export const SPECIAL_CASE_PAYLOAD_HOLDERS = TABLE.size;

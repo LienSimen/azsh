@@ -1,0 +1,638 @@
+[
+  {
+    "levels": "60",
+    "spec": "Destruction",
+    "buffs": [
+      {
+        "spell": "Summon Felhunter",
+        "when": "no pet AND target fights at range",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "alive",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "isCaster",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 6265
+          }
+        ]
+      },
+      {
+        "spell": "Summon Succubus",
+        "when": "no pet AND target is a rogue",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "alive",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "isCaster",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "classId",
+            "op": "==",
+            "value": 4
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 6265
+          }
+        ]
+      },
+      {
+        "spell": "Summon Voidwalker",
+        "when": "no pet AND target fights in melee and is not a rogue",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "alive",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "isCaster",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "classId",
+            "op": "!=",
+            "value": 4
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 6265
+          }
+        ]
+      },
+      {
+        "spell": "Demon Armor",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Immolate",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "item": "Free Action Potion",
+        "when": "rooted AND I carry one",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 5634
+          }
+        ]
+      },
+      {
+        "item": "Free Action Potion",
+        "when": "snared AND I carry one",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "snared",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 5634
+          }
+        ]
+      },
+      {
+        "item": "Spider Belt",
+        "when": "rooted AND I wear one",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Spider Belt",
+        "when": "snared AND I wear one",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "snared",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "spell": "Death Coil",
+        "when": "a melee enemy is on me AND deathcoil DR is fresh",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "==",
+            "value": 0,
+            "ref": 13
+          }
+        ]
+      },
+      {
+        "spell": "Howl of Terror",
+        "when": "a melee enemy is on me AND fear DR is fresh",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "==",
+            "value": 0,
+            "ref": 4
+          }
+        ]
+      },
+      {
+        "spell": "Fear",
+        "when": "a melee enemy is on me AND fear DR under 2",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "<",
+            "value": 2,
+            "ref": 4
+          }
+        ]
+      },
+      {
+        "move": {
+          "kind": "keep_range",
+          "minYd": 20
+        },
+        "when": "target inside 20 yd AND it is feared AND I am not casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "targetDistanceYd",
+            "op": "<=",
+            "value": 20
+          },
+          {
+            "subject": "target",
+            "metric": "feared",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "item": "Gyrofreeze Ice Reflector",
+        "when": "enemy is casting frost AND I wear one",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingSchool",
+            "op": "==",
+            "value": 4
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Hyper-Radiant Flame Reflector",
+        "when": "enemy is casting fire AND I wear one",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingSchool",
+            "op": "==",
+            "value": 2
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Ultra-Flash Shadow Reflector",
+        "when": "enemy is casting shadow AND I wear one",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingSchool",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Thorium Grenade",
+        "when": "enemy is casting out of melee AND I carry one",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Iron Grenade",
+        "when": "enemy is casting out of melee AND I carry one",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Gnomish Rocket Boots",
+        "when": "target is more than 15 yd away AND I wear them",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "targetDistanceYd",
+            "op": ">",
+            "value": 15
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Goblin Rocket Boots",
+        "when": "target is more than 15 yd away AND I wear them",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "targetDistanceYd",
+            "op": ">",
+            "value": 15
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "spell": "Shadow Ward",
+        "when": "buff absent AND enemy is a caster",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "target",
+            "metric": "isCaster",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Conflagrate",
+        "when": "Immolate is on the target",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 1,
+            "ref": 11668
+          }
+        ]
+      },
+      {
+        "spell": "Shadowburn",
+        "when": "target health < 20%",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      },
+      {
+        "spell": "Immolate",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Corruption",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Life Tap",
+        "when": "self mana < 25% AND self health > 60%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 25
+          },
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": ">",
+            "value": 60
+          }
+        ]
+      },
+      {
+        "spell": "Curse of Tongues",
+        "when": "target fights at range AND debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "isCaster",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Curse of Agony / Curse of Weakness",
+        "when": "target fights in melee AND debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "isCaster",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Drain Mana",
+        "when": "target is a healer AND self mana < 40%",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "isHealer",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 40
+          }
+        ]
+      },
+      {
+        "spell": "Searing Pain",
+        "when": "always"
+      },
+      {
+        "spell": "Shadow Bolt",
+        "when": "always"
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Drain Life",
+        "when": "self health < 40%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 40
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 30%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 30
+          }
+        ]
+      }
+    ]
+  }
+]

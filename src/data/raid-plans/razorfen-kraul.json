@@ -1,0 +1,53 @@
+{
+ "raid": "razorfen-kraul",
+ "note": "Reviewed for E5.4 against eventai/razorfen-kraul.ts, acid_classic.sql and razorfen_kraul.cpp. All seven bosses come back kinds: [] and that is the finding. CMaNGOS ships no boss script for this wing at all - razorfen_kraul.cpp is the Willix escort and the Snufflenose gopher - so every kit is EventAI plus creature_template. The only two shapes with a radius, Thunderclap 15548 and Rampage 8285, are instant 10 yd discs centred on a melee boss: the melee stand in them because that is where melee happens, the 25 yd ranged stand is already outside, and an instant leaves no cast and no aura for a move row to trigger on.",
+ "bosses": [
+  {
+   "entry": 6168,
+   "name": "Roogug",
+   "kinds": [],
+   "cite": "eventai/razorfen-kraul.ts:616801-616806, acid_classic.sql:15882-15887 creature_id=6168. Lightning Bolt 9532 is targetA 6 at rangeMax 40, castMs 3000, a single-target nuke. Summon Earth Rumbler 8270 is Effect 56 summon_pet miscValue 4528 on a TIMER_OOC, so the guardian is standing there before the pull and the DB never re-summons in combat; 616802 despawns guardians out of combat. Flees for assist at 15%. Nothing area, nothing to stand out of."
+  },
+  {
+   "entry": 4424,
+   "name": "Aggem Thorncurse",
+   "kinds": [],
+   "cite": "eventai/razorfen-kraul.ts:442401-442403, acid_classic.sql:15740-15742 creature_id=4424. Chain Heal 14900 is castMs 2500 interruptFlags 15, targetA 45 TARGET_UNIT_FRIEND_CHAIN_HEAL, every 13-18 s once he is below 75% - a kick or a purge, and both are class rows. Battle Shout 6192 is a 20 yd friendly buff, Summon Boar Spirit 8286 drops 6021 every 20-45 s with no order the DB names. No radius reaches the party."
+  },
+  {
+   "entry": 4428,
+   "name": "Death Speaker Jargba",
+   "kinds": [],
+   "cite": "eventai/razorfen-kraul.ts:442801-442804, acid_classic.sql:15748-15751 creature_id=4428. Dominate Mind 14515 is mechanic 1 charm, dispel 1 magic, 15 s, targetA 6 at rangeMax 20 with castMs 2000 and interruptFlags 13, thrown at a random non-top hostile every 10-15 s. A kick or a dispel answers it and both live in the class rotation. Shadow Bolt 9613 is targetA 6 at rangeMax 40. Ranged mode 35 yd on spawn, and nothing in the kit carries a radius."
+  },
+  {
+   "entry": 4420,
+   "name": "Overlord Ramtusk",
+   "kinds": [],
+   "cite": "eventai/razorfen-kraul.ts:442001-442004, acid_classic.sql:15718-15721 creature_id=4420. Thunderclap 15548 is the only shape: aoeShape pbaoe radiusYd 10, targetA 22 tgtB 15, 35-39 damage plus a 10 s melee-haste debuff, castMs 0 every 8-24 s. Instant leaves no castingPresent to gate on and it puts no aura on HIM for buffPresent, so keep_range has no trigger at all - and the 25 yd ranged stand (stand.ts:20 RANGED_STAND_DEFAULT_YD) already sits outside 10 while the melee cannot leave it and still melee. Battle Shout 9128 and Battle Stance 7165 are buffs; the CALL_FOR_HELP radius 15 on aggro is a pull problem, not a fight one."
+  },
+  {
+   "entry": 4422,
+   "name": "Agathelos the Raging",
+   "kinds": [
+    "tank-swap"
+   ],
+   "cite": "eventai/razorfen-kraul.ts:442201-442204, acid_classic.sql:15735-15738 creature_id=4422. Rampage 8285 is aoeShape pbaoe radiusYd 10, targetA 22 tgtB 15, weapon damage plus a 2.5 s stun (mechanic 12), castMs 0 every 24-32 s. Same shape the Stockade returned on Bazil Thredd: the melee are inside 10 yd because that is where melee happens, and a repeated melee stun is answered by a trinket or Berserker Rage in the class rotation. Rushing Charge 8260 and Enrage 8269 are self buffs. Left for Dead 8555 is 200 damage on the current victim, and its trigger is the one thing this fight asks for - see blockedBy.",
+   "blockedBy": {
+    "tank-swap": "razorfen_kraul.cpp:250-260 the LeftForDead SpellScript has 8555 cast 8359 on its target, and 8359 bakes as a 300000 ms silence cc - a five minute lockout on whoever Agathelos is hitting, which is the tank, every 30-60 s. Two things stop the row. The trigger is not wired: razorfenKraul.ts:176 exports SPELL_LEFT_FOR_DEAD_TRIGGER = 8359 as a constant and nothing casts it, so 8555 lands 200 damage and no aura. And even wired, the taunt row build.ts:2632-2636 needs isOffTank == 1, while raidPlan.ts:174 fills offTanks from the tank-role seats minus the main tank - a five-man with one tank has none."
+   }
+  },
+  {
+   "entry": 4425,
+   "name": "Blind Hunter",
+   "kinds": [],
+   "cite": "acid_classic.sql:15743 marks 4425 NSR and src_creature_ai_scripts holds zero rows for it. src_creature_template gives it AIName '' with Spell1-4 all null, and it has no src_creature_template_spells row; razorfen-kraul.ts:333 records the same null kit. A rank-2 rare with nothing but its melee swing - tank and spank."
+  },
+  {
+   "entry": 4421,
+   "name": "Charlga Razorflank",
+   "kinds": [],
+   "cite": "eventai/razorfen-kraul.ts:442101-442111, acid_classic.sql:15723-15733 creature_id=4421. Chain Bolt 8292 is the real mechanic: EffectChainTarget1 3 with DmgMultiplier1 1.0, so all three take the full 138-156, and the jump gate is CHAIN_SPELL_JUMP_RADIUS 10 (SharedDefines.h:1585, chainFan.ts:21). Breaking the chain needs spread minYd 11, and two melee on opposite sides of one boss are at most 10 yd apart (MELEE_REACH_YD 5, creatureAiConstants.ts:76) - the spread that stops the chain is the spread that ends melee. castMs 2500 interruptFlags 9 makes it a kick instead, which is a class row. Purity 8361 is a 2 s self school_immunity, Mana Spike 8358 a self energize at 25% mana, Renew 6077 a friendly heal. The 1.12 kit carries NO fear: no mechanic-5 spell on 4421 in src_creature_ai_scripts, in src_creature_template_spells, or in the razorfen-kraul.ts:340 kit."
+  }
+ ]
+}

@@ -1,0 +1,1085 @@
+[
+  {
+    "levels": "1-9",
+    "spec": "Enhancement",
+    "buffs": [
+      {
+        "spell": "Rockbiter Weapon",
+        "when": "self.weaponImbuePresent==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "weaponImbuePresent",
+            "op": "==",
+            "value": 0,
+            "ref": 0
+          }
+        ]
+      },
+      {
+        "spell": "Lightning Shield",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Lightning Bolt",
+        "when": "always"
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Healing Wave",
+        "when": "self health < 50%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 50
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Healing Wave",
+        "when": "party healer dead or out of mana, and most-hurt ally below 75%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "offHealAllowed",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "healerPowerPct",
+            "op": "<",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 75
+          }
+        ]
+      },
+      {
+        "spell": "Stoneskin Totem",
+        "when": "self.totemPresent==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Earth Shock",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Lightning Bolt",
+        "when": "self.inMelee==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "spell": "Earth Shock",
+        "when": "always"
+      }
+    ]
+  },
+  {
+    "levels": "10-19",
+    "spec": "Enhancement",
+    "buffs": [
+      {
+        "spell": "Rockbiter Weapon",
+        "when": "self.weaponImbuePresent==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "weaponImbuePresent",
+            "op": "==",
+            "value": 0,
+            "ref": 0
+          }
+        ]
+      },
+      {
+        "spell": "Lightning Shield",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Lightning Bolt",
+        "when": "always"
+      },
+      {
+        "spell": "Flame Shock",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Healing Wave",
+        "when": "self health < 50%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 50
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Healing Wave",
+        "when": "party healer dead or out of mana, and most-hurt ally below 75%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "offHealAllowed",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "healerPowerPct",
+            "op": "<",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 75
+          }
+        ]
+      },
+      {
+        "spell": "Strength of Earth Totem",
+        "when": "self.totemPresent==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Searing Totem",
+        "when": "self.totemPresent==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 0
+          }
+        ]
+      },
+      {
+        "spell": "Flame Shock",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Earth Shock",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Purge",
+        "when": "target.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Cure Poison",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 4
+          }
+        ]
+      },
+      {
+        "spell": "Lightning Bolt",
+        "when": "self.inMelee==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "spell": "Earth Shock",
+        "when": "always"
+      }
+    ]
+  },
+  {
+    "levels": "20-29",
+    "spec": "Enhancement",
+    "buffs": [
+      {
+        "spell": "Rockbiter Weapon",
+        "when": "self.weaponImbuePresent==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "weaponImbuePresent",
+            "op": "==",
+            "value": 0,
+            "ref": 0
+          }
+        ]
+      },
+      {
+        "spell": "Lightning Shield",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Lightning Bolt",
+        "when": "always"
+      },
+      {
+        "spell": "Flame Shock",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Healing Wave",
+        "when": "self health < 50%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 50
+          }
+        ]
+      },
+      {
+        "spell": "Lesser Healing Wave",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Lesser Healing Wave",
+        "when": "party healer dead or out of mana, and most-hurt ally below 75%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "offHealAllowed",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "healerPowerPct",
+            "op": "<",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 75
+          }
+        ]
+      },
+      {
+        "spell": "Strength of Earth Totem",
+        "when": "self.totemPresent==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Searing Totem",
+        "when": "self.totemPresent==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 0
+          }
+        ]
+      },
+      {
+        "spell": "Flame Shock",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Earth Shock",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Frost Shock",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Purge",
+        "when": "target.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Cure Poison",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 4
+          }
+        ]
+      },
+      {
+        "spell": "Cure Disease",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 3
+          }
+        ]
+      },
+      {
+        "spell": "Lightning Bolt",
+        "when": "self.inMelee==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "spell": "Earth Shock",
+        "when": "always"
+      }
+    ]
+  },
+  {
+    "levels": "30-39",
+    "spec": "Enhancement",
+    "buffs": [
+      {
+        "spell": "Windfury Weapon",
+        "when": "self.weaponImbuePresent==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "weaponImbuePresent",
+            "op": "==",
+            "value": 0,
+            "ref": 0
+          }
+        ]
+      },
+      {
+        "spell": "Lightning Shield",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Lightning Bolt",
+        "when": "always"
+      },
+      {
+        "spell": "Flame Shock",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Healing Wave",
+        "when": "self health < 50%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 50
+          }
+        ]
+      },
+      {
+        "spell": "Lesser Healing Wave",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Lesser Healing Wave",
+        "when": "party healer dead or out of mana, and most-hurt ally below 75%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "offHealAllowed",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "healerPowerPct",
+            "op": "<",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 75
+          }
+        ]
+      },
+      {
+        "spell": "Strength of Earth Totem",
+        "when": "self.totemPresent==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Searing Totem",
+        "when": "self.totemPresent==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 0
+          }
+        ]
+      },
+      {
+        "spell": "Windfury Totem",
+        "when": "self.totemPresent==0 AND self.meleeAllyCount>=2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 3
+          },
+          {
+            "subject": "self",
+            "metric": "meleeAllyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Flame Shock",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Earth Shock",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Frost Shock",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Purge",
+        "when": "target.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Cure Poison",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 4
+          }
+        ]
+      },
+      {
+        "spell": "Cure Disease",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 3
+          }
+        ]
+      },
+      {
+        "spell": "Lightning Bolt",
+        "when": "self.inMelee==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "spell": "Earth Shock",
+        "when": "always"
+      }
+    ]
+  },
+  {
+    "levels": "40-60",
+    "spec": "Enhancement",
+    "buffs": [
+      {
+        "spell": "Windfury Weapon",
+        "when": "self.weaponImbuePresent==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "weaponImbuePresent",
+            "op": "==",
+            "value": 0,
+            "ref": 0
+          }
+        ]
+      },
+      {
+        "spell": "Lightning Shield",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Lightning Bolt",
+        "when": "always"
+      },
+      {
+        "spell": "Flame Shock",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Healing Wave",
+        "when": "self health < 50%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 50
+          }
+        ]
+      },
+      {
+        "spell": "Lesser Healing Wave",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Chain Heal",
+        "when": "self health < 50%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 50
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Lesser Healing Wave",
+        "when": "party healer dead or out of mana, and most-hurt ally below 75%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "offHealAllowed",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "healerPowerPct",
+            "op": "<",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 75
+          }
+        ]
+      },
+      {
+        "spell": "Strength of Earth Totem",
+        "when": "self.totemPresent==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Searing Totem",
+        "when": "self.totemPresent==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 0
+          }
+        ]
+      },
+      {
+        "spell": "Windfury Totem",
+        "when": "self.totemPresent==0 AND self.meleeAllyCount>=2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 3
+          },
+          {
+            "subject": "self",
+            "metric": "meleeAllyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Stormstrike",
+        "when": "always"
+      },
+      {
+        "spell": "Flame Shock",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Earth Shock",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Earth Shock",
+        "when": "always"
+      },
+      {
+        "spell": "Frost Shock",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Purge",
+        "when": "target.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Cure Poison",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 4
+          }
+        ]
+      },
+      {
+        "spell": "Cure Disease",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 3
+          }
+        ]
+      },
+      {
+        "spell": "Lightning Bolt",
+        "when": "self.inMelee==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,1185 @@
+[
+  {
+    "levels": "1-9",
+    "spec": "Affliction",
+    "buffs": [
+      {
+        "spell": "Summon Imp",
+        "when": "pet not alive",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "alive",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "spell": "Demon Skin",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Create Healthstone",
+        "when": "item count < 1 AND item count >= 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 6265
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Shadow Bolt",
+        "when": "always"
+      },
+      {
+        "spell": "Immolate",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Corruption",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Curse of Agony",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Immolate",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Life Tap",
+        "when": "self health > 60% AND self power < 40%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": ">",
+            "value": 60
+          },
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 40
+          }
+        ]
+      },
+      {
+        "spell": "Shadow Bolt",
+        "when": "always"
+      },
+      {
+        "spell": "Shoot",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "10-29",
+    "spec": "Affliction",
+    "buffs": [
+      {
+        "spell": "Summon Voidwalker",
+        "when": "pet not alive AND item count >= 1",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "alive",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 6265
+          }
+        ]
+      },
+      {
+        "spell": "Demon Skin",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Create Healthstone",
+        "when": "item count < 1 AND item count >= 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5511
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 6265
+          }
+        ]
+      },
+      {
+        "spell": "Create Soulstone (Minor)",
+        "when": "item count < 1 AND item count >= 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5232
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 6265
+          }
+        ]
+      },
+      {
+        "spell": "Create Firestone (Lesser)",
+        "when": "item count < 1 AND item count >= 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 1254
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 6265
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Shadow Bolt",
+        "when": "always"
+      },
+      {
+        "spell": "Immolate",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Curse of Agony",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Health Funnel",
+        "when": "self health < 60%",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 60
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Fear",
+        "when": "multi — control a second enemy",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Corruption",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Curse of Agony",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Immolate",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Drain Life",
+        "when": "self health < 50% AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 50
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Life Tap",
+        "when": "self health > 60% AND self power < 40%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": ">",
+            "value": 60
+          },
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 40
+          }
+        ]
+      },
+      {
+        "spell": "Rain of Fire",
+        "when": "multi",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Drain Soul",
+        "when": "target health < 25% AND item count < 4 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 4,
+            "ref": 6265
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Shadow Bolt",
+        "when": "always"
+      },
+      {
+        "spell": "Shoot",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "30-39",
+    "spec": "Affliction",
+    "buffs": [
+      {
+        "spell": "Summon Voidwalker",
+        "when": "pet not alive AND item count >= 1",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "alive",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 6265
+          }
+        ]
+      },
+      {
+        "spell": "Demon Armor",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Create Healthstone",
+        "when": "item count < 1 AND item count >= 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5509
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 6265
+          }
+        ]
+      },
+      {
+        "spell": "Create Soulstone (Lesser)",
+        "when": "item count < 1 AND item count >= 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 16892
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 6265
+          }
+        ]
+      },
+      {
+        "spell": "Create Firestone",
+        "when": "item count < 1 AND item count >= 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 13699
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 6265
+          }
+        ]
+      },
+      {
+        "spell": "Create Spellstone",
+        "when": "item count < 1 AND item count >= 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5522
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 6265
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Shadow Bolt",
+        "when": "always"
+      },
+      {
+        "spell": "Immolate",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Curse of Agony",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Health Funnel",
+        "when": "self health < 60%",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 60
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Banish",
+        "when": "multi — control a second enemy",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Fear",
+        "when": "multi — control a second enemy",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Corruption",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Curse of Agony",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Immolate",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Drain Life",
+        "when": "self health < 50% AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 50
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Life Tap",
+        "when": "self health > 60% AND self power < 40%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": ">",
+            "value": 60
+          },
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 40
+          }
+        ]
+      },
+      {
+        "spell": "Hellfire",
+        "when": "multi",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Rain of Fire",
+        "when": "multi",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Drain Soul",
+        "when": "target health < 25% AND item count < 4 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 4,
+            "ref": 6265
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Shadow Bolt",
+        "when": "always"
+      },
+      {
+        "spell": "Shoot",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "40-60",
+    "spec": "Affliction",
+    "buffs": [
+      {
+        "spell": "Summon Voidwalker",
+        "when": "pet not alive AND item count >= 1",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "alive",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 6265
+          }
+        ]
+      },
+      {
+        "spell": "Demon Armor",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Inferno",
+        "when": "pet not alive AND item count >= 1",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "alive",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 5565
+          }
+        ]
+      },
+      {
+        "spell": "Create Healthstone",
+        "when": "item count < 1 AND item count >= 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5509
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 6265
+          }
+        ]
+      },
+      {
+        "spell": "Create Soulstone",
+        "when": "item count < 1 AND item count >= 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 16893
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 6265
+          }
+        ]
+      },
+      {
+        "spell": "Create Firestone",
+        "when": "item count < 1 AND item count >= 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 13699
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 6265
+          }
+        ]
+      },
+      {
+        "spell": "Create Spellstone",
+        "when": "item count < 1 AND item count >= 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5522
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 6265
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Shadow Bolt",
+        "when": "always"
+      },
+      {
+        "spell": "Immolate",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Curse of Agony",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Health Funnel",
+        "when": "self health < 60%",
+        "conditions": [
+          {
+            "subject": "pet",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 60
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Banish",
+        "when": "multi — control a second enemy",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Fear",
+        "when": "multi — control a second enemy",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Corruption",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Curse of Agony",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Immolate",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Drain Life",
+        "when": "self health < 50% AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 50
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Life Tap",
+        "when": "self health > 60% AND self power < 40%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": ">",
+            "value": 60
+          },
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 40
+          }
+        ]
+      },
+      {
+        "spell": "Hellfire",
+        "when": "multi",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Rain of Fire",
+        "when": "multi",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Drain Soul",
+        "when": "target health < 25% AND item count < 4 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 4,
+            "ref": 6265
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Shadow Bolt",
+        "when": "always"
+      },
+      {
+        "spell": "Shoot",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      },
+      {
+        "spell": "Shadowburn",
+        "when": "target health < 20% AND item count >= 1",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 20
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 6265
+          }
+        ]
+      }
+    ]
+  }
+]

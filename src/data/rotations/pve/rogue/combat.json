@@ -1,0 +1,2483 @@
+[
+  {
+    "levels": "1-9",
+    "spec": "Combat",
+    "pull": [
+      {
+        "spell": "Sinister Strike",
+        "when": "always"
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 4 AND target health <= 40% AND target dies within 1500ms",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 4
+          },
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<=",
+            "value": 40
+          },
+          {
+            "subject": "target",
+            "metric": "timeToDieMs",
+            "op": "<",
+            "value": 1500
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 3 AND target health <= 30% AND target dies within 3000ms",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 3
+          },
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<=",
+            "value": 30
+          },
+          {
+            "subject": "target",
+            "metric": "timeToDieMs",
+            "op": "<",
+            "value": 3000
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 1 AND target health <= 20% AND target dies within 6000ms",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<=",
+            "value": 20
+          },
+          {
+            "subject": "target",
+            "metric": "timeToDieMs",
+            "op": "<",
+            "value": 6000
+          }
+        ]
+      },
+      {
+        "spell": "Sinister Strike",
+        "when": "always"
+      },
+      {
+        "spell": "Backstab",
+        "when": "always"
+      },
+      {
+        "spell": "Gouge",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "10-13",
+    "spec": "Combat",
+    "pull": [
+      {
+        "spell": "Sinister Strike",
+        "when": "always"
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Evasion",
+        "when": "self health < 40% AND buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 40
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Kick",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Slice and Dice",
+        "when": "buff absent AND combo points >= 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 4 AND target health <= 40% AND target dies within 1500ms",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 4
+          },
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<=",
+            "value": 40
+          },
+          {
+            "subject": "target",
+            "metric": "timeToDieMs",
+            "op": "<",
+            "value": 1500
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 3 AND target health <= 30% AND target dies within 3000ms",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 3
+          },
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<=",
+            "value": 30
+          },
+          {
+            "subject": "target",
+            "metric": "timeToDieMs",
+            "op": "<",
+            "value": 3000
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 1 AND target health <= 20% AND target dies within 6000ms",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<=",
+            "value": 20
+          },
+          {
+            "subject": "target",
+            "metric": "timeToDieMs",
+            "op": "<",
+            "value": 6000
+          }
+        ]
+      },
+      {
+        "spell": "Sinister Strike",
+        "when": "always"
+      },
+      {
+        "spell": "Backstab",
+        "when": "always"
+      },
+      {
+        "spell": "Gouge",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "14-19",
+    "spec": "Combat",
+    "pull": [
+      {
+        "spell": "Stealth",
+        "when": "not in Stealth",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "!=",
+            "value": 30
+          }
+        ]
+      },
+      {
+        "spell": "Garrote",
+        "when": "debuff absent AND in form 30",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 30
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Evasion",
+        "when": "self health < 40% AND buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 40
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Kick",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Slice and Dice",
+        "when": "buff absent AND combo points >= 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Garrote",
+        "when": "debuff absent AND in form 30",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 30
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 4 AND target health <= 40% AND target dies within 1500ms",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 4
+          },
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<=",
+            "value": 40
+          },
+          {
+            "subject": "target",
+            "metric": "timeToDieMs",
+            "op": "<",
+            "value": 1500
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 3 AND target health <= 30% AND target dies within 3000ms",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 3
+          },
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<=",
+            "value": 30
+          },
+          {
+            "subject": "target",
+            "metric": "timeToDieMs",
+            "op": "<",
+            "value": 3000
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 1 AND target health <= 20% AND target dies within 6000ms",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<=",
+            "value": 20
+          },
+          {
+            "subject": "target",
+            "metric": "timeToDieMs",
+            "op": "<",
+            "value": 6000
+          }
+        ]
+      },
+      {
+        "spell": "Sinister Strike",
+        "when": "always"
+      },
+      {
+        "spell": "Expose Armor",
+        "when": "combo points >= 4 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 4
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Backstab",
+        "when": "always"
+      },
+      {
+        "spell": "Gouge",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Ambush",
+        "when": "in form 30",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 30
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "20-29",
+    "spec": "Combat",
+    "buffs": [
+      {
+        "spell": "Crippling Poison",
+        "when": "item count < 1 AND item count >= 1 AND item count >= 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 3775
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 2930
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 3371
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Stealth",
+        "when": "not in Stealth",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "!=",
+            "value": 30
+          }
+        ]
+      },
+      {
+        "spell": "Cheap Shot",
+        "when": "in form 30 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 30
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Evasion",
+        "when": "self health < 40% AND buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 40
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Kick",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Slice and Dice",
+        "when": "buff absent AND combo points >= 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 4 AND target health <= 40% AND target dies within 1500ms",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 4
+          },
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<=",
+            "value": 40
+          },
+          {
+            "subject": "target",
+            "metric": "timeToDieMs",
+            "op": "<",
+            "value": 1500
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 3 AND target health <= 30% AND target dies within 3000ms",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 3
+          },
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<=",
+            "value": 30
+          },
+          {
+            "subject": "target",
+            "metric": "timeToDieMs",
+            "op": "<",
+            "value": 3000
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 1 AND target health <= 20% AND target dies within 6000ms",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<=",
+            "value": 20
+          },
+          {
+            "subject": "target",
+            "metric": "timeToDieMs",
+            "op": "<",
+            "value": 6000
+          }
+        ]
+      },
+      {
+        "spell": "Rupture",
+        "when": "combo points >= 4 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 4
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Garrote",
+        "when": "in form 30 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 30
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Sinister Strike",
+        "when": "always"
+      },
+      {
+        "spell": "Gouge",
+        "when": "self health < 60% AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 60
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Expose Armor",
+        "when": "combo points >= 4 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 4
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Backstab",
+        "when": "always"
+      },
+      {
+        "spell": "Cheap Shot",
+        "when": "in form 30 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 30
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Ambush",
+        "when": "in form 30",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 30
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "30-39",
+    "spec": "Combat",
+    "buffs": [
+      {
+        "spell": "Deadly Poison",
+        "when": "item count < 5 AND self.weaponImbuePresent==0 AND item count >= 1 AND item count >= 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 2892
+          },
+          {
+            "subject": "self",
+            "metric": "weaponImbuePresent",
+            "op": "==",
+            "value": 0,
+            "ref": 0
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 5173
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 3372
+          }
+        ]
+      },
+      {
+        "spell": "Blinding Powder",
+        "when": "item count < 1 AND item count >= 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5530
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 3818
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Stealth",
+        "when": "not in Stealth",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "!=",
+            "value": 30
+          }
+        ]
+      },
+      {
+        "spell": "Cheap Shot",
+        "when": "in form 30 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 30
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Evasion",
+        "when": "self health < 40% AND buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 40
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Kick",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Slice and Dice",
+        "when": "buff absent AND combo points >= 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 4 AND target health <= 40% AND target dies within 1500ms",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 4
+          },
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<=",
+            "value": 40
+          },
+          {
+            "subject": "target",
+            "metric": "timeToDieMs",
+            "op": "<",
+            "value": 1500
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 3 AND target health <= 30% AND target dies within 3000ms",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 3
+          },
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<=",
+            "value": 30
+          },
+          {
+            "subject": "target",
+            "metric": "timeToDieMs",
+            "op": "<",
+            "value": 3000
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 1 AND target health <= 20% AND target dies within 6000ms",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<=",
+            "value": 20
+          },
+          {
+            "subject": "target",
+            "metric": "timeToDieMs",
+            "op": "<",
+            "value": 6000
+          }
+        ]
+      },
+      {
+        "spell": "Rupture",
+        "when": "combo points >= 4 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 4
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Garrote",
+        "when": "in form 30 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 30
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Sinister Strike",
+        "when": "always"
+      },
+      {
+        "spell": "Kidney Shot",
+        "when": "combo points >= 4 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 4
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Expose Armor",
+        "when": "combo points >= 4 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 4
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Backstab",
+        "when": "always"
+      },
+      {
+        "spell": "Gouge",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Cheap Shot",
+        "when": "in form 30 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 30
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Ambush",
+        "when": "in form 30",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 30
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "40-49",
+    "spec": "Combat",
+    "buffs": [
+      {
+        "spell": "Deadly Poison",
+        "when": "item count < 5 AND self.weaponImbuePresent==0 AND item count >= 1 AND item count >= 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 2892
+          },
+          {
+            "subject": "self",
+            "metric": "weaponImbuePresent",
+            "op": "==",
+            "value": 0,
+            "ref": 0
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 5173
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 3372
+          }
+        ]
+      },
+      {
+        "spell": "Blinding Powder",
+        "when": "item count < 1 AND item count >= 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5530
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 3818
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Stealth",
+        "when": "not in Stealth",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "!=",
+            "value": 30
+          }
+        ]
+      },
+      {
+        "spell": "Cheap Shot",
+        "when": "in form 30 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 30
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Evasion",
+        "when": "self health < 40% AND buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 40
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Kick",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Slice and Dice",
+        "when": "buff absent AND combo points >= 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 4 AND target health <= 40% AND target dies within 1500ms",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 4
+          },
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<=",
+            "value": 40
+          },
+          {
+            "subject": "target",
+            "metric": "timeToDieMs",
+            "op": "<",
+            "value": 1500
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 3 AND target health <= 30% AND target dies within 3000ms",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 3
+          },
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<=",
+            "value": 30
+          },
+          {
+            "subject": "target",
+            "metric": "timeToDieMs",
+            "op": "<",
+            "value": 3000
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 1 AND target health <= 20% AND target dies within 6000ms",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<=",
+            "value": 20
+          },
+          {
+            "subject": "target",
+            "metric": "timeToDieMs",
+            "op": "<",
+            "value": 6000
+          }
+        ]
+      },
+      {
+        "spell": "Rupture",
+        "when": "combo points >= 4 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 4
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Garrote",
+        "when": "in form 30 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 30
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Sinister Strike",
+        "when": "always"
+      },
+      {
+        "spell": "Kidney Shot",
+        "when": "combo points >= 4 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 4
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Expose Armor",
+        "when": "combo points >= 4 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 4
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Backstab",
+        "when": "always"
+      },
+      {
+        "spell": "Gouge",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Cheap Shot",
+        "when": "in form 30 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 30
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Ambush",
+        "when": "in form 30",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 30
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "50-59",
+    "spec": "Combat",
+    "buffs": [
+      {
+        "spell": "Deadly Poison",
+        "when": "item count < 5 AND self.weaponImbuePresent==0 AND item count >= 1 AND item count >= 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 2892
+          },
+          {
+            "subject": "self",
+            "metric": "weaponImbuePresent",
+            "op": "==",
+            "value": 0,
+            "ref": 0
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 5173
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 3372
+          }
+        ]
+      },
+      {
+        "spell": "Blinding Powder",
+        "when": "item count < 1 AND item count >= 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5530
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 3818
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Stealth",
+        "when": "not in Stealth",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "!=",
+            "value": 30
+          }
+        ]
+      },
+      {
+        "spell": "Cheap Shot",
+        "when": "in form 30 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 30
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Evasion",
+        "when": "self health < 40% AND buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 40
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Kick",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Slice and Dice",
+        "when": "buff absent AND combo points >= 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 4 AND target health <= 40% AND target dies within 1500ms",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 4
+          },
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<=",
+            "value": 40
+          },
+          {
+            "subject": "target",
+            "metric": "timeToDieMs",
+            "op": "<",
+            "value": 1500
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 3 AND target health <= 30% AND target dies within 3000ms",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 3
+          },
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<=",
+            "value": 30
+          },
+          {
+            "subject": "target",
+            "metric": "timeToDieMs",
+            "op": "<",
+            "value": 3000
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 1 AND target health <= 20% AND target dies within 6000ms",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<=",
+            "value": 20
+          },
+          {
+            "subject": "target",
+            "metric": "timeToDieMs",
+            "op": "<",
+            "value": 6000
+          }
+        ]
+      },
+      {
+        "spell": "Rupture",
+        "when": "combo points >= 4 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 4
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Garrote",
+        "when": "in form 30 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 30
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Sinister Strike",
+        "when": "always"
+      },
+      {
+        "spell": "Kidney Shot",
+        "when": "combo points >= 4 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 4
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Expose Armor",
+        "when": "combo points >= 4 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 4
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Backstab",
+        "when": "always"
+      },
+      {
+        "spell": "Gouge",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Cheap Shot",
+        "when": "in form 30 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 30
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Ambush",
+        "when": "in form 30",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 30
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "60",
+    "spec": "Combat",
+    "buffs": [
+      {
+        "spell": "Deadly Poison",
+        "when": "item count < 5 AND self.weaponImbuePresent==0 AND item count >= 1 AND item count >= 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 2892
+          },
+          {
+            "subject": "self",
+            "metric": "weaponImbuePresent",
+            "op": "==",
+            "value": 0,
+            "ref": 0
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 5173
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 3372
+          }
+        ]
+      },
+      {
+        "spell": "Blinding Powder",
+        "when": "item count < 1 AND item count >= 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5530
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 3818
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Stealth",
+        "when": "not in Stealth",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "!=",
+            "value": 30
+          }
+        ]
+      },
+      {
+        "spell": "Cheap Shot",
+        "when": "in form 30 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 30
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Evasion",
+        "when": "self health < 40% AND buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 40
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Kick",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Slice and Dice",
+        "when": "buff absent AND combo points >= 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 4 AND target health <= 40% AND target dies within 1500ms",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 4
+          },
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<=",
+            "value": 40
+          },
+          {
+            "subject": "target",
+            "metric": "timeToDieMs",
+            "op": "<",
+            "value": 1500
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 3 AND target health <= 30% AND target dies within 3000ms",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 3
+          },
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<=",
+            "value": 30
+          },
+          {
+            "subject": "target",
+            "metric": "timeToDieMs",
+            "op": "<",
+            "value": 3000
+          }
+        ]
+      },
+      {
+        "spell": "Eviscerate",
+        "when": "combo points >= 1 AND target health <= 20% AND target dies within 6000ms",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<=",
+            "value": 20
+          },
+          {
+            "subject": "target",
+            "metric": "timeToDieMs",
+            "op": "<",
+            "value": 6000
+          }
+        ]
+      },
+      {
+        "spell": "Rupture",
+        "when": "combo points >= 4 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 4
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Garrote",
+        "when": "in form 30 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 30
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Sinister Strike",
+        "when": "always"
+      },
+      {
+        "spell": "Kidney Shot",
+        "when": "combo points >= 4 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 4
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Expose Armor",
+        "when": "combo points >= 4 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "comboPoints",
+            "op": ">=",
+            "value": 4
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Backstab",
+        "when": "always"
+      },
+      {
+        "spell": "Gouge",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Cheap Shot",
+        "when": "in form 30 AND debuff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 30
+          },
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Ambush",
+        "when": "in form 30",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 30
+          }
+        ]
+      }
+    ]
+  }
+]

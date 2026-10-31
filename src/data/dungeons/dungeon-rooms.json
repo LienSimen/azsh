@@ -1,0 +1,5479 @@
+{
+  "generated": "2026-09-03T01:05:59.097Z",
+  "generator": "src/dev/etl/bake-dungeon-rooms.mjs",
+  "sources": [
+    "datadump/t0/vmaps/*.wmo.vmo (VMAP_7.0 RootWMOID + iGroupWMOID + AABox)",
+    "datadump/t0/dbc/WMOAreaTable.dbc (AreaName, AreaTableID)",
+    "docs/dungeons/survey/pack-clusters.json (unassigned pack census)"
+  ],
+  "notes": [
+    "Key rooms on (WMOID, WMOGroupID); AreaTableID is 0 for many rooms (BRD) — do not join AreaTable first.",
+    "bbox is world/creature space (MID−internal after spawn transform) matching pack-clusters centroids.",
+    "Packs whose centroid falls in no room are listed under unassigned — never snapped to nearest.",
+    "Zul'Farrak and other terrain-only maps legitimately have zero named WMO rooms.",
+    "namedGroupRows counts WMOAreaTable rows carrying an AreaName; 0 of a non-zero wmoAreaRows means 1.12 names no sub-room here, not that the join broke (dungeon-done.mjs F2)."
+  ],
+  "maps": {
+    "30": {
+      "name": "Alterac Valley",
+      "slug": "alterac-valley",
+      "models": [],
+      "wmoGroups": 104,
+      "wmoAreaRows": 98,
+      "namedGroupRows": 0,
+      "rooms": []
+    },
+    "33": {
+      "name": "Shadowfang Keep",
+      "slug": "shadowfang-keep",
+      "models": [],
+      "wmoGroups": 161,
+      "wmoAreaRows": 161,
+      "namedGroupRows": 0,
+      "rooms": []
+    },
+    "34": {
+      "name": "The Stockade",
+      "slug": "the-stockade",
+      "models": [
+        "Stormwindjail.wmo"
+      ],
+      "wmoGroups": 26,
+      "wmoAreaRows": 26,
+      "namedGroupRows": 26,
+      "rooms": [
+        {
+          "id": "34/stormwind-stockade",
+          "name": "Stormwind Stockade",
+          "areaId": 0,
+          "rootWmoId": 723,
+          "groupWmoIds": [
+            2810,
+            2811,
+            2812,
+            2813,
+            2814,
+            2815,
+            2817,
+            2818,
+            2819,
+            2820,
+            2821,
+            2822,
+            2823,
+            2824,
+            2825,
+            2826,
+            2827,
+            7262,
+            7263,
+            7264,
+            7265,
+            7266,
+            7267,
+            7268,
+            7269,
+            7270
+          ],
+          "model": "Stormwindjail.wmo",
+          "bbox": {
+            "min": [
+              -8.136,
+              -150.329,
+              -35.679
+            ],
+            "max": [
+              197.299,
+              151.822,
+              15.217
+            ]
+          }
+        }
+      ]
+    },
+    "36": {
+      "name": "The Deadmines",
+      "slug": "deadmines",
+      "models": [
+        "Az_Deadmines_B.wmo"
+      ],
+      "wmoGroups": 61,
+      "wmoAreaRows": 61,
+      "namedGroupRows": 19,
+      "rooms": [
+        {
+          "id": "36/goblin-foundry",
+          "name": "Goblin Foundry",
+          "areaId": 1581,
+          "rootWmoId": 500,
+          "groupWmoIds": [
+            214
+          ],
+          "model": "Az_Deadmines_B.wmo",
+          "bbox": {
+            "min": [
+              -244.032,
+              -617.585,
+              19.241
+            ],
+            "max": [
+              -166.004,
+              -540.981,
+              87.404
+            ]
+          }
+        },
+        {
+          "id": "36/ironclad-cove",
+          "name": "Ironclad Cove",
+          "areaId": 1581,
+          "rootWmoId": 500,
+          "groupWmoIds": [
+            210,
+            216,
+            217,
+            218,
+            219,
+            221,
+            224,
+            225,
+            226,
+            227,
+            228,
+            233,
+            236,
+            239,
+            245,
+            12510,
+            12511
+          ],
+          "model": "Az_Deadmines_B.wmo",
+          "bbox": {
+            "min": [
+              -145.72,
+              -895.318,
+              -22.29
+            ],
+            "max": [
+              7.418,
+              -643.01,
+              74.017
+            ]
+          }
+        },
+        {
+          "id": "36/mast-room",
+          "name": "Mast Room",
+          "areaId": 1581,
+          "rootWmoId": 500,
+          "groupWmoIds": [
+            246
+          ],
+          "model": "Az_Deadmines_B.wmo",
+          "bbox": {
+            "min": [
+              -317.318,
+              -539.236,
+              47.705
+            ],
+            "max": [
+              -262.771,
+              -472.993,
+              75.889
+            ]
+          }
+        }
+      ]
+    },
+    "43": {
+      "name": "Wailing Caverns",
+      "slug": "wailing-caverns",
+      "models": [
+        "Wailingcaverns_Instance.wmo"
+      ],
+      "wmoGroups": 23,
+      "wmoAreaRows": 23,
+      "namedGroupRows": 17,
+      "rooms": [
+        {
+          "id": "43/crag-of-the-everliving",
+          "name": "Crag of the Everliving",
+          "areaId": 0,
+          "rootWmoId": 1143,
+          "groupWmoIds": [
+            3343
+          ],
+          "model": "Wailingcaverns_Instance.wmo",
+          "bbox": {
+            "min": [
+              -367.462,
+              -89.164,
+              -194.914
+            ],
+            "max": [
+              -25.333,
+              100.477,
+              48.744
+            ]
+          }
+        },
+        {
+          "id": "43/dreamer-s-rock",
+          "name": "Dreamer's Rock",
+          "areaId": 0,
+          "rootWmoId": 1143,
+          "groupWmoIds": [
+            3336
+          ],
+          "model": "Wailingcaverns_Instance.wmo",
+          "bbox": {
+            "min": [
+              60.491,
+              20.584,
+              -109.049
+            ],
+            "max": [
+              187.505,
+              305.157,
+              -32.005
+            ]
+          }
+        },
+        {
+          "id": "43/pit-of-fangs",
+          "name": "Pit of Fangs",
+          "areaId": 0,
+          "rootWmoId": 1143,
+          "groupWmoIds": [
+            3342,
+            5692
+          ],
+          "model": "Wailingcaverns_Instance.wmo",
+          "bbox": {
+            "min": [
+              -169.65,
+              301.679,
+              -108.017
+            ],
+            "max": [
+              80.505,
+              554.362,
+              -11.028
+            ]
+          }
+        },
+        {
+          "id": "43/screaming-gully",
+          "name": "Screaming Gully",
+          "areaId": 0,
+          "rootWmoId": 1143,
+          "groupWmoIds": [
+            3334,
+            3335,
+            3337
+          ],
+          "model": "Wailingcaverns_Instance.wmo",
+          "bbox": {
+            "min": [
+              -96.834,
+              -2.432,
+              -119.188
+            ],
+            "max": [
+              179.448,
+              331.391,
+              -5.29
+            ]
+          }
+        },
+        {
+          "id": "43/winding-chasm",
+          "name": "Winding Chasm",
+          "areaId": 0,
+          "rootWmoId": 1143,
+          "groupWmoIds": [
+            5693,
+            6416,
+            6417,
+            6418,
+            6419,
+            6420,
+            6421,
+            6422,
+            6423,
+            6424
+          ],
+          "model": "Wailingcaverns_Instance.wmo",
+          "bbox": {
+            "min": [
+              -415.876,
+              -369.777,
+              -194.914
+            ],
+            "max": [
+              83.556,
+              93.142,
+              -2.452
+            ]
+          }
+        }
+      ]
+    },
+    "47": {
+      "name": "Razorfen Kraul",
+      "slug": "razorfen-kraul",
+      "models": [],
+      "wmoGroups": 31,
+      "wmoAreaRows": 31,
+      "namedGroupRows": 0,
+      "rooms": []
+    },
+    "48": {
+      "name": "Blackfathom Deeps",
+      "slug": "blackfathom-deeps",
+      "models": [
+        "Blackfathom_Instance.wmo"
+      ],
+      "wmoGroups": 25,
+      "wmoAreaRows": 25,
+      "namedGroupRows": 9,
+      "rooms": [
+        {
+          "id": "48/aku-mai-s-lair",
+          "name": "Aku�mai�s Lair",
+          "areaId": 0,
+          "rootWmoId": 1204,
+          "groupWmoIds": [
+            356
+          ],
+          "model": "Blackfathom_Instance.wmo",
+          "bbox": {
+            "min": [
+              -887.995,
+              -502.395,
+              -46.949
+            ],
+            "max": [
+              -779.053,
+              -194.405,
+              65.249
+            ]
+          }
+        },
+        {
+          "id": "48/moonshrine-ruins",
+          "name": "Moonshrine Ruins",
+          "areaId": 0,
+          "rootWmoId": 1204,
+          "groupWmoIds": [
+            352,
+            353
+          ],
+          "model": "Blackfathom_Instance.wmo",
+          "bbox": {
+            "min": [
+              -875.111,
+              -130.772,
+              -50.61
+            ],
+            "max": [
+              -673.811,
+              22.475,
+              30.421
+            ]
+          }
+        },
+        {
+          "id": "48/moonshrine-sanctum",
+          "name": "Moonshrine Sanctum",
+          "areaId": 0,
+          "rootWmoId": 1204,
+          "groupWmoIds": [
+            354
+          ],
+          "model": "Blackfathom_Instance.wmo",
+          "bbox": {
+            "min": [
+              -872.218,
+              -194.472,
+              -43.259
+            ],
+            "max": [
+              -764.547,
+              -77.844,
+              -3.607
+            ]
+          }
+        },
+        {
+          "id": "48/the-drowned-sacellum",
+          "name": "The Drowned Sacellum",
+          "areaId": 0,
+          "rootWmoId": 1204,
+          "groupWmoIds": [
+            340,
+            341
+          ],
+          "model": "Blackfathom_Instance.wmo",
+          "bbox": {
+            "min": [
+              -381.882,
+              -491.104,
+              -76.906
+            ],
+            "max": [
+              -179.648,
+              149.99,
+              -23.509
+            ]
+          }
+        },
+        {
+          "id": "48/the-forgotten-pool",
+          "name": "The Forgotten Pool",
+          "areaId": 0,
+          "rootWmoId": 1204,
+          "groupWmoIds": [
+            355
+          ],
+          "model": "Blackfathom_Instance.wmo",
+          "bbox": {
+            "min": [
+              -819.223,
+              -195.038,
+              -59.618
+            ],
+            "max": [
+              -693.169,
+              -120.815,
+              -25.431
+            ]
+          }
+        },
+        {
+          "id": "48/the-pool-of-ask-ar",
+          "name": "The Pool of Ask'ar",
+          "areaId": 0,
+          "rootWmoId": 1204,
+          "groupWmoIds": [
+            338,
+            339
+          ],
+          "model": "Blackfathom_Instance.wmo",
+          "bbox": {
+            "min": [
+              -604.139,
+              78.763,
+              -83.015
+            ],
+            "max": [
+              -301.795,
+              357.062,
+              -11.248
+            ]
+          }
+        }
+      ]
+    },
+    "70": {
+      "name": "Uldaman",
+      "slug": "uldaman",
+      "models": [
+        "Kz_Uldaman_B.wmo"
+      ],
+      "wmoGroups": 51,
+      "wmoAreaRows": 51,
+      "namedGroupRows": 30,
+      "rooms": [
+        {
+          "id": "70/dig-one",
+          "name": "Dig One",
+          "areaId": 0,
+          "rootWmoId": 1219,
+          "groupWmoIds": [
+            1301,
+            1302
+          ],
+          "model": "Kz_Uldaman_B.wmo",
+          "bbox": {
+            "min": [
+              -264.168,
+              -69.763,
+              -52.008
+            ],
+            "max": [
+              -179.099,
+              42.266,
+              -10.319
+            ]
+          }
+        },
+        {
+          "id": "70/dig-three",
+          "name": "Dig Three",
+          "areaId": 0,
+          "rootWmoId": 1219,
+          "groupWmoIds": [
+            1295
+          ],
+          "model": "Kz_Uldaman_B.wmo",
+          "bbox": {
+            "min": [
+              -15.919,
+              380.454,
+              -48.238
+            ],
+            "max": [
+              30.439,
+              427.401,
+              -18.143
+            ]
+          }
+        },
+        {
+          "id": "70/dig-two",
+          "name": "Dig Two",
+          "areaId": 0,
+          "rootWmoId": 1219,
+          "groupWmoIds": [
+            1260,
+            1303
+          ],
+          "model": "Kz_Uldaman_B.wmo",
+          "bbox": {
+            "min": [
+              -371.472,
+              72.003,
+              -56.354
+            ],
+            "max": [
+              -295.448,
+              155.411,
+              -17.442
+            ]
+          }
+        },
+        {
+          "id": "70/echomok-cavern",
+          "name": "Echomok Cavern",
+          "areaId": 0,
+          "rootWmoId": 1219,
+          "groupWmoIds": [
+            1296
+          ],
+          "model": "Kz_Uldaman_B.wmo",
+          "bbox": {
+            "min": [
+              -184.961,
+              355.016,
+              -42.756
+            ],
+            "max": [
+              -125.447,
+              410.185,
+              -11.846
+            ]
+          }
+        },
+        {
+          "id": "70/hall-of-the-crafters",
+          "name": "Hall of the Crafters",
+          "areaId": 0,
+          "rootWmoId": 1219,
+          "groupWmoIds": [
+            1261,
+            1264,
+            1269,
+            1270,
+            1284,
+            1287,
+            1288,
+            1290,
+            1299
+          ],
+          "model": "Kz_Uldaman_B.wmo",
+          "bbox": {
+            "min": [
+              -5.374,
+              191.661,
+              -55.01
+            ],
+            "max": [
+              184.307,
+              320.167,
+              2.164
+            ]
+          }
+        },
+        {
+          "id": "70/hall-of-the-keepers",
+          "name": "Hall of the Keepers",
+          "areaId": 0,
+          "rootWmoId": 1219,
+          "groupWmoIds": [
+            1259,
+            1281,
+            1282,
+            1285,
+            1289,
+            1291,
+            1292
+          ],
+          "model": "Kz_Uldaman_B.wmo",
+          "bbox": {
+            "min": [
+              -310.167,
+              42.191,
+              -50.073
+            ],
+            "max": [
+              -151.183,
+              187.166,
+              -16.279
+            ]
+          }
+        },
+        {
+          "id": "70/khaz-goroth-s-seat",
+          "name": "Khaz'goroth's Seat",
+          "areaId": 0,
+          "rootWmoId": 1219,
+          "groupWmoIds": [
+            1267
+          ],
+          "model": "Kz_Uldaman_B.wmo",
+          "bbox": {
+            "min": [
+              67.189,
+              235.363,
+              -52.232
+            ],
+            "max": [
+              141.826,
+              310.009,
+              -29.815
+            ]
+          }
+        },
+        {
+          "id": "70/map-chamber",
+          "name": "Map Chamber",
+          "areaId": 0,
+          "rootWmoId": 1219,
+          "groupWmoIds": [
+            1300
+          ],
+          "model": "Kz_Uldaman_B.wmo",
+          "bbox": {
+            "min": [
+              -276.836,
+              187.091,
+              -51.19
+            ],
+            "max": [
+              -187.766,
+              298.775,
+              -8.93
+            ]
+          }
+        },
+        {
+          "id": "70/temple-hall",
+          "name": "Temple Hall",
+          "areaId": 0,
+          "rootWmoId": 1219,
+          "groupWmoIds": [
+            1266,
+            1283,
+            1293
+          ],
+          "model": "Kz_Uldaman_B.wmo",
+          "bbox": {
+            "min": [
+              -121.539,
+              187.029,
+              -50.969
+            ],
+            "max": [
+              -24.441,
+              298.249,
+              -17.887
+            ]
+          }
+        },
+        {
+          "id": "70/the-stone-vault",
+          "name": "The Stone Vault",
+          "areaId": 0,
+          "rootWmoId": 1219,
+          "groupWmoIds": [
+            1286,
+            1294,
+            1297
+          ],
+          "model": "Kz_Uldaman_B.wmo",
+          "bbox": {
+            "min": [
+              4.665,
+              338.23,
+              -43.863
+            ],
+            "max": [
+              101.102,
+              466.334,
+              -2.563
+            ]
+          }
+        }
+      ]
+    },
+    "90": {
+      "name": "Gnomeregan",
+      "slug": "gnomeregan",
+      "models": [
+        "Kz_Gnomeragon_Instance.wmo"
+      ],
+      "wmoGroups": 73,
+      "wmoAreaRows": 73,
+      "namedGroupRows": 25,
+      "rooms": [
+        {
+          "id": "90/engineering-labs",
+          "name": "Engineering Labs ",
+          "areaId": 0,
+          "rootWmoId": 1249,
+          "groupWmoIds": [
+            1141,
+            1155,
+            1157,
+            1161
+          ],
+          "model": "Kz_Gnomeragon_Instance.wmo",
+          "bbox": {
+            "min": [
+              -913.999,
+              275.843,
+              -321.336
+            ],
+            "max": [
+              -749.642,
+              439.121,
+              -239.009
+            ]
+          }
+        },
+        {
+          "id": "90/launch-bay",
+          "name": "Launch Bay",
+          "areaId": 0,
+          "rootWmoId": 1249,
+          "groupWmoIds": [
+            1162,
+            1166
+          ],
+          "model": "Kz_Gnomeragon_Instance.wmo",
+          "bbox": {
+            "min": [
+              -674.543,
+              379.857,
+              -285.81
+            ],
+            "max": [
+              -439.692,
+              615.843,
+              -153.439
+            ]
+          }
+        },
+        {
+          "id": "90/the-clean-zone",
+          "name": "The Clean Zone",
+          "areaId": 0,
+          "rootWmoId": 1249,
+          "groupWmoIds": [
+            1122
+          ],
+          "model": "Kz_Gnomeragon_Instance.wmo",
+          "bbox": {
+            "min": [
+              -574.31,
+              149.958,
+              -194.892
+            ],
+            "max": [
+              -480.01,
+              240.765,
+              -128.7
+            ]
+          }
+        },
+        {
+          "id": "90/the-clockwerk-run",
+          "name": "The Clockwerk Run",
+          "areaId": 0,
+          "rootWmoId": 1249,
+          "groupWmoIds": [
+            1172
+          ],
+          "model": "Kz_Gnomeragon_Instance.wmo",
+          "bbox": {
+            "min": [
+              -395.429,
+              -14.553,
+              -162.524
+            ],
+            "max": [
+              -323.088,
+              62.126,
+              -126.278
+            ]
+          }
+        },
+        {
+          "id": "90/the-dormitory",
+          "name": "The Dormitory",
+          "areaId": 0,
+          "rootWmoId": 1249,
+          "groupWmoIds": [
+            1117,
+            1118,
+            1119,
+            1120,
+            1121,
+            1123,
+            1124,
+            1125,
+            1127,
+            1129,
+            1131,
+            1132,
+            1133,
+            1134
+          ],
+          "model": "Kz_Gnomeragon_Instance.wmo",
+          "bbox": {
+            "min": [
+              -666.457,
+              8.269,
+              -204.911
+            ],
+            "max": [
+              -490.182,
+              243.683,
+              -132.741
+            ]
+          }
+        },
+        {
+          "id": "90/the-hall-of-gears",
+          "name": "The Hall of Gears",
+          "areaId": 0,
+          "rootWmoId": 1249,
+          "groupWmoIds": [
+            1116,
+            1130
+          ],
+          "model": "Kz_Gnomeragon_Instance.wmo",
+          "bbox": {
+            "min": [
+              -524.177,
+              26.477,
+              -217.429
+            ],
+            "max": [
+              -353.612,
+              196.51,
+              -90.814
+            ]
+          }
+        },
+        {
+          "id": "90/tinkers-court",
+          "name": "Tinkers' Court",
+          "areaId": 0,
+          "rootWmoId": 1249,
+          "groupWmoIds": [
+            1104
+          ],
+          "model": "Kz_Gnomeragon_Instance.wmo",
+          "bbox": {
+            "min": [
+              -624.731,
+              583.572,
+              -327.371
+            ],
+            "max": [
+              -442.456,
+              756.162,
+              -284.234
+            ]
+          }
+        }
+      ]
+    },
+    "109": {
+      "name": "The Temple of Atal'Hakkar",
+      "slug": "sunken-temple",
+      "models": [
+        "Az_Sunkentemple_Instance.wmo"
+      ],
+      "wmoGroups": 122,
+      "wmoAreaRows": 122,
+      "namedGroupRows": 33,
+      "rooms": [
+        {
+          "id": "109/chamber-of-the-dreamer",
+          "name": "Chamber of the Dreamer",
+          "areaId": 0,
+          "rootWmoId": 1330,
+          "groupWmoIds": [
+            5260
+          ],
+          "model": "Az_Sunkentemple_Instance.wmo",
+          "bbox": {
+            "min": [
+              -708.518,
+              -72.374,
+              -91.265
+            ],
+            "max": [
+              -612.519,
+              36.87,
+              -42.012
+            ]
+          }
+        },
+        {
+          "id": "109/hall-of-serpents",
+          "name": "Hall of Serpents",
+          "areaId": 0,
+          "rootWmoId": 1330,
+          "groupWmoIds": [
+            5273,
+            5274,
+            5275,
+            5277,
+            5278,
+            5279,
+            5282,
+            5284,
+            5285,
+            5288,
+            5290,
+            5299,
+            5301,
+            5306,
+            5310,
+            5311
+          ],
+          "model": "Az_Sunkentemple_Instance.wmo",
+          "bbox": {
+            "min": [
+              -595.921,
+              -11.728,
+              -149.316
+            ],
+            "max": [
+              -337.693,
+              202.95,
+              -131.85
+            ]
+          }
+        },
+        {
+          "id": "109/hall-of-the-cursed",
+          "name": "Hall of the Cursed",
+          "areaId": 0,
+          "rootWmoId": 1330,
+          "groupWmoIds": [
+            5227,
+            5228,
+            5229,
+            5230,
+            5231,
+            5232,
+            5233,
+            5234,
+            5238,
+            5243,
+            5257,
+            5258
+          ],
+          "model": "Az_Sunkentemple_Instance.wmo",
+          "bbox": {
+            "min": [
+              -577.543,
+              -12.166,
+              -66.171
+            ],
+            "max": [
+              -355.649,
+              203.047,
+              -41.615
+            ]
+          }
+        },
+        {
+          "id": "109/lair-of-the-chosen",
+          "name": "Lair of the Chosen",
+          "areaId": 0,
+          "rootWmoId": 1330,
+          "groupWmoIds": [
+            5209
+          ],
+          "model": "Az_Sunkentemple_Instance.wmo",
+          "bbox": {
+            "min": [
+              -526.102,
+              -133.609,
+              -91.258
+            ],
+            "max": [
+              -417.13,
+              -37.61,
+              -43.423
+            ]
+          }
+        },
+        {
+          "id": "109/sanctum-of-the-fallen-god",
+          "name": "Sanctum of the Fallen God",
+          "areaId": 0,
+          "rootWmoId": 1330,
+          "groupWmoIds": [
+            5206
+          ],
+          "model": "Az_Sunkentemple_Instance.wmo",
+          "bbox": {
+            "min": [
+              -526.253,
+              228.097,
+              -91.258
+            ],
+            "max": [
+              -407.922,
+              324.097,
+              -43.423
+            ]
+          }
+        },
+        {
+          "id": "109/the-pit-of-refuse",
+          "name": "The Pit of Refuse",
+          "areaId": 0,
+          "rootWmoId": 1330,
+          "groupWmoIds": [
+            5261
+          ],
+          "model": "Az_Sunkentemple_Instance.wmo",
+          "bbox": {
+            "min": [
+              -535.916,
+              26.65,
+              -189.758
+            ],
+            "max": [
+              -399.554,
+              167.621,
+              -91.45
+            ]
+          }
+        },
+        {
+          "id": "109/the-pit-of-sacrifice",
+          "name": "The Pit of Sacrifice",
+          "areaId": 0,
+          "rootWmoId": 1330,
+          "groupWmoIds": [
+            5211
+          ],
+          "model": "Az_Sunkentemple_Instance.wmo",
+          "bbox": {
+            "min": [
+              -547.402,
+              9.357,
+              -99.723
+            ],
+            "max": [
+              -378.894,
+              181.1,
+              -10.898
+            ]
+          }
+        }
+      ]
+    },
+    "129": {
+      "name": "Razorfen Downs",
+      "slug": "razorfen-downs",
+      "models": [
+        "Razorfendowns_Instance.wmo"
+      ],
+      "wmoGroups": 14,
+      "wmoAreaRows": 14,
+      "namedGroupRows": 8,
+      "rooms": [
+        {
+          "id": "129/spiral-of-thorns",
+          "name": "Spiral of Thorns",
+          "areaId": 722,
+          "rootWmoId": 1356,
+          "groupWmoIds": [
+            5912,
+            5914,
+            5923,
+            5924
+          ],
+          "model": "Razorfendowns_Instance.wmo",
+          "bbox": {
+            "min": [
+              2261.898,
+              764.963,
+              21.283
+            ],
+            "max": [
+              2555.535,
+              1139.453,
+              225.177
+            ]
+          }
+        },
+        {
+          "id": "129/the-bone-pile",
+          "name": "The Bone Pile",
+          "areaId": 722,
+          "rootWmoId": 1356,
+          "groupWmoIds": [
+            5915
+          ],
+          "model": "Razorfendowns_Instance.wmo",
+          "bbox": {
+            "min": [
+              2378.945,
+              590.683,
+              46.788
+            ],
+            "max": [
+              2543.295,
+              753.341,
+              99.67
+            ]
+          }
+        },
+        {
+          "id": "129/the-caller-s-chamber",
+          "name": "The Caller's Chamber",
+          "areaId": 722,
+          "rootWmoId": 1356,
+          "groupWmoIds": [
+            5916
+          ],
+          "model": "Razorfendowns_Instance.wmo",
+          "bbox": {
+            "min": [
+              2455.724,
+              784.958,
+              42.631
+            ],
+            "max": [
+              2579.656,
+              937.952,
+              90.445
+            ]
+          }
+        },
+        {
+          "id": "129/the-murder-pens",
+          "name": "The Murder Pens",
+          "areaId": 722,
+          "rootWmoId": 1356,
+          "groupWmoIds": [
+            5917,
+            5918
+          ],
+          "model": "Razorfendowns_Instance.wmo",
+          "bbox": {
+            "min": [
+              2429.708,
+              668.155,
+              36.033
+            ],
+            "max": [
+              2629.676,
+              824.023,
+              90.466
+            ]
+          }
+        }
+      ]
+    },
+    "189": {
+      "name": "Scarlet Monastery",
+      "slug": "scarlet-monastery",
+      "models": [
+        "Monestary_Cathedral.wmo",
+        "Monestary_Cemetery.wmo",
+        "Monestary_Library.wmo",
+        "Monestary_War.wmo"
+      ],
+      "wmoGroups": 94,
+      "wmoAreaRows": 94,
+      "namedGroupRows": 32,
+      "rooms": [
+        {
+          "id": "189/athenaeum",
+          "name": "Athenaeum",
+          "areaId": 0,
+          "rootWmoId": 1631,
+          "groupWmoIds": [
+            7929,
+            7938,
+            7941
+          ],
+          "model": "Monestary_Library.wmo",
+          "bbox": {
+            "min": [
+              125.389,
+              -452.462,
+              18.458
+            ],
+            "max": [
+              280.099,
+              -405.749,
+              44.131
+            ]
+          }
+        },
+        {
+          "id": "189/chamber-of-atonement",
+          "name": "Chamber of Atonement",
+          "areaId": 0,
+          "rootWmoId": 1629,
+          "groupWmoIds": [
+            7884
+          ],
+          "model": "Monestary_Cemetery.wmo",
+          "bbox": {
+            "min": [
+              1744.423,
+              1109.319,
+              7.422
+            ],
+            "max": [
+              1797.764,
+              1156.77,
+              19.599
+            ]
+          }
+        },
+        {
+          "id": "189/chapel-gardens",
+          "name": "Chapel Gardens",
+          "areaId": 0,
+          "rootWmoId": 1630,
+          "groupWmoIds": [
+            7914,
+            8548
+          ],
+          "model": "Monestary_Cathedral.wmo",
+          "bbox": {
+            "min": [
+              781.161,
+              1289.552,
+              -0.551
+            ],
+            "max": [
+              1231.294,
+              1531.549,
+              205.119
+            ]
+          }
+        },
+        {
+          "id": "189/crusader-s-armory",
+          "name": "Crusader's Armory",
+          "areaId": 0,
+          "rootWmoId": 1632,
+          "groupWmoIds": [
+            7962
+          ],
+          "model": "Monestary_War.wmo",
+          "bbox": {
+            "min": [
+              1815.759,
+              -436.145,
+              7.817
+            ],
+            "max": [
+              1914.823,
+              -355.542,
+              48.853
+            ]
+          }
+        },
+        {
+          "id": "189/crusader-s-chapel",
+          "name": "Crusader's Chapel",
+          "areaId": 0,
+          "rootWmoId": 1630,
+          "groupWmoIds": [
+            7905,
+            7906,
+            7907,
+            7908,
+            7910,
+            7911,
+            7912,
+            7921
+          ],
+          "model": "Monestary_Cathedral.wmo",
+          "bbox": {
+            "min": [
+              1071.366,
+              1332.149,
+              28.689
+            ],
+            "max": [
+              1223.844,
+              1466.018,
+              92.601
+            ]
+          }
+        },
+        {
+          "id": "189/footman-s-armory",
+          "name": "Footman's Armory",
+          "areaId": 0,
+          "rootWmoId": 1632,
+          "groupWmoIds": [
+            7957
+          ],
+          "model": "Monestary_War.wmo",
+          "bbox": {
+            "min": [
+              1738.868,
+              -436.15,
+              6.891
+            ],
+            "max": [
+              1815.815,
+              -355.547,
+              38.187
+            ]
+          }
+        },
+        {
+          "id": "189/forlorn-cloister",
+          "name": "Forlorn Cloister",
+          "areaId": 0,
+          "rootWmoId": 1629,
+          "groupWmoIds": [
+            7897
+          ],
+          "model": "Monestary_Cemetery.wmo",
+          "bbox": {
+            "min": [
+              1625.657,
+              1144.342,
+              -1.671
+            ],
+            "max": [
+              2030.176,
+              1538.571,
+              233.728
+            ]
+          }
+        },
+        {
+          "id": "189/gallery-of-treasures",
+          "name": "Gallery of Treasures",
+          "areaId": 0,
+          "rootWmoId": 1631,
+          "groupWmoIds": [
+            7923,
+            7928,
+            7930
+          ],
+          "model": "Monestary_Library.wmo",
+          "bbox": {
+            "min": [
+              206.55,
+              -344.443,
+              18.49
+            ],
+            "max": [
+              280.099,
+              -300.67,
+              40.96
+            ]
+          }
+        },
+        {
+          "id": "189/hall-of-champions",
+          "name": "Hall of Champions",
+          "areaId": 0,
+          "rootWmoId": 1632,
+          "groupWmoIds": [
+            7951
+          ],
+          "model": "Monestary_War.wmo",
+          "bbox": {
+            "min": [
+              1938.607,
+              -458.829,
+              6.15
+            ],
+            "max": [
+              1992.254,
+              -404.341,
+              51.868
+            ]
+          }
+        },
+        {
+          "id": "189/honor-s-tomb",
+          "name": "Honor's Tomb",
+          "areaId": 0,
+          "rootWmoId": 1629,
+          "groupWmoIds": [
+            7890,
+            7891,
+            7892,
+            7893,
+            7894,
+            7895,
+            7896
+          ],
+          "model": "Monestary_Cemetery.wmo",
+          "bbox": {
+            "min": [
+              1768.595,
+              1390.058,
+              -10.308
+            ],
+            "max": [
+              1826.247,
+              1443.389,
+              23.541
+            ]
+          }
+        },
+        {
+          "id": "189/huntsman-s-cloister",
+          "name": "Huntsman's Cloister",
+          "areaId": 0,
+          "rootWmoId": 1631,
+          "groupWmoIds": [
+            7947
+          ],
+          "model": "Monestary_Library.wmo",
+          "bbox": {
+            "min": [
+              148.83,
+              -293.532,
+              18.519
+            ],
+            "max": [
+              206.174,
+              -236.116,
+              33.041
+            ]
+          }
+        },
+        {
+          "id": "189/the-grand-vestibule",
+          "name": "The Grand Vestibule",
+          "areaId": 0,
+          "rootWmoId": 1632,
+          "groupWmoIds": [
+            14693,
+            14694
+          ],
+          "model": "Monestary_War.wmo",
+          "bbox": {
+            "min": [
+              1517.489,
+              -314.829,
+              18.649
+            ],
+            "max": [
+              1528.787,
+              -278.413,
+              25.211
+            ]
+          }
+        },
+        {
+          "id": "189/training-grounds",
+          "name": "Training Grounds",
+          "areaId": 0,
+          "rootWmoId": 1632,
+          "groupWmoIds": [
+            7959
+          ],
+          "model": "Monestary_War.wmo",
+          "bbox": {
+            "min": [
+              1635.887,
+              -387.215,
+              14.356
+            ],
+            "max": [
+              1716.806,
+              -332.347,
+              32.517
+            ]
+          }
+        }
+      ]
+    },
+    "209": {
+      "name": "Zul'Farrak",
+      "slug": "zul-farrak",
+      "models": [],
+      "wmoGroups": 139,
+      "wmoAreaRows": 137,
+      "namedGroupRows": 0,
+      "rooms": []
+    },
+    "229": {
+      "name": "Blackrock Spire",
+      "slug": "blackrock-spire",
+      "models": [
+        "Blackrock_Upper_Instance.wmo"
+      ],
+      "wmoGroups": 70,
+      "wmoAreaRows": 70,
+      "namedGroupRows": 53,
+      "rooms": [
+        {
+          "id": "229/blackrock-spire",
+          "name": "Blackrock Spire",
+          "areaId": 0,
+          "rootWmoId": 2212,
+          "groupWmoIds": [
+            13045
+          ],
+          "model": "Blackrock_Upper_Instance.wmo",
+          "bbox": {
+            "min": [
+              64.363,
+              -225.163,
+              44.119
+            ],
+            "max": [
+              83.562,
+              -203.852,
+              71.119
+            ]
+          }
+        },
+        {
+          "id": "229/blackrock-stadium",
+          "name": "Blackrock Stadium",
+          "areaId": 0,
+          "rootWmoId": 2212,
+          "groupWmoIds": [
+            13072,
+            13073,
+            13074,
+            13075,
+            13076,
+            13077,
+            13078,
+            13079,
+            13080,
+            13081
+          ],
+          "model": "Blackrock_Upper_Instance.wmo",
+          "bbox": {
+            "min": [
+              59.946,
+              -507.51,
+              109.865
+            ],
+            "max": [
+              225.335,
+              -351.19,
+              142.787
+            ]
+          }
+        },
+        {
+          "id": "229/chamber-of-battle",
+          "name": "Chamber of Battle",
+          "areaId": 0,
+          "rootWmoId": 2212,
+          "groupWmoIds": [
+            13120
+          ],
+          "model": "Blackrock_Upper_Instance.wmo",
+          "bbox": {
+            "min": [
+              -93.86,
+              -540.502,
+              77.537
+            ],
+            "max": [
+              4.99,
+              -438.523,
+              260.49
+            ]
+          }
+        },
+        {
+          "id": "229/dragonspire-hall",
+          "name": "Dragonspire Hall",
+          "areaId": 0,
+          "rootWmoId": 2212,
+          "groupWmoIds": [
+            13058,
+            13062,
+            13063,
+            13070,
+            13084
+          ],
+          "model": "Blackrock_Upper_Instance.wmo",
+          "bbox": {
+            "min": [
+              109.001,
+              -363.209,
+              65.434
+            ],
+            "max": [
+              238.958,
+              -248.252,
+              101.655
+            ]
+          }
+        },
+        {
+          "id": "229/hall-of-binding",
+          "name": "Hall of Binding",
+          "areaId": 0,
+          "rootWmoId": 2212,
+          "groupWmoIds": [
+            13064
+          ],
+          "model": "Blackrock_Upper_Instance.wmo",
+          "bbox": {
+            "min": [
+              112.396,
+              -289.283,
+              91.161
+            ],
+            "max": [
+              176.457,
+              -228.309,
+              110.074
+            ]
+          }
+        },
+        {
+          "id": "229/hall-of-blackhand",
+          "name": "Hall of Blackhand",
+          "areaId": 0,
+          "rootWmoId": 2212,
+          "groupWmoIds": [
+            13065,
+            13066,
+            13067
+          ],
+          "model": "Blackrock_Upper_Instance.wmo",
+          "bbox": {
+            "min": [
+              112.399,
+              -359.739,
+              106.408
+            ],
+            "max": [
+              172.778,
+              -239.011,
+              137.935
+            ]
+          }
+        },
+        {
+          "id": "229/halycon-s-lair",
+          "name": "Halycon's Lair",
+          "areaId": 0,
+          "rootWmoId": 2212,
+          "groupWmoIds": [
+            13113
+          ],
+          "model": "Blackrock_Upper_Instance.wmo",
+          "bbox": {
+            "min": [
+              -226.828,
+              -356.828,
+              63.763
+            ],
+            "max": [
+              -176.798,
+              -293.29,
+              80.081
+            ]
+          }
+        },
+        {
+          "id": "229/hordemar-city",
+          "name": "Hordemar City",
+          "areaId": 0,
+          "rootWmoId": 2212,
+          "groupWmoIds": [
+            13085,
+            13087,
+            13095,
+            13099,
+            13100,
+            13101,
+            13114,
+            13123
+          ],
+          "model": "Blackrock_Upper_Instance.wmo",
+          "bbox": {
+            "min": [
+              -180.12,
+              -591.585,
+              -37.225
+            ],
+            "max": [
+              118.154,
+              -283.327,
+              263.089
+            ]
+          }
+        },
+        {
+          "id": "229/mok-doom",
+          "name": "Mok'Doom",
+          "areaId": 0,
+          "rootWmoId": 2212,
+          "groupWmoIds": [
+            13115,
+            13116
+          ],
+          "model": "Blackrock_Upper_Instance.wmo",
+          "bbox": {
+            "min": [
+              -87.826,
+              -397.874,
+              30.521
+            ],
+            "max": [
+              -8.994,
+              -293.107,
+              67.301
+            ]
+          }
+        },
+        {
+          "id": "229/skitterweb-tunnels",
+          "name": "Skitterweb Tunnels",
+          "areaId": 0,
+          "rootWmoId": 2212,
+          "groupWmoIds": [
+            13088,
+            13089
+          ],
+          "model": "Blackrock_Upper_Instance.wmo",
+          "bbox": {
+            "min": [
+              -164.643,
+              -578.365,
+              -19.901
+            ],
+            "max": [
+              -97.687,
+              -436.46,
+              40.99
+            ]
+          }
+        },
+        {
+          "id": "229/spire-throne",
+          "name": "Spire Throne",
+          "areaId": 0,
+          "rootWmoId": 2212,
+          "groupWmoIds": [
+            13117,
+            13118,
+            13119
+          ],
+          "model": "Blackrock_Upper_Instance.wmo",
+          "bbox": {
+            "min": [
+              -22.172,
+              -374.831,
+              110.6
+            ],
+            "max": [
+              44.432,
+              -247.456,
+              131.794
+            ]
+          }
+        },
+        {
+          "id": "229/tazz-alaor",
+          "name": "Tazz'Alaor",
+          "areaId": 0,
+          "rootWmoId": 2212,
+          "groupWmoIds": [
+            13090,
+            13091,
+            13092,
+            13093,
+            13094,
+            13096,
+            13097,
+            13098
+          ],
+          "model": "Blackrock_Upper_Instance.wmo",
+          "bbox": {
+            "min": [
+              -128.778,
+              -586.623,
+              -19.531
+            ],
+            "max": [
+              7.099,
+              -442.967,
+              116.486
+            ]
+          }
+        },
+        {
+          "id": "229/the-furnace",
+          "name": "The Furnace",
+          "areaId": 0,
+          "rootWmoId": 2212,
+          "groupWmoIds": [
+            13086,
+            13121,
+            13124
+          ],
+          "model": "Blackrock_Upper_Instance.wmo",
+          "bbox": {
+            "min": [
+              -0.365,
+              -581.989,
+              106.82
+            ],
+            "max": [
+              149.227,
+              -439.434,
+              141.926
+            ]
+          }
+        },
+        {
+          "id": "229/the-molten-span",
+          "name": "The Molten Span",
+          "areaId": 0,
+          "rootWmoId": 2212,
+          "groupWmoIds": [
+            17110,
+            17111
+          ],
+          "model": "Blackrock_Upper_Instance.wmo",
+          "bbox": {
+            "min": [
+              -109.12,
+              -233.261,
+              -96.795
+            ],
+            "max": [
+              166.801,
+              125.921,
+              175.211
+            ]
+          }
+        },
+        {
+          "id": "229/the-rookery",
+          "name": "The Rookery",
+          "areaId": 0,
+          "rootWmoId": 2212,
+          "groupWmoIds": [
+            13068,
+            13069
+          ],
+          "model": "Blackrock_Upper_Instance.wmo",
+          "bbox": {
+            "min": [
+              -0.578,
+              -340.952,
+              88.609
+            ],
+            "max": [
+              112.531,
+              -231.636,
+              124.566
+            ]
+          }
+        },
+        {
+          "id": "229/the-storehouse",
+          "name": "The Storehouse",
+          "areaId": 0,
+          "rootWmoId": 2212,
+          "groupWmoIds": [
+            17890
+          ],
+          "model": "Blackrock_Upper_Instance.wmo",
+          "bbox": {
+            "min": [
+              -214.511,
+              -491.758,
+              87.362
+            ],
+            "max": [
+              -180.062,
+              -444.529,
+              102.184
+            ]
+          }
+        }
+      ]
+    },
+    "230": {
+      "name": "Blackrock Depths",
+      "slug": "blackrock-depths",
+      "models": [
+        "Blackrock_Lower_Instance.wmo"
+      ],
+      "wmoGroups": 48,
+      "wmoAreaRows": 48,
+      "namedGroupRows": 46,
+      "rooms": [
+        {
+          "id": "230/chamber-of-enchantment",
+          "name": "Chamber of Enchantment",
+          "areaId": 0,
+          "rootWmoId": 2213,
+          "groupWmoIds": [
+            13162,
+            13163
+          ],
+          "model": "Blackrock_Lower_Instance.wmo",
+          "bbox": {
+            "min": [
+              925.889,
+              -387.912,
+              -124.789
+            ],
+            "max": [
+              1195.307,
+              -168.534,
+              54.586
+            ]
+          }
+        },
+        {
+          "id": "230/dark-iron-highway",
+          "name": "Dark Iron Highway",
+          "areaId": 0,
+          "rootWmoId": 2213,
+          "groupWmoIds": [
+            13148
+          ],
+          "model": "Blackrock_Lower_Instance.wmo",
+          "bbox": {
+            "min": [
+              576.721,
+              -86.555,
+              -74.653
+            ],
+            "max": [
+              761.893,
+              265.287,
+              31.556
+            ]
+          }
+        },
+        {
+          "id": "230/detention-block",
+          "name": "Detention Block",
+          "areaId": 0,
+          "rootWmoId": 2213,
+          "groupWmoIds": [
+            13134,
+            13135,
+            13139,
+            13140
+          ],
+          "model": "Blackrock_Lower_Instance.wmo",
+          "bbox": {
+            "min": [
+              258.644,
+              -232.937,
+              -83.809
+            ],
+            "max": [
+              585.825,
+              39.245,
+              -37.889
+            ]
+          }
+        },
+        {
+          "id": "230/east-garrison",
+          "name": "East Garrison",
+          "areaId": 0,
+          "rootWmoId": 2213,
+          "groupWmoIds": [
+            13141,
+            13144,
+            13147
+          ],
+          "model": "Blackrock_Lower_Instance.wmo",
+          "bbox": {
+            "min": [
+              553.815,
+              -153.304,
+              -60.088
+            ],
+            "max": [
+              693.331,
+              -33.089,
+              -28.416
+            ]
+          }
+        },
+        {
+          "id": "230/hall-of-crafting",
+          "name": "Hall of Crafting",
+          "areaId": 0,
+          "rootWmoId": 2213,
+          "groupWmoIds": [
+            13160
+          ],
+          "model": "Blackrock_Lower_Instance.wmo",
+          "bbox": {
+            "min": [
+              883.661,
+              -449.259,
+              -84.267
+            ],
+            "max": [
+              1019.806,
+              -315.028,
+              -23.338
+            ]
+          }
+        },
+        {
+          "id": "230/halls-of-the-law",
+          "name": "Halls of the Law",
+          "areaId": 0,
+          "rootWmoId": 2213,
+          "groupWmoIds": [
+            13136,
+            13137,
+            13138,
+            13142
+          ],
+          "model": "Blackrock_Lower_Instance.wmo",
+          "bbox": {
+            "min": [
+              499.466,
+              -298.404,
+              -120.437
+            ],
+            "max": [
+              675.224,
+              -109.604,
+              -42.041
+            ]
+          }
+        },
+        {
+          "id": "230/mold-foundry",
+          "name": "Mold Foundry",
+          "areaId": 0,
+          "rootWmoId": 2213,
+          "groupWmoIds": [
+            13165
+          ],
+          "model": "Blackrock_Lower_Instance.wmo",
+          "bbox": {
+            "min": [
+              1073.649,
+              -242.266,
+              -85.714
+            ],
+            "max": [
+              1232.982,
+              -110.614,
+              -27.612
+            ]
+          }
+        },
+        {
+          "id": "230/ring-of-the-law",
+          "name": "Ring of the Law",
+          "areaId": 0,
+          "rootWmoId": 2213,
+          "groupWmoIds": [
+            13143,
+            13145
+          ],
+          "model": "Blackrock_Lower_Instance.wmo",
+          "bbox": {
+            "min": [
+              527.503,
+              -309.349,
+              -59.323
+            ],
+            "max": [
+              690.752,
+              -106.495,
+              60.877
+            ]
+          }
+        },
+        {
+          "id": "230/shadowforge-city",
+          "name": "Shadowforge City",
+          "areaId": 0,
+          "rootWmoId": 2213,
+          "groupWmoIds": [
+            13149,
+            13151,
+            13161,
+            13187
+          ],
+          "model": "Blackrock_Lower_Instance.wmo",
+          "bbox": {
+            "min": [
+              581.135,
+              -525.911,
+              -199.899
+            ],
+            "max": [
+              1088.741,
+              14.91,
+              170.549
+            ]
+          }
+        },
+        {
+          "id": "230/shrine-of-thaurissan",
+          "name": "Shrine of Thaurissan",
+          "areaId": 0,
+          "rootWmoId": 2213,
+          "groupWmoIds": [
+            13146
+          ],
+          "model": "Blackrock_Lower_Instance.wmo",
+          "bbox": {
+            "min": [
+              515.063,
+              -299.407,
+              -44.069
+            ],
+            "max": [
+              645.839,
+              -231.62,
+              -21.05
+            ]
+          }
+        },
+        {
+          "id": "230/summoners-tomb",
+          "name": "Summoners' Tomb",
+          "areaId": 0,
+          "rootWmoId": 2213,
+          "groupWmoIds": [
+            13185
+          ],
+          "model": "Blackrock_Lower_Instance.wmo",
+          "bbox": {
+            "min": [
+              1175.814,
+              -322.302,
+              -86.274
+            ],
+            "max": [
+              1327.02,
+              -150.946,
+              -46.174
+            ]
+          }
+        },
+        {
+          "id": "230/the-black-vault",
+          "name": "The Black Vault",
+          "areaId": 0,
+          "rootWmoId": 2213,
+          "groupWmoIds": [
+            13159,
+            13190
+          ],
+          "model": "Blackrock_Lower_Instance.wmo",
+          "bbox": {
+            "min": [
+              794.556,
+              -366.874,
+              -50.692
+            ],
+            "max": [
+              862.143,
+              -301.043,
+              -36.987
+            ]
+          }
+        },
+        {
+          "id": "230/the-domicile",
+          "name": "The Domicile ",
+          "areaId": 0,
+          "rootWmoId": 2213,
+          "groupWmoIds": [
+            13156,
+            13157,
+            13158
+          ],
+          "model": "Blackrock_Lower_Instance.wmo",
+          "bbox": {
+            "min": [
+              744.574,
+              -325.062,
+              -49.461
+            ],
+            "max": [
+              848.87,
+              -206.339,
+              -31.993
+            ]
+          }
+        },
+        {
+          "id": "230/the-grim-guzzler",
+          "name": "The Grim Guzzler",
+          "areaId": 0,
+          "rootWmoId": 2213,
+          "groupWmoIds": [
+            13152,
+            13153,
+            13154,
+            13155
+          ],
+          "model": "Blackrock_Lower_Instance.wmo",
+          "bbox": {
+            "min": [
+              807.067,
+              -235.97,
+              -54.151
+            ],
+            "max": [
+              934.169,
+              -112.249,
+              -35.186
+            ]
+          }
+        },
+        {
+          "id": "230/the-imperial-seat",
+          "name": "The Imperial Seat",
+          "areaId": 0,
+          "rootWmoId": 2213,
+          "groupWmoIds": [
+            13170
+          ],
+          "model": "Blackrock_Lower_Instance.wmo",
+          "bbox": {
+            "min": [
+              1331.483,
+              -847.675,
+              -92.754
+            ],
+            "max": [
+              1429.649,
+              -708.005,
+              -61.241
+            ]
+          }
+        },
+        {
+          "id": "230/the-iron-hall",
+          "name": "The Iron Hall",
+          "areaId": 0,
+          "rootWmoId": 2213,
+          "groupWmoIds": [
+            13169
+          ],
+          "model": "Blackrock_Lower_Instance.wmo",
+          "bbox": {
+            "min": [
+              1346.164,
+              -708.06,
+              -92.175
+            ],
+            "max": [
+              1414.937,
+              -557.4,
+              -64.584
+            ]
+          }
+        },
+        {
+          "id": "230/the-lyceum",
+          "name": "The Lyceum",
+          "areaId": 0,
+          "rootWmoId": 2213,
+          "groupWmoIds": [
+            13167,
+            13168,
+            13186
+          ],
+          "model": "Blackrock_Lower_Instance.wmo",
+          "bbox": {
+            "min": [
+              1260.296,
+              -557.455,
+              -94.702
+            ],
+            "max": [
+              1486.677,
+              -291.198,
+              -62.944
+            ]
+          }
+        },
+        {
+          "id": "230/the-manufactory",
+          "name": "The Manufactory",
+          "areaId": 0,
+          "rootWmoId": 2213,
+          "groupWmoIds": [
+            13182,
+            13183,
+            13184
+          ],
+          "model": "Blackrock_Lower_Instance.wmo",
+          "bbox": {
+            "min": [
+              724.006,
+              -58.954,
+              -69.95
+            ],
+            "max": [
+              869.808,
+              64.975,
+              -14.837
+            ]
+          }
+        },
+        {
+          "id": "230/the-molten-bridge",
+          "name": "The Molten Bridge",
+          "areaId": 0,
+          "rootWmoId": 2213,
+          "groupWmoIds": [
+            13166
+          ],
+          "model": "Blackrock_Lower_Instance.wmo",
+          "bbox": {
+            "min": [
+              1084.023,
+              -558.939,
+              -125.387
+            ],
+            "max": [
+              1333.056,
+              -276.628,
+              72.927
+            ]
+          }
+        },
+        {
+          "id": "230/the-molten-core",
+          "name": "The Molten Core",
+          "areaId": 0,
+          "rootWmoId": 2213,
+          "groupWmoIds": [
+            13171,
+            13172
+          ],
+          "model": "Blackrock_Lower_Instance.wmo",
+          "bbox": {
+            "min": [
+              895.205,
+              -703.766,
+              -208.892
+            ],
+            "max": [
+              1234.406,
+              -448.124,
+              -36.659
+            ]
+          }
+        },
+        {
+          "id": "230/west-garrison",
+          "name": "West Garrison",
+          "areaId": 0,
+          "rootWmoId": 2213,
+          "groupWmoIds": [
+            13150,
+            13188
+          ],
+          "model": "Blackrock_Lower_Instance.wmo",
+          "bbox": {
+            "min": [
+              650.6,
+              -75.703,
+              -60.088
+            ],
+            "max": [
+              770.815,
+              63.678,
+              -28.416
+            ]
+          }
+        }
+      ]
+    },
+    "249": {
+      "name": "Onyxia's Lair",
+      "slug": "onyxias-lair",
+      "models": [],
+      "wmoGroups": 8,
+      "wmoAreaRows": 8,
+      "namedGroupRows": 0,
+      "rooms": []
+    },
+    "289": {
+      "name": "Scholomance",
+      "slug": "scholomance",
+      "models": [
+        "Ruinedkeep_Crypt_Instance.wmo"
+      ],
+      "wmoGroups": 36,
+      "wmoAreaRows": 36,
+      "namedGroupRows": 12,
+      "rooms": [
+        {
+          "id": "289/barov-family-vault",
+          "name": "Barov Family Vault",
+          "areaId": 2057,
+          "rootWmoId": 3293,
+          "groupWmoIds": [
+            17471
+          ],
+          "model": "Ruinedkeep_Crypt_Instance.wmo",
+          "bbox": {
+            "min": [
+              165.668,
+              -94.346,
+              70.746
+            ],
+            "max": [
+              197.795,
+              -20.164,
+              83.816
+            ]
+          }
+        },
+        {
+          "id": "289/chamber-of-summoning",
+          "name": "Chamber of Summoning",
+          "areaId": 2057,
+          "rootWmoId": 3293,
+          "groupWmoIds": [
+            17313
+          ],
+          "model": "Ruinedkeep_Crypt_Instance.wmo",
+          "bbox": {
+            "min": [
+              234.457,
+              28.866,
+              109.431
+            ],
+            "max": [
+              290.506,
+              139.153,
+              127.398
+            ]
+          }
+        },
+        {
+          "id": "289/hall-of-secrets",
+          "name": "Hall of Secrets",
+          "areaId": 2057,
+          "rootWmoId": 3293,
+          "groupWmoIds": [
+            17305
+          ],
+          "model": "Ruinedkeep_Crypt_Instance.wmo",
+          "bbox": {
+            "min": [
+              207.924,
+              -21.693,
+              84.628
+            ],
+            "max": [
+              281.729,
+              22.384,
+              97.564
+            ]
+          }
+        },
+        {
+          "id": "289/hall-of-the-damned",
+          "name": "Hall of the Damned",
+          "areaId": 2057,
+          "rootWmoId": 3293,
+          "groupWmoIds": [
+            17304
+          ],
+          "model": "Ruinedkeep_Crypt_Instance.wmo",
+          "bbox": {
+            "min": [
+              159.548,
+              -101.539,
+              84.628
+            ],
+            "max": [
+              203.625,
+              -27.734,
+              97.564
+            ]
+          }
+        },
+        {
+          "id": "289/headmaster-s-study",
+          "name": "Headmaster's Study",
+          "areaId": 2057,
+          "rootWmoId": 3293,
+          "groupWmoIds": [
+            17320
+          ],
+          "model": "Ruinedkeep_Crypt_Instance.wmo",
+          "bbox": {
+            "min": [
+              148.885,
+              -32.001,
+              75.451
+            ],
+            "max": [
+              212.185,
+              31.299,
+              108.165
+            ]
+          }
+        },
+        {
+          "id": "289/the-coven",
+          "name": "The Coven ",
+          "areaId": 2057,
+          "rootWmoId": 3293,
+          "groupWmoIds": [
+            17306
+          ],
+          "model": "Ruinedkeep_Crypt_Instance.wmo",
+          "bbox": {
+            "min": [
+              79.475,
+              -15.864,
+              84.659
+            ],
+            "max": [
+              153.02,
+              13.35,
+              97.564
+            ]
+          }
+        },
+        {
+          "id": "289/the-great-ossuary",
+          "name": "The Great Ossuary",
+          "areaId": 2057,
+          "rootWmoId": 3293,
+          "groupWmoIds": [
+            17316
+          ],
+          "model": "Ruinedkeep_Crypt_Instance.wmo",
+          "bbox": {
+            "min": [
+              52.694,
+              128.063,
+              91.903
+            ],
+            "max": [
+              166.256,
+              205.107,
+              123.574
+            ]
+          }
+        },
+        {
+          "id": "289/the-laboratory",
+          "name": "The Laboratory",
+          "areaId": 2057,
+          "rootWmoId": 3293,
+          "groupWmoIds": [
+            17318
+          ],
+          "model": "Ruinedkeep_Crypt_Instance.wmo",
+          "bbox": {
+            "min": [
+              -59.287,
+              115.983,
+              83.451
+            ],
+            "max": [
+              58.483,
+              167.814,
+              102.021
+            ]
+          }
+        },
+        {
+          "id": "289/the-reliquary",
+          "name": "The Reliquary",
+          "areaId": 2057,
+          "rootWmoId": 3293,
+          "groupWmoIds": [
+            17312
+          ],
+          "model": "Ruinedkeep_Crypt_Instance.wmo",
+          "bbox": {
+            "min": [
+              156.539,
+              -25.696,
+              114.937
+            ],
+            "max": [
+              249.417,
+              64.754,
+              141.438
+            ]
+          }
+        },
+        {
+          "id": "289/the-shadow-vault",
+          "name": "The Shadow Vault",
+          "areaId": 2057,
+          "rootWmoId": 3293,
+          "groupWmoIds": [
+            17307
+          ],
+          "model": "Ruinedkeep_Crypt_Instance.wmo",
+          "bbox": {
+            "min": [
+              200.409,
+              -15.6,
+              72.493
+            ],
+            "max": [
+              273.63,
+              16.51,
+              83.705
+            ]
+          }
+        },
+        {
+          "id": "289/the-viewing-room",
+          "name": "The Viewing Room",
+          "areaId": 2057,
+          "rootWmoId": 3293,
+          "groupWmoIds": [
+            17315
+          ],
+          "model": "Ruinedkeep_Crypt_Instance.wmo",
+          "bbox": {
+            "min": [
+              87.585,
+              57.238,
+              97.135
+            ],
+            "max": [
+              173.916,
+              124.479,
+              117.373
+            ]
+          }
+        },
+        {
+          "id": "289/vault-of-the-ravenian",
+          "name": "Vault of the Ravenian",
+          "areaId": 2057,
+          "rootWmoId": 3293,
+          "groupWmoIds": [
+            17308
+          ],
+          "model": "Ruinedkeep_Crypt_Instance.wmo",
+          "bbox": {
+            "min": [
+              88.186,
+              -27.448,
+              72.722
+            ],
+            "max": [
+              161.246,
+              24.823,
+              83.816
+            ]
+          }
+        }
+      ]
+    },
+    "309": {
+      "name": "Zul'Gurub",
+      "slug": "zul-gurub",
+      "models": [],
+      "wmoGroups": 221,
+      "wmoAreaRows": 200,
+      "namedGroupRows": 0,
+      "rooms": []
+    },
+    "329": {
+      "name": "Stratholme",
+      "slug": "stratholme",
+      "models": [
+        "Stratholme_B.wmo"
+      ],
+      "wmoGroups": 107,
+      "wmoAreaRows": 107,
+      "namedGroupRows": 44,
+      "rooms": [
+        {
+          "id": "329/alonsus-chapel",
+          "name": "Alonsus Chapel",
+          "areaId": 2017,
+          "rootWmoId": 3454,
+          "groupWmoIds": [
+            17782
+          ],
+          "model": "Stratholme_B.wmo",
+          "bbox": {
+            "min": [
+              3665.714,
+              -3655.511,
+              139.916
+            ],
+            "max": [
+              3691.888,
+              -3625.043,
+              167.394
+            ]
+          }
+        },
+        {
+          "id": "329/crusaders-square",
+          "name": "Crusaders' Square",
+          "areaId": 2017,
+          "rootWmoId": 3454,
+          "groupWmoIds": [
+            17779
+          ],
+          "model": "Stratholme_B.wmo",
+          "bbox": {
+            "min": [
+              3576.104,
+              -3240.632,
+              112.318
+            ],
+            "max": [
+              3745.212,
+              -3064.502,
+              208.684
+            ]
+          }
+        },
+        {
+          "id": "329/elders-square",
+          "name": "Elders' Square",
+          "areaId": 2017,
+          "rootWmoId": 3454,
+          "groupWmoIds": [
+            17802
+          ],
+          "model": "Stratholme_B.wmo",
+          "bbox": {
+            "min": [
+              3587.132,
+              -3682.896,
+              122.249
+            ],
+            "max": [
+              3755.959,
+              -3545.314,
+              193.924
+            ]
+          }
+        },
+        {
+          "id": "329/festival-lane",
+          "name": "Festival Lane",
+          "areaId": 2017,
+          "rootWmoId": 3454,
+          "groupWmoIds": [
+            17741,
+            17742,
+            17743
+          ],
+          "model": "Stratholme_B.wmo",
+          "bbox": {
+            "min": [
+              3543.461,
+              -3570.828,
+              116.747
+            ],
+            "max": [
+              3773.838,
+              -3421.309,
+              185.197
+            ]
+          }
+        },
+        {
+          "id": "329/king-s-square",
+          "name": "King's Square",
+          "areaId": 2017,
+          "rootWmoId": 3454,
+          "groupWmoIds": [
+            17745,
+            17800
+          ],
+          "model": "Stratholme_B.wmo",
+          "bbox": {
+            "min": [
+              3413.543,
+              -3488.374,
+              113.145
+            ],
+            "max": [
+              3614.883,
+              -3260.007,
+              193.924
+            ]
+          }
+        },
+        {
+          "id": "329/market-row",
+          "name": "Market Row",
+          "areaId": 2017,
+          "rootWmoId": 3454,
+          "groupWmoIds": [
+            17737,
+            17738,
+            17781
+          ],
+          "model": "Stratholme_B.wmo",
+          "bbox": {
+            "min": [
+              3608.874,
+              -3449.917,
+              111.584
+            ],
+            "max": [
+              3770.817,
+              -3214.274,
+              179.666
+            ]
+          }
+        },
+        {
+          "id": "329/slaughter-square",
+          "name": "Slaughter Square",
+          "areaId": 2017,
+          "rootWmoId": 3454,
+          "groupWmoIds": [
+            17761
+          ],
+          "model": "Stratholme_B.wmo",
+          "bbox": {
+            "min": [
+              3933.208,
+              -3497.872,
+              99.936
+            ],
+            "max": [
+              4149.452,
+              -3274.417,
+              238.902
+            ]
+          }
+        },
+        {
+          "id": "329/the-crimson-throne",
+          "name": "The Crimson Throne",
+          "areaId": 2017,
+          "rootWmoId": 3454,
+          "groupWmoIds": [
+            17827
+          ],
+          "model": "Stratholme_B.wmo",
+          "bbox": {
+            "min": [
+              3390.926,
+              -3087.763,
+              136.47
+            ],
+            "max": [
+              3455.855,
+              -3022.867,
+              162.143
+            ]
+          }
+        },
+        {
+          "id": "329/the-gauntlet",
+          "name": "The Gauntlet",
+          "areaId": 2017,
+          "rootWmoId": 3454,
+          "groupWmoIds": [
+            17763,
+            17764,
+            17765,
+            17766,
+            17767,
+            17768
+          ],
+          "model": "Stratholme_B.wmo",
+          "bbox": {
+            "min": [
+              3746.896,
+              -3801.362,
+              110.346
+            ],
+            "max": [
+              4114.067,
+              -3418.637,
+              229.284
+            ]
+          }
+        },
+        {
+          "id": "329/the-hall-of-lights",
+          "name": "The Hall of Lights",
+          "areaId": 2017,
+          "rootWmoId": 3454,
+          "groupWmoIds": [
+            17791
+          ],
+          "model": "Stratholme_B.wmo",
+          "bbox": {
+            "min": [
+              3584.741,
+              -3125.71,
+              134.077
+            ],
+            "max": [
+              3662.296,
+              -3059.393,
+              156.547
+            ]
+          }
+        },
+        {
+          "id": "329/the-hoard",
+          "name": "The Hoard",
+          "areaId": 2017,
+          "rootWmoId": 3454,
+          "groupWmoIds": [
+            17817
+          ],
+          "model": "Stratholme_B.wmo",
+          "bbox": {
+            "min": [
+              3520.686,
+              -3032.222,
+              124.95
+            ],
+            "max": [
+              3594.574,
+              -2928.278,
+              155.176
+            ]
+          }
+        },
+        {
+          "id": "329/the-scarlet-bastion",
+          "name": "The Scarlet Bastion",
+          "areaId": 2017,
+          "rootWmoId": 3454,
+          "groupWmoIds": [
+            17780,
+            17787,
+            17788,
+            17789,
+            17790,
+            17792,
+            17793,
+            17794,
+            17795,
+            17818,
+            17819,
+            17820,
+            17821,
+            17822,
+            17823,
+            17824,
+            17825,
+            17826
+          ],
+          "model": "Stratholme_B.wmo",
+          "bbox": {
+            "min": [
+              3424.939,
+              -3150.64,
+              124.973
+            ],
+            "max": [
+              3667.382,
+              -3028.32,
+              157.427
+            ]
+          }
+        },
+        {
+          "id": "329/the-slaughter-house",
+          "name": "The Slaughter House",
+          "areaId": 2017,
+          "rootWmoId": 3454,
+          "groupWmoIds": [
+            17812,
+            17813,
+            17814,
+            17815,
+            17816
+          ],
+          "model": "Stratholme_B.wmo",
+          "bbox": {
+            "min": [
+              4005.895,
+              -3388.765,
+              114.901
+            ],
+            "max": [
+              4059.795,
+              -3324.418,
+              143.629
+            ]
+          }
+        }
+      ]
+    },
+    "349": {
+      "name": "Maraudon",
+      "slug": "maraudon",
+      "models": [
+        "Kl_Maraudon_Instance01.wmo"
+      ],
+      "wmoGroups": 43,
+      "wmoAreaRows": 43,
+      "namedGroupRows": 24,
+      "rooms": [
+        {
+          "id": "349/earth-song-falls",
+          "name": "Earth Song Falls",
+          "areaId": 0,
+          "rootWmoId": 3233,
+          "groupWmoIds": [
+            17052
+          ],
+          "model": "Kl_Maraudon_Instance01.wmo",
+          "bbox": {
+            "min": [
+              195.903,
+              -122.139,
+              -150.096
+            ],
+            "max": [
+              528.395,
+              124.89,
+              82.083
+            ]
+          }
+        },
+        {
+          "id": "349/foulspore-cavern",
+          "name": "Foulspore Cavern",
+          "areaId": 0,
+          "rootWmoId": 3233,
+          "groupWmoIds": [
+            17073,
+            17074,
+            17075,
+            17076,
+            17081,
+            17088,
+            17089,
+            17912,
+            19050,
+            19051
+          ],
+          "model": "Kl_Maraudon_Instance01.wmo",
+          "bbox": {
+            "min": [
+              860.623,
+              -537.863,
+              -73.26
+            ],
+            "max": [
+              1096.137,
+              9.517,
+              68.833
+            ]
+          }
+        },
+        {
+          "id": "349/poison-falls",
+          "name": "Poison Falls",
+          "areaId": 0,
+          "rootWmoId": 3233,
+          "groupWmoIds": [
+            17094
+          ],
+          "model": "Kl_Maraudon_Instance01.wmo",
+          "bbox": {
+            "min": [
+              701.796,
+              -286.55,
+              -88.906
+            ],
+            "max": [
+              938.632,
+              -1.036,
+              77.665
+            ]
+          }
+        },
+        {
+          "id": "349/the-noxious-hollow",
+          "name": "The Noxious Hollow",
+          "areaId": 0,
+          "rootWmoId": 3233,
+          "groupWmoIds": [
+            17086
+          ],
+          "model": "Kl_Maraudon_Instance01.wmo",
+          "bbox": {
+            "min": [
+              975.564,
+              -327.843,
+              -80.444
+            ],
+            "max": [
+              1168.871,
+              -169.299,
+              -51.313
+            ]
+          }
+        },
+        {
+          "id": "349/the-wicked-grotto",
+          "name": "The Wicked Grotto",
+          "areaId": 0,
+          "rootWmoId": 3233,
+          "groupWmoIds": [
+            17077,
+            17078,
+            17079,
+            17080,
+            17091,
+            17093,
+            17095,
+            17097,
+            17911
+          ],
+          "model": "Kl_Maraudon_Instance01.wmo",
+          "bbox": {
+            "min": [
+              572.653,
+              -811.5,
+              -64.453
+            ],
+            "max": [
+              906.637,
+              -73.953,
+              63.321
+            ]
+          }
+        },
+        {
+          "id": "349/vyletongue-seat",
+          "name": "Vyletongue Seat",
+          "areaId": 0,
+          "rootWmoId": 3233,
+          "groupWmoIds": [
+            17092
+          ],
+          "model": "Kl_Maraudon_Instance01.wmo",
+          "bbox": {
+            "min": [
+              593.853,
+              -299.924,
+              -65.066
+            ],
+            "max": [
+              753.828,
+              -133.973,
+              -19.523
+            ]
+          }
+        },
+        {
+          "id": "349/zaetar-s-grave",
+          "name": "Zaetar's Grave",
+          "areaId": 0,
+          "rootWmoId": 3233,
+          "groupWmoIds": [
+            17065
+          ],
+          "model": "Kl_Maraudon_Instance01.wmo",
+          "bbox": {
+            "min": [
+              -82.466,
+              -369.325,
+              -208.956
+            ],
+            "max": [
+              150.727,
+              159.757,
+              61.017
+            ]
+          }
+        }
+      ]
+    },
+    "389": {
+      "name": "Ragefire Chasm",
+      "slug": "ragefire-chasm",
+      "models": [
+        "Lavadungeon.wmo"
+      ],
+      "wmoGroups": 12,
+      "wmoAreaRows": 12,
+      "namedGroupRows": 5,
+      "rooms": [
+        {
+          "id": "389/cleft-of-shadow",
+          "name": "Cleft of Shadow",
+          "areaId": 0,
+          "rootWmoId": 3433,
+          "groupWmoIds": [
+            17675,
+            17677,
+            17678,
+            17679,
+            17680
+          ],
+          "model": "Lavadungeon.wmo",
+          "bbox": {
+            "min": [
+              -21.379,
+              -4.349,
+              -12.858
+            ],
+            "max": [
+              102.956,
+              186.255,
+              58.91
+            ]
+          }
+        }
+      ]
+    },
+    "409": {
+      "name": "Molten Core",
+      "slug": "molten-core",
+      "models": [
+        "Blackrock_Lower_Guild.wmo"
+      ],
+      "wmoGroups": 12,
+      "wmoAreaRows": 12,
+      "namedGroupRows": 2,
+      "rooms": [
+        {
+          "id": "409/magmadar-cavern",
+          "name": "Magmadar Cavern",
+          "areaId": 0,
+          "rootWmoId": 2714,
+          "groupWmoIds": [
+            14775
+          ],
+          "model": "Blackrock_Lower_Guild.wmo",
+          "bbox": {
+            "min": [
+              906.422,
+              -1053.855,
+              -192.474
+            ],
+            "max": [
+              1164.657,
+              -902.38,
+              -123.06
+            ]
+          }
+        },
+        {
+          "id": "409/ragnaros-lair",
+          "name": "Ragnaros' Lair",
+          "areaId": 0,
+          "rootWmoId": 2714,
+          "groupWmoIds": [
+            14769
+          ],
+          "model": "Blackrock_Lower_Guild.wmo",
+          "bbox": {
+            "min": [
+              701.782,
+              -942.656,
+              -233.522
+            ],
+            "max": [
+              946.654,
+              -672.228,
+              -85.539
+            ]
+          }
+        }
+      ]
+    },
+    "429": {
+      "name": "Dire Maul",
+      "slug": "dire-maul",
+      "models": [
+        "Kl_Diremaul_Instance.wmo"
+      ],
+      "wmoGroups": 100,
+      "wmoAreaRows": 99,
+      "namedGroupRows": 36,
+      "rooms": [
+        {
+          "id": "429/capital-gardens",
+          "name": "Capital Gardens",
+          "areaId": 0,
+          "rootWmoId": 3634,
+          "groupWmoIds": [
+            18116,
+            18127,
+            18128
+          ],
+          "model": "Kl_Diremaul_Instance.wmo",
+          "bbox": {
+            "min": [
+              -121.737,
+              150.949,
+              -9.235
+            ],
+            "max": [
+              149.632,
+              374.06,
+              68.879
+            ]
+          }
+        },
+        {
+          "id": "429/court-of-the-highborne",
+          "name": "Court of the Highborne",
+          "areaId": 0,
+          "rootWmoId": 3634,
+          "groupWmoIds": [
+            18151,
+            18170,
+            18171
+          ],
+          "model": "Kl_Diremaul_Instance.wmo",
+          "bbox": {
+            "min": [
+              -118.623,
+              369.693,
+              -23.357
+            ],
+            "max": [
+              145.903,
+              588.006,
+              61.395
+            ]
+          }
+        },
+        {
+          "id": "429/gordok-s-seat",
+          "name": "Gordok's Seat",
+          "areaId": 0,
+          "rootWmoId": 3634,
+          "groupWmoIds": [
+            18194
+          ],
+          "model": "Kl_Diremaul_Instance.wmo",
+          "bbox": {
+            "min": [
+              622.132,
+              380.376,
+              27.158
+            ],
+            "max": [
+              927.003,
+              582.185,
+              144.955
+            ]
+          }
+        },
+        {
+          "id": "429/halls-of-destruction",
+          "name": "Halls of Destruction",
+          "areaId": 0,
+          "rootWmoId": 3634,
+          "groupWmoIds": [
+            18195,
+            18196,
+            18197,
+            18430,
+            18431,
+            18432
+          ],
+          "model": "Kl_Diremaul_Instance.wmo",
+          "bbox": {
+            "min": [
+              365.802,
+              376.161,
+              -25.437
+            ],
+            "max": [
+              622.187,
+              615.481,
+              74.767
+            ]
+          }
+        },
+        {
+          "id": "429/prison-of-immol-thar",
+          "name": "Prison of Immol'thar",
+          "areaId": 0,
+          "rootWmoId": 3634,
+          "groupWmoIds": [
+            18156,
+            18157,
+            18169
+          ],
+          "model": "Kl_Diremaul_Instance.wmo",
+          "bbox": {
+            "min": [
+              -208.221,
+              587.12,
+              -33.09
+            ],
+            "max": [
+              133.155,
+              983.448,
+              93.015
+            ]
+          }
+        },
+        {
+          "id": "429/the-athenaeum",
+          "name": "The Athenaeum",
+          "areaId": 0,
+          "rootWmoId": 3634,
+          "groupWmoIds": [
+            18168
+          ],
+          "model": "Kl_Diremaul_Instance.wmo",
+          "bbox": {
+            "min": [
+              105.21,
+              433.327,
+              -48.5
+            ],
+            "max": [
+              201.853,
+              641.528,
+              -5.62
+            ]
+          }
+        },
+        {
+          "id": "429/the-conservatory",
+          "name": "The Conservatory",
+          "areaId": 0,
+          "rootWmoId": 3634,
+          "groupWmoIds": [
+            18692
+          ],
+          "model": "Kl_Diremaul_Instance.wmo",
+          "bbox": {
+            "min": [
+              -160.506,
+              -373.529,
+              -59.407
+            ],
+            "max": [
+              133.864,
+              -182.48,
+              -9.492
+            ]
+          }
+        },
+        {
+          "id": "429/the-hidden-reach",
+          "name": "The Hidden Reach",
+          "areaId": 0,
+          "rootWmoId": 3634,
+          "groupWmoIds": [
+            18140,
+            18141,
+            18142,
+            18143,
+            18144,
+            18145,
+            18146,
+            18147,
+            18148,
+            18200
+          ],
+          "model": "Kl_Diremaul_Instance.wmo",
+          "bbox": {
+            "min": [
+              -3.637,
+              -842.307,
+              -33.071
+            ],
+            "max": [
+              120.86,
+              -380.765,
+              35.177
+            ]
+          }
+        },
+        {
+          "id": "429/the-maul",
+          "name": "The Maul",
+          "areaId": 0,
+          "rootWmoId": 3634,
+          "groupWmoIds": [
+            18118,
+            18125,
+            18126,
+            18129
+          ],
+          "model": "Kl_Diremaul_Instance.wmo",
+          "bbox": {
+            "min": [
+              -200.485,
+              -149.288,
+              -19.058
+            ],
+            "max": [
+              247.779,
+              170.363,
+              90.179
+            ]
+          }
+        },
+        {
+          "id": "429/the-shrine-of-eldretharr",
+          "name": "The Shrine of Eldretharr",
+          "areaId": 0,
+          "rootWmoId": 3634,
+          "groupWmoIds": [
+            18150
+          ],
+          "model": "Kl_Diremaul_Instance.wmo",
+          "bbox": {
+            "min": [
+              130.584,
+              -615.177,
+              -119.99
+            ],
+            "max": [
+              388.266,
+              -325.003,
+              35.798
+            ]
+          }
+        },
+        {
+          "id": "429/warpwood-quarter",
+          "name": "Warpwood Quarter",
+          "areaId": 0,
+          "rootWmoId": 3634,
+          "groupWmoIds": [
+            18130,
+            18131,
+            18173
+          ],
+          "model": "Kl_Diremaul_Instance.wmo",
+          "bbox": {
+            "min": [
+              -187.971,
+              -389.982,
+              -41.217
+            ],
+            "max": [
+              157.816,
+              -143.259,
+              78.026
+            ]
+          }
+        }
+      ]
+    },
+    "469": {
+      "name": "Blackwing Lair",
+      "slug": "blackwing-lair",
+      "models": [
+        "Blackrock_Upper_Guild.wmo"
+      ],
+      "wmoGroups": 104,
+      "wmoAreaRows": 102,
+      "namedGroupRows": 10,
+      "rooms": [
+        {
+          "id": "469/dragonmaw-garrison",
+          "name": "Dragonmaw Garrison",
+          "areaId": 2677,
+          "rootWmoId": 2894,
+          "groupWmoIds": [
+            15182
+          ],
+          "model": "Blackrock_Upper_Guild.wmo",
+          "bbox": {
+            "min": [
+              -7677.728,
+              -1134.419,
+              407.144
+            ],
+            "max": [
+              -7514.155,
+              -972.608,
+              435.615
+            ]
+          }
+        },
+        {
+          "id": "469/halls-of-strife",
+          "name": "Halls of Strife",
+          "areaId": 2677,
+          "rootWmoId": 2894,
+          "groupWmoIds": [
+            15186,
+            15187,
+            15188,
+            15189
+          ],
+          "model": "Blackrock_Upper_Guild.wmo",
+          "bbox": {
+            "min": [
+              -7765.483,
+              -1149.952,
+              419.48
+            ],
+            "max": [
+              -7474.164,
+              -855.83,
+              469.156
+            ]
+          }
+        },
+        {
+          "id": "469/nefarian-s-lair",
+          "name": "Nefarian�s Lair",
+          "areaId": 2677,
+          "rootWmoId": 2894,
+          "groupWmoIds": [
+            15174,
+            15178,
+            19132
+          ],
+          "model": "Blackrock_Upper_Guild.wmo",
+          "bbox": {
+            "min": [
+              -7637.949,
+              -1334.203,
+              396.012
+            ],
+            "max": [
+              -7402.747,
+              -1117.718,
+              528.918
+            ]
+          }
+        },
+        {
+          "id": "469/shadow-wing-lair",
+          "name": "Shadow Wing Lair",
+          "areaId": 2677,
+          "rootWmoId": 2894,
+          "groupWmoIds": [
+            15183,
+            15185
+          ],
+          "model": "Blackrock_Upper_Guild.wmo",
+          "bbox": {
+            "min": [
+              -7553.958,
+              -1089.589,
+              408.463
+            ],
+            "max": [
+              -7414.178,
+              -946.189,
+              444.841
+            ]
+          }
+        }
+      ]
+    },
+    "489": {
+      "name": "Warsong Gulch",
+      "slug": "warsong-gulch",
+      "models": [],
+      "wmoGroups": 48,
+      "wmoAreaRows": 48,
+      "namedGroupRows": 0,
+      "rooms": []
+    },
+    "509": {
+      "name": "Ruins of Ahn'Qiraj",
+      "slug": "ruins-of-ahnqiraj",
+      "models": [],
+      "wmoGroups": 99,
+      "wmoAreaRows": 98,
+      "namedGroupRows": 0,
+      "rooms": []
+    },
+    "529": {
+      "name": "Arathi Basin",
+      "slug": "arathi-basin",
+      "models": [],
+      "wmoGroups": 33,
+      "wmoAreaRows": 25,
+      "namedGroupRows": 0,
+      "rooms": []
+    },
+    "531": {
+      "name": "Temple of Ahn'Qiraj",
+      "slug": "temple-of-ahnqiraj",
+      "models": [],
+      "wmoGroups": 52,
+      "wmoAreaRows": 52,
+      "namedGroupRows": 0,
+      "rooms": []
+    },
+    "533": {
+      "name": "Naxxramas",
+      "slug": "naxxramas",
+      "models": [
+        "Frostwyrm_Final01.wmo",
+        "Stratholme_A.wmo"
+      ],
+      "wmoGroups": 211,
+      "wmoAreaRows": 211,
+      "namedGroupRows": 4,
+      "rooms": [
+        {
+          "id": "533/kel-thuzad-chamber",
+          "name": "Kel'Thuzad Chamber",
+          "areaId": 3456,
+          "rootWmoId": 4491,
+          "groupWmoIds": [
+            20118
+          ],
+          "model": "Frostwyrm_Final01.wmo",
+          "bbox": {
+            "min": [
+              3614.531,
+              -5225.216,
+              127.53
+            ],
+            "max": [
+              3815.358,
+              -4987.78,
+              295.024
+            ]
+          }
+        },
+        {
+          "id": "533/king-s-square",
+          "name": "King's Square",
+          "areaId": 2017,
+          "rootWmoId": 3453,
+          "groupWmoIds": [
+            17732,
+            17736
+          ],
+          "model": "Stratholme_A.wmo",
+          "bbox": {
+            "min": [
+              3413.543,
+              -3488.374,
+              113.145
+            ],
+            "max": [
+              3615.111,
+              -3249.062,
+              211.068
+            ]
+          }
+        },
+        {
+          "id": "533/sapphiron-s-lair",
+          "name": "Sapphiron's Lair",
+          "areaId": 3456,
+          "rootWmoId": 4491,
+          "groupWmoIds": [
+            20064
+          ],
+          "model": "Frostwyrm_Final01.wmo",
+          "bbox": {
+            "min": [
+              3379.248,
+              -5413.89,
+              109.336
+            ],
+            "max": [
+              3653.039,
+              -5110.085,
+              395.792
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "unassigned": {
+    "30": {
+      "count": 0,
+      "packIds": []
+    },
+    "33": {
+      "count": 21,
+      "packIds": [
+        "33-dc0d98cb",
+        "33-3883ead2",
+        "33-2a7a42aa",
+        "33-afd9dc93",
+        "33-ffb4cfb3",
+        "33-a678cad1",
+        "33-bd8c9d7a",
+        "33-b651da7b",
+        "33-20da603c",
+        "33-891e59f4",
+        "33-93eae223",
+        "33-cab6bb06",
+        "33-0bd12f59",
+        "33-076a9af5",
+        "33-1df5f88d",
+        "33-45cd4871",
+        "33-8cbe2e82",
+        "33-02ff9157",
+        "33-0fb22728",
+        "33-bc6edc5a",
+        "33-31bb336a"
+      ]
+    },
+    "34": {
+      "count": 0,
+      "packIds": []
+    },
+    "36": {
+      "count": 22,
+      "packIds": [
+        "36-5deadc37",
+        "36-e426ae5a",
+        "36-452a2e5c",
+        "36-f830531b",
+        "36-bfaa4172",
+        "36-9ba9c444",
+        "36-cb5082d6",
+        "36-14d6bb21",
+        "36-5d67312c",
+        "36-cf65f075",
+        "36-649f907c",
+        "36-b4fda5f8",
+        "36-f1aab640",
+        "36-94569f35",
+        "36-55462f50",
+        "36-280f6a8d",
+        "36-fb090738",
+        "36-9404bcd0",
+        "36-8b10b19c",
+        "36-32f82d11",
+        "36-78f15cec",
+        "36-a59689bf"
+      ]
+    },
+    "43": {
+      "count": 2,
+      "packIds": [
+        "43-21506adc",
+        "43-42b08f9f"
+      ]
+    },
+    "47": {
+      "count": 57,
+      "packIds": [
+        "47-e83d2c5c",
+        "47-afa458e5",
+        "47-e141fe9d",
+        "47-da41f398",
+        "47-a78cd1b2",
+        "47-09145ed3",
+        "47-82757a03",
+        "47-3624f4ad",
+        "47-03669ef9",
+        "47-783847a2",
+        "47-946f0573",
+        "47-d39f67bd",
+        "47-0ba4daf3",
+        "47-2c57ed76",
+        "47-0f5f590a",
+        "47-fcad3c46",
+        "47-aba27ad7",
+        "47-c2b60c14",
+        "47-e60653c7",
+        "47-5cbcbd04",
+        "47-48381366",
+        "47-b23710b7",
+        "47-2640163c",
+        "47-e2694d36",
+        "47-04d87c47",
+        "47-1fcaddf8",
+        "47-93bb4595",
+        "47-ad22019c",
+        "47-cefce1d9",
+        "47-aab41e0e",
+        "47-aed03dbd",
+        "47-da3d766a",
+        "47-e9e924a3",
+        "47-d93fb36e",
+        "47-de3fbb4d",
+        "47-4e5631ec",
+        "47-4e587083",
+        "47-e2fbf5bc",
+        "47-97587074",
+        "47-5e42ca28",
+        "47-6accf2a4",
+        "47-f0af829c",
+        "47-4bd4c81e",
+        "47-42d27b5c",
+        "47-6ecfd017",
+        "47-c8cf7cb7",
+        "47-cacf7fdd",
+        "47-26d996fe",
+        "47-5776359c",
+        "47-7d401a4c",
+        "47-83db74e3",
+        "47-c6cd3afa",
+        "47-bbcaeb12",
+        "47-a68f4f2a",
+        "47-d68daa1e",
+        "47-9ddf8087",
+        "47-a281256e"
+      ]
+    },
+    "48": {
+      "count": 24,
+      "packIds": [
+        "48-d7f8c878",
+        "48-79b1bc52",
+        "48-0d948a89",
+        "48-20fcf79c",
+        "48-147c5c25",
+        "48-04c820ab",
+        "48-92d2fa05",
+        "48-b5f86bf7",
+        "48-cb720d1a",
+        "48-e4b50ce8",
+        "48-b03ea372",
+        "48-f542f3cc",
+        "48-2559a671",
+        "48-e197df71",
+        "48-a4ecde92",
+        "48-7acb5459",
+        "48-eafe848a",
+        "48-667f72dc",
+        "48-6e7f7f74",
+        "48-08ea7f3b",
+        "48-6c1d3520",
+        "48-a38696bf",
+        "48-f71b418a",
+        "48-4599526e"
+      ]
+    },
+    "70": {
+      "count": 19,
+      "packIds": [
+        "70-921f46e3",
+        "70-4a7ae8b6",
+        "70-8c2fcea9",
+        "70-a2cb65fa",
+        "70-83809870",
+        "70-7e96617d",
+        "70-fd4e463c",
+        "70-aaab1e74",
+        "70-de6ffdd0",
+        "70-e53d9f74",
+        "70-e63da107",
+        "70-d93d8c90",
+        "70-5b0c3486",
+        "70-2a3f7e5d",
+        "70-58a6e436",
+        "70-52d32661",
+        "70-d642a770",
+        "70-3ee41182",
+        "70-be720e9d"
+      ]
+    },
+    "90": {
+      "count": 35,
+      "packIds": [
+        "90-3543f11f",
+        "90-ef78a18d",
+        "90-e3e78517",
+        "90-76e6bd7f",
+        "90-25cd67d8",
+        "90-b261a17a",
+        "90-08ecbbb8",
+        "90-7f87d165",
+        "90-0ee75aef",
+        "90-4954ac40",
+        "90-834cde48",
+        "90-351864d3",
+        "90-4ce2c6ca",
+        "90-370ecb14",
+        "90-53a0bc1f",
+        "90-350ec7ee",
+        "90-269d2692",
+        "90-669708f8",
+        "90-15643c49",
+        "90-4cbc3f0d",
+        "90-d36e28e1",
+        "90-f45a9b06",
+        "90-7141bd50",
+        "90-d17b9b68",
+        "90-ce4976ec",
+        "90-a904f12e",
+        "90-ae254cb8",
+        "90-b425562a",
+        "90-b52557bd",
+        "90-b3255497",
+        "90-1cab5092",
+        "90-0aad72d3",
+        "90-0fad7ab2",
+        "90-0a2c0c2b",
+        "90-062c05df"
+      ]
+    },
+    "109": {
+      "count": 6,
+      "packIds": [
+        "109-2a5de9fa",
+        "109-c8063f03",
+        "109-303ac21a",
+        "109-313ac3ad",
+        "109-303d00b1",
+        "109-2f3cff1e"
+      ]
+    },
+    "129": {
+      "count": 8,
+      "packIds": [
+        "129-e37bf357",
+        "129-e76384f9",
+        "129-ac210cf7",
+        "129-fc9ad220",
+        "129-535b89d6",
+        "129-c9596c3f",
+        "129-2d1c4ecb",
+        "129-460811f1"
+      ]
+    },
+    "189": {
+      "count": 13,
+      "packIds": [
+        "189-3e3491ac",
+        "189-0833289a",
+        "189-07332707",
+        "189-7e341bcf",
+        "189-778a2b79",
+        "189-5c1bf21a",
+        "189-bbb7acaa",
+        "189-4ede8268",
+        "189-71294089",
+        "189-2fa998b0",
+        "189-2e7bbe0d",
+        "189-3d604294",
+        "189-47c3c150"
+      ]
+    },
+    "209": {
+      "count": 104,
+      "packIds": [
+        "209-15f6f03a",
+        "209-3d8bcccb",
+        "209-e5e4b338",
+        "209-ce175498",
+        "209-33aeb634",
+        "209-4b1ae1d4",
+        "209-8b6d6f99",
+        "209-3646cddc",
+        "209-d73aba1f",
+        "209-732d7536",
+        "209-5b822266",
+        "209-3c164d09",
+        "209-ee3a2922",
+        "209-29d1ab99",
+        "209-d58fc59a",
+        "209-18ce50ed",
+        "209-6b7a7db5",
+        "209-7e35dcc0",
+        "209-b2a08f11",
+        "209-b5a24017",
+        "209-c824a0f7",
+        "209-cf5aa1a0",
+        "209-4e1d2524",
+        "209-e0f5ba78",
+        "209-0b043b1e",
+        "209-511d29dd",
+        "209-fab35396",
+        "209-4b1d206b",
+        "209-647c7d96",
+        "209-979c19a0",
+        "209-112fef4c",
+        "209-d2203387",
+        "209-6813fdb5",
+        "209-6a127c71",
+        "209-a80c438f",
+        "209-bdb5f75c",
+        "209-2466d2d0",
+        "209-f78a8e4f",
+        "209-1773fdcd",
+        "209-4b2c2af5",
+        "209-8bb0db03",
+        "209-bc2f1b6f",
+        "209-65520b67",
+        "209-c02f21bb",
+        "209-36836a21",
+        "209-b2316a8a",
+        "209-52a26657",
+        "209-fa7d60d5",
+        "209-baaff1cb",
+        "209-52f1c4a8",
+        "209-abeac245",
+        "209-0672038c",
+        "209-e74edee6",
+        "209-2673705b",
+        "209-c4092384",
+        "209-27b51a90",
+        "209-2ab51f49",
+        "209-29b51db6",
+        "209-34b52f07",
+        "209-33b52d74",
+        "209-d82d183d",
+        "209-244c6b1f",
+        "209-aeb21d7e",
+        "209-e6d46bb2",
+        "209-77063829",
+        "209-0149b8e0",
+        "209-a5a66ad2",
+        "209-2a2dbacf",
+        "209-3d36be5a",
+        "209-7f491ecc",
+        "209-fe1688d1",
+        "209-26a60e73",
+        "209-7e847089",
+        "209-2ca617e5",
+        "209-2ba61652",
+        "209-8da1c83f",
+        "209-c25833ad",
+        "209-c2d1337c",
+        "209-b094993b",
+        "209-8415fd82",
+        "209-8ee0cec2",
+        "209-10e58253",
+        "209-adc3650c",
+        "209-e6fdf24c",
+        "209-63f1eb20",
+        "209-bd3c54e9",
+        "209-f201cff7",
+        "209-68f43196",
+        "209-77f687ca",
+        "209-78f6895d",
+        "209-75f684a4",
+        "209-76f68637",
+        "209-73f6817e",
+        "209-74f68311",
+        "209-72f67feb",
+        "209-6ff67b32",
+        "209-def96886",
+        "209-e1f96d3f",
+        "209-e0f96bac",
+        "209-e3f97065",
+        "209-e2f96ed2",
+        "209-f4e84207",
+        "209-a9227ed7",
+        "209-54e8e01f"
+      ]
+    },
+    "229": {
+      "count": 0,
+      "packIds": []
+    },
+    "230": {
+      "count": 0,
+      "packIds": []
+    },
+    "249": {
+      "count": 5,
+      "packIds": [
+        "249-f6809ff1",
+        "249-1493c850",
+        "249-f980a4aa",
+        "249-fa80a63d",
+        "249-f780a184"
+      ]
+    },
+    "289": {
+      "count": 16,
+      "packIds": [
+        "289-c08a4f40",
+        "289-50683d4a",
+        "289-19111309",
+        "289-8edf5f43",
+        "289-d55b6b9f",
+        "289-2fbf87b1",
+        "289-f087c730",
+        "289-1b7d4460",
+        "289-e91b0410",
+        "289-5e277ecf",
+        "289-764bebd4",
+        "289-ef800b65",
+        "289-732b12b1",
+        "289-1bb7d379",
+        "289-27e2491b",
+        "289-fb42cc51"
+      ]
+    },
+    "309": {
+      "count": 177,
+      "packIds": [
+        "309-3f7c939b",
+        "309-67c7b58d",
+        "309-3681621a",
+        "309-1f6fa9fa",
+        "309-e392d5f7",
+        "309-84064606",
+        "309-36037915",
+        "309-f5d31329",
+        "309-634a68b8",
+        "309-14cde667",
+        "309-4d398d95",
+        "309-0ae7ae77",
+        "309-30497e77",
+        "309-761b810a",
+        "309-a9bd70b6",
+        "309-355ea1b6",
+        "309-09b4f972",
+        "309-ca175f9a",
+        "309-e760f65d",
+        "309-5974f453",
+        "309-54860d0d",
+        "309-383799cc",
+        "309-94db0c7a",
+        "309-8b14660c",
+        "309-c04584e8",
+        "309-c4eee2ca",
+        "309-7f7525ac",
+        "309-0b711010",
+        "309-86112854",
+        "309-936d0e2e",
+        "309-461ce966",
+        "309-ee15f5ed",
+        "309-9a460658",
+        "309-1e99e84b",
+        "309-cc8e962d",
+        "309-c9636d29",
+        "309-4e30b06d",
+        "309-7e5ac643",
+        "309-d601c92e",
+        "309-94a03756",
+        "309-4f935c32",
+        "309-2f275805",
+        "309-abe5925d",
+        "309-1db9c21e",
+        "309-1a84699a",
+        "309-492b07e2",
+        "309-5001b688",
+        "309-f043e5f3",
+        "309-7b6aa9dc",
+        "309-b33f8fbc",
+        "309-0e71a5a3",
+        "309-1c9c230d",
+        "309-41da5822",
+        "309-0daebddf",
+        "309-55eee177",
+        "309-2aa7df3d",
+        "309-27a7da84",
+        "309-28a7dc17",
+        "309-25a7d75e",
+        "309-26a7d8f1",
+        "309-b7943075",
+        "309-21a7d112",
+        "309-22a7d2a5",
+        "309-1fa6cfdb",
+        "309-11a9f679",
+        "309-10a9f4e6",
+        "309-90f49513",
+        "309-8f56f569",
+        "309-13337e98",
+        "309-5ed77312",
+        "309-4289e05e",
+        "309-2c6c5dcc",
+        "309-cf1a288d",
+        "309-081f983f",
+        "309-e62a89bd",
+        "309-d250485e",
+        "309-5b2a19b0",
+        "309-e2b368a2",
+        "309-e0bc4439",
+        "309-8793205a",
+        "309-a98b2db7",
+        "309-39862a9d",
+        "309-743addae",
+        "309-08611db0",
+        "309-b54ff404",
+        "309-3401e772",
+        "309-c6a61ed2",
+        "309-4183c98c",
+        "309-2afb1d82",
+        "309-b23d4d22",
+        "309-082ed129",
+        "309-27fb18c9",
+        "309-8c0978fa",
+        "309-89effb72",
+        "309-e2dbab84",
+        "309-d758a7e2",
+        "309-20387e5e",
+        "309-449dec65",
+        "309-d559ee4c",
+        "309-74605a77",
+        "309-0f64dab0",
+        "309-dbdd1937",
+        "309-1f8063cb",
+        "309-79fe9177",
+        "309-72d4400b",
+        "309-8e69910a",
+        "309-734ce0ca",
+        "309-cf1e135c",
+        "309-18bb38d0",
+        "309-41b4566e",
+        "309-5c41bcb1",
+        "309-31c9f6e0",
+        "309-c56c3e49",
+        "309-cfc97e9b",
+        "309-de48bcb6",
+        "309-df48be49",
+        "309-dc48b990",
+        "309-dd48bb23",
+        "309-e248c302",
+        "309-e348c495",
+        "309-e048bfdc",
+        "309-e148c16f",
+        "309-e648c94e",
+        "309-e748cae1",
+        "309-e44b04bf",
+        "309-e34b032c",
+        "309-e64b07e5",
+        "309-e54b0652",
+        "309-e04afe73",
+        "309-df4afce0",
+        "309-e24b0199",
+        "309-e14b0006",
+        "309-ec4b1157",
+        "309-eb4b0fc4",
+        "309-72439584",
+        "309-73439717",
+        "309-744398aa",
+        "309-75439a3d",
+        "309-6e438f38",
+        "309-6f4390cb",
+        "309-7043925e",
+        "309-714393f1",
+        "309-3e8bcfc1",
+        "309-286c1dc9",
+        "309-6b438a7f",
+        "309-63413f50",
+        "309-da39abe0",
+        "309-f87e0ed5",
+        "309-f27e0563",
+        "309-0a0c3ded",
+        "309-a5549ae3",
+        "309-6450f95c",
+        "309-65b17127",
+        "309-70a93a4c",
+        "309-eecfe26e",
+        "309-ed0f3cb5",
+        "309-eac2a963",
+        "309-899602fd",
+        "309-8b2a3487",
+        "309-bd20a7a1",
+        "309-4b9d0ced",
+        "309-97c3b91e",
+        "309-d098907e",
+        "309-07e17806",
+        "309-83c47c26",
+        "309-554d68af",
+        "309-ce489294",
+        "309-4bb84668",
+        "309-0f3d0024",
+        "309-74e7b4af",
+        "309-29536979",
+        "309-68667616",
+        "309-6f115905",
+        "309-650f0ab0",
+        "309-390d91db",
+        "309-be93edc0",
+        "309-f9a421fa"
+      ]
+    },
+    "329": {
+      "count": 0,
+      "packIds": []
+    },
+    "349": {
+      "count": 39,
+      "packIds": [
+        "349-832e0321",
+        "349-d3058204",
+        "349-bd5ddb15",
+        "349-7e2dfb42",
+        "349-f8357715",
+        "349-6e0c30a2",
+        "349-011027fc",
+        "349-f90d92de",
+        "349-4a2c5928",
+        "349-84e9b091",
+        "349-0879cbfc",
+        "349-a836f80a",
+        "349-165685ad",
+        "349-5ba3f404",
+        "349-c887214a",
+        "349-4034e4f2",
+        "349-2ffa4e73",
+        "349-ad4e81e7",
+        "349-9c732c60",
+        "349-ed3ee90b",
+        "349-22bf296e",
+        "349-b5c6c11e",
+        "349-24bf2c94",
+        "349-24bcedfd",
+        "349-8fb78640",
+        "349-0f5c6d6a",
+        "349-c017d6e5",
+        "349-604f61de",
+        "349-80af8067",
+        "349-4fde2af4",
+        "349-bd00b09f",
+        "349-09841baf",
+        "349-33888cc3",
+        "349-4ee6b1cd",
+        "349-4de6b03a",
+        "349-4ce6aea7",
+        "349-7a4af823",
+        "349-9813f7cd",
+        "349-46e6a535"
+      ]
+    },
+    "389": {
+      "count": 114,
+      "packIds": [
+        "389-74c41612",
+        "389-b35d1e0d",
+        "389-830b2105",
+        "389-63468eb5",
+        "389-70c40fc6",
+        "389-6fc40e33",
+        "389-51e2ded7",
+        "389-7dc4243d",
+        "389-7cc422aa",
+        "389-7dbf034d",
+        "389-70c1d12f",
+        "389-71c1d2c2",
+        "389-72c1d455",
+        "389-6bc1c950",
+        "389-6ec1ce09",
+        "389-77c1dc34",
+        "389-58e59ab7",
+        "389-81c8a7b7",
+        "389-b9af6a85",
+        "389-f42b343a",
+        "389-7cc89fd8",
+        "389-7fc8a491",
+        "389-7ec8a2fe",
+        "389-d2c4fb48",
+        "389-79c65c88",
+        "389-7fc665fa",
+        "389-80c6678d",
+        "389-74c654a9",
+        "389-fdba6061",
+        "389-fbba5d3b",
+        "389-01ba66ad",
+        "389-00ba651a",
+        "389-ffba6387",
+        "389-feba61f4",
+        "389-f5ba53c9",
+        "389-f4ba5236",
+        "389-77b74ed8",
+        "389-78b7506b",
+        "389-79b751fe",
+        "389-7ab75391",
+        "389-7bb75524",
+        "389-7cb756b7",
+        "389-7db7584a",
+        "389-7eb759dd",
+        "389-6fb74240",
+        "389-70b743d3",
+        "389-e9bebe13",
+        "389-e8bebc80",
+        "389-ebbec139",
+        "389-eabebfa6",
+        "389-edbec45f",
+        "389-ecbec2cc",
+        "389-efbec785",
+        "389-eebec5f2",
+        "389-f1becaab",
+        "389-f0bec918",
+        "389-03bca86a",
+        "389-04bca9fd",
+        "389-01bca544",
+        "389-02bca6d7",
+        "389-ffbca21e",
+        "389-00bca3b1",
+        "389-fdbc9ef8",
+        "389-febca08b",
+        "389-fbbc9bd2",
+        "389-fcbc9d65",
+        "389-05afdf9d",
+        "389-04afde0a",
+        "389-03afdc77",
+        "389-02afdae4",
+        "389-01afd951",
+        "389-00afd7be",
+        "389-ffafd62b",
+        "389-feafd498",
+        "389-2aa87d98",
+        "389-fcafd172",
+        "389-00ad9927",
+        "389-01ad9aba",
+        "389-02ad9c4d",
+        "389-fbad9148",
+        "389-d51bb357",
+        "389-fead9601",
+        "389-f7ad8afc",
+        "389-f8ad8c8f",
+        "389-172ce3da",
+        "389-182ce56d",
+        "389-152ce0b4",
+        "389-162ce247",
+        "389-132cdd8e",
+        "389-142cdf21",
+        "389-112cda68",
+        "389-122cdbfb",
+        "389-0f2cd742",
+        "389-102cd8d5",
+        "389-fd2ef983",
+        "389-fc2ef7f0",
+        "389-ff2efca9",
+        "389-fe2efb16",
+        "389-012effcf",
+        "389-002efe3c",
+        "389-032f02f5",
+        "389-022f0162",
+        "389-052f061b",
+        "389-042f0488",
+        "389-8b278a48",
+        "389-8c278bdb",
+        "389-8d278d6e",
+        "389-8e278f01",
+        "389-8f279094",
+        "389-90279227",
+        "389-912793ba",
+        "389-9227954d",
+        "389-83277db0",
+        "389-8f29cf2b"
+      ]
+    },
+    "409": {
+      "count": 70,
+      "packIds": [
+        "409-e8adf657",
+        "409-d4b12d90",
+        "409-9f0fc2e8",
+        "409-9b1831ec",
+        "409-64b494eb",
+        "409-8b469341",
+        "409-cbc01da4",
+        "409-57175abd",
+        "409-d2530d53",
+        "409-c9ad3ec6",
+        "409-a927b515",
+        "409-f76dc90b",
+        "409-cbc30c99",
+        "409-603930de",
+        "409-ffd0e098",
+        "409-4143b5ad",
+        "409-3d45edf8",
+        "409-4045f2b1",
+        "409-4245f5d7",
+        "409-4145f444",
+        "409-4445f8fd",
+        "409-3645e2f3",
+        "409-3545e160",
+        "409-44483794",
+        "409-283b1d10",
+        "409-46483aba",
+        "409-47483c4d",
+        "409-40483148",
+        "409-414832db",
+        "409-4248346e",
+        "409-43483601",
+        "409-0a433011",
+        "409-4a4a7f9d",
+        "409-7e78bf78",
+        "409-474a7ae4",
+        "409-bb88a820",
+        "409-434a7498",
+        "409-cd853bf5",
+        "409-b14d6059",
+        "409-ae4d5ba0",
+        "409-560db801",
+        "409-b44d6512",
+        "409-b54d66a5",
+        "409-df0e0592",
+        "409-7d6cc585",
+        "409-18cb772f",
+        "409-5295030b",
+        "409-0152ff28",
+        "409-e13c5914",
+        "409-63af6d4a",
+        "409-8ba51aa2",
+        "409-e6e064a7",
+        "409-7ebe791d",
+        "409-b5ca0686",
+        "409-ad3b98e2",
+        "409-3bcb9f0c",
+        "409-afb89cb3",
+        "409-e3c25ddd",
+        "409-48a5cf8b",
+        "409-5700e09e",
+        "409-b24b5729",
+        "409-8e6cefc5",
+        "409-0b6ff323",
+        "409-1890c8da",
+        "409-9f688d5a",
+        "409-1b657ef7",
+        "409-0f656c13",
+        "409-0e656a80",
+        "409-085ea549",
+        "409-0a5ea86f"
+      ]
+    },
+    "429": {
+      "count": 38,
+      "packIds": [
+        "429-e8e4a98d",
+        "429-69ec3065",
+        "429-64e9e9ef",
+        "429-0905ef97",
+        "429-039fddb6",
+        "429-0b7fa029",
+        "429-54374a13",
+        "429-ca733a8c",
+        "429-121cdf06",
+        "429-b375d531",
+        "429-5be13ae9",
+        "429-400faeed",
+        "429-4348ec72",
+        "429-c78e5a20",
+        "429-9124091e",
+        "429-adeffca5",
+        "429-349c6678",
+        "429-e3b4f4bc",
+        "429-f7e4ccfe",
+        "429-f579b316",
+        "429-0abf43f0",
+        "429-4b0aa9e8",
+        "429-8f5fc6c9",
+        "429-df4685f7",
+        "429-5cb56128",
+        "429-ad532e75",
+        "429-470a626c",
+        "429-b70326a7",
+        "429-140a6ea0",
+        "429-95c9b52a",
+        "429-4b2a6d91",
+        "429-5183b3c4",
+        "429-a3c4baf9",
+        "429-3762424f",
+        "429-a835913a",
+        "429-0da9a045",
+        "429-b0ba6863",
+        "429-941bac38"
+      ]
+    },
+    "469": {
+      "count": 10,
+      "packIds": [
+        "469-4631fb7c",
+        "469-4731fd0f",
+        "469-17e9728c",
+        "469-49b197dd",
+        "469-ee22e77a",
+        "469-f95974e4",
+        "469-be431bb7",
+        "469-be487eb3",
+        "469-bd487d20",
+        "469-56e51820"
+      ]
+    },
+    "489": {
+      "count": 0,
+      "packIds": []
+    },
+    "509": {
+      "count": 126,
+      "packIds": [
+        "509-3b653081",
+        "509-cf9fe007",
+        "509-b9b98ff7",
+        "509-a86e423a",
+        "509-2934e386",
+        "509-27344062",
+        "509-93f7be2a",
+        "509-22af6cff",
+        "509-85f7a820",
+        "509-3051a907",
+        "509-89f56fd5",
+        "509-f91bf8cb",
+        "509-7ca629a3",
+        "509-1eb2da01",
+        "509-1b5c3b11",
+        "509-d8d544db",
+        "509-dcb08f13",
+        "509-e5b1fff8",
+        "509-a94eac6c",
+        "509-438c5b2c",
+        "509-02cfc7a8",
+        "509-8dbdac46",
+        "509-9f1010d8",
+        "509-129d50f3",
+        "509-961284d8",
+        "509-0340f576",
+        "509-1157653e",
+        "509-7165bbea",
+        "509-c83f0dcf",
+        "509-26e43e45",
+        "509-9409074b",
+        "509-91090292",
+        "509-92090425",
+        "509-10605020",
+        "509-116051b3",
+        "509-136054d9",
+        "509-156057ff",
+        "509-17605b25",
+        "509-18605cb8",
+        "509-19605e4b",
+        "509-1e62a4c1",
+        "509-1d62a32e",
+        "509-1c64e032",
+        "509-1d64e1c5",
+        "509-01e1ea1b",
+        "509-1b64de9f",
+        "509-39641b01",
+        "509-00dc6173",
+        "509-1964db79",
+        "509-1664d6c0",
+        "509-2464ecca",
+        "509-2564ee5d",
+        "509-a167f028",
+        "509-a367f34e",
+        "509-a667f807",
+        "509-a567f674",
+        "509-a867fb2d",
+        "509-9a67e523",
+        "509-f64f0669",
+        "509-a86a39c4",
+        "509-dcc245fa",
+        "509-3e32bcaa",
+        "509-608a183f",
+        "509-63494d48",
+        "509-ad6c803a",
+        "509-ab6c7d14",
+        "509-af655ead",
+        "509-2babcfa3",
+        "509-a96c79ee",
+        "509-a86c785b",
+        "509-a76c76c8",
+        "509-a66c7535",
+        "509-126f5dd0",
+        "509-136f5f63",
+        "509-f7fe0638",
+        "509-24367a0c",
+        "509-8f3163f5",
+        "509-63e4c070",
+        "509-cc26c9af",
+        "509-26763911",
+        "509-2576377e",
+        "509-247635eb",
+        "509-7f137076",
+        "509-29763dca",
+        "509-28763c37",
+        "509-f06743cb",
+        "509-3c029a92",
+        "509-e02b840b",
+        "509-df2b8278",
+        "509-7228984a",
+        "509-c30856eb",
+        "509-b8c3616a",
+        "509-72433b35",
+        "509-f3489b5d",
+        "509-29cacd88",
+        "509-4b4faae2",
+        "509-e12dc435",
+        "509-b5566ac8",
+        "509-6b355938",
+        "509-032ae0a5",
+        "509-63330e09",
+        "509-74b70277",
+        "509-f61c3470",
+        "509-c3ab1e62",
+        "509-5b106f2f",
+        "509-4754b9c9",
+        "509-012c979b",
+        "509-ef8eed3c",
+        "509-f08eeecf",
+        "509-f68ef841",
+        "509-f391321f",
+        "509-f291308c",
+        "509-f49133b2",
+        "509-ef912bd3",
+        "509-ee912a40",
+        "509-f1912ef9",
+        "509-f0912d66",
+        "509-fb913eb7",
+        "509-fa913d24",
+        "509-8189c2e4",
+        "509-8389c60a",
+        "509-8489c79d",
+        "509-6983908a",
+        "509-0251513f",
+        "509-907ca474",
+        "509-581da7be"
+      ]
+    },
+    "529": {
+      "count": 0,
+      "packIds": []
+    },
+    "531": {
+      "count": 102,
+      "packIds": [
+        "531-0288369e",
+        "531-237d2fc2",
+        "531-a32d5661",
+        "531-83245375",
+        "531-dcac28d4",
+        "531-6cecccb3",
+        "531-974c6caf",
+        "531-e19406a5",
+        "531-25aee098",
+        "531-459f00de",
+        "531-ffa07a07",
+        "531-933bda0b",
+        "531-4dc8b5d8",
+        "531-99c3c8f2",
+        "531-94afcd14",
+        "531-cd9b13d5",
+        "531-c85b3736",
+        "531-03d54584",
+        "531-f45f7632",
+        "531-dd5daf8f",
+        "531-50138fc3",
+        "531-3322597e",
+        "531-a638df14",
+        "531-70aacc27",
+        "531-1e9e79f6",
+        "531-3cbefa19",
+        "531-1e7eac66",
+        "531-7cd55997",
+        "531-65c7c336",
+        "531-2f5cb98d",
+        "531-1b0367d5",
+        "531-a97e7a2f",
+        "531-bb37feee",
+        "531-ee55a638",
+        "531-b5e7a750",
+        "531-5a4c3917",
+        "531-21a5ed5f",
+        "531-d7d49715",
+        "531-edd78ea5",
+        "531-29936be5",
+        "531-68c467b1",
+        "531-e9c62aea",
+        "531-f6225118",
+        "531-1c99b160",
+        "531-7f38c791",
+        "531-7b98ecdb",
+        "531-c20e9d0d",
+        "531-11c93c70",
+        "531-e3b058ee",
+        "531-90c8dc32",
+        "531-1e257fac",
+        "531-625885d8",
+        "531-7bdfba41",
+        "531-1244f05a",
+        "531-13df3c31",
+        "531-27556829",
+        "531-ad31fa5c",
+        "531-55671e49",
+        "531-52401412",
+        "531-d9b3ffd0",
+        "531-668e44eb",
+        "531-08d24509",
+        "531-73604f61",
+        "531-57c91286",
+        "531-2c149af2",
+        "531-341936fb",
+        "531-33193568",
+        "531-055f2c8a",
+        "531-991645a9",
+        "531-832073e9",
+        "531-18163f2a",
+        "531-4a546f8c",
+        "531-7170018a",
+        "531-3d90c8c3",
+        "531-de6b24a4",
+        "531-aefc9f5b",
+        "531-ae62340d",
+        "531-a5dd2da6",
+        "531-ecc6a704",
+        "531-1542ccc9",
+        "531-1213f721",
+        "531-0b13ec1c",
+        "531-792bc043",
+        "531-871b6b15",
+        "531-8d1b7487",
+        "531-921ff994",
+        "531-3fbfc48f",
+        "531-20650c06",
+        "531-1861971b",
+        "531-75e62721",
+        "531-23d0a607",
+        "531-70e85dd9",
+        "531-7ae86d97",
+        "531-6cd70e6c",
+        "531-6dd70fff",
+        "531-8036ba7f",
+        "531-6ed95029",
+        "531-6fd951bc",
+        "531-596cf215",
+        "531-6edb8ec0",
+        "531-72f76b89",
+        "531-7df77cda"
+      ]
+    },
+    "533": {
+      "count": 290,
+      "packIds": [
+        "533-8ad195dc",
+        "533-eeb6e61d",
+        "533-78f155ee",
+        "533-75be7667",
+        "533-74be74d4",
+        "533-73be7341",
+        "533-72be71ae",
+        "533-70be6e88",
+        "533-ec020e90",
+        "533-576b463e",
+        "533-c7b13c7b",
+        "533-d3cbf371",
+        "533-1e041c0d",
+        "533-43898213",
+        "533-6b6d2fb4",
+        "533-c20bb08c",
+        "533-2599d31c",
+        "533-254489f8",
+        "533-71bc3184",
+        "533-2d44ff94",
+        "533-6cbddc69",
+        "533-b35b829b",
+        "533-9a3d32da",
+        "533-51e83ae7",
+        "533-baa5865f",
+        "533-df864637",
+        "533-dc256e71",
+        "533-09f90d72",
+        "533-27007c54",
+        "533-29007f7a",
+        "533-c517e686",
+        "533-c272a495",
+        "533-2559131e",
+        "533-82091c32",
+        "533-067fb415",
+        "533-6b263c01",
+        "533-9b4fa82a",
+        "533-a45dc982",
+        "533-7340f345",
+        "533-989350da",
+        "533-97934f47",
+        "533-96934db4",
+        "533-8d933f89",
+        "533-8c933df6",
+        "533-73525e05",
+        "533-9713e1cd",
+        "533-d23cac66",
+        "533-d1e29353",
+        "533-1ba1969d",
+        "533-1aa1950a",
+        "533-17a19051",
+        "533-16a18ebe",
+        "533-312d3bd8",
+        "533-ba47a61b",
+        "533-4562ef47",
+        "533-f85395a8",
+        "533-61136229",
+        "533-f42d8312",
+        "533-8ca87665",
+        "533-3fc0989e",
+        "533-23598278",
+        "533-aae01f1c",
+        "533-5bc5df1d",
+        "533-d74224a2",
+        "533-6cd5a787",
+        "533-61ea94f8",
+        "533-a97d7bcb",
+        "533-a87d7a38",
+        "533-2f75fff8",
+        "533-3076018b",
+        "533-3176031e",
+        "533-327604b1",
+        "533-33760644",
+        "533-347607d7",
+        "533-35784801",
+        "533-d8da1e2f",
+        "533-c6be5860",
+        "533-8405423b",
+        "533-65bf767e",
+        "533-73c46570",
+        "533-47eae4d9",
+        "533-6217435d",
+        "533-9ebe1f66",
+        "533-4774fb38",
+        "533-05eec0b9",
+        "533-a981f8f9",
+        "533-1e8b1c2b",
+        "533-b5820bdd",
+        "533-c48f0d67",
+        "533-08851121",
+        "533-8927966d",
+        "533-1b4fc1d5",
+        "533-2954550d",
+        "533-2552102a",
+        "533-265211bd",
+        "533-cc47c3d3",
+        "533-21453deb",
+        "533-5f7bb837",
+        "533-21837d4c",
+        "533-25454437",
+        "533-1c05f4e9",
+        "533-1a4532e6",
+        "533-1d42f908",
+        "533-1e42fa9b",
+        "533-1f42fc2e",
+        "533-a866a1e5",
+        "533-89f6d084",
+        "533-4f8cd5cd",
+        "533-2343027a",
+        "533-2443040d",
+        "533-c914e9c1",
+        "533-edb4bee4",
+        "533-6fb5658a",
+        "533-148d58a7",
+        "533-954a71b5",
+        "533-8287e972",
+        "533-a6da4f17",
+        "533-c086005e",
+        "533-9c2fdeb3",
+        "533-f9be7c05",
+        "533-a2d9a739",
+        "533-6e4703d7",
+        "533-f7333480",
+        "533-b673f1a1",
+        "533-38a4aeab",
+        "533-bc02bc84",
+        "533-cf5363bc",
+        "533-92af20aa",
+        "533-d15366e2",
+        "533-cc535f03",
+        "533-ce536229",
+        "533-e7a6f123",
+        "533-d85371e7",
+        "533-ebb5e456",
+        "533-c6420c70",
+        "533-c8420f96",
+        "533-c9421129",
+        "533-ca4212bc",
+        "533-5b09b611",
+        "533-d629a4f4",
+        "533-c69f15eb",
+        "533-4f229857",
+        "533-8ce6d4c5",
+        "533-7c4d49be",
+        "533-52cac01c",
+        "533-3923eedd",
+        "533-557824e9",
+        "533-8f58325b",
+        "533-a3658f77",
+        "533-49628ec8",
+        "533-a85250bb",
+        "533-89142e77",
+        "533-ef0fe3f1",
+        "533-21a1e360",
+        "533-0f6b2e26",
+        "533-4fe2aa33",
+        "533-bee0ee6e",
+        "533-bfe0f001",
+        "533-d0decc2d",
+        "533-cfdeca9a",
+        "533-cedec907",
+        "533-d1dbc2e6",
+        "533-8a5aad1e",
+        "533-cf0e4a65",
+        "533-47d738bd",
+        "533-38d4e289",
+        "533-bad1dd98",
+        "533-c386df07",
+        "533-2a245669",
+        "533-a38b60c9",
+        "533-b8c2560b",
+        "533-34cded26",
+        "533-104b7122",
+        "533-0b4b6943",
+        "533-37038935",
+        "533-174b7c27",
+        "533-164b7a94",
+        "533-9d440054",
+        "533-9e4401e7",
+        "533-9f44037a",
+        "533-a044050d",
+        "533-9943fa08",
+        "533-9a43fb9b",
+        "533-9b43fd2e",
+        "533-317e65f2",
+        "533-9543f3bc",
+        "533-9643f54f",
+        "533-a346485d",
+        "533-a24646ca",
+        "533-a1464537",
+        "533-a04643a4",
+        "533-9f464211",
+        "533-9e46407e",
+        "533-9d463eeb",
+        "533-9c463d58",
+        "533-9b463bc5",
+        "533-11eb491a",
+        "533-9ea0958a",
+        "533-e511195f",
+        "533-8e3f6b89",
+        "533-dc6094ea",
+        "533-8c3f6863",
+        "533-da5f7506",
+        "533-11d1394e",
+        "533-c7df603b",
+        "533-4462322b",
+        "533-b3056a60",
+        "533-021de055",
+        "533-92689c22",
+        "533-0c689c13",
+        "533-97f75c7b",
+        "533-f9788c60",
+        "533-b6b18abf",
+        "533-781e34e7",
+        "533-506d974b",
+        "533-33b5d137",
+        "533-e4bfa0c7",
+        "533-6fd307ec",
+        "533-e2d2428a",
+        "533-f3e64b17",
+        "533-e25cd18f",
+        "533-597c36fb",
+        "533-0c36c4ba",
+        "533-54d68ce3",
+        "533-e31fb6f4",
+        "533-e8d4ee42",
+        "533-2a14f677",
+        "533-20f5f1ce",
+        "533-01f6898b",
+        "533-578f279a",
+        "533-f5606bef",
+        "533-5a30c19d",
+        "533-7d8e0c2a",
+        "533-07ec9024",
+        "533-08ec91b7",
+        "533-fdec8066",
+        "533-77ccecc9",
+        "533-76cceb36",
+        "533-7bccf315",
+        "533-7accf182",
+        "533-78ccee5c",
+        "533-7fccf961",
+        "533-7eccf7ce",
+        "533-2664c871",
+        "533-7fd5b25c",
+        "533-40691677",
+        "533-9f9f56d7",
+        "533-16296875",
+        "533-132963bc",
+        "533-1429654f",
+        "533-11296096",
+        "533-4cc47b1b",
+        "533-0f295d70",
+        "533-10295f03",
+        "533-1d29737a",
+        "533-1e29750d",
+        "533-0f271ed9",
+        "533-0e271d46",
+        "533-0d271bb3",
+        "533-0c271a20",
+        "533-13272525",
+        "533-12272392",
+        "533-112721ff",
+        "533-1027206c",
+        "533-9397d7c1",
+        "533-47eae9fa",
+        "533-537a3eb7",
+        "533-08645f6d",
+        "533-b053395c",
+        "533-432ea5d8",
+        "533-b2a13755",
+        "533-b1a135c2",
+        "533-ff270e88",
+        "533-f53cef28",
+        "533-849aa568",
+        "533-fbcb0050",
+        "533-3c5a73ec",
+        "533-a2a59b53",
+        "533-df65093a",
+        "533-a3a59ce6",
+        "533-38958340",
+        "533-c83464c4",
+        "533-313590a5",
+        "533-8f6916fd",
+        "533-8faf8c7c",
+        "533-f958f960",
+        "533-24dbdb98",
+        "533-1645add0",
+        "533-9fdc8080",
+        "533-d7c9e6f0"
+      ]
+    }
+  },
+  "instances": {
+    "ragefire-chasm": {
+      "mapId": 389,
+      "roomCount": 1,
+      "unassignedPackCount": 114,
+      "terrainOnly": false
+    },
+    "wailing-caverns": {
+      "mapId": 43,
+      "roomCount": 5,
+      "unassignedPackCount": 2,
+      "terrainOnly": false
+    },
+    "deadmines": {
+      "mapId": 36,
+      "roomCount": 3,
+      "unassignedPackCount": 22,
+      "terrainOnly": false
+    },
+    "shadowfang-keep": {
+      "mapId": 33,
+      "roomCount": 0,
+      "unassignedPackCount": 21,
+      "terrainOnly": true
+    },
+    "blackfathom-deeps": {
+      "mapId": 48,
+      "roomCount": 6,
+      "unassignedPackCount": 24,
+      "terrainOnly": false
+    },
+    "the-stockade": {
+      "mapId": 34,
+      "roomCount": 1,
+      "unassignedPackCount": 0,
+      "terrainOnly": false
+    },
+    "gnomeregan": {
+      "mapId": 90,
+      "roomCount": 7,
+      "unassignedPackCount": 35,
+      "terrainOnly": false
+    },
+    "razorfen-kraul": {
+      "mapId": 47,
+      "roomCount": 0,
+      "unassignedPackCount": 57,
+      "terrainOnly": true
+    },
+    "sm-graveyard": {
+      "mapId": 189,
+      "roomCount": 13,
+      "unassignedPackCount": 13,
+      "terrainOnly": false
+    },
+    "sm-library": {
+      "mapId": 189,
+      "roomCount": 13,
+      "unassignedPackCount": 13,
+      "terrainOnly": false
+    },
+    "sm-armory": {
+      "mapId": 189,
+      "roomCount": 13,
+      "unassignedPackCount": 13,
+      "terrainOnly": false
+    },
+    "sm-cathedral": {
+      "mapId": 189,
+      "roomCount": 13,
+      "unassignedPackCount": 13,
+      "terrainOnly": false
+    },
+    "razorfen-downs": {
+      "mapId": 129,
+      "roomCount": 4,
+      "unassignedPackCount": 8,
+      "terrainOnly": false
+    },
+    "uldaman": {
+      "mapId": 70,
+      "roomCount": 10,
+      "unassignedPackCount": 19,
+      "terrainOnly": false
+    },
+    "zul-farrak": {
+      "mapId": 209,
+      "roomCount": 0,
+      "unassignedPackCount": 104,
+      "terrainOnly": true
+    },
+    "maraudon": {
+      "mapId": 349,
+      "roomCount": 7,
+      "unassignedPackCount": 39,
+      "terrainOnly": false
+    },
+    "sunken-temple": {
+      "mapId": 109,
+      "roomCount": 7,
+      "unassignedPackCount": 6,
+      "terrainOnly": false
+    },
+    "blackrock-depths": {
+      "mapId": 230,
+      "roomCount": 21,
+      "unassignedPackCount": 0,
+      "terrainOnly": false
+    },
+    "lbrs": {
+      "mapId": 229,
+      "roomCount": 16,
+      "unassignedPackCount": 0,
+      "terrainOnly": false
+    },
+    "ubrs": {
+      "mapId": 229,
+      "roomCount": 16,
+      "unassignedPackCount": 0,
+      "terrainOnly": false
+    },
+    "dire-maul-east": {
+      "mapId": 429,
+      "roomCount": 11,
+      "unassignedPackCount": 38,
+      "terrainOnly": false
+    },
+    "dire-maul-west": {
+      "mapId": 429,
+      "roomCount": 11,
+      "unassignedPackCount": 38,
+      "terrainOnly": false
+    },
+    "dire-maul-north": {
+      "mapId": 429,
+      "roomCount": 11,
+      "unassignedPackCount": 38,
+      "terrainOnly": false
+    },
+    "scholomance": {
+      "mapId": 289,
+      "roomCount": 12,
+      "unassignedPackCount": 16,
+      "terrainOnly": false
+    },
+    "stratholme-live": {
+      "mapId": 329,
+      "roomCount": 13,
+      "unassignedPackCount": 0,
+      "terrainOnly": false
+    },
+    "stratholme-undead": {
+      "mapId": 329,
+      "roomCount": 13,
+      "unassignedPackCount": 0,
+      "terrainOnly": false
+    },
+    "onyxias-lair": {
+      "mapId": 249,
+      "roomCount": 0,
+      "unassignedPackCount": 5,
+      "terrainOnly": true
+    },
+    "molten-core": {
+      "mapId": 409,
+      "roomCount": 2,
+      "unassignedPackCount": 70,
+      "terrainOnly": false
+    },
+    "zul-gurub": {
+      "mapId": 309,
+      "roomCount": 0,
+      "unassignedPackCount": 177,
+      "terrainOnly": true
+    },
+    "blackwing-lair": {
+      "mapId": 469,
+      "roomCount": 4,
+      "unassignedPackCount": 10,
+      "terrainOnly": false
+    },
+    "ruins-of-ahnqiraj": {
+      "mapId": 509,
+      "roomCount": 0,
+      "unassignedPackCount": 126,
+      "terrainOnly": true
+    },
+    "temple-of-ahnqiraj": {
+      "mapId": 531,
+      "roomCount": 0,
+      "unassignedPackCount": 102,
+      "terrainOnly": true
+    },
+    "naxxramas": {
+      "mapId": 533,
+      "roomCount": 3,
+      "unassignedPackCount": 290,
+      "terrainOnly": false
+    }
+  }
+}

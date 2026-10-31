@@ -1,0 +1,2448 @@
+[
+  {
+    "levels": "10-19",
+    "spec": "Feral tank",
+    "buffs": [
+      {
+        "spell": "Mark of the Wild",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Thorns",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Bear Form",
+        "when": "not in Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "!=",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Growl",
+        "when": "in Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Maul",
+        "when": "in Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Rejuvenation",
+        "when": "self health < 25% AND less than 3s of Rejuvenation left",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          },
+          {
+            "subject": "self",
+            "metric": "buffRemainingMs",
+            "op": "<",
+            "value": 3000,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Healing Touch",
+        "when": "self health < 15% AND Regrowth on you AND Rejuvenation on you",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 15
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 1,
+            "ref": 8936
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 1,
+            "ref": 774
+          }
+        ]
+      },
+      {
+        "spell": "Regrowth",
+        "when": "self health < 25%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          }
+        ]
+      },
+      {
+        "spell": "Healing Touch",
+        "when": "self health < 25%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Healing Touch",
+        "when": "party healer dead or out of mana, and most-hurt ally below 75%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "offHealAllowed",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "healerPowerPct",
+            "op": "<",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 75
+          }
+        ]
+      },
+      {
+        "spell": "Bear Form",
+        "when": "not in Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "!=",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Growl",
+        "when": "target not attacking me AND in Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "targetAttackingMe",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Demoralizing Roar",
+        "when": "debuff absent AND multi AND in Bear Form AND AoE mode is not single",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "aoeMode",
+            "op": "!=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Maul",
+        "when": "in Bear Form AND single",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": "<",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Swipe",
+        "when": "multi AND in Bear Form AND AoE mode is not single",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "aoeMode",
+            "op": "!=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Cure Poison",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 4
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "20-31",
+    "spec": "Feral tank",
+    "buffs": [
+      {
+        "spell": "Mark of the Wild",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Thorns",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Omen of Clarity",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Bear Form",
+        "when": "not in Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "!=",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Growl",
+        "when": "in Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Maul",
+        "when": "in Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Rejuvenation",
+        "when": "self health < 25% AND less than 3s of Rejuvenation left",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          },
+          {
+            "subject": "self",
+            "metric": "buffRemainingMs",
+            "op": "<",
+            "value": 3000,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Healing Touch",
+        "when": "self health < 15% AND Regrowth on you AND Rejuvenation on you",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 15
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 1,
+            "ref": 8936
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 1,
+            "ref": 774
+          }
+        ]
+      },
+      {
+        "spell": "Regrowth",
+        "when": "self health < 25%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          }
+        ]
+      },
+      {
+        "spell": "Healing Touch",
+        "when": "self health < 25%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          }
+        ]
+      },
+      {
+        "spell": "Tranquility",
+        "when": "buff absent AND self health < 25%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Bash",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Hibernate",
+        "when": "multi — control a second enemy",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "target",
+            "metric": "creatureTypeMask",
+            "op": "==",
+            "value": 1,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Healing Touch",
+        "when": "party healer dead or out of mana, and most-hurt ally below 75%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "offHealAllowed",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "healerPowerPct",
+            "op": "<",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 75
+          }
+        ]
+      },
+      {
+        "spell": "Bear Form",
+        "when": "not in Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "!=",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Growl",
+        "when": "target not attacking me AND in Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "targetAttackingMe",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Demoralizing Roar",
+        "when": "debuff absent AND multi AND in Bear Form AND AoE mode is not single",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "aoeMode",
+            "op": "!=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Swipe",
+        "when": "multi AND in Bear Form AND AoE mode is not single",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "aoeMode",
+            "op": "!=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Maul",
+        "when": "in Bear Form AND single",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": "<",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Challenging Roar",
+        "when": "target not attacking me AND multi AND AoE mode is not single",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "targetAttackingMe",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "self",
+            "metric": "aoeMode",
+            "op": "!=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Remove Curse",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Cure Poison",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 4
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "32-39",
+    "spec": "Feral tank",
+    "buffs": [
+      {
+        "spell": "Mark of the Wild",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Thorns",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Omen of Clarity",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Bear Form",
+        "when": "not in Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "!=",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Growl",
+        "when": "in Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Maul",
+        "when": "in Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Rejuvenation",
+        "when": "self health < 25% AND less than 3s of Rejuvenation left",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          },
+          {
+            "subject": "self",
+            "metric": "buffRemainingMs",
+            "op": "<",
+            "value": 3000,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Healing Touch",
+        "when": "self health < 15% AND Regrowth on you AND Rejuvenation on you",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 15
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 1,
+            "ref": 8936
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 1,
+            "ref": 774
+          }
+        ]
+      },
+      {
+        "spell": "Regrowth",
+        "when": "self health < 25%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          }
+        ]
+      },
+      {
+        "spell": "Healing Touch",
+        "when": "self health < 25%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          }
+        ]
+      },
+      {
+        "spell": "Frenzied Regeneration",
+        "when": "in Bear Form AND self health < 40%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 40
+          }
+        ]
+      },
+      {
+        "spell": "Tranquility",
+        "when": "buff absent AND self health < 25%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Bash",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Hibernate",
+        "when": "multi — control a second enemy",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "target",
+            "metric": "creatureTypeMask",
+            "op": "==",
+            "value": 1,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Healing Touch",
+        "when": "party healer dead or out of mana, and most-hurt ally below 75%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "offHealAllowed",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "healerPowerPct",
+            "op": "<",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 75
+          }
+        ]
+      },
+      {
+        "spell": "Bear Form",
+        "when": "not in Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "!=",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Growl",
+        "when": "target not attacking me AND in Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "targetAttackingMe",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Demoralizing Roar",
+        "when": "debuff absent AND multi AND in Bear Form AND AoE mode is not single",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "aoeMode",
+            "op": "!=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Swipe",
+        "when": "multi AND in Bear Form AND AoE mode is not single",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "aoeMode",
+            "op": "!=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Maul",
+        "when": "in Bear Form AND single",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": "<",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Challenging Roar",
+        "when": "target not attacking me AND multi AND in Bear Form AND AoE mode is not single",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "targetAttackingMe",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "aoeMode",
+            "op": "!=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Remove Curse",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Cure Poison",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 4
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "40-49",
+    "spec": "Feral tank",
+    "buffs": [
+      {
+        "spell": "Mark of the Wild",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Thorns",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Omen of Clarity",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Dire Bear Form",
+        "when": "not in Dire Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "!=",
+            "value": 8
+          }
+        ]
+      },
+      {
+        "spell": "Growl",
+        "when": "in Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Maul",
+        "when": "in Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Rejuvenation",
+        "when": "self health < 25% AND less than 3s of Rejuvenation left",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          },
+          {
+            "subject": "self",
+            "metric": "buffRemainingMs",
+            "op": "<",
+            "value": 3000,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Healing Touch",
+        "when": "self health < 15% AND Regrowth on you AND Rejuvenation on you",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 15
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 1,
+            "ref": 8936
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 1,
+            "ref": 774
+          }
+        ]
+      },
+      {
+        "spell": "Regrowth",
+        "when": "self health < 25%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          }
+        ]
+      },
+      {
+        "spell": "Healing Touch",
+        "when": "self health < 25%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          }
+        ]
+      },
+      {
+        "spell": "Frenzied Regeneration",
+        "when": "in Bear Form AND self health < 40%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 40
+          }
+        ]
+      },
+      {
+        "spell": "Tranquility",
+        "when": "buff absent AND self health < 25%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Bash",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Hibernate",
+        "when": "multi — control a second enemy",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "target",
+            "metric": "creatureTypeMask",
+            "op": "==",
+            "value": 1,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Dire Bear Form",
+        "when": "not in Dire Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "!=",
+            "value": 8
+          }
+        ]
+      },
+      {
+        "spell": "Healing Touch",
+        "when": "party healer dead or out of mana, and most-hurt ally below 75%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "offHealAllowed",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "healerPowerPct",
+            "op": "<",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 75
+          }
+        ]
+      },
+      {
+        "spell": "Growl",
+        "when": "target not attacking me AND in Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "targetAttackingMe",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Demoralizing Roar",
+        "when": "debuff absent AND multi AND in Bear Form AND AoE mode is not single",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "aoeMode",
+            "op": "!=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Swipe",
+        "when": "multi AND in Bear Form AND AoE mode is not single",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "aoeMode",
+            "op": "!=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Maul",
+        "when": "in Bear Form AND single",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": "<",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Challenging Roar",
+        "when": "target not attacking me AND multi AND in Bear Form AND AoE mode is not single",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "targetAttackingMe",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "aoeMode",
+            "op": "!=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Faerie Fire (Feral)",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Remove Curse",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Cure Poison",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 4
+          }
+        ]
+      },
+      {
+        "spell": "Barkskin",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "50-59",
+    "spec": "Feral tank",
+    "buffs": [
+      {
+        "spell": "Mark of the Wild",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Thorns",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Omen of Clarity",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Dire Bear Form",
+        "when": "not in Dire Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "!=",
+            "value": 8
+          }
+        ]
+      },
+      {
+        "spell": "Growl",
+        "when": "in Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Maul",
+        "when": "in Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Rejuvenation",
+        "when": "self health < 25% AND less than 3s of Rejuvenation left",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          },
+          {
+            "subject": "self",
+            "metric": "buffRemainingMs",
+            "op": "<",
+            "value": 3000,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Healing Touch",
+        "when": "self health < 15% AND Regrowth on you AND Rejuvenation on you",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 15
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 1,
+            "ref": 8936
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 1,
+            "ref": 774
+          }
+        ]
+      },
+      {
+        "spell": "Regrowth",
+        "when": "self health < 25%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          }
+        ]
+      },
+      {
+        "spell": "Healing Touch",
+        "when": "self health < 25%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          }
+        ]
+      },
+      {
+        "spell": "Frenzied Regeneration",
+        "when": "in Bear Form AND self health < 40%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 40
+          }
+        ]
+      },
+      {
+        "spell": "Tranquility",
+        "when": "buff absent AND self health < 25%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Bash",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Hibernate",
+        "when": "multi — control a second enemy",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "target",
+            "metric": "creatureTypeMask",
+            "op": "==",
+            "value": 1,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Dire Bear Form",
+        "when": "not in Dire Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "!=",
+            "value": 8
+          }
+        ]
+      },
+      {
+        "spell": "Healing Touch",
+        "when": "party healer dead or out of mana, and most-hurt ally below 75%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "offHealAllowed",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "healerPowerPct",
+            "op": "<",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 75
+          }
+        ]
+      },
+      {
+        "spell": "Growl",
+        "when": "target not attacking me AND in Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "targetAttackingMe",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Demoralizing Roar",
+        "when": "debuff absent AND multi AND in Bear Form AND AoE mode is not single",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "aoeMode",
+            "op": "!=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Swipe",
+        "when": "multi AND in Bear Form AND AoE mode is not single",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "aoeMode",
+            "op": "!=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Maul",
+        "when": "in Bear Form AND single",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": "<",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Challenging Roar",
+        "when": "target not attacking me AND multi AND in Bear Form AND AoE mode is not single",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "targetAttackingMe",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "aoeMode",
+            "op": "!=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Faerie Fire (Feral)",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Remove Curse",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Cure Poison",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 4
+          }
+        ]
+      },
+      {
+        "spell": "Barkskin",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "60",
+    "spec": "Feral tank",
+    "buffs": [
+      {
+        "spell": "Mark of the Wild",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Thorns",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Omen of Clarity",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Dire Bear Form",
+        "when": "not in Dire Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "!=",
+            "value": 8
+          }
+        ]
+      },
+      {
+        "spell": "Growl",
+        "when": "in Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Maul",
+        "when": "in Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Rejuvenation",
+        "when": "self health < 25% AND less than 3s of Rejuvenation left",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          },
+          {
+            "subject": "self",
+            "metric": "buffRemainingMs",
+            "op": "<",
+            "value": 3000,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Healing Touch",
+        "when": "self health < 15% AND Regrowth on you AND Rejuvenation on you",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 15
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 1,
+            "ref": 8936
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 1,
+            "ref": 774
+          }
+        ]
+      },
+      {
+        "spell": "Regrowth",
+        "when": "self health < 25%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          }
+        ]
+      },
+      {
+        "spell": "Healing Touch",
+        "when": "self health < 25%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          }
+        ]
+      },
+      {
+        "spell": "Frenzied Regeneration",
+        "when": "in Bear Form AND self health < 40%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 40
+          }
+        ]
+      },
+      {
+        "spell": "Tranquility",
+        "when": "buff absent AND self health < 25%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Bash",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Hibernate",
+        "when": "multi — control a second enemy",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "target",
+            "metric": "creatureTypeMask",
+            "op": "==",
+            "value": 1,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Dire Bear Form",
+        "when": "not in Dire Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "!=",
+            "value": 8
+          }
+        ]
+      },
+      {
+        "spell": "Healing Touch",
+        "when": "party healer dead or out of mana, and most-hurt ally below 75%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "offHealAllowed",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "healerPowerPct",
+            "op": "<",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 75
+          }
+        ]
+      },
+      {
+        "spell": "Growl",
+        "when": "target not attacking me AND in Bear Form",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "targetAttackingMe",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "spell": "Demoralizing Roar",
+        "when": "debuff absent AND multi AND in Bear Form AND AoE mode is not single",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "aoeMode",
+            "op": "!=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Swipe",
+        "when": "multi AND in Bear Form AND AoE mode is not single",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "aoeMode",
+            "op": "!=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Maul",
+        "when": "in Bear Form AND single",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": "<",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Challenging Roar",
+        "when": "target not attacking me AND multi AND in Bear Form AND AoE mode is not single",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "targetAttackingMe",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "aoeMode",
+            "op": "!=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Faerie Fire (Feral)",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Remove Curse",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Cure Poison",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 4
+          }
+        ]
+      },
+      {
+        "spell": "Barkskin",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ]
+  }
+]

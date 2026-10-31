@@ -1,0 +1,354 @@
+{
+  "raid": "naxxramas",
+  "bosses": [
+    {
+      "entry": 15956,
+      "name": "Anub'Rekhan",
+      "kinds": [
+        "flee"
+      ],
+      "cite": "boss_anubrekhan.cpp:44 LOCUSTSWARM 28785 is a 20 s self buff on him (naxxramas.ts:199 schedules it every 90 s); the raid leaves melee range until it drops",
+      "encounterRows": [
+        {
+          "kind": "flee",
+          "label": "Leave the Locust Swarm (30 yd)",
+          "cite": "boss_anubrekhan.cpp:44 SPELL_LOCUSTSWARM 28785 is a 20 s self buff on him (naxxramas.ts:199 schedules it every 90 s) whose proc_trigger fires 28786 every 2 s - aoe radiusYd 30, 875 nature and a 6 s silence, so it is a disc on HIM and not an aura on a raider. 35 is that 30 plus FLEE_CLEAR_MARGIN_YD. keep_range names the entry rather than the focus so a raider on an add still leaves, and its executor already stands the current victim down: nobody out-walks the mob that is on them",
+          "rule": {
+            "id": "raid_enc_15956_keep_28786",
+            "action": {
+              "kind": "move",
+              "move": {
+                "kind": "keep_range",
+                "minYd": 35,
+                "entry": 15956
+              }
+            },
+            "conditions": [
+              {
+                "subject": "target",
+                "metric": "buffPresent",
+                "op": "==",
+                "value": 1,
+                "ref": 28785
+              }
+            ],
+            "enabled": true
+          }
+        }
+      ]
+    },
+    {
+      "entry": 15952,
+      "name": "Maexxna",
+      "kinds": [
+        "kill-order"
+      ],
+      "cite": "boss_maexxna.cpp:41,47-53 WEB_WRAP_INIT 28617 pins a raider to the wall behind a wrap NPC that has to be killed to free them - the one add whose order matters",
+      "blockedBy": {
+        "kill-order": "28627 Summon Web Wrap DOES resolve summon_wild + cc, so the wrap body exists once something casts it - and nothing does: 28617 resolves script_handled_noop, and naxxramas.ts:378 names the real gap, HandleVictimCheck has the VICTIM cast 28627 and there is no cast-as-player verb. dungeonSpawns map 533 also carries no 17055 Spiderling"
+      }
+    },
+    {
+      "entry": 15954,
+      "name": "Noth the Plaguebringer",
+      "kinds": [],
+      "cite": "boss_noth.cpp:38-80 the balcony teleport plus CURSE_PLAGUEBRINGER 29213 and Plagued Warriors/Champions. The curse is a decurse call and the adds are unordered, so no kind in this vocabulary applies - naxxramas.ts:84-86 already owns the balcony phase gap"
+    },
+    {
+      "entry": 15953,
+      "name": "Grand Widow Faerlina",
+      "kinds": [
+        "mc",
+        "spread"
+      ],
+      "cite": "boss_faerlina.cpp Worshipper 16506 Widow's Embrace 28732; Rain of Fire 28794",
+      "mcEntries": [
+        {
+          "entry": 16506,
+          "cite": "boss_faerlina.cpp:47,89-109 28732 is cast onto her by a MIND CONTROLLED Worshipper; naxxramas.ts FAERLINA_ADDS puts 4 of them on the floor",
+          "requireTargetBuff": 28798
+        }
+      ],
+      "encounterRows": [
+        {
+          "kind": "spread",
+          "label": "Step out of Rain of Fire (10 yd pool)",
+          "cite": "creature_spell_list 1595301:2 Rain of Fire 28794 bakes aoe ground radiusYd 10 with a 6 s fire dot (tickMs 2000); naxxramas.ts BOSS_FAERLINA schedules it every 16 s on hostile_random_player. isPersistentAreaEffect (aoe+dot) spawns the pool",
+          "rule": {
+            "id": "raid_enc_15953_avoid_28794",
+            "action": {
+              "kind": "move",
+              "move": {
+                "kind": "avoid_zone",
+                "id": "28794"
+              }
+            },
+            "conditions": [
+              {
+                "subject": "self",
+                "metric": "hazardProximityYd",
+                "op": "<=",
+                "value": 0
+              }
+            ],
+            "enabled": true
+          }
+        }
+      ]
+    },
+    {
+      "entry": 15936,
+      "name": "Heigan the Unclean",
+      "kinds": [
+        "flee"
+      ],
+      "cite": "boss_heigan.cpp:92,173-188 PlagueWaveController dance",
+      "encounterRows": [
+        {
+          "kind": "flee",
+          "label": "Run the dance - step off the erupting tile",
+          "cite": "boss_heigan.cpp:92,173-188 StartEruptions and :280-290 PlagueWaveController cycle {30116,30117,30118,30119,30118,30117}; each wave spell's three ACTIVATE_OBJECT slots light a third of its own Plague Fissures through spell_script_target, and every fissure is a gameobject_template type 6 whose trap.spellId is 29371 Eruption (direct_damage nature 3500-4500, radiusYd 6). The pools land at the fissures' own spawns through applySpell's activate_object arm; hazardProximityYd reads their edge the same way Magmadar's Conflagration row does. Driven by src/dev/smoke/heiganDance.mjs: 345 sites over the four waves, 88 live pools on a cast, a raider standing on one takes the hit",
+          "rule": {
+            "id": "raid_enc_15936_avoid_eruption",
+            "action": {
+              "kind": "move",
+              "move": {
+                "kind": "avoid_zone",
+                "id": "Eruption"
+              }
+            },
+            "conditions": [
+              {
+                "subject": "self",
+                "metric": "hazardProximityYd",
+                "op": "<=",
+                "value": 0
+              }
+            ],
+            "enabled": true
+          }
+        }
+      ]
+    },
+    {
+      "entry": 16011,
+      "name": "Loatheb",
+      "kinds": [],
+      "cite": "boss_loatheb.cpp Decurse / Corrupted Mind — healer rows after 29201 bake"
+    },
+    {
+      "entry": 16061,
+      "name": "Instructor Razuvious",
+      "kinds": [
+        "mc"
+      ],
+      "cite": "boss_razuvious.cpp Understudy 16803",
+      "mcEntries": [
+        {
+          "entry": 16803,
+          "cite": "boss_razuvious.cpp:20,46,72-81 a MCd Understudy taunts him with 29060; naxxramasMilitary.ts:32-34 keeps its baked list 1680305 in play"
+        }
+      ]
+    },
+    {
+      "entry": 16060,
+      "name": "Gothik the Harvester",
+      "kinds": [
+        "camp-split"
+      ],
+      "cite": "boss_gothik.cpp:49-63 live vs undead sides",
+      "blockedBy": {
+        "camp-split": "the adds are NOT the gap any more: 28007 / 28009 / 28011 bake proc_trigger and their triggers 27884 / 28008 / 28010 resolve summon_wild, and naxxramasMilitary.ts:198-200 arms all three on the sourced 4 s / 49 s / 104 s clock. What blocks the camps is the side state: boss_gothik.cpp:315 IsInRightSideGothikArea has no representation here (naxxramasMilitary.ts:37-43), so there is no live side and no gate for two camps to split across"
+      }
+    },
+    {
+      "entry": 16062,
+      "name": "The Four Horsemen",
+      "kinds": [
+        "camp-split"
+      ],
+      "cite": "boss_four_horsemen.cpp:64-67 markSpellList 28832/28833/28834/28835; four bodies via creatureLinking.ts:169-171"
+    },
+    {
+      "entry": 16028,
+      "name": "Patchwerk",
+      "kinds": [],
+      "cite": "boss_patchwerk.cpp Hateful Strike — OT melee stack after the target scheme"
+    },
+    {
+      "entry": 15931,
+      "name": "Grobbulus",
+      "kinds": [
+        "flee"
+      ],
+      "cite": "boss_grobbulus.cpp Mutating Injection",
+      "fleeAuras": [
+        {
+          "aura": 28169,
+          "radiusYd": 20,
+          "cite": "boss_grobbulus.cpp:119-140 MutatingInjection: dispel -> 28206 radiusYd 20, expire -> 28322 radiusYd 8, always 28240; 20 is the widest payload"
+        }
+      ]
+    },
+    {
+      "entry": 15932,
+      "name": "Gluth",
+      "kinds": [
+        "tank-swap",
+        "kill-order"
+      ],
+      "cite": "boss_gluth.cpp:36,68 SPELL_MORTALWOUND 25646 every 10 s on the victim; :42-46 the Zombie Chow heal him with 28238",
+      "tankSwapAura": 25646,
+      "encounterRows": [
+        {
+          "kind": "kill-order",
+          "label": "Kill the Zombie Chow before he eats one",
+          "cite": "naxxramas.h:79 NPC_ZOMBIE_CHOW 16360; boss_gluth.cpp:116-136 SUMMON_ZOMBIE_CHOW 28216 (naxxramasConstruct.ts:178 arms it on Gluth); 28216 resolves proc_trigger 28217 -> summon_wild 16360; :162-182 DEVOUR 28236 finds a 16360 and 28238 heals him 5 %",
+          "rule": {
+            "id": "raid_enc_15932_kill",
+            "action": {
+              "kind": "kill_order",
+              "entries": [
+                16360
+              ]
+            },
+            "conditions": [],
+            "enabled": true
+          }
+        }
+      ]
+    },
+    {
+      "entry": 15990,
+      "name": "Kel'Thuzad",
+      "kinds": [
+        "spread"
+      ],
+      "cite": "boss_kelthuzad.cpp:92 MANA_DETONATION 27819 makes every mana user its own bomb, and the Shadow Fissure 27810 void zones are the other thing to stand out of",
+      "encounterRows": [
+        {
+          "kind": "spread",
+          "label": "Step out of the Shadow Fissure void zone",
+          "cite": "creature_spell_list 1599001:3 Shadow Fissure 27810 is scheduled on 15990 (targetId 100, 15-25 s) and its rawEffect 41 summons 16129; 16129 carries creatureCasts 27812 scriptId 1612901 eventType 1, so groundAoeOf publishes it. 27812 Void Blast bakes aoe ground radiusYd 5 direct_damage with rawEffects targetA 18 TARGET_LOCATION_CASTER_DEST, so the blast is centred on the fissure and persistentAreaFromSpell returns null (no dot). Measured by src/dev/capabilities/avoidZone.mjs: blastsTaken 0 with the row against blastsWithoutRow 5, ydFromFissure 6. Cite: boss_kelthuzad.cpp:92",
+          "note": "Detonate Mana 27819 is the OTHER half of this boss's spread and stays unauthorable: it resolves proc_trigger and its baked effects[] are empty, so it puts no aura on the raider for a buffPresent row to gate on.",
+          "rule": {
+            "id": "raid_enc_15990_avoid_27812",
+            "action": {
+              "kind": "move",
+              "move": {
+                "kind": "avoid_zone",
+                "id": "27812"
+              }
+            },
+            "conditions": [
+              {
+                "subject": "self",
+                "metric": "hazardProximityYd",
+                "op": "<=",
+                "value": 0
+              }
+            ],
+            "enabled": true
+          }
+        }
+      ]
+    },
+    {
+      "entry": 15928,
+      "name": "Thaddius",
+      "kinds": [
+        "camp-split"
+      ],
+      "cite": "boss_thaddius.cpp:363-468 Polarity Shift 28089 assigns 28059 / 28084, the charge payload 28062 / 28085 skips same-charge targets, and 29659 / 29660 stack once per same-charge ally inside 13 yd - so the raid answer is two camps, one per charge",
+      "encounterRows": [
+        {
+          "kind": "camp-split",
+          "label": "Stand with the positive charge",
+          "cite": "boss_thaddius.cpp:380-395 PolarityShift casts 28059; :453 range 13.f and spell 28062 bake radiusYd 13",
+          "rule": {
+            "id": "raid_enc_15928_polarity_28059",
+            "action": {
+              "kind": "move",
+              "move": {
+                "kind": "split_by_aura",
+                "aura": 28059,
+                "awayYd": 13
+              }
+            },
+            "conditions": [
+              {
+                "subject": "self",
+                "metric": "buffPresent",
+                "op": "==",
+                "value": 1,
+                "ref": 28059
+              },
+              {
+                "subject": "self",
+                "metric": "allyWithoutAuraNearYd",
+                "op": "<=",
+                "value": 13,
+                "ref": 28059
+              },
+              {
+                "subject": "self",
+                "metric": "targetAttackingMe",
+                "op": "==",
+                "value": 0
+              }
+            ],
+            "enabled": true
+          }
+        },
+        {
+          "kind": "camp-split",
+          "label": "Stand with the negative charge",
+          "cite": "boss_thaddius.cpp:380-395 PolarityShift casts 28084; :453 range 13.f and spell 28085 bake radiusYd 13",
+          "rule": {
+            "id": "raid_enc_15928_polarity_28084",
+            "action": {
+              "kind": "move",
+              "move": {
+                "kind": "split_by_aura",
+                "aura": 28084,
+                "awayYd": 13
+              }
+            },
+            "conditions": [
+              {
+                "subject": "self",
+                "metric": "buffPresent",
+                "op": "==",
+                "value": 1,
+                "ref": 28084
+              },
+              {
+                "subject": "self",
+                "metric": "allyWithoutAuraNearYd",
+                "op": "<=",
+                "value": 13,
+                "ref": 28084
+              },
+              {
+                "subject": "self",
+                "metric": "targetAttackingMe",
+                "op": "==",
+                "value": 0
+              }
+            ],
+            "enabled": true
+          }
+        }
+      ]
+    },
+    {
+      "entry": 15989,
+      "name": "Sapphiron",
+      "kinds": [
+        "resist"
+      ],
+      "cite": "boss_sapphiron.cpp Frost Aura / Ice Block LOS",
+      "resist": "frost"
+    }
+  ]
+}

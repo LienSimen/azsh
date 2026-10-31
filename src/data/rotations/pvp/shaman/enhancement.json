@@ -1,0 +1,1277 @@
+[
+  {
+    "levels": "60",
+    "spec": "Enhancement",
+    "buffs": [
+      {
+        "spell": "Windfury Weapon",
+        "when": "self.weaponImbuePresent==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "weaponImbuePresent",
+            "op": "==",
+            "value": 0,
+            "ref": 0
+          }
+        ]
+      },
+      {
+        "spell": "Lightning Shield",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Lightning Bolt",
+        "when": "always"
+      },
+      {
+        "spell": "Flame Shock",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Healing Wave",
+        "when": "self health < 50%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 50
+          }
+        ]
+      },
+      {
+        "spell": "Lesser Healing Wave",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Chain Heal",
+        "when": "self health < 50%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 50
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "item": "Free Action Potion",
+        "when": "rooted AND I carry one",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 5634
+          }
+        ]
+      },
+      {
+        "item": "Free Action Potion",
+        "when": "snared AND I carry one",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "snared",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 5634
+          }
+        ]
+      },
+      {
+        "item": "Spider Belt",
+        "when": "rooted AND I wear one",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Spider Belt",
+        "when": "snared AND I wear one",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "snared",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "spell": "Tremor Totem",
+        "when": "target is a warlock AND the earth slot is empty",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "classId",
+            "op": "==",
+            "value": 9
+          },
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Tremor Totem",
+        "when": "target is a priest AND the earth slot is empty",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "classId",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Poison Cleansing Totem",
+        "when": "target is a rogue AND the water slot is empty",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "classId",
+            "op": "==",
+            "value": 4
+          },
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Poison Cleansing Totem",
+        "when": "target is a hunter AND the water slot is empty",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "classId",
+            "op": "==",
+            "value": 3
+          },
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Magma Totem",
+        "when": "target is a rogue AND the fire slot is empty",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "classId",
+            "op": "==",
+            "value": 4
+          },
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 0
+          }
+        ]
+      },
+      {
+        "spell": "Earthbind Totem",
+        "when": "target inside 20 yd AND the earth slot is empty",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "targetDistanceYd",
+            "op": "<=",
+            "value": 20
+          },
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Grounding Totem",
+        "when": "target is a paladin AND the air slot is empty",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "classId",
+            "op": "==",
+            "value": 2
+          },
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 3
+          }
+        ]
+      },
+      {
+        "spell": "Grounding Totem",
+        "when": "target is a druid AND the air slot is empty",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "classId",
+            "op": "==",
+            "value": 11
+          },
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 3
+          }
+        ]
+      },
+      {
+        "spell": "Earth Shock",
+        "when": "target fights at range AND it is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "isCaster",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "item": "Gyrofreeze Ice Reflector",
+        "when": "enemy is casting frost AND I wear one",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingSchool",
+            "op": "==",
+            "value": 4
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Hyper-Radiant Flame Reflector",
+        "when": "enemy is casting fire AND I wear one",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingSchool",
+            "op": "==",
+            "value": 2
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Ultra-Flash Shadow Reflector",
+        "when": "enemy is casting shadow AND I wear one",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingSchool",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Thorium Grenade",
+        "when": "enemy is casting out of melee AND I carry one",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Iron Grenade",
+        "when": "enemy is casting out of melee AND I carry one",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Gnomish Rocket Boots",
+        "when": "target is more than 15 yd away AND I wear them",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "targetDistanceYd",
+            "op": ">",
+            "value": 15
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Goblin Rocket Boots",
+        "when": "target is more than 15 yd away AND I wear them",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "targetDistanceYd",
+            "op": ">",
+            "value": 15
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "spell": "Earth Shock",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Grounding Totem",
+        "when": "an enemy is casting at an ally AND the air slot is empty",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCastingOnAlly",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 3
+          }
+        ]
+      },
+      {
+        "spell": "Frost Shock",
+        "when": "melee on me AND root DR under 2",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "<",
+            "value": 2,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Lesser Healing Wave",
+        "when": "party healer dead or out of mana, and most-hurt ally below 75%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "offHealAllowed",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "healerPowerPct",
+            "op": "<",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 75
+          }
+        ]
+      },
+      {
+        "spell": "Strength of Earth Totem",
+        "when": "self.totemPresent==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Searing Totem",
+        "when": "self.totemPresent==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 0
+          }
+        ]
+      },
+      {
+        "spell": "Windfury Totem",
+        "when": "self.totemPresent==0 AND self.meleeAllyCount>=2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 3
+          },
+          {
+            "subject": "self",
+            "metric": "meleeAllyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Stormstrike",
+        "when": "always"
+      },
+      {
+        "spell": "Flame Shock",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Purge",
+        "when": "target.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Cure Poison",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 4
+          }
+        ]
+      },
+      {
+        "spell": "Cure Disease",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 3
+          }
+        ]
+      },
+      {
+        "spell": "Lightning Bolt",
+        "when": "self.inMelee==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "spell": "Tremor Totem",
+        "when": "the earth slot is empty",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "move": {
+          "kind": "behind_target"
+        },
+        "when": "the target is stunned",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "stunned",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "40-59",
+    "spec": "Enhancement",
+    "buffs": [
+      {
+        "spell": "Windfury Weapon",
+        "when": "self.weaponImbuePresent==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "weaponImbuePresent",
+            "op": "==",
+            "value": 0,
+            "ref": 0
+          }
+        ]
+      },
+      {
+        "spell": "Lightning Shield",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Lightning Bolt",
+        "when": "always"
+      },
+      {
+        "spell": "Flame Shock",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Earth Shock",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Grounding Totem",
+        "when": "enemy is casting AND the air slot is empty",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 3
+          }
+        ]
+      },
+      {
+        "spell": "Tremor Totem",
+        "when": "enemy is a caster AND the earth slot is empty",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "isCaster",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Frost Shock",
+        "when": "melee on me AND root DR under 2",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "<",
+            "value": 2,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Strength of Earth Totem",
+        "when": "self.totemPresent==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Searing Totem",
+        "when": "self.totemPresent==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 0
+          }
+        ]
+      },
+      {
+        "spell": "Flame Shock",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Purge",
+        "when": "target.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Cure Poison",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 4
+          }
+        ]
+      },
+      {
+        "spell": "Cure Disease",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 3
+          }
+        ]
+      },
+      {
+        "spell": "Lightning Bolt",
+        "when": "self.inMelee==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Healing Wave",
+        "when": "not in melee AND self health < 50%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 50
+          }
+        ]
+      },
+      {
+        "spell": "Lesser Healing Wave",
+        "when": "self health < 50%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 50
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "levels": "60",
+    "spec": "Enhancement",
+    "variant": "vs-warlock",
+    "note": "G16's first authored matchup list, and it exists because the shipped row cannot fire. Enhancement@60 carries `Tremor Totem {self is feared}`, and a fear is hard CC: the summon spell applies no STATE/SCHOOL/DISPEL/MECHANIC immunity, so it does not cancel the fear and CMaNGOS refuses it exactly as this engine does (SpellMgr.h:401-440 SpellCancelsAuraEffect; Spell.cpp:6065 CheckSpellCancelsAuraEffect). Measured: refused 'feared' x179 over 3 duels versus the warlock rung and cast zero times. A totem that breaks fear has to be DOWN BEFORE the fear lands, so this list drops the fear gate and puts Tremor above Strength of Earth for the one earth slot. The warlock is the matchup that earns it - Fear, Howl of Terror and Death Coil are three fears in one kit.",
+    "buffs": [
+      {
+        "spell": "Windfury Weapon",
+        "when": "self.weaponImbuePresent==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "weaponImbuePresent",
+            "op": "==",
+            "value": 0,
+            "ref": 0
+          }
+        ]
+      },
+      {
+        "spell": "Lightning Shield",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Lightning Bolt",
+        "when": "always"
+      },
+      {
+        "spell": "Flame Shock",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Earth Shock",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Tremor Totem",
+        "when": "the earth slot is empty (drop it BEFORE the fear)",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Grounding Totem",
+        "when": "an enemy is casting at an ally AND the air slot is empty",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCastingOnAlly",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 3
+          }
+        ]
+      },
+      {
+        "spell": "Frost Shock",
+        "when": "melee on me AND root DR under 2",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "<",
+            "value": 2,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Lesser Healing Wave",
+        "when": "party healer dead or out of mana, and most-hurt ally below 75%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "offHealAllowed",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "healerPowerPct",
+            "op": "<",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "allyLowestHpPct",
+            "op": "<",
+            "value": 75
+          }
+        ]
+      },
+      {
+        "spell": "Strength of Earth Totem",
+        "when": "self.totemPresent==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Searing Totem",
+        "when": "self.totemPresent==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 0
+          }
+        ]
+      },
+      {
+        "spell": "Windfury Totem",
+        "when": "self.totemPresent==0 AND self.meleeAllyCount>=2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "totemPresent",
+            "op": "==",
+            "value": 0,
+            "ref": 3
+          },
+          {
+            "subject": "self",
+            "metric": "meleeAllyCount",
+            "op": ">=",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "spell": "Stormstrike",
+        "when": "always"
+      },
+      {
+        "spell": "Flame Shock",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Purge",
+        "when": "target.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 1
+          }
+        ]
+      },
+      {
+        "spell": "Cure Poison",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 4
+          }
+        ]
+      },
+      {
+        "spell": "Cure Disease",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 3
+          }
+        ]
+      },
+      {
+        "spell": "Lightning Bolt",
+        "when": "self.inMelee==0",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Healing Wave",
+        "when": "self health < 50%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 50
+          }
+        ]
+      },
+      {
+        "spell": "Lesser Healing Wave",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Chain Heal",
+        "when": "self health < 50%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 50
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ]
+  }
+]

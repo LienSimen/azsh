@@ -1,0 +1,70 @@
+{
+ "raid": "dire-maul-north",
+ "note": "Reviewed for E5.4 against dire_maul.cpp, instance_dire_maul.cpp and acid_classic.sql. There is no boss AI in the C++ at all - dire_maul.cpp:33-345 is the Dreadsteed ritual and instance_dire_maul.cpp:442 leaves the ogres to ACID - so every kit here is EventAI plus the baked charm bar. Six of the seven come back kinds: [] because every shape in the wing is a disc at melee reach or a single-target swing. King Gordok is the exception, and not for his own kit: Cho'Rush is linked into the same pull and heals him, so that row is a kill order.",
+ "bosses": [
+  {
+   "entry": 14326,
+   "name": "Guard Mol'dar",
+   "kinds": [],
+   "cite": "acid_classic.sql:15128-15133 creature_id=14326 is the whole kit - there is no eventai/dire-maul-north.ts overlay in this tree, and instance_dire_maul.cpp:442 says outright that these ogres are handled in ACID. All five cast rows are targetA 6 or targetA 1 with no aoeShape: Shield Charge 15749 (rangeMax 25), Strike 15580 and Shield Bash 11972 (rangeMax 5, the second armed on EVENT_T 13 target-casting), Knock Away 10101 (rangeMax 10), and Enrage 8269, a 120 s self haste at 40% HP. Shield Slam 15655 (a 2 s single-target stun) and Cleave 20691 (rangeMax 15, radiusYd None, no src_spell_cone row) ride the charm bar at creatures.json 14326 charmSpells and carry no shape either, so there is no ground to stand out of."
+  },
+  {
+   "entry": 14322,
+   "name": "Stomper Kreeg",
+   "kinds": [],
+   "cite": "acid_classic.sql:15085-15092 creature_id=14322. Whirlwind 15577 is aoeShape pbaoe radiusYd 8 and War Stomp 16740 is pbaoe radiusYd 5, both castMs 0 - discs at melee reach, the Stockade shape, and both bake with effects: [] so they carry no payload in this tree at all. Booze Spit 22833 is the one wide shape: aoeShape cone radiusYd 15, src_spell_cone.ConeDegrees 82 (the bake drops coneDegrees, so combatGeometry.ts:461 falls back to 60 deg), -75 hit for 10 s on a 19.0-27.4 s timer - and the product already answers it, because sessionChase.ts:440-461 meleeFlankSlot slides every non-tank melee out of each kit cone and the 20-25 yd ranged stand (stand.ts:18-20) sits outside 15 yd to begin with. Drunken Rage 22835 at 15% and Enrage 8269 at 30% are self buffs."
+  },
+  {
+   "entry": 14321,
+   "name": "Guard Fengus",
+   "kinds": [],
+   "cite": "acid_classic.sql:15078-15083 creature_id=14321 - the same six rows as Mol'dar, spell for spell, with the same script numbering. Shield Charge 15749, Strike 15580, Shield Bash 11972, Knock Away 10101 and Enrage 8269 at 40% are all targetA 6 or targetA 1 and none of them has a radiusYd. His one difference is Bruising Blow 22572 on the charm bar (creatures.json 14321 charmSpells): rangeMax 5, targetA 6, -35% strength and -35% agility for 5 s, a single-target debuff and not a shape."
+  },
+  {
+   "entry": 14323,
+   "name": "Guard Slip'kik",
+   "kinds": [],
+   "cite": "acid_classic.sql:15094-15099 creature_id=14323 is Mol'dar's kit again; the only difference is Knockout 17307 on the charm bar (creatures.json 14323 charmSpells), rangeMax 10 targetA 6, a 6 s stun with radiusYd None - single target, so a trinket answers it and no move verb can reach it. The trap is this guard's real mechanic and it is not a party position either: instance_dire_maul.cpp:637-660 go_ai_fixed_trap fires when SLIP'KIK himself comes within 0.5 yd of GO 179512, and Ice Lock 22856 (rangeMax 50000, radiusYd None, a stun) lands on him, not on the raid. The product already delivers it out of combat as an objectGate on the encounter (dire-maul-north.ts:538-543, goEntry 179512 setting dm-north-slipkik-frozen so the guard counts alive for tribute), so there is nothing left for a combat row to buy."
+  },
+  {
+   "entry": 14325,
+   "name": "Captain Kromcrush",
+   "kinds": [],
+   "cite": "acid_classic.sql:15121-15126 creature_id=14325. Frightening Shout 19134 is the same spell id as Dextren Ward's in the-stockade.json and the same shape: aoeShape pbaoe radiusYd 8, mechanic 5 fear for 8 s, triggering 29544 on the current target - the melee are inside 8 yd because that is where melee happens, the ranged stand is already outside it, and Fear Ward, Tremor Totem and Berserker Rage are the class answers. 5246 on the charm bar (creatures.json 14325 charmSpells) is that identical 8 yd disc. Mortal Cleave 22859 is rangeMax 5 targetA 6 with -50% healing taken for 5 s, Retaliation 22857 is a 15 s self proc of 22858, and Call Reavers 22860 at 50% HP is Effect 42 SUMMON miscValue 11450 for one Gordok Reaver - a body, not a party verb, and nothing in the ACID or the cpp says it must die first."
+  },
+  {
+   "entry": 14324,
+   "name": "Cho'Rush the Observer",
+   "kinds": [],
+   "cite": "acid_classic.sql:15100-15119 creature_id=14324, whose own header marks the block 'NEED MULTIPLE OFFICIAL DATA ENCOUNTERS' and instance_dire_maul.cpp:20 admits the randomisation is not handled. Script 1432401 is EVENT_T 11 SPAWNED with ACTION_T_RANDOM_PHASE param1-3 = 1/2/3, so he rolls shaman, mage or priest for the whole fight, and this tree honours that (creatureEventAi.ts:1333-1338 sets state.phase; creatureCastList.ts:1075-1084 eventPhaseBlocked skips the other two masks). Fought alone he asks for nothing positional: Frost Nova 15531 and Arcane Explosion 13745 are aoeShape pbaoe radiusYd 10 and Psychic Scream 22884 is pbaoe radiusYd 8, all inside RANGED_STAND_MIN_YD 20 (stand.ts:18) - the Galgann Firehammer verdict from uldaman.json - and Earthgrab Totem 8376 is a summon of 6066. His healing is what matters, and it only has a second body to land on in the King Gordok pull, so the row that answers it is registered there."
+  },
+  {
+   "entry": 11501,
+   "name": "King Gordok",
+   "kinds": [
+    "kill-order"
+   ],
+   "note": "Cho'Rush is dragged into this pull and heals the King every 10 to 20 seconds. Drop Cho'Rush first.",
+   "cite": "acid_classic.sql:15028-15032 creature_id=11501 - his own kit asks the party for nothing. Berserker Charge 22886 (rangeMax 40, targetA 4 random), Mortal Strike 15708 and Sunder Armor 15572 (rangeMax 5, targetA 6) are single target, and War Stomp 16727 is aoeShape pbaoe radiusYd 5, a 5 s stun on a melee boss, which is the Stockade disc. What this fight asks for is an order, because it is a two-body pull: src_creature_linking_template (14324, 429, 11501) carries flag 3 = FLAG_AGGRO_ON_AGGRO | FLAG_TO_AGGRO_ON_AGGRO (CreatureLinkingMgr.h:61-62), so touching either brings both, and dire-maul-north.ts:645 packs 14324 into the king-gordok encounter to match.",
+   "encounterRows": [
+    {
+     "kind": "kill-order",
+     "label": "Cho'Rush heals the King - kill Cho'Rush first",
+     "cite": "Cho'Rush is a real healer in this tree, not a nameplate. creatures.json 14324 spells carries both heals - Healing Wave 15982 (castMs 3000, rangeMax 40, heal 694 to 806) in the shaman phase and Heal 22883 (castMs 3500, heal 1758 to 2042) in the priest phase - each armed on ACID EVENT_T 14 FRIENDLY_HP with hpDeficit 10000 and radius 40, repeating every 10 to 20 s (acid_classic.sql:15103 and :15115). The chain that fires it is closed end to end: combatEnemySpec.ts:100 prefers castEntriesFromAiScripts over the baked creatureCasts row, which drops those params; creatureEventAi.ts:456-459 maps eventParam1/2 onto friendlyHpDeficit and friendlyRadiusYd; creatureCastList.ts:905-908 fires once a pack mate within 40 yd is missing 10,000 HP; pickAction.ts:1991-2005 builds that friendly list from the ENEMY pack; and applyHealEffect.ts:49-53 resolves applyTo 'friendly' onto the enemy pack rather than the party, which is the exact bug that comment was written to close. King Gordok is hpMin 28296 / hpMax 29133, so 10,000 missing is about 66% and the heal is live for the back two thirds of the fight, while Cho'Rush is 19,536 HP - the smaller body, and the cheaper one to remove. kill_order is a filter and does not win the GCD (types.ts:367-375), and buildEncounterRowIndex (raidEncounterTactics.ts:158-182) registers a kill-order rule under every entry it names as well as under the plan row's own, so this holds whichever of the two the party is focused on - the sm-cathedral shape. Two honest limits: in the mage phase he has no heal at all and buffs the King with Bloodlust 16170 instead, and if the party already took his optional solo encounter there is no 14324 alive, so the row falls straight through to 11501.",
+     "rule": {
+      "id": "raid_enc_11501_kill",
+      "action": {
+       "kind": "kill_order",
+       "entries": [
+        14324,
+        11501
+       ]
+      },
+      "conditions": [],
+      "enabled": true
+     }
+    }
+   ]
+  }
+ ]
+}

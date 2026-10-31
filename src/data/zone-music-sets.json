@@ -1,0 +1,2751 @@
+{
+  "_producer": "src/dev/etl/extract-zone-music.py",
+  "_source": "AreaTable.dbc field 8 -> ZoneMusic.dbc -> SoundEntries.dbc (vanilla 1.12.1 MPQs)",
+  "areaSets": {
+    "1": "mountain",
+    "10": "evilforest",
+    "100": "jungle",
+    "101": "jungle",
+    "102": "jungle",
+    "103": "jungle",
+    "104": "jungle",
+    "105": "jungle",
+    "106": "jungle",
+    "107": "plains",
+    "108": "plains",
+    "109": "plains",
+    "1099": "thunderbluff",
+    "11": "soggy",
+    "111": "plains",
+    "113": "plains",
+    "115": "plains",
+    "117": "crossroads",
+    "1176": "desert",
+    "118": "darkforest",
+    "12": "forest",
+    "121": "haunted",
+    "122": "jungle",
+    "1220": "darnassus",
+    "1221": "desert",
+    "1222": "desert",
+    "1223": "haunted",
+    "1226": "desert",
+    "1227": "desert",
+    "1228": "desert",
+    "1229": "desert",
+    "123": "jungle",
+    "1230": "desert",
+    "1231": "desert",
+    "1232": "desert",
+    "1233": "momentbattle05",
+    "1235": "haunted",
+    "1236": "jungle",
+    "1237": "crossroads",
+    "125": "jungle",
+    "1256": "desert",
+    "126": "jungle",
+    "127": "jungle",
+    "128": "jungle",
+    "129": "jungle",
+    "13": "enchantedforest",
+    "130": "evilforest",
+    "1316": "desert",
+    "133": "mountain",
+    "134": "mountain",
+    "1357": "volcanic",
+    "1377": "desert",
+    "138": "mountain",
+    "139": "plaguelands",
+    "14": "plains",
+    "141": "enchantedforest",
+    "142": "forest",
+    "143": "orgrimmar",
+    "1438": "plaguelands",
+    "144": "forest",
+    "1441": "volcanic",
+    "145": "forest",
+    "146": "forest",
+    "147": "forest",
+    "1477": "jungle",
+    "148": "darkforest",
+    "149": "forest",
+    "15": "soggy",
+    "150": "darkforest",
+    "151": "thunderbluff",
+    "1519": "stormwind",
+    "152": "evilforest",
+    "153": "evilforest",
+    "154": "haunted",
+    "155": "evilforest",
+    "156": "evilforest",
+    "157": "haunted",
+    "158": "haunted",
+    "1581": "mystery",
+    "1582": "mystery",
+    "159": "haunted",
+    "16": "plaguelands",
+    "160": "evilforest",
+    "161": "evilforest",
+    "1617": "stormwind",
+    "162": "evilforest",
+    "163": "evilforest",
+    "1637": "barrendry",
+    "1638": "thunderbluff",
+    "164": "evilforest",
+    "165": "haunted",
+    "1657": "darnassus",
+    "166": "evilforest",
+    "167": "evilforest",
+    "168": "evilforest",
+    "1683": "volcanic",
+    "17": "barrendry",
+    "170": "evilforest",
+    "172": "evilforest",
+    "173": "evilforest",
+    "1761": "cursedlandfelwoodfurbolg",
+    "1762": "cursedlandfelwoodfurbolg",
+    "1763": "cursedlandfelwood",
+    "1764": "cursedlandfelwood",
+    "1765": "cursedlandfelwood",
+    "18": "forest",
+    "1837": "jungle",
+    "186": "enchantedforest",
+    "187": "darnassus",
+    "188": "enchantedforest",
+    "189": "mountain",
+    "19": "jungle",
+    "193": "haunted",
+    "196": "haunted",
+    "1977": "jungle",
+    "199": "volcanic",
+    "2": "plains",
+    "20": "plains",
+    "200": "volcanic",
+    "201": "volcanic",
+    "202": "volcanic",
+    "203": "cursedlandfelwood",
+    "204": "darkforest",
+    "205": "darkforest",
+    "2057": "haunted",
+    "206": "plains",
+    "207": "plains",
+    "2079": "jungle",
+    "209": "evilforest",
+    "2097": "thunderbluff",
+    "21": "mountain",
+    "2100": "barrendry",
+    "211": "mountain",
+    "212": "mountain",
+    "213": "evilforest",
+    "2138": "volcanic",
+    "214": "plains",
+    "215": "plains",
+    "2159": "momentorcbarren",
+    "219": "plains",
+    "2198": "momentorcbarren",
+    "22": "evilforest",
+    "220": "plains",
+    "221": "plains",
+    "222": "thunderbluff",
+    "223": "plains",
+    "224": "plains",
+    "2245": "soggyswamp",
+    "225": "plains",
+    "2253": "darnassus",
+    "2255": "gnomeragon",
+    "2256": "plaguelands",
+    "2266": "cursedlandfelwood",
+    "227": "evilforest",
+    "2273": "soggy",
+    "2276": "darnassus",
+    "228": "haunted",
+    "2301": "cursedlandfelwoodfurbolg",
+    "231": "darkforest",
+    "232": "evilforest",
+    "233": "darkforest",
+    "235": "momentbattle06",
+    "2358": "momentwarriorterrace",
+    "236": "evilforest",
+    "237": "evilforest",
+    "238": "evilforest",
+    "239": "evilforest",
+    "24": "forest",
+    "240": "evilforest",
+    "2405": "soggy",
+    "2408": "tavernhorde",
+    "241": "evilforest",
+    "242": "evilforest",
+    "243": "evilforest",
+    "244": "evilforest",
+    "245": "evilforest",
+    "246": "volcanic",
+    "249": "volcanic",
+    "25": "volcanic",
+    "2537": "thunderbluff",
+    "2538": "thunderbluff",
+    "2539": "tavernhorde",
+    "254": "volcanic",
+    "2541": "evilforestnight",
+    "255": "volcanic",
+    "2557": "enchantedforest",
+    "256": "enchantedforest",
+    "257": "enchantedforest",
+    "2577": "enchantedforest",
+    "258": "enchantedforest",
+    "259": "enchantedforest",
+    "2597": "alteracvalleypvp",
+    "26": "barrendry",
+    "260": "enchantedforest",
+    "2617": "thunderbluff",
+    "262": "enchantedforest",
+    "2637": "crossroads",
+    "264": "enchantedforest",
+    "2657": "cursedlandfelwood",
+    "267": "forest",
+    "271": "forest",
+    "272": "undercity",
+    "275": "darkforest",
+    "277": "forest",
+    "278": "forest",
+    "2797": "desert",
+    "28": "plaguelands",
+    "280": "volcanic",
+    "281": "volcanic",
+    "282": "volcanic",
+    "283": "volcanic",
+    "284": "forest",
+    "285": "evilforest",
+    "286": "forest",
+    "287": "forest",
+    "289": "forest",
+    "2897": "tavernhorde",
+    "290": "forest",
+    "293": "forest",
+    "294": "forest",
+    "295": "forest",
+    "298": "jungle",
+    "3": "barrendry",
+    "301": "jungle",
+    "307": "forest",
+    "308": "forest",
+    "317": "jungle",
+    "32": "evilforest",
+    "321": "orgrimmar",
+    "322": "mountain",
+    "324": "momentstormwind08",
+    "327": "jungle",
+    "3277": "pvpbattlegrounds",
+    "328": "desertcave",
+    "33": "jungle",
+    "330": "jungle",
+    "331": "enchantedforest",
+    "332": "plains",
+    "3357": "momentzulgurub",
+    "3358": "momentbattle06",
+    "337": "barrendry",
+    "338": "barrendry",
+    "3383": "momentzulgurub",
+    "34": "forest",
+    "3428": "ahnqirajexteriorwalking",
+    "3429": "ahnqirajexteriorwalking",
+    "345": "barrendry",
+    "3478": "desert",
+    "348": "forest",
+    "349": "forest",
+    "35": "jungle",
+    "350": "forest",
+    "351": "forest",
+    "352": "forest",
+    "353": "jungle",
+    "354": "soggy",
+    "355": "desert",
+    "356": "darnassus",
+    "357": "jungle",
+    "358": "plains",
+    "359": "barrendry",
+    "36": "forest",
+    "360": "plains",
+    "361": "cursedlandfelwood",
+    "362": "plains",
+    "363": "plains",
+    "364": "plains",
+    "365": "plains",
+    "366": "plains",
+    "367": "tavernhorde",
+    "368": "jungle",
+    "369": "plains",
+    "37": "jungle",
+    "370": "plains",
+    "371": "plains",
+    "372": "momentstormwind08",
+    "373": "plains",
+    "374": "plains",
+    "375": "plains",
+    "377": "plains",
+    "378": "thunderbluff",
+    "379": "barrendry",
+    "38": "forest",
+    "380": "crossroads",
+    "382": "jungle",
+    "384": "volcanic",
+    "385": "jungle",
+    "386": "jungle",
+    "387": "jungle",
+    "388": "jungle",
+    "391": "jungle",
+    "392": "jungle",
+    "393": "plains",
+    "396": "plains",
+    "397": "plains",
+    "398": "plains",
+    "399": "plains",
+    "4": "barrendry",
+    "40": "plains",
+    "400": "plains",
+    "401": "jungle",
+    "404": "plains",
+    "405": "barrendry",
+    "406": "barrendry",
+    "407": "orgrimmar",
+    "41": "evilforest",
+    "410": "plains",
+    "411": "plaguelands",
+    "412": "plaguelands",
+    "414": "desert",
+    "415": "enchantedforest",
+    "416": "magic",
+    "417": "cursedlandfelwood",
+    "418": "cursedlandfelwood",
+    "419": "mystery",
+    "42": "evilforest",
+    "424": "cursedlandfelwoodfurbolg",
+    "425": "magic",
+    "427": "enchantedforest",
+    "428": "jungle",
+    "429": "jungle",
+    "43": "jungle",
+    "430": "jungle",
+    "431": "crossroads",
+    "432": "plaguelands",
+    "434": "cursedlandfelwood",
+    "435": "cursedlandfelwood",
+    "436": "cursedlandfelwood",
+    "437": "crossroads",
+    "438": "momentwarriorterrace",
+    "44": "forest",
+    "440": "desert",
+    "443": "desert",
+    "447": "haunted",
+    "45": "mountain",
+    "457": "momentmagic",
+    "458": "barrendry",
+    "46": "volcanic",
+    "460": "crossroads",
+    "461": "barrendry",
+    "463": "barrendry",
+    "464": "barrendry",
+    "465": "barrendry",
+    "466": "barrendry",
+    "467": "enchantedforest",
+    "468": "enchantedforest",
+    "469": "barrendry",
+    "47": "forest",
+    "470": "plains",
+    "471": "plains",
+    "472": "plains",
+    "473": "plains",
+    "474": "plains",
+    "475": "plains",
+    "476": "plains",
+    "477": "jungle",
+    "478": "enchantedforest",
+    "479": "plains",
+    "480": "plains",
+    "481": "plains",
+    "482": "plains",
+    "483": "plains",
+    "484": "thunderbluff",
+    "485": "plains",
+    "486": "plains",
+    "487": "plains",
+    "488": "plains",
+    "490": "soggyswamp",
+    "492": "haunted",
+    "493": "darkforest",
+    "495": "enchantedforest",
+    "496": "orgrmmar02",
+    "501": "jungle",
+    "503": "darkforest",
+    "504": "darkforest",
+    "506": "darkforest",
+    "51": "volcanic",
+    "513": "stormwind",
+    "53": "forest",
+    "536": "evilforest",
+    "54": "forest",
+    "556": "forest",
+    "56": "forest",
+    "57": "forest",
+    "576": "evilforest",
+    "59": "forest",
+    "596": "barrendry",
+    "597": "thunderbluff",
+    "598": "soggy",
+    "599": "cursedlandfelwood",
+    "60": "forest",
+    "600": "barrendry",
+    "602": "cursedlandfelwood",
+    "603": "darnassus",
+    "604": "barrendry",
+    "606": "barrendry",
+    "607": "barrendry",
+    "608": "momentgloomy01",
+    "609": "barrendry",
+    "61": "forest",
+    "618": "mountain",
+    "62": "forest",
+    "63": "forest",
+    "636": "barrendry",
+    "637": "plains",
+    "64": "forest",
+    "68": "forest",
+    "69": "forest",
+    "696": "darnassus",
+    "697": "darnassus",
+    "698": "darnassus",
+    "699": "darnassus",
+    "7": "jungle",
+    "70": "forest",
+    "700": "darnassus",
+    "701": "darnassus",
+    "71": "forest",
+    "719": "desert",
+    "72": "barrendry",
+    "720": "jungle",
+    "73": "barrendry",
+    "77": "mountain",
+    "796": "plaguelands",
+    "799": "evilforest",
+    "8": "soggyswamp",
+    "85": "evilforest",
+    "856": "evilforest",
+    "86": "forest",
+    "87": "forest",
+    "878": "mountain",
+    "88": "forest",
+    "89": "forest",
+    "896": "cursedlandfelwood",
+    "9": "forest",
+    "91": "forest",
+    "92": "forest",
+    "93": "orgrmmar02",
+    "94": "evilforest",
+    "95": "forest",
+    "96": "forest",
+    "97": "forest",
+    "977": "jungle",
+    "978": "desert",
+    "98": "forest",
+    "99": "jungle"
+  },
+  "capitalSets": {
+    "darnassus": "darnassus",
+    "ironforge": "ironforge",
+    "orgrimmar": "orgrimmar",
+    "stormwind": "stormwind",
+    "thunderbluff": "thunderbluff",
+    "undercity": "undercity"
+  },
+  "sets": {
+    "ahnqirajexteriorwalking": {
+      "day": [
+        "AhnQirajExteriorWalking1.mp3",
+        "AhnQirajExteriorWalking2.mp3",
+        "AhnQirajExteriorWalking3.mp3",
+        "AhnQirajExteriorWalking4.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/AhnQiraj",
+      "night": [
+        "AhnQirajExteriorWalking1.mp3",
+        "AhnQirajExteriorWalking2.mp3",
+        "AhnQirajExteriorWalking3.mp3",
+        "AhnQirajExteriorWalking4.mp3"
+      ],
+      "setName": "AhnQirajExteriorWalking",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 248
+    },
+    "ahnqirajinteriorcenterroom": {
+      "day": [
+        "AhnQirajInteriorCenterRoom1.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/AhnQiraj",
+      "night": [
+        "AhnQirajInteriorCenterRoom1.mp3"
+      ],
+      "setName": "AhnQirajInteriorCenterRoom",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 254
+    },
+    "ahnqirajkingroom": {
+      "day": [
+        "AhnQirajKingRoom.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/AhnQiraj",
+      "night": [
+        "AhnQirajKingRoom.mp3"
+      ],
+      "setName": "AhnQirajKingRoom",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 252
+    },
+    "ahnqirajtriangleroom": {
+      "day": [
+        "AhnQirajTriangleRoom1.mp3",
+        "AhnQirajTriangleRoom2.mp3",
+        "AhnQirajTriangleRoom3.mp3",
+        "AhnQirajTriangleRoom4.mp3",
+        "AhnQirajTriangleRoom5.mp3",
+        "AhnQirajTriangleRoom6.mp3",
+        "AhnQirajTriangleRoom7.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/AhnQiraj",
+      "night": [
+        "AhnQirajTriangleRoom1.mp3",
+        "AhnQirajTriangleRoom2.mp3",
+        "AhnQirajTriangleRoom3.mp3",
+        "AhnQirajTriangleRoom4.mp3",
+        "AhnQirajTriangleRoom5.mp3",
+        "AhnQirajTriangleRoom6.mp3",
+        "AhnQirajTriangleRoom7.mp3"
+      ],
+      "setName": "AhnQirajTriangleRoom",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 253
+    },
+    "ahnqirajwalking": {
+      "day": [
+        "AhnQirajInterior1.mp3",
+        "AhnQirajInterior2.mp3",
+        "AhnQirajInterior3.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/AhnQiraj",
+      "night": [
+        "AhnQirajInterior1.mp3",
+        "AhnQirajInterior2.mp3",
+        "AhnQirajInterior3.mp3"
+      ],
+      "setName": "AhnQirajWalking",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 249
+    },
+    "alteracvalleypvp": {
+      "day": [
+        "CursedLand01.mp3",
+        "CursedLand02.mp3",
+        "battle05.mp3",
+        "CursedLand03.mp3",
+        "CursedLand04.mp3",
+        "battle06.mp3",
+        "CursedLand05.mp3",
+        "CursedLand06.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/CursedLand",
+      "night": [
+        "CursedLand01.mp3",
+        "CursedLand02.mp3",
+        "battle05.mp3",
+        "CursedLand03.mp3",
+        "CursedLand04.mp3",
+        "battle06.mp3",
+        "CursedLand05.mp3",
+        "CursedLand06.mp3"
+      ],
+      "setName": "Zone-Alterac Valley_PVP",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 242
+    },
+    "barrendry": {
+      "day": [
+        "NightBarrenDry01.mp3",
+        "NightBarrenDry02.mp3",
+        "DayBarrenDry02.mp3",
+        "DayBarrenDry03.mp3",
+        "NightBarrenDry03.mp3",
+        "DayBarrenDry01.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/BarrenDry",
+      "night": [
+        "NightBarrenDry01.mp3",
+        "NightBarrenDry02.mp3",
+        "DayBarrenDry02.mp3",
+        "DayBarrenDry03.mp3",
+        "NightBarrenDry03.mp3",
+        "DayBarrenDry01.mp3"
+      ],
+      "setName": "Zone-BarrenDry",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 7
+    },
+    "boneparty": {
+      "day": [
+        "undead_dance.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/TavernHorde",
+      "night": [
+        "undead_dance.mp3"
+      ],
+      "setName": "Zone-Bone Party",
+      "silence": {
+        "day": [
+          0,
+          0
+        ],
+        "night": [
+          0,
+          0
+        ]
+      },
+      "zoneMusicId": 220
+    },
+    "crossroads": {
+      "day": [
+        "orgrimmar01-zone.mp3",
+        "Thunderbluff Walking 03.mp3",
+        "orgrimmar02-zone.mp3",
+        "DayBarrenDry03.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/BarrenDry",
+      "night": [
+        "orgrimmar01-zone.mp3",
+        "Thunderbluff Walking 03.mp3",
+        "orgrimmar02-zone.mp3",
+        "DayBarrenDry03.mp3"
+      ],
+      "setName": "Zone-Crossroads",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 228
+    },
+    "cursedlandfelwood": {
+      "day": [
+        "CursedLand01.mp3",
+        "CursedLand03.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/CursedLand",
+      "night": [
+        "CursedLand01.mp3",
+        "CursedLand03.mp3"
+      ],
+      "setName": "Zone-CursedLand Felwood",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 193
+    },
+    "cursedlandfelwoodfurbolg": {
+      "day": [
+        "CursedLand02.mp3",
+        "CursedLand03.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/CursedLand",
+      "night": [
+        "CursedLand02.mp3",
+        "CursedLand03.mp3"
+      ],
+      "setName": "Zone-CursedLandFelwoodFurbolg",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 194
+    },
+    "darkforest": {
+      "day": [
+        "NightForest01.mp3",
+        "NightForest02.mp3",
+        "NightForest03.mp3",
+        "NightForest04.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/Forest",
+      "night": [
+        "NightForest01.mp3",
+        "NightForest02.mp3",
+        "NightForest03.mp3",
+        "NightForest04.mp3"
+      ],
+      "setName": "Zone-DarkForest",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 191
+    },
+    "darkmoonfairemusic": {
+      "day": [
+        "DarkMoonFaire_2.mp3"
+      ],
+      "dirBase": "Sound/Music/WorldEvents",
+      "night": [
+        "DarkMoonFaire_2.mp3"
+      ],
+      "setName": "Darkmoon_Faire_Music",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 244
+    },
+    "darnassus": {
+      "day": [
+        "Darnassus Walking 1.mp3",
+        "Darnassus Walking 2.mp3",
+        "Darnassus Walking 3.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Darnassus",
+      "night": [
+        "Darnassus Walking 1.mp3",
+        "Darnassus Walking 2.mp3",
+        "Darnassus Walking 3.mp3"
+      ],
+      "setName": "Zone-Darnassus",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 76
+    },
+    "desert": {
+      "day": [
+        "DayDesert01.mp3",
+        "DayDesert02.mp3",
+        "DayDesert03.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/Desert",
+      "night": [
+        "NightDesert01.mp3",
+        "NightDesert02.mp3",
+        "NightDesert03.mp3"
+      ],
+      "setName": "Zone-Desert",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 176
+    },
+    "desertcave": {
+      "day": [
+        "NightDesert01.mp3",
+        "NightDesert02.mp3",
+        "NightDesert03.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/Desert",
+      "night": [
+        "NightDesert01.mp3",
+        "NightDesert02.mp3",
+        "NightDesert03.mp3"
+      ],
+      "setName": "Zone-Desert Cave",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 192
+    },
+    "dwarfoutpost": {
+      "day": [
+        "Ironforge Walking 03 (Glenn).mp3",
+        "Ironforge Walking 04.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Ironforge",
+      "night": [
+        "Ironforge Walking 03 (Glenn).mp3",
+        "Ironforge Walking 04.mp3"
+      ],
+      "setName": "Zone-Dwarf Outpost",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 236
+    },
+    "enchantedforest": {
+      "day": [
+        "EnchantedForest05.mp3",
+        "EnchantedForest01.mp3",
+        "EnchantedForest04.mp3",
+        "EnchantedForest02.mp3",
+        "EnchantedForest03.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/EnchantedForest",
+      "night": [
+        "EnchantedForest05.mp3",
+        "EnchantedForest01.mp3",
+        "EnchantedForest04.mp3",
+        "EnchantedForest02.mp3",
+        "EnchantedForest03.mp3"
+      ],
+      "setName": "Zone-EnchantedForest",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 11
+    },
+    "evilforest": {
+      "day": [
+        "DayEvilForest01.mp3",
+        "DayEvilForest03.mp3",
+        "NightEvilForest01.mp3",
+        "DayEvilForest02.mp3",
+        "NightEvilForest02.mp3",
+        "NightEvilForest03.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/EvilForest",
+      "night": [
+        "DayEvilForest01.mp3",
+        "DayEvilForest03.mp3",
+        "NightEvilForest01.mp3",
+        "DayEvilForest02.mp3",
+        "NightEvilForest02.mp3",
+        "NightEvilForest03.mp3"
+      ],
+      "setName": "Zone-EvilForest",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 2
+    },
+    "evilforestnight": {
+      "day": [
+        "NightEvilForest01.mp3",
+        "NightEvilForest02.mp3",
+        "NightEvilForest03.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/EvilForest",
+      "night": [
+        "NightEvilForest01.mp3",
+        "NightEvilForest02.mp3",
+        "NightEvilForest03.mp3"
+      ],
+      "setName": "Zone_Evil Forest Night",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 229
+    },
+    "forest": {
+      "day": [
+        "DayForest01.mp3",
+        "DayForest02.mp3",
+        "DayForest03.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/Forest",
+      "night": [
+        "DayForest01.mp3",
+        "DayForest02.mp3",
+        "DayForest03.mp3"
+      ],
+      "setName": "Zone-Forest",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 1
+    },
+    "ghostmusicdonotrename": {
+      "day": [
+        "GhostMusic01.mp3",
+        "GhostMusic02.mp3",
+        "GhostMusic03.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/GhostMusic",
+      "night": [
+        "GhostMusic01.mp3",
+        "GhostMusic02.mp3",
+        "GhostMusic03.mp3"
+      ],
+      "setName": "GhostMusic (DONOTRENAME)",
+      "silence": {
+        "day": [
+          300000,
+          300000
+        ],
+        "night": [
+          600000,
+          600000
+        ]
+      },
+      "zoneMusicId": 36
+    },
+    "gnomeragon": {
+      "day": [
+        "gnomeragon01-zone.mp3",
+        "gnomeragon02-zone.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Gnomeragon",
+      "night": [],
+      "setName": "Zone-Gnomeragon",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 235
+    },
+    "haunted": {
+      "day": [
+        "haunted01.mp3"
+      ],
+      "dirBase": "Sound/Music/Musical Moments/haunted",
+      "night": [
+        "haunted01.mp3"
+      ],
+      "setName": "Zone-Haunted",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 15
+    },
+    "introahnqirajinterior": {
+      "day": [
+        "AhnQirajInteriorIntroMain.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/AhnQiraj",
+      "night": [
+        "AhnQirajInteriorIntroMain.mp3"
+      ],
+      "setName": "Intro - AhnQirajInterior",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 250
+    },
+    "ironforge": {
+      "day": [
+        "IronForge Walking 01.mp3",
+        "Ironforge Walking 03 (Glenn).mp3",
+        "Ironforge Walking 04.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Ironforge",
+      "night": [
+        "IronForge Walking 01.mp3",
+        "Ironforge Walking 03 (Glenn).mp3",
+        "Ironforge Walking 04.mp3"
+      ],
+      "setName": "Zone-Ironforge",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 232
+    },
+    "ironforgeintro": {
+      "day": [
+        "IronForge Intro.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Ironforge",
+      "night": [
+        "IronForge Intro.mp3"
+      ],
+      "setName": "Zone-Ironforge Intro",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 231
+    },
+    "jungle": {
+      "day": [
+        "DayJungle01.mp3",
+        "DayJungle02.mp3",
+        "DayJungle03.mp3",
+        "NightJungle01.mp3",
+        "NightJungle02.mp3",
+        "NightJungle03.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/Jungle",
+      "night": [
+        "DayJungle01.mp3",
+        "DayJungle02.mp3",
+        "DayJungle03.mp3",
+        "NightJungle01.mp3",
+        "NightJungle02.mp3",
+        "NightJungle03.mp3"
+      ],
+      "setName": "Zone-Jungle",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 3
+    },
+    "magic": {
+      "day": [
+        "magic01-zone2.mp3",
+        "magic01-zone1.mp3"
+      ],
+      "dirBase": "Sound/Music/Musical Moments/magic",
+      "night": [
+        "magic01-zone2.mp3",
+        "magic01-zone1.mp3"
+      ],
+      "setName": "Zone-Magic",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 199
+    },
+    "momentahnqirajintro1": {
+      "day": [
+        "AhnQirajIntro1.mp3"
+      ],
+      "dirBase": "Sound/Music/Musical Moments/Mystery",
+      "night": [
+        "AhnQirajIntro1.mp3"
+      ],
+      "setName": "Moment - AhnQiraj Intro 1",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 246
+    },
+    "momentangelic01": {
+      "day": [
+        "angelic01.mp3"
+      ],
+      "dirBase": "Sound/Music/Musical Moments/angelic",
+      "night": [
+        "angelic01.mp3"
+      ],
+      "setName": "Moment-Angelic01",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 157
+    },
+    "momentbattle01": {
+      "day": [
+        "battle01.mp3"
+      ],
+      "dirBase": "Sound/Music/Musical Moments/battle",
+      "night": [
+        "battle01.mp3"
+      ],
+      "setName": "Moment-Battle01",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 209
+    },
+    "momentbattle02": {
+      "day": [
+        "battle02.mp3"
+      ],
+      "dirBase": "Sound/Music/Musical Moments/battle",
+      "night": [
+        "battle02.mp3"
+      ],
+      "setName": "Moment-Battle02",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 217
+    },
+    "momentbattle03": {
+      "day": [
+        "battle03.mp3"
+      ],
+      "dirBase": "Sound/Music/Musical Moments/battle",
+      "night": [
+        "battle03.mp3"
+      ],
+      "setName": "Moment-Battle03",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 210
+    },
+    "momentbattle04": {
+      "day": [
+        "battle04.mp3"
+      ],
+      "dirBase": "Sound/Music/Musical Moments/battle",
+      "night": [
+        "battle04.mp3"
+      ],
+      "setName": "Moment-Battle04",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 211
+    },
+    "momentbattle05": {
+      "day": [
+        "battle05.mp3"
+      ],
+      "dirBase": "Sound/Music/Musical Moments/battle",
+      "night": [
+        "battle05.mp3"
+      ],
+      "setName": "Moment-Battle05",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 215
+    },
+    "momentbattle06": {
+      "day": [
+        "battle06.mp3"
+      ],
+      "dirBase": "Sound/Music/Musical Moments/battle",
+      "night": [
+        "battle06.mp3"
+      ],
+      "setName": "Moment-Battle06",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 219
+    },
+    "momentdarnassusintro": {
+      "day": [
+        "Darnassus Intro.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Darnassus",
+      "night": [
+        "Darnassus Intro.mp3"
+      ],
+      "setName": "Moment-Darnassus Intro",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 56
+    },
+    "momentdarnassuswalking03": {
+      "day": [
+        "Darnassus Walking 3.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Darnassus",
+      "night": [
+        "Darnassus Walking 3.mp3"
+      ],
+      "setName": "Moment-Darnassus Walking03",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 239
+    },
+    "momentdesert03": {
+      "day": [
+        "NightDesert03.mp3",
+        "DayDesert03.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/Desert",
+      "night": [
+        "NightDesert03.mp3",
+        "DayDesert03.mp3"
+      ],
+      "setName": "Moment-Desert03",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 184
+    },
+    "momentdruidgrove": {
+      "day": [
+        "Druid Grove.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Darnassus",
+      "night": [
+        "Druid Grove.mp3"
+      ],
+      "setName": "Moment-DruidGrove",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 96
+    },
+    "momentevilforestnight3": {
+      "day": [
+        "NightEvilForest03.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/EvilForest",
+      "night": [
+        "NightEvilForest03.mp3"
+      ],
+      "setName": "Moment-Evil Forest Night3",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 240
+    },
+    "momentgloomy01": {
+      "day": [
+        "gloomy01.mp3"
+      ],
+      "dirBase": "Sound/Music/Musical Moments/gloomy",
+      "night": [
+        "gloomy01.mp3"
+      ],
+      "setName": "Moment-Gloomy01",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 206
+    },
+    "momentgloomy02": {
+      "day": [
+        "gloomy02.mp3"
+      ],
+      "dirBase": "Sound/Music/Musical Moments/gloomy",
+      "night": [
+        "gloomy02.mp3"
+      ],
+      "setName": "Moment-Gloomy02",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 207
+    },
+    "momenthaunted02": {
+      "day": [
+        "haunted02.mp3"
+      ],
+      "dirBase": "Sound/Music/Musical Moments/haunted",
+      "night": [
+        "haunted02.mp3"
+      ],
+      "setName": "Moment-Haunted02",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 183
+    },
+    "momentkingstheme": {
+      "day": [
+        "IronForge Walking 02.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Ironforge",
+      "night": [
+        "IronForge Walking 02.mp3"
+      ],
+      "setName": "Moment-KingsTheme",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 233
+    },
+    "momentmagic": {
+      "day": [
+        "magic01-moment.mp3"
+      ],
+      "dirBase": "Sound/Music/Musical Moments/magic",
+      "night": [
+        "magic01-moment.mp3"
+      ],
+      "setName": "Moment-Magic",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 200
+    },
+    "momentorcbarren": {
+      "day": [
+        "DayBarrenDry03.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/BarrenDry",
+      "night": [
+        "DayBarrenDry03.mp3"
+      ],
+      "setName": "Moment-Orc Barren",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 237
+    },
+    "momentorgrimmar": {
+      "day": [
+        "orgrimmar01-moment.mp3",
+        "orgrimmar02-moment.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Orgrimmar",
+      "night": [
+        "orgrimmar01-moment.mp3",
+        "orgrimmar02-moment.mp3"
+      ],
+      "setName": "Moment-Orgrimmar",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 221
+    },
+    "momentorgrimmar01": {
+      "day": [
+        "orgrimmar01-moment.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Orgrimmar",
+      "night": [
+        "orgrimmar01-moment.mp3"
+      ],
+      "setName": "Moment-Orgrimmar01",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 181
+    },
+    "momentorgrimmar02": {
+      "day": [
+        "orgrimmar02-moment.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Orgrimmar",
+      "night": [
+        "orgrimmar02-moment.mp3"
+      ],
+      "setName": "Moment-Orgrimmar02",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 213
+    },
+    "momentorgrimmarintro": {
+      "day": [
+        "orgrimmar_intro-moment.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Orgrimmar",
+      "night": [
+        "orgrimmar_intro-moment.mp3"
+      ],
+      "setName": "Moment-Orgrimmar Intro",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 16
+    },
+    "momentsacred01": {
+      "day": [
+        "Sacred01.mp3"
+      ],
+      "dirBase": "Sound/Music/Musical Moments/Sacred",
+      "night": [
+        "Sacred01.mp3"
+      ],
+      "setName": "Moment-Sacred01",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 116
+    },
+    "momentsacred02": {
+      "day": [
+        "sacred02.mp3"
+      ],
+      "dirBase": "Sound/Music/Musical Moments/Sacred",
+      "night": [
+        "sacred02.mp3"
+      ],
+      "setName": "Moment-Sacred02",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 208
+    },
+    "momentspooky01": {
+      "day": [
+        "spooky01-moment.mp3"
+      ],
+      "dirBase": "Sound/Music/Musical Moments/spooky",
+      "night": [
+        "spooky01-moment.mp3"
+      ],
+      "setName": "Moment-Spooky01",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 179
+    },
+    "momentstormwind01": {
+      "day": [
+        "stormwind01-moment.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Stormwind",
+      "night": [
+        "stormwind01-moment.mp3"
+      ],
+      "setName": "Moment-Stormwind01",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 177
+    },
+    "momentstormwind02": {
+      "day": [
+        "stormwind02-moment.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Stormwind",
+      "night": [
+        "stormwind02-moment.mp3"
+      ],
+      "setName": "Moment-Stormwind02",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 178
+    },
+    "momentstormwind03": {
+      "day": [
+        "stormwind03-moment.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Stormwind",
+      "night": [
+        "stormwind03-moment.mp3"
+      ],
+      "setName": "Moment-Stormwind03",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 180
+    },
+    "momentstormwind07": {
+      "day": [
+        "stormwind07-zone.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Stormwind",
+      "night": [
+        "stormwind07-zone.mp3"
+      ],
+      "setName": "Moment-Stormwind07",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 222
+    },
+    "momentstormwind08": {
+      "day": [
+        "stormwind08-zone.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Stormwind",
+      "night": [
+        "stormwind08-zone.mp3"
+      ],
+      "setName": "Moment-Stormwind08",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 186
+    },
+    "momentstormwindsouthseas": {
+      "day": [
+        "stormwind_highSeas-moment.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Stormwind",
+      "night": [
+        "stormwind_highSeas-moment.mp3"
+      ],
+      "setName": "Moment-StormwindSouthSeas",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 224
+    },
+    "momentswamp01": {
+      "day": [
+        "swamp01.mp3"
+      ],
+      "dirBase": "Sound/Music/Musical Moments/swamp",
+      "night": [
+        "swamp01.mp3"
+      ],
+      "setName": "Moment-Swamp01",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 136
+    },
+    "momentvalleyofheros": {
+      "day": [
+        "stormwind_intro-moment.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Stormwind",
+      "night": [
+        "stormwind_intro-moment.mp3"
+      ],
+      "setName": "Moment-ValleyofHeros",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 12
+    },
+    "momentwarriorterrace": {
+      "day": [
+        "Warrior Terrace.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Darnassus",
+      "night": [
+        "Warrior Terrace.mp3"
+      ],
+      "setName": "Moment-WarriorTerrace",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 188
+    },
+    "momentzulgurub": {
+      "day": [
+        "ZulGurubVooDoo.mp3"
+      ],
+      "dirBase": "Sound/Music/Musical Moments",
+      "night": [
+        "ZulGurubVooDoo.mp3"
+      ],
+      "setName": "Moment - ZulGurub",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 245
+    },
+    "monestery": {
+      "day": [
+        "Ironforge Walking 03 (Glenn).mp3",
+        "Ironforge Walking 04.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Ironforge",
+      "night": [
+        "Ironforge Walking 03 (Glenn).mp3",
+        "Ironforge Walking 04.mp3"
+      ],
+      "setName": "Zone-Monestery",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 238
+    },
+    "mountain": {
+      "day": [
+        "DayMountain01.mp3",
+        "DayMountain02.mp3",
+        "DayMountain03.mp3",
+        "NightMountain03.mp3",
+        "NightMountain04.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/Mountain",
+      "night": [
+        "NightMountain01.mp3",
+        "DayMountain03.mp3",
+        "NightMountain03.mp3",
+        "DayMountain02.mp3",
+        "NightMountain02.mp3",
+        "DayMountain01.mp3",
+        "NightMountain04.mp3"
+      ],
+      "setName": "Zone-Mountain",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 8
+    },
+    "mystery": {
+      "day": [
+        "mystery03-zone.mp3",
+        "mystery04-zone.mp3",
+        "mystery10-zone.mp3",
+        "mystery05-zone.mp3",
+        "mystery02-zone.mp3",
+        "mystery06-zone.mp3",
+        "mystery07-zone.mp3",
+        "mystery08-zone.mp3",
+        "mystery09-zone.mp3",
+        "mystery01-zone.mp3"
+      ],
+      "dirBase": "Sound/Music/Musical Moments/mystery",
+      "night": [
+        "mystery03-zone.mp3",
+        "mystery04-zone.mp3",
+        "mystery10-zone.mp3",
+        "mystery05-zone.mp3",
+        "mystery02-zone.mp3",
+        "mystery06-zone.mp3",
+        "mystery07-zone.mp3",
+        "mystery08-zone.mp3",
+        "mystery09-zone.mp3",
+        "mystery01-zone.mp3"
+      ],
+      "setName": "Zone-Mystery",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 204
+    },
+    "naxxramas": {
+      "day": [
+        "NaxxramasWalking1.mp3",
+        "NaxxramasWalking2.mp3",
+        "NaxxramasWalking3.mp3",
+        "NaxxramasWalking4.mp3",
+        "NaxxramasWalking5.mp3",
+        "NaxxramasWalking6.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/Naxxramas",
+      "night": [
+        "NaxxramasWalking1.mp3",
+        "NaxxramasWalking2.mp3",
+        "NaxxramasWalking3.mp3",
+        "NaxxramasWalking4.mp3",
+        "NaxxramasWalking5.mp3",
+        "NaxxramasWalking6.mp3"
+      ],
+      "setName": "Zone - Naxxramas",
+      "silence": {
+        "day": [
+          130000,
+          130000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 255
+    },
+    "naxxramasabomination": {
+      "day": [
+        "NaxxramasAbominationWing1.mp3",
+        "NaxxramasAbominationWing2.mp3",
+        "NaxxramasAbominationWing3.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/Naxxramas",
+      "night": [
+        "NaxxramasAbominationWing1.mp3",
+        "NaxxramasAbominationWing2.mp3",
+        "NaxxramasAbominationWing3.mp3"
+      ],
+      "setName": "Zone-NaxxramasAbomination",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 258
+    },
+    "naxxramasabominationboss": {
+      "day": [
+        "NaxxramasAbominationBoss1.mp3",
+        "NaxxramasAbominationBoss2.mp3",
+        "NaxxramasAbominationWing1.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/Naxxramas",
+      "night": [
+        "NaxxramasAbominationBoss1.mp3",
+        "NaxxramasAbominationBoss2.mp3",
+        "NaxxramasAbominationWing1.mp3"
+      ],
+      "setName": "Zone-NaxxramasAbominationBoss",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 257
+    },
+    "naxxramasdeathknight": {
+      "day": [
+        "NaxxramasWalking1.mp3",
+        "NaxxramasWalking2.mp3",
+        "NaxxramasWalking3.mp3",
+        "NaxxramasWalking4.mp3",
+        "NaxxramasWalking5.mp3",
+        "NaxxramasWalking6.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/Naxxramas",
+      "night": [
+        "NaxxramasWalking1.mp3",
+        "NaxxramasWalking2.mp3",
+        "NaxxramasWalking3.mp3",
+        "NaxxramasWalking4.mp3",
+        "NaxxramasWalking5.mp3",
+        "NaxxramasWalking6.mp3"
+      ],
+      "setName": "NaxxramasDeathKnight",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 256
+    },
+    "naxxramasfrostwyrm": {
+      "day": [
+        "NaxxramasFrostwyrm1.mp3",
+        "NaxxramasFrostwyrm2.mp3",
+        "NaxxramasFrostwyrm3.mp3",
+        "NaxxramasFrostwyrm4.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/Naxxramas",
+      "night": [
+        "NaxxramasFrostwyrm1.mp3",
+        "NaxxramasFrostwyrm2.mp3",
+        "NaxxramasFrostwyrm3.mp3",
+        "NaxxramasFrostwyrm4.mp3"
+      ],
+      "setName": "Zone-NaxxramasFrostwyrm",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 259
+    },
+    "naxxramaskelthuzad": {
+      "day": [
+        "NaxxramasKelThuzad1.mp3",
+        "NaxxramasKelThuzad2.mp3",
+        "NaxxramasKelThuzad3.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/Naxxramas",
+      "night": [
+        "NaxxramasKelThuzad1.mp3",
+        "NaxxramasKelThuzad2.mp3",
+        "NaxxramasKelThuzad3.mp3"
+      ],
+      "setName": "Zone-NaxxramasKelthuzad",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 261
+    },
+    "naxxramasplague": {
+      "day": [
+        "NaxxramasPlagueWing1.mp3",
+        "NaxxramasPlagueWing2.mp3",
+        "NaxxramasPlagueWing3.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/Naxxramas",
+      "night": [
+        "NaxxramasPlagueWing1.mp3",
+        "NaxxramasPlagueWing2.mp3",
+        "NaxxramasPlagueWing3.mp3"
+      ],
+      "setName": "Zone-NaxxramasPlague",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 263
+    },
+    "naxxramasplagueboss": {
+      "day": [
+        "NaxxramasPlagueBoss1.mp3",
+        "NaxxramasPlagueWing1.mp3",
+        "NaxxramasPlagueWing2.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/Naxxramas",
+      "night": [
+        "NaxxramasPlagueBoss1.mp3",
+        "NaxxramasPlagueWing1.mp3",
+        "NaxxramasPlagueWing2.mp3"
+      ],
+      "setName": "Zone-NaxxramasPlagueBoss",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 262
+    },
+    "naxxramasspider": {
+      "day": [
+        "NaxxramasSpiderWing1.mp3",
+        "NaxxramasSpiderWing2.mp3",
+        "NaxxramasSpiderWing3.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/Naxxramas",
+      "night": [
+        "NaxxramasSpiderWing1.mp3",
+        "NaxxramasSpiderWing2.mp3",
+        "NaxxramasSpiderWing3.mp3"
+      ],
+      "setName": "Zone-NaxxramasSpider",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 265
+    },
+    "naxxramasspiderboss": {
+      "day": [
+        "NaxxramasSpiderBoss1.mp3",
+        "NaxxramasSpiderWing3.mp3",
+        "NaxxramasSpiderBoss2.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/Naxxramas",
+      "night": [
+        "NaxxramasSpiderBoss1.mp3",
+        "NaxxramasSpiderWing3.mp3",
+        "NaxxramasSpiderBoss2.mp3"
+      ],
+      "setName": "Zone-NaxxramasSpiderBoss",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 264
+    },
+    "orgrimmar": {
+      "day": [
+        "orgrimmar02-zone.mp3",
+        "orgrimmar01-zone.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Orgrimmar",
+      "night": [
+        "orgrimmar02-zone.mp3",
+        "orgrimmar01-zone.mp3"
+      ],
+      "setName": "Zone-Orgrimmar",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 14
+    },
+    "orgrmmar02": {
+      "day": [
+        "orgrimmar02-zone.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Orgrimmar",
+      "night": [
+        "orgrimmar02-zone.mp3"
+      ],
+      "setName": "Zone-Orgrmmar02",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 214
+    },
+    "plaguelands": {
+      "day": [
+        "CursedLand04.mp3",
+        "CursedLand05.mp3",
+        "CursedLand06.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/CursedLand",
+      "night": [
+        "CursedLand04.mp3",
+        "CursedLand05.mp3",
+        "CursedLand06.mp3"
+      ],
+      "setName": "Zone-Plaguelands",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 205
+    },
+    "plains": {
+      "day": [
+        "NightPlains01.mp3",
+        "DayPlains02.mp3",
+        "NightPlains02.mp3",
+        "DayPlains01.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/Plains",
+      "night": [
+        "NightPlains01.mp3",
+        "DayPlains02.mp3",
+        "NightPlains02.mp3",
+        "DayPlains01.mp3"
+      ],
+      "setName": "Zone-Plains",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 9
+    },
+    "pvpbattlegrounds": {
+      "day": [
+        "pvp2.mp3",
+        "pvp1.mp3",
+        "pvp3.mp3",
+        "pvp4.mp3",
+        "pvp5.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/PVP",
+      "night": [
+        "pvp2.mp3",
+        "pvp1.mp3",
+        "pvp3.mp3",
+        "pvp4.mp3",
+        "pvp5.mp3"
+      ],
+      "setName": "PVP_BAttleGrounds",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 243
+    },
+    "soggy": {
+      "day": [
+        "soggyplace-zone2.mp3",
+        "soggyplace-zone5.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/SoggyPlace",
+      "night": [
+        "soggyplace-zone1.mp3",
+        "soggyplace-zone3.mp3",
+        "soggyplace-zone4.mp3"
+      ],
+      "setName": "Zone-Soggy",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 227
+    },
+    "soggyswamp": {
+      "day": [
+        "soggyplace-zone1.mp3",
+        "soggyplace-zone3.mp3",
+        "soggyplace-zone4.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/SoggyPlace",
+      "night": [
+        "soggyplace-zone1.mp3",
+        "soggyplace-zone3.mp3",
+        "soggyplace-zone4.mp3"
+      ],
+      "setName": "Zone-Soggy Swamp",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 223
+    },
+    "stormwind": {
+      "day": [
+        "stormwind05-zone.mp3",
+        "stormwind06-zone.mp3",
+        "stormwind07-zone.mp3",
+        "stormwind08-zone.mp3",
+        "stormwind01-moment.mp3",
+        "stormwind03-moment.mp3",
+        "stormwind04-zone.mp3",
+        "stormwind02-moment.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Stormwind",
+      "night": [
+        "stormwind05-zone.mp3",
+        "stormwind06-zone.mp3",
+        "stormwind07-zone.mp3",
+        "stormwind08-zone.mp3",
+        "stormwind01-moment.mp3",
+        "stormwind03-moment.mp3",
+        "stormwind04-zone.mp3",
+        "stormwind02-moment.mp3"
+      ],
+      "setName": "Zone-Stormwind",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 13
+    },
+    "tavernalliance": {
+      "day": [
+        "TavernAlliance01.mp3",
+        "TavernAlliance02.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/TavernAlliance",
+      "night": [
+        "TavernAlliance01.mp3",
+        "TavernAlliance02.mp3"
+      ],
+      "setName": "Zone-TavernAlliance",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 156
+    },
+    "tavernhorde": {
+      "day": [
+        "TavernHorde01.mp3",
+        "TavernHorde02.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/TavernHorde",
+      "night": [
+        "TavernHorde01.mp3",
+        "TavernHorde02.mp3"
+      ],
+      "setName": "Zone-TavernHorde",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 185
+    },
+    "tavernhorde01": {
+      "day": [
+        "TavernHorde03.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/TavernHorde",
+      "night": [
+        "TavernHorde03.mp3"
+      ],
+      "setName": "Zone-TavernHorde01",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 189
+    },
+    "thunderbluff": {
+      "day": [
+        "Thunderbluff Walking 01.mp3",
+        "Thunderbluff Walking 02.mp3",
+        "Thunderbluff Walking 03.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Thunderbluff",
+      "night": [
+        "Thunderbluff Walking 01.mp3",
+        "Thunderbluff Walking 02.mp3",
+        "Thunderbluff Walking 03.mp3"
+      ],
+      "setName": "Zone-Thunderbluff",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 226
+    },
+    "thunderbluffintro": {
+      "day": [
+        "Thunderbluff Intro.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Thunderbluff",
+      "night": [
+        "Thunderbluff Intro.mp3"
+      ],
+      "setName": "Zone-Thunderbluff Intro",
+      "silence": {
+        "day": [
+          180000,
+          1800000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 225
+    },
+    "tinkertownintro": {
+      "day": [
+        "tinkertownintro_moment.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Ironforge",
+      "night": [
+        "tinkertownintro_moment.mp3"
+      ],
+      "setName": "Zone-TinkerTown Intro",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 230
+    },
+    "undercity": {
+      "day": [
+        "undercity01-zone.mp3",
+        "undercity02-zone.mp3",
+        "undercity03-zone.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Undercity",
+      "night": [
+        "undercity01-zone.mp3",
+        "undercity02-zone.mp3",
+        "undercity03-zone.mp3"
+      ],
+      "setName": "Zone-Undercity",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 182
+    },
+    "undercityintro": {
+      "day": [
+        "undercityintro-moment.mp3"
+      ],
+      "dirBase": "Sound/Music/CityMusic/Undercity",
+      "night": [
+        "undercityintro-moment.mp3"
+      ],
+      "setName": "Zone - Undercity Intro",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 212
+    },
+    "volcanic": {
+      "day": [
+        "DayVolcanic01.mp3",
+        "DayVolcanic02.mp3",
+        "NightVolcanic01.mp3",
+        "NightVolcanic02.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/Volcanic",
+      "night": [
+        "DayVolcanic01.mp3",
+        "DayVolcanic02.mp3",
+        "NightVolcanic01.mp3",
+        "NightVolcanic02.mp3"
+      ],
+      "setName": "Zone-Volcanic",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 10
+    },
+    "volcaniccave": {
+      "day": [
+        "DayVolcanic01.mp3",
+        "DayVolcanic02.mp3",
+        "NightVolcanic01.mp3",
+        "NightVolcanic02.mp3"
+      ],
+      "dirBase": "Sound/Music/ZoneMusic/Volcanic",
+      "night": [
+        "DayVolcanic01.mp3",
+        "DayVolcanic02.mp3",
+        "NightVolcanic01.mp3",
+        "NightVolcanic02.mp3"
+      ],
+      "setName": "Zone-VolcanicCave",
+      "silence": {
+        "day": [
+          180000,
+          180000
+        ],
+        "night": [
+          300000,
+          300000
+        ]
+      },
+      "zoneMusicId": 196
+    }
+  }
+}

@@ -1,0 +1,90 @@
+{
+ "raid": "wailing-caverns",
+ "note": "Reviewed for E5.4 against eventai/wailing-caverns.ts, acid_classic.sql and the whole ScriptDevAI wailing_caverns dir - which holds only the instance script and the escort, no boss file, so every kit here is an EventAI cast list. All nine bosses come back kinds: []. Of the four Druids of the Fang only Pythas casts a hostile area effect at all; the rest is Sleep, Healing Touch and Lightning Bolt one target at a time, and the answer to each is a dispel, a purge or an interrupt in the class rotation. Verdan is the one boss in the wing that asks for a run-out, and blockedBy carries the reason it cannot have one: the walk out of Grasping Vines is 100 ms longer than the cast that arms it.",
+ "bosses": [
+  {
+   "entry": 3671,
+   "name": "Lady Anacondra",
+   "kinds": [],
+   "cite": "eventai/wailing-caverns.ts:255-293, acid_classic.sql:17280-17287 creature_id=3671. Nothing she casts has a hostile radius. Sleep 700 is targetA 6 TARGET_UNIT_ENEMY, mechanic 10 MECHANIC_SLEEP, dispel 1, 20 s, 1500 ms cast, thrown at EventAI target 5 TARGET_T_HOSTILE_RANDOM_NOT_TOP; Lightning Bolt 9532 is targetA 6 at 40 yd; Healing Touch 5187 is targetA 21 TARGET_UNIT_FRIEND. Thorns Aura 8148 is Effect 35 SPELL_EFFECT_APPLY_AREA_AURA_PARTY, targetA 1 TARGET_UNIT_CASTER, radiusYd 30, aura 15 SPELL_AURA_DAMAGE_SHIELD 19 for 60 s - a buff on her own Druids of the Fang, so a purge, not ground to leave. Flees for assist at 15%."
+  },
+  {
+   "entry": 3669,
+   "name": "Lord Cobrahn",
+   "kinds": [],
+   "cite": "eventai/wailing-caverns.ts:73-142, acid_classic.sql:17263-17270 creature_id=3669. The Druid form change matters, but not to where anyone stands: Cobrahn Serpent Form 7965 is targetA 1 self (aura 56 SPELL_AURA_TRANSFORM miscValue 5791, aura 13 SPELL_AURA_MOD_DAMAGE_DONE 49, aura 138 SPELL_AURA_MOD_MELEE_HASTE -44, 300 s) cast once at <=30% HP with SetPhase 1, and script 366907 carries inversePhaseMask 1 - CheckEvent skips an event whose bit for the current phase is set (creatureCastList.ts:1071-1072), so the transform is what switches Druid's Slumber ON. 8040 is then mechanic 10 MECHANIC_SLEEP, dispel 1, 15 s, targetA 6, EventAI target 4 TARGET_T_HOSTILE_RANDOM - one sleeper at a time, which is a dispel. Poison Proc 3616 is targetA 1 self (aura 42 SPELL_AURA_PROC_TRIGGER_SPELL, trigger 744), Healing Touch 5188 targetA 21, Lightning Bolt 9532 targetA 6. No radius anywhere in the kit."
+  },
+  {
+   "entry": 3653,
+   "name": "Kresh",
+   "kinds": [],
+   "cite": "No script of any kind: acid_classic.sql has no row for creature_id=3653, src_creature_template_spells and src_creature_ai_scripts have none either, the overlay list at eventai/wailing-caverns.ts:403-411 does not name him, and the ScriptDevAI wailing_caverns dir has no boss file. src_creature_template.AIName and ScriptName are both empty and SpellList is 0. His whole kit is the creature_template melee - tank-and-spank."
+  },
+  {
+   "entry": 5912,
+   "name": "Deviate Faerie Dragon",
+   "kinds": [],
+   "cite": "Same three empties as Kresh: no acid_classic.sql row for creature_id=5912, no src_creature_template_spells row, no entry in the overlay list at eventai/wailing-caverns.ts:403-411, and no ScriptDevAI file. Rank 2 rare, MechanicImmuneMask 8388624, AIName empty, and optional in the instance graph (wailing-caverns.ts:202-212). Melee only."
+  },
+  {
+   "entry": 3670,
+   "name": "Lord Pythas",
+   "kinds": [],
+   "cite": "eventai/wailing-caverns.ts:150-213, acid_classic.sql:17272-17278 creature_id=3670. Thunderclap 8147 is the only hostile area effect the four Druids of the Fang have between them: targetA 22 TARGET_LOCATION_CASTER_SRC into tgtB 15 TARGET_ENUM_UNITS_ENEMY_AOE_AT_SRC_LOC, radiusYd 10 on all three effects - 70 damage, aura 33 SPELL_AURA_MOD_DECREASE_SPEED -41 (effMechanic 11 MECHANIC_SNARE) and aura 138 SPELL_AURA_MOD_MELEE_HASTE -44 for 10 s, cast at EventAI target 17 TARGET_T_NEAREST_AOE_TARGET every 12-20 s. It is castMs 0, so there is no cast bar to react to and no aura on Pythas to gate a walk on: the disc lands before any move verb can be armed, and the snare is dispel 1, a class row. Sleep 700 targetA 6, Healing Touch 5187 targetA 21 and Lightning Bolt 9532 targetA 6 are the same single-target three Anacondra has."
+  },
+  {
+   "entry": 3674,
+   "name": "Skum",
+   "kinds": [],
+   "cite": "eventai/wailing-caverns.ts:361-382, acid_classic.sql:17302-17303 creature_id=3674 - two rows and no more. Chained Bolt 6254 is targetA 6 TARGET_UNIT_ENEMY, 27 damage, 1800 ms cast, 30 yd, on EventAI target 1 TARGET_T_HOSTILE; src_creature_template_spells confirms spell1=6254 and nothing else. The other row is flee for assist at 15%. Single target start to finish."
+  },
+  {
+   "entry": 3673,
+   "name": "Lord Serpentis",
+   "kinds": [],
+   "cite": "eventai/wailing-caverns.ts:301-355, acid_classic.sql:17295-17300 creature_id=3673. Three casts and not one has a radius: Healing Touch 6778 targetA 21 TARGET_UNIT_FRIEND (741 healed), Sleep 700 targetA 6 mechanic 10 MECHANIC_SLEEP on EventAI target 5 TARGET_T_HOSTILE_RANDOM_NOT_TOP, Lightning Bolt 9532 targetA 6 at 40 yd. The last of the Fanglords is the thinnest of them - a heal to purge or interrupt and a sleep to dispel."
+  },
+  {
+   "entry": 5775,
+   "name": "Verdan the Everliving",
+   "kinds": [
+    "position"
+   ],
+   "cite": "eventai/wailing-caverns.ts:388-401, acid_classic.sql:17333 creature_id=5775, src_creature_template_spells spell1=8142 and no spell2. Grasping Vines 8142 is his entire kit and it is a real run-out shape: targetA 22 TARGET_LOCATION_CASTER_SRC into tgtB 15, radiusYd 10 on all three effects - 149 damage, aura 26 SPELL_AURA_MOD_ROOT for 10 s (mechanic 7 MECHANIC_ROOT) and Effect 64 SPELL_EFFECT_TRIGGER_SPELL into 5164 Knockdown - castMs 1000, EventAI target 17 TARGET_T_NEAREST_AOE_TARGET every 15-30 s. It is the one mechanic in the wing a move verb would answer if the numbers allowed it, so the gap is in blockedBy rather than dropped.",
+   "encounterRows": [
+    {
+     "kind": "position",
+     "label": "Step out of Grasping Vines",
+     "cite": "eventai/wailing-caverns.ts:388-401, acid_classic.sql:17333 creature_id=5775 script 577501: 8142 Grasping Vines is castTimeMs 1000, aoeShape pbaoe radiusYd 10, direct_damage plus a 10 s root, every 15-30 s. The old refusal was ARITHMETIC and today's park ring retired it: Verdan's own creature_model_info.combat_reach is 6.75, so combinedCombatReachYd is max(5, 1.5+6.75+1.33) = 9.58 and melee arrive at the 10.13 contact ring instead of MIN_AGGRO_DISTANCE 5. keep_range arrives at radiusYd+1+0.5 = 11.5, so the walk is 1.37 yd, 2 ticks at BASE_RUN_SPEED 7.0 plus the tick that arms the row, against a 1000 ms cast. Cite: faa2f79fa; Object.cpp:1741-1758 GetCombinedCombatReach; sessionMechanicMove.ts:526 keep_range",
+     "rule": {
+      "id": "raid_enc_5775_keep_range_vines",
+      "action": {
+       "kind": "move",
+       "move": {
+        "kind": "keep_range",
+        "entry": 5775,
+        "minYd": 11
+       }
+      },
+      "conditions": [
+       {
+        "subject": "target",
+        "metric": "castingSpellId",
+        "op": "==",
+        "value": 8142
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "entry": 3654,
+   "name": "Mutanus the Devourer",
+   "kinds": [],
+   "cite": "eventai/wailing-caverns.ts:19-66, acid_classic.sql:17253-17258 creature_id=3654. Thundercrack 8150 is targetA 22 TARGET_LOCATION_CASTER_SRC into tgtB 15, 93 damage at radiusYd 10 and aura 12 SPELL_AURA_MOD_STUN at radiusYd 20, mechanic 12 MECHANIC_STUN for 2500 ms, every 10-16 s - and castMs 0, so it is the Bazil Thredd shape at four times the radius: no telegraph, and the melee are inside 20 yd because that is where melee happens. A repeated melee stun is a trinket, Tremor Totem or Berserker Rage, which are class rows. Naralex's Nightmare 7967 (targetA 6, mechanic 10 MECHANIC_SLEEP, 15 s, 2000 ms cast) and Terrify 7399 (targetA 6, mechanic 5 MECHANIC_FEAR, 4 s, 5 yd) are both one target.",
+   "note": "No kill-order for the escort payoff: wailing_cavernsScripts.cpp:365-370 summons Mutanus in subevent phase 6, and the escort only reaches it once the ectoplasm wave is dead (:256-260 advances at m_uiSummonedAlive == 0, :358-364 is the wait). He arrives alone."
+  }
+ ]
+}

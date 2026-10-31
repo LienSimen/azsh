@@ -1,0 +1,1425 @@
+{
+  "generated": "2026-07-27",
+  "note": "W9 approach (*ent.webp) wiring — overlays on a continent map, no InstanceDef. next-batch.mjs marks a stem done when this record exists. Portal world points are AreaTrigger.dbc centers; floorplans are ADT-tile outdoor bakes under public/maps/floorplan/.",
+  "blackfathomdeepsent": {
+    "stem": "blackfathomdeepsent",
+    "atlasStem": "BlackfathomDeepsEnt",
+    "slug": "blackfathom-deeps-ent",
+    "kind": "approach",
+    "mapId": 1,
+    "floorplan": "/maps/floorplan/1-blackfathom-deeps-ent.json",
+    "viewportKey": "blackfathom-deeps-ent",
+    "instanceId": "blackfathom-deeps",
+    "instanceMapId": 48,
+    "portal": {
+      "areatriggerId": 257,
+      "x": 4252.3701,
+      "y": 756.974,
+      "z": -23.0632,
+      "radius": 12,
+      "cite": "AreaTrigger.dbc id=257 (src/wow.export/mapping/AreaTrigger.csv); areatrigger_teleport id=257 Blackfathom Deeps - Entering targetMap=48"
+    },
+    "atlasRows": {
+      "stem": "BlackfathomDeepsEnt",
+      "zone": 719,
+      "location": 331,
+      "cite": "addons/Atlas/AtlasMaps.lua BlackfathomDeepsEnt (Entrance A / Blackfathom Deeps B ZONE 719)"
+    }
+  },
+  "blackrockmountainent": {
+    "stem": "blackrockmountainent",
+    "atlasStem": "BlackrockMountainEnt",
+    "slug": "blackrock-mountain-ent",
+    "kind": "approach",
+    "mapId": 0,
+    "floorplan": "/maps/floorplan/0-blackrock-mountain-ent.json",
+    "viewportKey": "blackrock-mountain-ent",
+    "instanceId": "blackrock-depths",
+    "instanceMapId": 230,
+    "secondaryInstanceId": "lbrs",
+    "secondaryInstanceMapId": 229,
+    "portal": {
+      "areatriggerId": 1466,
+      "x": -7176.6299,
+      "y": -937.667,
+      "z": 170.206,
+      "radius": 13,
+      "cite": "AreaTrigger.dbc id=1466 (src/wow.export/mapping/AreaTrigger.csv); areatrigger_teleport id=1466 Blackrock Depths - Entering targetMap=230"
+    },
+    "portals": [
+      {
+        "areatriggerId": 1466,
+        "x": -7176.6299,
+        "y": -937.667,
+        "z": 170.206,
+        "radius": 13,
+        "targetMap": 230,
+        "cite": "AreaTrigger.dbc id=1466; areatrigger_teleport id=1466 Blackrock Depths - Entering targetMap=230"
+      },
+      {
+        "areatriggerId": 1468,
+        "x": -7518.1899,
+        "y": -1239.13,
+        "z": 287.243,
+        "radius": 10,
+        "targetMap": 229,
+        "cite": "AreaTrigger.dbc id=1468; areatrigger_teleport id=1468 Blackrock Spire - Entering targetMap=229"
+      }
+    ],
+    "atlasRows": {
+      "stem": "BlackrockMountainEnt",
+      "zone": 25,
+      "location": 25,
+      "cite": "addons/Atlas/AtlasMaps.lua BlackrockMountainEnt ZoneName Blackrock Mountain 25; Location also links Searing Gorge 51 / Burning Steppes 46"
+    }
+  },
+  "diremaulent": {
+    "stem": "diremaulent",
+    "atlasStem": "DireMaulEnt",
+    "slug": "dire-maul-ent",
+    "kind": "approach",
+    "mapId": 1,
+    "floorplan": "/maps/floorplan/1-dire-maul-ent.json",
+    "viewportKey": "dire-maul-ent",
+    "instanceId": "dire-maul-east",
+    "instanceMapId": 429,
+    "secondaryInstanceId": "dire-maul-north",
+    "secondaryInstanceMapId": 429,
+    "tertiaryInstanceId": "dire-maul-west",
+    "tertiaryInstanceMapId": 429,
+    "portal": {
+      "areatriggerId": 3186,
+      "x": -3837.79,
+      "y": 1250.23,
+      "z": 160.223,
+      "radius": 0,
+      "cite": "AreaTrigger.dbc id=3186 (src/wow.export/mapping/AreaTrigger.csv); areatrigger_teleport id=3186 Dire Maul West - Entering targetMap=429"
+    },
+    "portals": [
+      {
+        "areatriggerId": 3183,
+        "x": -3730.48,
+        "y": 933.975,
+        "z": 160.973,
+        "radius": 0,
+        "targetMap": 429,
+        "name": "Dire Maul East - Entering",
+        "cite": "AreaTrigger.dbc id=3183; areatrigger_teleport id=3183 Dire Maul East - Entering targetMap=429"
+      },
+      {
+        "areatriggerId": 3184,
+        "x": -3981.5801,
+        "y": 771.193,
+        "z": 160.962,
+        "radius": 0,
+        "targetMap": 429,
+        "name": "Dire Maul",
+        "cite": "AreaTrigger.dbc id=3184; areatrigger_teleport id=3184 Dire Maul targetMap=429"
+      },
+      {
+        "areatriggerId": 3185,
+        "x": -4028.21,
+        "y": 123.966,
+        "z": 26.8109,
+        "radius": 0,
+        "targetMap": 429,
+        "name": "Dire Maul East - Entering Back Door",
+        "cite": "AreaTrigger.dbc id=3185; areatrigger_teleport id=3185 Dire Maul East - Entering Back Door targetMap=429"
+      },
+      {
+        "areatriggerId": 3186,
+        "x": -3837.79,
+        "y": 1250.23,
+        "z": 160.223,
+        "radius": 0,
+        "targetMap": 429,
+        "name": "Dire Maul West - Entering",
+        "cite": "AreaTrigger.dbc id=3186; areatrigger_teleport id=3186 Dire Maul West - Entering targetMap=429"
+      },
+      {
+        "areatriggerId": 3187,
+        "x": -3741.96,
+        "y": 1249.1801,
+        "z": 160.217,
+        "radius": 0,
+        "targetMap": 429,
+        "name": "Dire Maul West - Entering Side Door",
+        "cite": "AreaTrigger.dbc id=3187; areatrigger_teleport id=3187 Dire Maul West - Entering Side Door targetMap=429"
+      },
+      {
+        "areatriggerId": 3189,
+        "x": -3520.6499,
+        "y": 1068.72,
+        "z": 161.128,
+        "radius": 0,
+        "targetMap": 429,
+        "name": "Dire Maul North - Entering",
+        "cite": "AreaTrigger.dbc id=3189; areatrigger_teleport id=3189 Dire Maul North - Entering targetMap=429"
+      }
+    ],
+    "atlasRows": {
+      "stem": "DireMaulEnt",
+      "zone": 2557,
+      "location": 357,
+      "cite": "addons/Atlas/AtlasMaps.lua DireMaulEnt ZoneName Dire Maul (Entrance) 2557; Location Feralas 357"
+    }
+  },
+  "gnomereganent": {
+    "stem": "gnomereganent",
+    "atlasStem": "GnomereganEnt",
+    "slug": "gnomeregan-ent",
+    "kind": "approach",
+    "mapId": 0,
+    "floorplan": "/maps/floorplan/0-gnomeregan-ent.json",
+    "viewportKey": "gnomeregan-ent",
+    "instanceId": "gnomeregan",
+    "instanceMapId": 90,
+    "portal": {
+      "areatriggerId": 324,
+      "x": -5161.330078125,
+      "y": 939.6229858398438,
+      "z": 258.2879943847656,
+      "radius": 10,
+      "cite": "AreaTrigger.dbc id=324 (datadump/t0/dbc/AreaTrigger.dbc; DBCStructure.h:60-72); areatrigger_teleport id=324 Gnomeregan - Entering targetMap=90"
+    },
+    "portals": [
+      {
+        "areatriggerId": 324,
+        "x": -5161.330078125,
+        "y": 939.6229858398438,
+        "z": 258.2879943847656,
+        "radius": 10,
+        "targetMap": 90,
+        "name": "Gnomeregan - Entering",
+        "cite": "AreaTrigger.dbc id=324; areatrigger_teleport id=324 Gnomeregan - Entering targetMap=90"
+      },
+      {
+        "areatriggerId": 523,
+        "x": -4858.27001953125,
+        "y": 785.030029296875,
+        "z": 241.05999755859375,
+        "radius": 12,
+        "targetMap": 90,
+        "name": "Gnomeregan Train Depot Entrance",
+        "cite": "AreaTrigger.dbc id=523; areatrigger_teleport id=523 Gnomeregan Train Depot Entrance targetMap=90"
+      }
+    ],
+    "atlasRows": {
+      "stem": "GnomereganEnt",
+      "zone": 133,
+      "location": 1,
+      "cite": "addons/Atlas/AtlasMaps.lua GnomereganEnt ZoneName Gnomeregan (Entrance) 133; Location Dun Morogh 1"
+    }
+  },
+  "maraudonent": {
+    "stem": "maraudonent",
+    "atlasStem": "MaraudonEnt",
+    "slug": "maraudon-ent",
+    "kind": "approach",
+    "mapId": 1,
+    "floorplan": "/maps/floorplan/1-maraudon-ent.json",
+    "viewportKey": "maraudon-ent",
+    "instanceId": "maraudon",
+    "instanceMapId": 349,
+    "portal": {
+      "areatriggerId": 3134,
+      "x": -1181.97998046875,
+      "y": 2861.949951171875,
+      "z": 85.25810241699219,
+      "radius": 0,
+      "cite": "AreaTrigger.dbc id=3134 (datadump/t0/dbc/AreaTrigger.dbc; DBCStructure.h:60-72); areatrigger_teleport id=3134 Maraudon Purple - Entering targetMap=349"
+    },
+    "portals": [
+      {
+        "areatriggerId": 3133,
+        "x": -1484.0699462890625,
+        "y": 2617.570068359375,
+        "z": 75.71440124511719,
+        "radius": 0,
+        "targetMap": 349,
+        "name": "Maraudon Orange - Entering",
+        "cite": "AreaTrigger.dbc id=3133; areatrigger_teleport id=3133 Maraudon Orange - Entering targetMap=349"
+      },
+      {
+        "areatriggerId": 3134,
+        "x": -1181.97998046875,
+        "y": 2861.949951171875,
+        "z": 85.25810241699219,
+        "radius": 0,
+        "targetMap": 349,
+        "name": "Maraudon Purple - Entering",
+        "cite": "AreaTrigger.dbc id=3134; areatrigger_teleport id=3134 Maraudon Purple - Entering targetMap=349"
+      }
+    ],
+    "atlasRows": {
+      "stem": "MaraudonEnt",
+      "zone": 2100,
+      "location": 405,
+      "cite": "addons/Atlas/AtlasMaps.lua MaraudonEnt ZoneName Maraudon (Entrance) 2100; Location Desolace 405"
+    }
+  },
+  "sment": {
+    "stem": "sment",
+    "atlasStem": "SMEnt",
+    "slug": "scarlet-monastery-ent",
+    "kind": "approach",
+    "mapId": 0,
+    "floorplan": "/maps/floorplan/0-scarlet-monastery-ent.json",
+    "viewportKey": "scarlet-monastery-ent",
+    "instanceId": "sm-graveyard",
+    "instanceMapId": 189,
+    "secondaryInstanceId": "sm-cathedral",
+    "secondaryInstanceMapId": 189,
+    "tertiaryInstanceId": "sm-armory",
+    "tertiaryInstanceMapId": 189,
+    "quaternaryInstanceId": "sm-library",
+    "quaternaryInstanceMapId": 189,
+    "portal": {
+      "areatriggerId": 45,
+      "x": 2924.3798828125,
+      "y": -798.4290161132812,
+      "z": 161.61099243164062,
+      "radius": 8,
+      "cite": "AreaTrigger.dbc id=45 (datadump/t0/dbc/AreaTrigger.dbc; DBCStructure.h:60-72); areatrigger_teleport id=45 Scarlet Monestary Graveyard - Entering targetMap=189"
+    },
+    "portals": [
+      {
+        "areatriggerId": 45,
+        "x": 2924.3798828125,
+        "y": -798.4290161132812,
+        "z": 161.61099243164062,
+        "radius": 8,
+        "targetMap": 189,
+        "name": "Scarlet Monestary Graveyard - Entering",
+        "cite": "AreaTrigger.dbc id=45; areatrigger_teleport id=45 Scarlet Monestary Graveyard - Entering targetMap=189"
+      },
+      {
+        "areatriggerId": 610,
+        "x": 2925.179931640625,
+        "y": -820.5449829101562,
+        "z": 161.63400268554688,
+        "radius": 8,
+        "targetMap": 189,
+        "name": "Scarlet Monestary Cathedral - Entering",
+        "cite": "AreaTrigger.dbc id=610; areatrigger_teleport id=610 Scarlet Monestary Cathedral - Entering targetMap=189"
+      },
+      {
+        "areatriggerId": 612,
+        "x": 2877.97998046875,
+        "y": -839.2670288085938,
+        "z": 163.0489959716797,
+        "radius": 6,
+        "targetMap": 189,
+        "name": "Scarlet Monestary Armory - Entering",
+        "cite": "AreaTrigger.dbc id=612; areatrigger_teleport id=612 Scarlet Monestary Armory - Entering targetMap=189"
+      },
+      {
+        "areatriggerId": 614,
+        "x": 2859.72998046875,
+        "y": -824.9099731445312,
+        "z": 162.08299255371094,
+        "radius": 8,
+        "targetMap": 189,
+        "name": "Scarlet Monestary Library - Entering",
+        "cite": "AreaTrigger.dbc id=614; areatrigger_teleport id=614 Scarlet Monestary Library - Entering targetMap=189"
+      }
+    ],
+    "atlasRows": {
+      "stem": "SMEnt",
+      "zone": 796,
+      "location": 85,
+      "cite": "addons/Atlas/AtlasMaps.lua SMEnt ZoneName Scarlet Monastery (Entrance) 796; Location Tirisfal Glades 85"
+    }
+  },
+  "thedeadminesent": {
+    "stem": "thedeadminesent",
+    "atlasStem": "TheDeadminesEnt",
+    "slug": "deadmines-ent",
+    "kind": "approach",
+    "mapId": 0,
+    "floorplan": "/maps/floorplan/0-deadmines-ent.json",
+    "viewportKey": "deadmines-ent",
+    "instanceId": "deadmines",
+    "instanceMapId": 36,
+    "portal": {
+      "areatriggerId": 78,
+      "x": -11208.5,
+      "y": 1685.3399658203125,
+      "z": 25.761199951171875,
+      "radius": 7,
+      "cite": "AreaTrigger.dbc id=78 (datadump/t0/dbc/AreaTrigger.dbc; DBCStructure.h:60-72); areatrigger_teleport id=78 Deadmines - Entering targetMap=36"
+    },
+    "atlasRows": {
+      "stem": "TheDeadminesEnt",
+      "zone": 1581,
+      "location": 40,
+      "cite": "addons/Atlas/AtlasMaps.lua TheDeadminesEnt ZoneName The Deadmines (Entrance) 1581; Location Westfall 40"
+    }
+  },
+  "thesunkentempleent": {
+    "stem": "thesunkentempleent",
+    "atlasStem": "TheSunkenTempleEnt",
+    "slug": "sunken-temple-ent",
+    "kind": "approach",
+    "mapId": 0,
+    "floorplan": "/maps/floorplan/0-sunken-temple-ent.json",
+    "viewportKey": "sunken-temple-ent",
+    "instanceId": "sunken-temple",
+    "instanceMapId": 109,
+    "portal": {
+      "areatriggerId": 446,
+      "x": -10162.7001953125,
+      "y": -3998.64990234375,
+      "z": -107.97799682617188,
+      "radius": 11,
+      "cite": "AreaTrigger.dbc id=446 (datadump/t0/dbc/AreaTrigger.dbc; DBCStructure.h:60-72); areatrigger_teleport id=446 Altar of Atal'Hakkar (Sunken Temple) - Entering targetMap=109"
+    },
+    "atlasRows": {
+      "stem": "TheSunkenTempleEnt",
+      "zone": 1417,
+      "location": 8,
+      "cite": "addons/Atlas/AtlasMaps.lua TheSunkenTempleEnt ZoneName Sunken Temple (Entrance) 1417; Location Swamp of Sorrows 8"
+    }
+  },
+  "uldamanent": {
+    "stem": "uldamanent",
+    "atlasStem": "UldamanEnt",
+    "slug": "uldaman-ent",
+    "kind": "approach",
+    "mapId": 0,
+    "floorplan": "/maps/floorplan/0-uldaman-ent.json",
+    "viewportKey": "uldaman-ent",
+    "instanceId": "uldaman",
+    "instanceMapId": 70,
+    "portal": {
+      "areatriggerId": 286,
+      "x": -6053.72998046875,
+      "y": -2954.6298828125,
+      "z": 213.68600463867188,
+      "radius": 10,
+      "cite": "AreaTrigger.dbc id=286 (datadump/t0/dbc/AreaTrigger.dbc; DBCStructure.h:60-72); areatrigger_teleport id=286 Uldaman - Entering targetMap=70"
+    },
+    "atlasRows": {
+      "stem": "UldamanEnt",
+      "zone": 1337,
+      "location": 3,
+      "cite": "addons/Atlas/AtlasMaps.lua UldamanEnt ZoneName Uldaman (Entrance) 1337; Location Badlands 3"
+    }
+  },
+  "wailingcavernsent": {
+    "stem": "wailingcavernsent",
+    "atlasStem": "WailingCavernsEnt",
+    "slug": "wailing-caverns-ent",
+    "kind": "approach",
+    "mapId": 1,
+    "floorplan": "/maps/floorplan/1-wailing-caverns-ent.json",
+    "viewportKey": "wailing-caverns-ent",
+    "instanceId": "wailing-caverns",
+    "instanceMapId": 43,
+    "portal": {
+      "areatriggerId": 228,
+      "x": -753.5960083007812,
+      "y": -2212.780029296875,
+      "z": 21.540300369262695,
+      "radius": 13,
+      "cite": "AreaTrigger.dbc id=228 (datadump/t0/dbc/AreaTrigger.dbc; DBCStructure.h:60-72); areatrigger_teleport id=228 The Barrens - Wailing Caverns targetMap=43"
+    },
+    "atlasRows": {
+      "stem": "WailingCavernsEnt",
+      "zone": 718,
+      "location": 17,
+      "cite": "addons/Atlas/AtlasMaps.lua WailingCavernsEnt ZoneName Wailing Caverns (Entrance) 718; Location The Barrens 17; next-batch.mjs stem wailingcavernsent"
+    }
+  },
+  "dleast": {
+    "stem": "dleast",
+    "atlasStem": "DLEast",
+    "slug": "dungeon-locations-east",
+    "kind": "approach",
+    "mapId": 0,
+    "floorplan": "/maps/floorplan/0-dungeon-locations-east.json",
+    "viewportKey": "dungeon-locations-east",
+    "note": "Continent overview (EK). Pins are all Eastern Kingdoms dungeon/BG locations from AtlasMaps.lua DLEast; floorplan is ADT terrain stamped around AreaTrigger.dbc outdoor enter portals + WorldMapArea centres for AV/AB.",
+    "portal": {
+      "areatriggerId": 78,
+      "x": -11208.5,
+      "y": 1685.3399658203125,
+      "z": 25.761199951171875,
+      "radius": 7,
+      "cite": "AreaTrigger.dbc id=78 (representative EK pin — Deadmines Entering); full portal set in docs/dungeons/survey/map-0-dungeon-locations-east-creature-spawns.json"
+    },
+    "portals": [
+      {
+        "areatriggerId": 45,
+        "x": 2924.3798828125,
+        "y": -798.4290161132812,
+        "z": 161.61099243164062,
+        "radius": 8,
+        "targetMap": 189,
+        "name": "Scarlet Monestary Graveyard - Entering",
+        "cite": "AreaTrigger.dbc id=45; areatrigger_teleport id=45 Scarlet Monestary Graveyard - Entering targetMap=189"
+      },
+      {
+        "areatriggerId": 78,
+        "x": -11208.5,
+        "y": 1685.3399658203125,
+        "z": 25.761199951171875,
+        "radius": 7,
+        "targetMap": 36,
+        "name": "Deadmines - Entering",
+        "cite": "AreaTrigger.dbc id=78; areatrigger_teleport id=78 Deadmines - Entering targetMap=36"
+      },
+      {
+        "areatriggerId": 101,
+        "x": -8761.849609375,
+        "y": 848.5570068359375,
+        "z": 87.8051986694336,
+        "radius": 0,
+        "targetMap": 34,
+        "name": "Stormwind Stockades - Entering",
+        "cite": "AreaTrigger.dbc id=101; areatrigger_teleport id=101 Stormwind Stockades - Entering targetMap=34"
+      },
+      {
+        "areatriggerId": 145,
+        "x": -229.49000549316406,
+        "y": 1576.3499755859375,
+        "z": 78.89089965820312,
+        "radius": 7,
+        "targetMap": 33,
+        "name": "Shadowfang Keep - Entering",
+        "cite": "AreaTrigger.dbc id=145; areatrigger_teleport id=145 Shadowfang Keep - Entering targetMap=33"
+      },
+      {
+        "areatriggerId": 286,
+        "x": -6053.72998046875,
+        "y": -2954.6298828125,
+        "z": 213.68600463867188,
+        "radius": 10,
+        "targetMap": 70,
+        "name": "Uldaman - Entering",
+        "cite": "AreaTrigger.dbc id=286; areatrigger_teleport id=286 Uldaman - Entering targetMap=70"
+      },
+      {
+        "areatriggerId": 324,
+        "x": -5161.330078125,
+        "y": 939.6229858398438,
+        "z": 258.2879943847656,
+        "radius": 10,
+        "targetMap": 90,
+        "name": "Gnomeregan - Entering",
+        "cite": "AreaTrigger.dbc id=324; areatrigger_teleport id=324 Gnomeregan - Entering targetMap=90"
+      },
+      {
+        "areatriggerId": 446,
+        "x": -10162.7001953125,
+        "y": -3998.64990234375,
+        "z": -107.97799682617188,
+        "radius": 11,
+        "targetMap": 109,
+        "name": "Altar of Atal'Hakkar (Sunken Temple) - Entering",
+        "cite": "AreaTrigger.dbc id=446; areatrigger_teleport id=446 Altar of Atal'Hakkar (Sunken Temple) - Entering targetMap=109"
+      },
+      {
+        "areatriggerId": 1466,
+        "x": -7176.6298828125,
+        "y": -937.6669921875,
+        "z": 170.20599365234375,
+        "radius": 13,
+        "targetMap": 230,
+        "name": "Blackrock Depths - Entering",
+        "cite": "AreaTrigger.dbc id=1466; areatrigger_teleport id=1466 Blackrock Depths - Entering targetMap=230"
+      },
+      {
+        "areatriggerId": 1468,
+        "x": -7518.18994140625,
+        "y": -1239.1300048828125,
+        "z": 287.2430114746094,
+        "radius": 10,
+        "targetMap": 229,
+        "name": "Blackrock Spire - Entering",
+        "cite": "AreaTrigger.dbc id=1468; areatrigger_teleport id=1468 Blackrock Spire - Entering targetMap=229"
+      },
+      {
+        "areatriggerId": 2216,
+        "x": 3392.4599609375,
+        "y": -3396.77001953125,
+        "z": 143.072998046875,
+        "radius": 0,
+        "targetMap": 329,
+        "name": "Stratholme - Entering Left Front",
+        "cite": "AreaTrigger.dbc id=2216; areatrigger_teleport id=2216 Stratholme - Entering Left Front targetMap=329"
+      },
+      {
+        "areatriggerId": 2567,
+        "x": 1282.050048828125,
+        "y": -2548.72998046875,
+        "z": 85.39939880371094,
+        "radius": 0,
+        "targetMap": 289,
+        "name": "Scholomance - Entering",
+        "cite": "AreaTrigger.dbc id=2567; areatrigger_teleport id=2567 Scholomance - Entering targetMap=289"
+      },
+      {
+        "areatriggerId": 3928,
+        "x": -11915.7998046875,
+        "y": -1236.4300537109375,
+        "z": 96.15019989013672,
+        "radius": 10,
+        "targetMap": 309,
+        "name": "Zul'Gurub - Entering",
+        "cite": "AreaTrigger.dbc id=3928; areatrigger_teleport id=3928 Zul'Gurub - Entering targetMap=309"
+      }
+    ],
+    "bgCenters": [
+      {
+        "areaId": 36,
+        "name": "Alterac Mountains (AV location)",
+        "x": 566.6666717529297,
+        "y": -616.6666564941406,
+        "cite": "WorldMapArea.dbc area_id=36 map=0 centre; AtlasMaps.lua DLEast A) Alterac Valley trailing ZONE 36"
+      },
+      {
+        "areaId": 45,
+        "name": "Arathi Highlands (AB location)",
+        "x": -1333.3332901000977,
+        "y": -2666.6665649414062,
+        "cite": "WorldMapArea.dbc area_id=45 map=0 centre; AtlasMaps.lua DLEast B) Arathi Basin trailing ZONE 45"
+      }
+    ],
+    "atlasRows": {
+      "stem": "DLEast",
+      "zone": null,
+      "location": null,
+      "continent": "Eastern Kingdoms",
+      "cite": "addons/Atlas/AtlasMaps.lua DLEast ZoneName Dungeon Locations (Eastern Kingdoms); Location Eastern Kingdoms; next-batch.mjs stem dleast"
+    }
+  },
+  "dlwest": {
+    "stem": "dlwest",
+    "atlasStem": "DLWest",
+    "slug": "dungeon-locations-west",
+    "kind": "approach",
+    "mapId": 1,
+    "floorplan": "/maps/floorplan/1-dungeon-locations-west.json",
+    "viewportKey": "dungeon-locations-west",
+    "note": "Continent overview (Kalimdor). Pins are all Kalimdor dungeon/BG locations from AtlasMaps.lua DLWest; floorplan is ADT terrain stamped around AreaTrigger.dbc outdoor enter portals + WorldMapArea centres for WSG outdoor location zones 17/331.",
+    "portal": {
+      "areatriggerId": 228,
+      "x": -753.5960083007812,
+      "y": -2212.780029296875,
+      "z": 21.540300369262695,
+      "radius": 13,
+      "cite": "AreaTrigger.dbc id=228 (representative Kalimdor pin — Wailing Caverns Entering); full portal set in docs/dungeons/survey/map-1-dungeon-locations-west-creature-spawns.json"
+    },
+    "portals": [
+      {
+        "areatriggerId": 257,
+        "x": 4252.3701171875,
+        "y": 756.9739990234375,
+        "z": -23.063199996948242,
+        "radius": 12,
+        "targetMap": 48,
+        "name": "Blackfathom Deeps - Entering",
+        "cite": "AreaTrigger.dbc id=257; areatrigger_teleport id=257 Blackfathom Deeps - Entering targetMap=48"
+      },
+      {
+        "areatriggerId": 2230,
+        "x": 1818.4000244140625,
+        "y": -4427.259765625,
+        "z": -10.447799682617188,
+        "radius": 0,
+        "targetMap": 389,
+        "name": "Ragefire Chasm - Entering",
+        "cite": "AreaTrigger.dbc id=2230; areatrigger_teleport id=2230 Ragefire Chasm - Entering targetMap=389"
+      },
+      {
+        "areatriggerId": 228,
+        "x": -753.5960083007812,
+        "y": -2212.780029296875,
+        "z": 21.540300369262695,
+        "radius": 13,
+        "targetMap": 43,
+        "name": "The Barrens - Wailing Caverns",
+        "cite": "AreaTrigger.dbc id=228; areatrigger_teleport id=228 The Barrens - Wailing Caverns targetMap=43"
+      },
+      {
+        "areatriggerId": 3134,
+        "x": -1181.97998046875,
+        "y": 2861.949951171875,
+        "z": 85.25810241699219,
+        "radius": 0,
+        "targetMap": 349,
+        "name": "Maraudon Purple - Entering",
+        "cite": "AreaTrigger.dbc id=3134; areatrigger_teleport id=3134 Maraudon Purple - Entering targetMap=349"
+      },
+      {
+        "areatriggerId": 3186,
+        "x": -3837.7900390625,
+        "y": 1250.22998046875,
+        "z": 160.22300720214844,
+        "radius": 0,
+        "targetMap": 429,
+        "name": "Dire Maul West - Entering",
+        "cite": "AreaTrigger.dbc id=3186; areatrigger_teleport id=3186 Dire Maul West - Entering targetMap=429"
+      },
+      {
+        "areatriggerId": 244,
+        "x": -4456.7001953125,
+        "y": -1655.989990234375,
+        "z": 86.1094970703125,
+        "radius": 8,
+        "targetMap": 47,
+        "name": "Razorfen Kraul - Entering",
+        "cite": "AreaTrigger.dbc id=244; areatrigger_teleport id=244 Razorfen Kraul - Entering targetMap=47"
+      },
+      {
+        "areatriggerId": 442,
+        "x": -4666.52001953125,
+        "y": -2536.820068359375,
+        "z": 86.96710205078125,
+        "radius": 10,
+        "targetMap": 129,
+        "name": "Razorfen Downs Entrance",
+        "cite": "AreaTrigger.dbc id=442; areatrigger_teleport id=442 Razorfen Downs Entrance targetMap=129"
+      },
+      {
+        "areatriggerId": 2848,
+        "x": -4768.60986328125,
+        "y": -3752.110107421875,
+        "z": 53.43170166015625,
+        "radius": 16,
+        "targetMap": 249,
+        "name": "Onyxia's Lair - Entering",
+        "cite": "AreaTrigger.dbc id=2848; areatrigger_teleport id=2848 Onyxia's Lair - Entering targetMap=249"
+      },
+      {
+        "areatriggerId": 924,
+        "x": -6773.490234375,
+        "y": -2889.77001953125,
+        "z": 15.106300354003906,
+        "radius": 20,
+        "targetMap": 209,
+        "name": "Zul'Farrak - Entering",
+        "cite": "AreaTrigger.dbc id=924; areatrigger_teleport id=924 Zul'Farrak - Entering targetMap=209"
+      },
+      {
+        "areatriggerId": 4008,
+        "x": -8424.9404296875,
+        "y": 1508.6500244140625,
+        "z": 32.014198303222656,
+        "radius": 0,
+        "targetMap": 509,
+        "name": "Ruins of Ahn'Qiraj - Entering",
+        "cite": "AreaTrigger.dbc id=4008; areatrigger_teleport id=4008 Ruins of Ahn'Qiraj - Entering targetMap=509"
+      },
+      {
+        "areatriggerId": 4010,
+        "x": -8230.400390625,
+        "y": 2005.3299560546875,
+        "z": 129.86300659179688,
+        "radius": 0,
+        "targetMap": 531,
+        "name": "Ahn'Qiraj Temple - Entering",
+        "cite": "AreaTrigger.dbc id=4010; areatrigger_teleport id=4010 Ahn'Qiraj Temple - Entering targetMap=531"
+      }
+    ],
+    "bgCenters": [
+      {
+        "areaId": 17,
+        "name": "The Barrens (WSG location)",
+        "x": -1765.6250610351562,
+        "y": -2443.75,
+        "cite": "WorldMapArea.dbc area_id=17 map=1 centre; AtlasMaps.lua DLWest A) Warsong Gulch trailing ZONE 3277 / Barrens 17"
+      },
+      {
+        "areaId": 331,
+        "name": "Ashenvale (WSG location)",
+        "x": 2751.0415649414062,
+        "y": -1183.3333129882812,
+        "cite": "WorldMapArea.dbc area_id=331 map=1 centre; AtlasMaps.lua DLWest A) Warsong Gulch trailing ZONE 3277 / Ashenvale 331"
+      }
+    ],
+    "atlasRows": {
+      "stem": "DLWest",
+      "zone": null,
+      "location": null,
+      "continent": "Kalimdor",
+      "cite": "addons/Atlas/AtlasMaps.lua DLWest ZoneName Dungeon Locations (Kalimdor); Location Kalimdor; next-batch.mjs stem dlwest"
+    }
+  },
+  "fpallianceeast": {
+    "stem": "fpallianceeast",
+    "atlasStem": "FPAllianceEast",
+    "slug": "flightpaths-alliance-east",
+    "kind": "approach",
+    "mapId": 0,
+    "floorplan": "/maps/floorplan/0-flightpaths-alliance-east.json",
+    "viewportKey": "flightpaths-alliance-east",
+    "note": "Continent overview (EK). Pins are the 16 Alliance Eastern Kingdoms flight masters from AtlasMaps.lua FPAllianceEast; coordinates from TaxiNodes.dbc (alliance map=0); floorplan is ADT terrain stamped around those nodes.",
+    "portal": {
+      "taxiNodeId": 2,
+      "x": -8840.56,
+      "y": 489.7,
+      "z": 109.61,
+      "radius": 0,
+      "cite": "TaxiNodes.dbc id=2 Stormwind, Elwynn (representative EK Alliance pin); full node set in docs/dungeons/survey/map-0-flightpaths-alliance-east-creature-spawns.json"
+    },
+    "taxiNodes": [
+      {
+        "taxiNodeId": 67,
+        "name": "Light's Hope Chapel, Eastern Plaguelands",
+        "atlasLabel": "1",
+        "x": 2271.09,
+        "y": -5340.8,
+        "z": 87.11,
+        "cite": "TaxiNodes.dbc id=67; AtlasMaps.lua FPAllianceEast 1)"
+      },
+      {
+        "taxiNodeId": 66,
+        "name": "Chillwind Camp, Western Plaguelands",
+        "atlasLabel": "2",
+        "x": 931.32,
+        "y": -1430.11,
+        "z": 64.67,
+        "cite": "TaxiNodes.dbc id=66; AtlasMaps.lua FPAllianceEast 2) Chillwind Point"
+      },
+      {
+        "taxiNodeId": 43,
+        "name": "Aerie Peak, The Hinterlands",
+        "atlasLabel": "3",
+        "x": 283.74,
+        "y": -2002.76,
+        "z": 194.74,
+        "cite": "TaxiNodes.dbc id=43; AtlasMaps.lua FPAllianceEast 3)"
+      },
+      {
+        "taxiNodeId": 14,
+        "name": "Southshore, Hillsbrad",
+        "atlasLabel": "4",
+        "x": -711.48,
+        "y": -515.48,
+        "z": 26.11,
+        "cite": "TaxiNodes.dbc id=14; AtlasMaps.lua FPAllianceEast 4)"
+      },
+      {
+        "taxiNodeId": 16,
+        "name": "Refuge Pointe, Arathi",
+        "atlasLabel": "5",
+        "x": -1240.53,
+        "y": -2515.11,
+        "z": 22.16,
+        "cite": "TaxiNodes.dbc id=16; AtlasMaps.lua FPAllianceEast 5)"
+      },
+      {
+        "taxiNodeId": 7,
+        "name": "Menethil Harbor, Wetlands",
+        "atlasLabel": "6",
+        "x": -3792.26,
+        "y": -783.29,
+        "z": 9.06,
+        "cite": "TaxiNodes.dbc id=7; AtlasMaps.lua FPAllianceEast 6)"
+      },
+      {
+        "taxiNodeId": 6,
+        "name": "Ironforge, Dun Morogh",
+        "atlasLabel": "7",
+        "x": -4821.78,
+        "y": -1155.44,
+        "z": 502.21,
+        "cite": "TaxiNodes.dbc id=6; AtlasMaps.lua FPAllianceEast 7)"
+      },
+      {
+        "taxiNodeId": 8,
+        "name": "Thelsamar, Loch Modan",
+        "atlasLabel": "8",
+        "x": -5421.91,
+        "y": -2930.01,
+        "z": 347.25,
+        "cite": "TaxiNodes.dbc id=8; AtlasMaps.lua FPAllianceEast 8)"
+      },
+      {
+        "taxiNodeId": 74,
+        "name": "Thorium Point, Searing Gorge",
+        "atlasLabel": "9",
+        "x": -6552.59,
+        "y": -1168.27,
+        "z": 309.31,
+        "cite": "TaxiNodes.dbc id=74; AtlasMaps.lua FPAllianceEast 9)"
+      },
+      {
+        "taxiNodeId": 71,
+        "name": "Morgan's Vigil, Burning Steppes",
+        "atlasLabel": "10",
+        "x": -8364.61,
+        "y": -2738.35,
+        "z": 185.46,
+        "cite": "TaxiNodes.dbc id=71; AtlasMaps.lua FPAllianceEast 10)"
+      },
+      {
+        "taxiNodeId": 2,
+        "name": "Stormwind, Elwynn",
+        "atlasLabel": "11",
+        "x": -8840.56,
+        "y": 489.7,
+        "z": 109.61,
+        "cite": "TaxiNodes.dbc id=2; AtlasMaps.lua FPAllianceEast 11) Stormwind City"
+      },
+      {
+        "taxiNodeId": 5,
+        "name": "Lakeshire, Redridge",
+        "atlasLabel": "12",
+        "x": -9429.1,
+        "y": -2231.4,
+        "z": 68.65,
+        "cite": "TaxiNodes.dbc id=5; AtlasMaps.lua FPAllianceEast 12)"
+      },
+      {
+        "taxiNodeId": 4,
+        "name": "Sentinel Hill, Westfall",
+        "atlasLabel": "13",
+        "x": -10628.89,
+        "y": 1036.68,
+        "z": 34.06,
+        "cite": "TaxiNodes.dbc id=4; AtlasMaps.lua FPAllianceEast 13)"
+      },
+      {
+        "taxiNodeId": 12,
+        "name": "Darkshire, Duskwood",
+        "atlasLabel": "14",
+        "x": -10515.46,
+        "y": -1261.65,
+        "z": 41.34,
+        "cite": "TaxiNodes.dbc id=12; AtlasMaps.lua FPAllianceEast 14)"
+      },
+      {
+        "taxiNodeId": 45,
+        "name": "Nethergarde Keep, Blasted Lands",
+        "atlasLabel": "15",
+        "x": -11112.25,
+        "y": -3435.74,
+        "z": 79.09,
+        "cite": "TaxiNodes.dbc id=45; AtlasMaps.lua FPAllianceEast 15)"
+      },
+      {
+        "taxiNodeId": 19,
+        "name": "Booty Bay, Stranglethorn",
+        "atlasLabel": "16",
+        "x": -14473.05,
+        "y": 464.15,
+        "z": 36.43,
+        "cite": "TaxiNodes.dbc id=19; AtlasMaps.lua FPAllianceEast 16)"
+      }
+    ],
+    "atlasRows": {
+      "stem": "FPAllianceEast",
+      "zone": null,
+      "location": null,
+      "continent": "Eastern Kingdoms",
+      "cite": "addons/Atlas/AtlasMaps.lua FPAllianceEast ZoneName Flight Paths (Alliance - Eastern Kingdoms); Location Eastern Kingdoms; next-batch.mjs stem fpallianceeast"
+    }
+  },
+  "fpalliancewest": {
+    "stem": "fpalliancewest",
+    "atlasStem": "FPAllianceWest",
+    "slug": "flightpaths-alliance-west",
+    "kind": "approach",
+    "mapId": 1,
+    "floorplan": "/maps/floorplan/1-flightpaths-alliance-west.json",
+    "viewportKey": "flightpaths-alliance-west",
+    "note": "Continent overview (Kalimdor). Pins are the 16 Alliance Kalimdor flight masters from AtlasMaps.lua FPAllianceWest; coordinates from TaxiNodes.dbc (alliance/both map=1); floorplan is ADT terrain stamped around those nodes.",
+    "portal": {
+      "taxiNodeId": 26,
+      "x": 6341.38,
+      "y": 557.68,
+      "z": 16.29,
+      "radius": 0,
+      "cite": "TaxiNodes.dbc id=26 Auberdine, Darkshore (representative Kalimdor Alliance pin); full node set in docs/dungeons/survey/map-1-flightpaths-alliance-west-creature-spawns.json"
+    },
+    "taxiNodes": [
+      {
+        "taxiNodeId": 27,
+        "name": "Rut'theran Village, Teldrassil",
+        "atlasLabel": "1",
+        "x": 8643.59,
+        "y": 841.05,
+        "z": 23.3,
+        "cite": "TaxiNodes.dbc id=27; AtlasMaps.lua FPAllianceWest 1)"
+      },
+      {
+        "taxiNodeId": 62,
+        "name": "Nighthaven, Moonglade",
+        "atlasLabel": "2",
+        "x": 7793.61,
+        "y": -2403.47,
+        "z": 489.32,
+        "cite": "TaxiNodes.dbc id=62; AtlasMaps.lua FPAllianceWest 2) Nighthaven, Moonglade (Druid-only)"
+      },
+      {
+        "taxiNodeId": 52,
+        "name": "Everlook, Winterspring",
+        "atlasLabel": "3",
+        "x": 6799.24,
+        "y": -4742.44,
+        "z": 701.5,
+        "cite": "TaxiNodes.dbc id=52; AtlasMaps.lua FPAllianceWest 3)"
+      },
+      {
+        "taxiNodeId": 26,
+        "name": "Auberdine, Darkshore",
+        "atlasLabel": "4",
+        "x": 6341.38,
+        "y": 557.68,
+        "z": 16.29,
+        "cite": "TaxiNodes.dbc id=26; AtlasMaps.lua FPAllianceWest 4)"
+      },
+      {
+        "taxiNodeId": 65,
+        "name": "Talonbranch Glade, Felwood",
+        "atlasLabel": "5",
+        "x": 6205.88,
+        "y": -1949.63,
+        "z": 571.29,
+        "cite": "TaxiNodes.dbc id=65; AtlasMaps.lua FPAllianceWest 5)"
+      },
+      {
+        "taxiNodeId": 33,
+        "name": "Stonetalon Peak, Stonetalon Mountains",
+        "atlasLabel": "6",
+        "x": 2681.13,
+        "y": 1461.68,
+        "z": 232.88,
+        "cite": "TaxiNodes.dbc id=33; AtlasMaps.lua FPAllianceWest 6)"
+      },
+      {
+        "taxiNodeId": 28,
+        "name": "Astranaar, Ashenvale",
+        "atlasLabel": "7",
+        "x": 2827.34,
+        "y": -289.24,
+        "z": 107.16,
+        "cite": "TaxiNodes.dbc id=28; AtlasMaps.lua FPAllianceWest 7)"
+      },
+      {
+        "taxiNodeId": 64,
+        "name": "Talrendis Point, Azshara",
+        "atlasLabel": "8",
+        "x": 2721.99,
+        "y": -3880.64,
+        "z": 100.87,
+        "cite": "TaxiNodes.dbc id=64; AtlasMaps.lua FPAllianceWest 8)"
+      },
+      {
+        "taxiNodeId": 37,
+        "name": "Nijel's Point, Desolace",
+        "atlasLabel": "9",
+        "x": 139.24,
+        "y": 1325.82,
+        "z": 193.5,
+        "cite": "TaxiNodes.dbc id=37; AtlasMaps.lua FPAllianceWest 9)"
+      },
+      {
+        "taxiNodeId": 80,
+        "name": "Ratchet, The Barrens",
+        "atlasLabel": "10",
+        "x": -894.59,
+        "y": -3773.01,
+        "z": 11.48,
+        "cite": "TaxiNodes.dbc id=80; AtlasMaps.lua FPAllianceWest 10)"
+      },
+      {
+        "taxiNodeId": 32,
+        "name": "Theramore, Dustwallow Marsh",
+        "atlasLabel": "11",
+        "x": -3825.37,
+        "y": -4516.58,
+        "z": 10.44,
+        "cite": "TaxiNodes.dbc id=32; AtlasMaps.lua FPAllianceWest 11) Theramore Isle"
+      },
+      {
+        "taxiNodeId": 41,
+        "name": "Feathermoon, Feralas",
+        "atlasLabel": "12",
+        "x": -4373.8,
+        "y": 3338.65,
+        "z": 12.27,
+        "cite": "TaxiNodes.dbc id=41; AtlasMaps.lua FPAllianceWest 12) Feathermoon Stronghold"
+      },
+      {
+        "taxiNodeId": 31,
+        "name": "Thalanaar, Feralas",
+        "atlasLabel": "13",
+        "x": -4491.88,
+        "y": -775.89,
+        "z": -39.52,
+        "cite": "TaxiNodes.dbc id=31; AtlasMaps.lua FPAllianceWest 13)"
+      },
+      {
+        "taxiNodeId": 79,
+        "name": "Marshal's Refuge, Un'Goro Crater",
+        "atlasLabel": "14",
+        "x": -6113.82,
+        "y": -1142.7,
+        "z": -187.63,
+        "cite": "TaxiNodes.dbc id=79; AtlasMaps.lua FPAllianceWest 14)"
+      },
+      {
+        "taxiNodeId": 73,
+        "name": "Cenarion Hold, Silithus",
+        "atlasLabel": "15",
+        "x": -6761.83,
+        "y": 772.03,
+        "z": 88.91,
+        "cite": "TaxiNodes.dbc id=73; AtlasMaps.lua FPAllianceWest 15)"
+      },
+      {
+        "taxiNodeId": 39,
+        "name": "Gadgetzan, Tanaris",
+        "atlasLabel": "16",
+        "x": -7223.97,
+        "y": -3734.59,
+        "z": 8.39,
+        "cite": "TaxiNodes.dbc id=39; AtlasMaps.lua FPAllianceWest 16)"
+      }
+    ],
+    "atlasRows": {
+      "stem": "FPAllianceWest",
+      "zone": null,
+      "location": null,
+      "continent": "Kalimdor",
+      "cite": "addons/Atlas/AtlasMaps.lua FPAllianceWest ZoneName Flight Paths (Alliance - Kalimdor); Location Kalimdor; next-batch.mjs stem fpalliancewest"
+    }
+  },
+  "fphordeeast": {
+    "stem": "fphordeeast",
+    "atlasStem": "FPHordeEast",
+    "slug": "flightpaths-horde-east",
+    "kind": "approach",
+    "mapId": 0,
+    "floorplan": "/maps/floorplan/0-flightpaths-horde-east.json",
+    "viewportKey": "flightpaths-horde-east",
+    "note": "Continent overview (EK). Pins are the 12 Horde Eastern Kingdoms flight masters from AtlasMaps.lua FPHordeEast; coordinates from TaxiNodes.dbc (horde map=0); floorplan is ADT terrain stamped around outdoor nodes plus Undercity.wmo under the capital ADT hole.",
+    "portal": {
+      "taxiNodeId": 11,
+      "x": 1568.62,
+      "y": 267.97,
+      "z": -43.1,
+      "radius": 0,
+      "cite": "TaxiNodes.dbc id=11 Undercity, Tirisfal (representative EK Horde pin); full node set in docs/dungeons/survey/map-0-flightpaths-horde-east-creature-spawns.json"
+    },
+    "taxiNodes": [
+      {
+        "taxiNodeId": 68,
+        "name": "Light's Hope Chapel, Eastern Plaguelands",
+        "atlasLabel": "1",
+        "x": 2327.41,
+        "y": -5286.89,
+        "z": 81.78,
+        "cite": "TaxiNodes.dbc id=68; AtlasMaps.lua FPHordeEast 1)"
+      },
+      {
+        "taxiNodeId": 11,
+        "name": "Undercity, Tirisfal",
+        "atlasLabel": "2",
+        "x": 1568.62,
+        "y": 267.97,
+        "z": -43.1,
+        "cite": "TaxiNodes.dbc id=11; AtlasMaps.lua FPHordeEast 2)"
+      },
+      {
+        "taxiNodeId": 10,
+        "name": "The Sepulcher, Silverpine Forest",
+        "atlasLabel": "3",
+        "x": 478.86,
+        "y": 1536.59,
+        "z": 131.32,
+        "cite": "TaxiNodes.dbc id=10; AtlasMaps.lua FPHordeEast 3)"
+      },
+      {
+        "taxiNodeId": 13,
+        "name": "Tarren Mill, Hillsbrad",
+        "atlasLabel": "4",
+        "x": -0.06,
+        "y": -859.91,
+        "z": 58.83,
+        "cite": "TaxiNodes.dbc id=13; AtlasMaps.lua FPHordeEast 4)"
+      },
+      {
+        "taxiNodeId": 76,
+        "name": "Revantusk Village, The Hinterlands",
+        "atlasLabel": "5",
+        "x": -635.26,
+        "y": -4720.5,
+        "z": 5.38,
+        "cite": "TaxiNodes.dbc id=76; AtlasMaps.lua FPHordeEast 5)"
+      },
+      {
+        "taxiNodeId": 17,
+        "name": "Hammerfall, Arathi",
+        "atlasLabel": "6",
+        "x": -916.29,
+        "y": -3496.89,
+        "z": 70.45,
+        "cite": "TaxiNodes.dbc id=17; AtlasMaps.lua FPHordeEast 6)"
+      },
+      {
+        "taxiNodeId": 75,
+        "name": "Thorium Point, Searing Gorge",
+        "atlasLabel": "7",
+        "x": -6554.93,
+        "y": -1100.05,
+        "z": 309.57,
+        "cite": "TaxiNodes.dbc id=75; AtlasMaps.lua FPHordeEast 7)"
+      },
+      {
+        "taxiNodeId": 21,
+        "name": "Kargath, Badlands",
+        "atlasLabel": "8",
+        "x": -6633.99,
+        "y": -2180.05,
+        "z": 244.14,
+        "cite": "TaxiNodes.dbc id=21; AtlasMaps.lua FPHordeEast 8)"
+      },
+      {
+        "taxiNodeId": 70,
+        "name": "Flame Crest, Burning Steppes",
+        "atlasLabel": "9",
+        "x": -7504.03,
+        "y": -2187.54,
+        "z": 165.53,
+        "cite": "TaxiNodes.dbc id=70; AtlasMaps.lua FPHordeEast 9)"
+      },
+      {
+        "taxiNodeId": 56,
+        "name": "Stonard, Swamp of Sorrows",
+        "atlasLabel": "10",
+        "x": -10456.97,
+        "y": -3279.25,
+        "z": 21.35,
+        "cite": "TaxiNodes.dbc id=56; AtlasMaps.lua FPHordeEast 10)"
+      },
+      {
+        "taxiNodeId": 20,
+        "name": "Grom'gol, Stranglethorn",
+        "atlasLabel": "11",
+        "x": -12414.18,
+        "y": 146.29,
+        "z": 3.28,
+        "cite": "TaxiNodes.dbc id=20; AtlasMaps.lua FPHordeEast 11)"
+      },
+      {
+        "taxiNodeId": 18,
+        "name": "Booty Bay, Stranglethorn",
+        "atlasLabel": "12",
+        "x": -14444.29,
+        "y": 509.62,
+        "z": 26.2,
+        "cite": "TaxiNodes.dbc id=18; AtlasMaps.lua FPHordeEast 12)"
+      }
+    ],
+    "atlasRows": {
+      "stem": "FPHordeEast",
+      "zone": null,
+      "location": null,
+      "continent": "Eastern Kingdoms",
+      "cite": "addons/Atlas/AtlasMaps.lua FPHordeEast ZoneName Flight Paths (Horde - Eastern Kingdoms); Location Eastern Kingdoms; next-batch.mjs stem fphordeeast"
+    }
+  },
+  "fphordewest": {
+    "stem": "fphordewest",
+    "atlasStem": "FPHordeWest",
+    "slug": "flightpaths-horde-west",
+    "kind": "approach",
+    "mapId": 1,
+    "floorplan": "/maps/floorplan/1-flightpaths-horde-west.json",
+    "viewportKey": "flightpaths-horde-west",
+    "note": "Continent overview (Kalimdor). Pins are the 19 Horde Kalimdor flight masters from AtlasMaps.lua FPHordeWest; coordinates from TaxiNodes.dbc (horde/both map=1); floorplan is ADT terrain stamped around those nodes.",
+    "portal": {
+      "taxiNodeId": 23,
+      "x": 1677.59,
+      "y": -4315.71,
+      "z": 61.17,
+      "radius": 0,
+      "cite": "TaxiNodes.dbc id=23 Orgrimmar, Durotar (representative Kalimdor Horde pin); full node set in docs/dungeons/survey/map-1-flightpaths-horde-west-creature-spawns.json"
+    },
+    "taxiNodes": [
+      {
+        "taxiNodeId": 63,
+        "name": "Nighthaven, Moonglade",
+        "atlasLabel": "1",
+        "x": 7787.72,
+        "y": -2404.1,
+        "z": 489.56,
+        "cite": "TaxiNodes.dbc id=63; AtlasMaps.lua FPHordeWest 1) Nighthaven, Moonglade (Druid-only)"
+      },
+      {
+        "taxiNodeId": 53,
+        "name": "Everlook, Winterspring",
+        "atlasLabel": "2",
+        "x": 6813.06,
+        "y": -4611.12,
+        "z": 710.67,
+        "cite": "TaxiNodes.dbc id=53; AtlasMaps.lua FPHordeWest 2)"
+      },
+      {
+        "taxiNodeId": 48,
+        "name": "Bloodvenom Post, Felwood",
+        "atlasLabel": "3",
+        "x": 5068.4,
+        "y": -337.22,
+        "z": 367.41,
+        "cite": "TaxiNodes.dbc id=48; AtlasMaps.lua FPHordeWest 3)"
+      },
+      {
+        "taxiNodeId": 58,
+        "name": "Zoram'gar Outpost, Ashenvale",
+        "atlasLabel": "4",
+        "x": 3374.71,
+        "y": 996.97,
+        "z": 5.19,
+        "cite": "TaxiNodes.dbc id=58; AtlasMaps.lua FPHordeWest 4)"
+      },
+      {
+        "taxiNodeId": 44,
+        "name": "Valormok, Azshara",
+        "atlasLabel": "5",
+        "x": 3661.52,
+        "y": -4390.38,
+        "z": 113.05,
+        "cite": "TaxiNodes.dbc id=44; AtlasMaps.lua FPHordeWest 5)"
+      },
+      {
+        "taxiNodeId": 61,
+        "name": "Splintertree Post, Ashenvale",
+        "atlasLabel": "6",
+        "x": 2302.39,
+        "y": -2524.55,
+        "z": 104.4,
+        "cite": "TaxiNodes.dbc id=61; AtlasMaps.lua FPHordeWest 6)"
+      },
+      {
+        "taxiNodeId": 23,
+        "name": "Orgrimmar, Durotar",
+        "atlasLabel": "7",
+        "x": 1677.59,
+        "y": -4315.71,
+        "z": 61.17,
+        "cite": "TaxiNodes.dbc id=23; AtlasMaps.lua FPHordeWest 7)"
+      },
+      {
+        "taxiNodeId": 29,
+        "name": "Sun Rock Retreat, Stonetalon Mountains",
+        "atlasLabel": "8",
+        "x": 966.57,
+        "y": 1040.32,
+        "z": 104.27,
+        "cite": "TaxiNodes.dbc id=29; AtlasMaps.lua FPHordeWest 8)"
+      },
+      {
+        "taxiNodeId": 25,
+        "name": "Crossroads, The Barrens",
+        "atlasLabel": "9",
+        "x": -441.8,
+        "y": -2596.08,
+        "z": 96.06,
+        "cite": "TaxiNodes.dbc id=25; AtlasMaps.lua FPHordeWest 9)"
+      },
+      {
+        "taxiNodeId": 80,
+        "name": "Ratchet, The Barrens",
+        "atlasLabel": "10",
+        "x": -894.59,
+        "y": -3773.01,
+        "z": 11.48,
+        "cite": "TaxiNodes.dbc id=80; AtlasMaps.lua FPHordeWest 10)"
+      },
+      {
+        "taxiNodeId": 38,
+        "name": "Shadowprey Village, Desolace",
+        "atlasLabel": "11",
+        "x": -1767.64,
+        "y": 3263.89,
+        "z": 4.94,
+        "cite": "TaxiNodes.dbc id=38; AtlasMaps.lua FPHordeWest 11)"
+      },
+      {
+        "taxiNodeId": 22,
+        "name": "Thunder Bluff, Mulgore",
+        "atlasLabel": "12",
+        "x": -1197.21,
+        "y": 29.71,
+        "z": 176.95,
+        "cite": "TaxiNodes.dbc id=22; AtlasMaps.lua FPHordeWest 12)"
+      },
+      {
+        "taxiNodeId": 77,
+        "name": "Camp Taurajo, The Barrens",
+        "atlasLabel": "13",
+        "x": -2380.67,
+        "y": -1882.67,
+        "z": 95.85,
+        "cite": "TaxiNodes.dbc id=77; AtlasMaps.lua FPHordeWest 13)"
+      },
+      {
+        "taxiNodeId": 55,
+        "name": "Brackenwall Village, Dustwallow Marsh",
+        "atlasLabel": "14",
+        "x": -3147.39,
+        "y": -2842.18,
+        "z": 34.61,
+        "cite": "TaxiNodes.dbc id=55; AtlasMaps.lua FPHordeWest 14)"
+      },
+      {
+        "taxiNodeId": 42,
+        "name": "Camp Mojache, Feralas",
+        "atlasLabel": "15",
+        "x": -4419.86,
+        "y": 199.31,
+        "z": 25.06,
+        "cite": "TaxiNodes.dbc id=42; AtlasMaps.lua FPHordeWest 15)"
+      },
+      {
+        "taxiNodeId": 30,
+        "name": "Freewind Post, Thousand Needles",
+        "atlasLabel": "16",
+        "x": -5407.71,
+        "y": -2414.3,
+        "z": 90.32,
+        "cite": "TaxiNodes.dbc id=30; AtlasMaps.lua FPHordeWest 16)"
+      },
+      {
+        "taxiNodeId": 79,
+        "name": "Marshal's Refuge, Un'Goro Crater",
+        "atlasLabel": "17",
+        "x": -6113.82,
+        "y": -1142.7,
+        "z": -187.63,
+        "cite": "TaxiNodes.dbc id=79; AtlasMaps.lua FPHordeWest 17)"
+      },
+      {
+        "taxiNodeId": 72,
+        "name": "Cenarion Hold, Silithus",
+        "atlasLabel": "18",
+        "x": -6811.39,
+        "y": 836.74,
+        "z": 49.81,
+        "cite": "TaxiNodes.dbc id=72; AtlasMaps.lua FPHordeWest 18)"
+      },
+      {
+        "taxiNodeId": 40,
+        "name": "Gadgetzan, Tanaris",
+        "atlasLabel": "19",
+        "x": -7048.89,
+        "y": -3780.36,
+        "z": 10.19,
+        "cite": "TaxiNodes.dbc id=40; AtlasMaps.lua FPHordeWest 19)"
+      }
+    ],
+    "atlasRows": {
+      "stem": "FPHordeWest",
+      "zone": null,
+      "location": null,
+      "continent": "Kalimdor",
+      "cite": "addons/Atlas/AtlasMaps.lua FPHordeWest ZoneName Flight Paths (Horde - Kalimdor); Location Kalimdor; next-batch.mjs stem fphordewest"
+    }
+  }
+}

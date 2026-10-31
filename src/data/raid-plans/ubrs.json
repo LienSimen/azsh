@@ -1,0 +1,53 @@
+{
+ "raid": "ubrs",
+ "bosses": [
+  {
+   "entry": 9816,
+   "name": "Pyroguard Emberseer",
+   "kinds": [],
+   "cite": "boss_pyroguard_emberseer.cpp:50-52 FIRENOVA / FLAMEBUFFET / PYROBLAST; creature_template 9816 spells 16079 Fire Nova (100 yd flat fire) + 16536 Flame Buffet - no run-out aura"
+  },
+  {
+   "entry": 10509,
+   "name": "Jed Runewatcher",
+   "kinds": [],
+   "cite": "no ScriptDevAI cpp and no EventAI overlay; creature_template 10509 spells 15749 Shield Charge / 11972 Shield Bash / 14516 Strike - a patrolling rare, pure melee"
+  },
+  {
+   "entry": 10899,
+   "name": "Goraluk Anvilcrack",
+   "kinds": [],
+   "cite": "eventai/ubrs.ts:157 classic-db/ACID/acid_classic.sql:14756-14758 creature_id=10899: 6253 Backhand / 16172 Head Crack / 15580 Strike - pure melee"
+  },
+  {
+   "entry": 10264,
+   "name": "Solakar Flamewreath",
+   "kinds": [],
+   "cite": "eventai/ubrs.ts:196 acid_classic.sql:14632-14634 creature_id=10264: 16727 War Stomp + 16556 Disturb Rookery Egg; the hatching whelps are trash waves, not a boss-side response"
+  },
+  {
+   "entry": 10339,
+   "name": "Gyth & Warchief Rend Blackhand",
+   "kinds": [],
+   "cite": "boss_gyth.cpp:34-40 CORROSIVE_ACID 16359 / FREEZE 16350 / FLAME_BREATH 16390 / KNOCK_AWAY 10101, then SUMMON_REND 16328 at 11 % HP - one body replaces the other, no raid verb"
+  },
+  {
+   "entry": 10430,
+   "name": "The Beast",
+   "kinds": [],
+   "cite": "eventai/ubrs.ts:12 acid_classic.sql:14692-14698 creature_id=10430: 15570 Immolate / 14100 Terrifying Roar / 16785 Flamebreak / 16636 Berserker Charge / 16788 Fireball / 16144 Fire Blast"
+  },
+  {
+   "entry": 16042,
+   "name": "Lord Valthalak",
+   "kinds": [],
+   "cite": "no ScriptDevAI cpp; creature_template 16042 spells 8269 Enrage / 27249 Summon Spectral Assassin / 27382 Shadow Bolt Volley / 27286 Shadow Wrath - the assassin is one add, unordered"
+  },
+  {
+   "entry": 10363,
+   "name": "General Drakkisath",
+   "kinds": [],
+   "cite": "eventai/ubrs.ts:88 acid_classic.sql:14662-14667 creature_id=10363: 23462 Fire Nova / 16805 Conflagration / 15588 Thunderclap / 16419 Flamestrike / 16789 Rage / 12097 Pierce Armor"
+  }
+ ]
+}

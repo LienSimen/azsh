@@ -1,0 +1,2417 @@
+{
+  "_meta": {
+    "description": "QI2 frozen pre-QI questlog completion goldens",
+    "wave": "QI2",
+    "generated": "2026-07-23",
+    "note": "expectComplete frozen from questlog.questComplete; dual oracle also diffs interpreter live. Claim surface excludes rep/AUTO_REWARDED/source/spell for parity."
+  },
+  "questEntries": [
+    7,
+    9,
+    12,
+    2,
+    6,
+    8,
+    33,
+    62,
+    76,
+    155,
+    633,
+    786,
+    849,
+    6523,
+    6061,
+    10,
+    11,
+    13,
+    14,
+    15,
+    16,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    32,
+    34,
+    36,
+    38,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    64,
+    68,
+    70,
+    71,
+    74,
+    75,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    86,
+    87,
+    88
+  ],
+  "scenarios": [
+    {
+      "id": "7-empty",
+      "questEntry": 7,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "7-full",
+      "questEntry": 7,
+      "kills": {
+        "6": 10
+      },
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "7-partial",
+      "questEntry": 7,
+      "kills": {
+        "6": 5
+      },
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "9-empty",
+      "questEntry": 9,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "9-full",
+      "questEntry": 9,
+      "kills": {
+        "114": 20
+      },
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "9-partial",
+      "questEntry": 9,
+      "kills": {
+        "114": 10
+      },
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "12-empty",
+      "questEntry": 12,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "12-full",
+      "questEntry": 12,
+      "kills": {
+        "95": 15,
+        "504": 15
+      },
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "12-partial",
+      "questEntry": 12,
+      "kills": {
+        "95": 7,
+        "504": 15
+      },
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "2-empty",
+      "questEntry": 2,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "2-full",
+      "questEntry": 2,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 16305,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "2-partial",
+      "questEntry": 2,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 16305,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "6-empty",
+      "questEntry": 6,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "6-full",
+      "questEntry": 6,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 182,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "6-partial",
+      "questEntry": 6,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 182,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "8-empty",
+      "questEntry": 8,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "8-full",
+      "questEntry": 8,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 7628,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "8-partial",
+      "questEntry": 8,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 7628,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "33-empty",
+      "questEntry": 33,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "33-full",
+      "questEntry": 33,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 750,
+          "count": 8
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "33-partial",
+      "questEntry": 33,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 750,
+          "count": 7
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "62-empty",
+      "questEntry": 62,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "62-full",
+      "questEntry": 62,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": true,
+      "expectComplete": true
+    },
+    {
+      "id": "62-partial",
+      "questEntry": 62,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "76-empty",
+      "questEntry": 76,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "76-full",
+      "questEntry": 76,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": true,
+      "expectComplete": true
+    },
+    {
+      "id": "76-partial",
+      "questEntry": 76,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "155-empty",
+      "questEntry": 155,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "155-full",
+      "questEntry": 155,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": true,
+      "expectComplete": true
+    },
+    {
+      "id": "155-partial",
+      "questEntry": 155,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "633-empty",
+      "questEntry": 633,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "633-full",
+      "questEntry": 633,
+      "kills": {},
+      "objects": {
+        "2704": 1
+      },
+      "inventory": [],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "786-empty",
+      "questEntry": 786,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "786-full",
+      "questEntry": 786,
+      "kills": {},
+      "objects": {
+        "3189": 1,
+        "3190": 1,
+        "3192": 1
+      },
+      "inventory": [],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "849-empty",
+      "questEntry": 849,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "849-full",
+      "questEntry": 849,
+      "kills": {},
+      "objects": {
+        "3644": 1
+      },
+      "inventory": [],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "6523-empty",
+      "questEntry": 6523,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "6523-full",
+      "questEntry": 6523,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": true,
+      "expectComplete": true
+    },
+    {
+      "id": "6523-partial",
+      "questEntry": 6523,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "6061-empty",
+      "questEntry": 6061,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "6061-full",
+      "questEntry": 6061,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 15914,
+          "count": 1
+        }
+      ],
+      "explored": true,
+      "expectComplete": true
+    },
+    {
+      "id": "6061-partial",
+      "questEntry": 6061,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 15914,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "10-empty",
+      "questEntry": 10,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "10-full",
+      "questEntry": 10,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 8593,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "10-partial",
+      "questEntry": 10,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 8593,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "11-empty",
+      "questEntry": 11,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "11-full",
+      "questEntry": 11,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 782,
+          "count": 8
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "11-partial",
+      "questEntry": 11,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 782,
+          "count": 7
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "13-empty",
+      "questEntry": 13,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "13-full",
+      "questEntry": 13,
+      "kills": {
+        "589": 15,
+        "590": 15
+      },
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "13-partial",
+      "questEntry": 13,
+      "kills": {
+        "589": 7,
+        "590": 15
+      },
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "14-empty",
+      "questEntry": 14,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "14-full",
+      "questEntry": 14,
+      "kills": {
+        "121": 5,
+        "122": 15,
+        "449": 5
+      },
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "14-partial",
+      "questEntry": 14,
+      "kills": {
+        "121": 2,
+        "122": 15,
+        "449": 5
+      },
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "15-empty",
+      "questEntry": 15,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "15-full",
+      "questEntry": 15,
+      "kills": {
+        "257": 10
+      },
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "15-partial",
+      "questEntry": 15,
+      "kills": {
+        "257": 5
+      },
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "16-empty",
+      "questEntry": 16,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "16-full",
+      "questEntry": 16,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 159,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "16-partial",
+      "questEntry": 16,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 159,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "18-empty",
+      "questEntry": 18,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "18-full",
+      "questEntry": 18,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 752,
+          "count": 12
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "18-partial",
+      "questEntry": 18,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 752,
+          "count": 11
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "19-empty",
+      "questEntry": 19,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "19-full",
+      "questEntry": 19,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 1260,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "19-partial",
+      "questEntry": 19,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 1260,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "20-empty",
+      "questEntry": 20,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "20-full",
+      "questEntry": 20,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 3014,
+          "count": 10
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "20-partial",
+      "questEntry": 20,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 3014,
+          "count": 9
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "21-empty",
+      "questEntry": 21,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "21-full",
+      "questEntry": 21,
+      "kills": {
+        "80": 12
+      },
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "21-partial",
+      "questEntry": 21,
+      "kills": {
+        "80": 6
+      },
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "22-empty",
+      "questEntry": 22,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "22-full",
+      "questEntry": 22,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 723,
+          "count": 8
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "22-partial",
+      "questEntry": 22,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 723,
+          "count": 7
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "23-empty",
+      "questEntry": 23,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "23-full",
+      "questEntry": 23,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 16303,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "23-partial",
+      "questEntry": 23,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 16303,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "24-empty",
+      "questEntry": 24,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "24-full",
+      "questEntry": 24,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 16304,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "24-partial",
+      "questEntry": 24,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 16304,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "25-empty",
+      "questEntry": 25,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "25-full",
+      "questEntry": 25,
+      "kills": {
+        "3917": 12
+      },
+      "objects": {},
+      "inventory": [],
+      "explored": true,
+      "expectComplete": true
+    },
+    {
+      "id": "25-partial",
+      "questEntry": 25,
+      "kills": {
+        "3917": 6
+      },
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "32-empty",
+      "questEntry": 32,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "32-full",
+      "questEntry": 32,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 8594,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "32-partial",
+      "questEntry": 32,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 8594,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "34-empty",
+      "questEntry": 34,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "34-full",
+      "questEntry": 34,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 3631,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "34-partial",
+      "questEntry": 34,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 3631,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "36-empty",
+      "questEntry": 36,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "36-full",
+      "questEntry": 36,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 2832,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "36-partial",
+      "questEntry": 36,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 2832,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "38-empty",
+      "questEntry": 38,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "38-full",
+      "questEntry": 38,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 729,
+          "count": 3
+        },
+        {
+          "item": 730,
+          "count": 3
+        },
+        {
+          "item": 731,
+          "count": 3
+        },
+        {
+          "item": 732,
+          "count": 3
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "38-partial",
+      "questEntry": 38,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 729,
+          "count": 2
+        },
+        {
+          "item": 730,
+          "count": 3
+        },
+        {
+          "item": 731,
+          "count": 3
+        },
+        {
+          "item": 732,
+          "count": 3
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "46-empty",
+      "questEntry": 46,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "46-full",
+      "questEntry": 46,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 780,
+          "count": 8
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "46-partial",
+      "questEntry": 46,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 780,
+          "count": 7
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "47-empty",
+      "questEntry": 47,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "47-full",
+      "questEntry": 47,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 773,
+          "count": 10
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "47-partial",
+      "questEntry": 47,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 773,
+          "count": 9
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "48-empty",
+      "questEntry": 48,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "48-full",
+      "questEntry": 48,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 737,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "48-partial",
+      "questEntry": 48,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 737,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "49-empty",
+      "questEntry": 49,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "49-full",
+      "questEntry": 49,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 738,
+          "count": 1
+        },
+        {
+          "item": 739,
+          "count": 1
+        },
+        {
+          "item": 740,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "49-partial",
+      "questEntry": 49,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 738,
+          "count": 0
+        },
+        {
+          "item": 739,
+          "count": 1
+        },
+        {
+          "item": 740,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "50-empty",
+      "questEntry": 50,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "50-full",
+      "questEntry": 50,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 6037,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "50-partial",
+      "questEntry": 50,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 6037,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "51-empty",
+      "questEntry": 51,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "51-full",
+      "questEntry": 51,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 742,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "51-partial",
+      "questEntry": 51,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 742,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "52-empty",
+      "questEntry": 52,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "52-full",
+      "questEntry": 52,
+      "kills": {
+        "118": 8,
+        "822": 5
+      },
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "52-partial",
+      "questEntry": 52,
+      "kills": {
+        "118": 4,
+        "822": 5
+      },
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "53-empty",
+      "questEntry": 53,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "53-full",
+      "questEntry": 53,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 743,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "53-partial",
+      "questEntry": 53,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 743,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "54-empty",
+      "questEntry": 54,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "54-full",
+      "questEntry": 54,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 745,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "54-partial",
+      "questEntry": 54,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 745,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "55-empty",
+      "questEntry": 55,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "55-full",
+      "questEntry": 55,
+      "kills": {
+        "1200": 1
+      },
+      "objects": {},
+      "inventory": [
+        {
+          "item": 7297,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "55-partial",
+      "questEntry": 55,
+      "kills": {
+        "1200": 0
+      },
+      "objects": {},
+      "inventory": [
+        {
+          "item": 7297,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "56-empty",
+      "questEntry": 56,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "56-full",
+      "questEntry": 56,
+      "kills": {
+        "48": 8,
+        "203": 6
+      },
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "56-partial",
+      "questEntry": 56,
+      "kills": {
+        "48": 4,
+        "203": 6
+      },
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "57-empty",
+      "questEntry": 57,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "57-full",
+      "questEntry": 57,
+      "kills": {
+        "202": 15,
+        "531": 15
+      },
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "57-partial",
+      "questEntry": 57,
+      "kills": {
+        "202": 7,
+        "531": 15
+      },
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "58-empty",
+      "questEntry": 58,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "58-full",
+      "questEntry": 58,
+      "kills": {
+        "604": 20
+      },
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "58-partial",
+      "questEntry": 58,
+      "kills": {
+        "604": 10
+      },
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "59-empty",
+      "questEntry": 59,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "59-full",
+      "questEntry": 59,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 748,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "59-partial",
+      "questEntry": 59,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 748,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "60-empty",
+      "questEntry": 60,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "60-full",
+      "questEntry": 60,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 772,
+          "count": 8
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "60-partial",
+      "questEntry": 60,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 772,
+          "count": 7
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "61-empty",
+      "questEntry": 61,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "61-full",
+      "questEntry": 61,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 957,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "61-partial",
+      "questEntry": 61,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 957,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "64-empty",
+      "questEntry": 64,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "64-full",
+      "questEntry": 64,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 841,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "64-partial",
+      "questEntry": 64,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 841,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "68-empty",
+      "questEntry": 68,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "68-full",
+      "questEntry": 68,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 889,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "68-partial",
+      "questEntry": 68,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 889,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "70-empty",
+      "questEntry": 70,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "70-full",
+      "questEntry": 70,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 910,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "70-partial",
+      "questEntry": 70,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 910,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "71-empty",
+      "questEntry": 71,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "71-full",
+      "questEntry": 71,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 735,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "71-partial",
+      "questEntry": 71,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 735,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "74-empty",
+      "questEntry": 74,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "74-full",
+      "questEntry": 74,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 916,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "74-partial",
+      "questEntry": 74,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 916,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "75-empty",
+      "questEntry": 75,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "75-full",
+      "questEntry": 75,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 921,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "75-partial",
+      "questEntry": 75,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 921,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "77-empty",
+      "questEntry": 77,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "77-full",
+      "questEntry": 77,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 8684,
+          "count": 10
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "77-partial",
+      "questEntry": 77,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 8684,
+          "count": 9
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "78-empty",
+      "questEntry": 78,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "78-full",
+      "questEntry": 78,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 921,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "78-partial",
+      "questEntry": 78,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 921,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "79-empty",
+      "questEntry": 79,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "79-full",
+      "questEntry": 79,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 938,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "79-partial",
+      "questEntry": 79,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 938,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "80-empty",
+      "questEntry": 80,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "80-full",
+      "questEntry": 80,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 939,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "80-partial",
+      "questEntry": 80,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 939,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "81-empty",
+      "questEntry": 81,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "81-full",
+      "questEntry": 81,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 8685,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "81-partial",
+      "questEntry": 81,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 8685,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "82-empty",
+      "questEntry": 82,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "82-full",
+      "questEntry": 82,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 8587,
+          "count": 5
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "82-partial",
+      "questEntry": 82,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 8587,
+          "count": 4
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "83-empty",
+      "questEntry": 83,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "83-full",
+      "questEntry": 83,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 1019,
+          "count": 6
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "83-partial",
+      "questEntry": 83,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 1019,
+          "count": 5
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "84-empty",
+      "questEntry": 84,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "84-full",
+      "questEntry": 84,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 962,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "84-partial",
+      "questEntry": 84,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 962,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "86-empty",
+      "questEntry": 86,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "86-full",
+      "questEntry": 86,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 769,
+          "count": 4
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "86-partial",
+      "questEntry": 86,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 769,
+          "count": 3
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "87-empty",
+      "questEntry": 87,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "87-full",
+      "questEntry": 87,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 981,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "87-partial",
+      "questEntry": 87,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 981,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "88-empty",
+      "questEntry": 88,
+      "kills": {},
+      "objects": {},
+      "inventory": [],
+      "explored": false,
+      "expectComplete": false
+    },
+    {
+      "id": "88-full",
+      "questEntry": 88,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 1006,
+          "count": 1
+        }
+      ],
+      "explored": false,
+      "expectComplete": true
+    },
+    {
+      "id": "88-partial",
+      "questEntry": 88,
+      "kills": {},
+      "objects": {},
+      "inventory": [
+        {
+          "item": 1006,
+          "count": 0
+        }
+      ],
+      "explored": false,
+      "expectComplete": false
+    }
+  ]
+}

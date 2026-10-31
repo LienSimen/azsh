@@ -1,0 +1,129 @@
+{
+ "raid": "stratholme-live",
+ "note": "Reviewed for E5.4 against boss_cannon_master_willey.cpp, boss_dathrohan_balnazzar.cpp and acid_classic.sql:16439-16668. There is no eventai overlay for this wing (eventai/stratholme-undead.ts:138-142 binds only 10440, 10439 and 10437), so the ACID timers reach the floor as creatures.json creatureCasts and the two cpp bosses through the ScriptDev IR at scriptdev/stratholme.ts:362-586. Nine of the ten come back kinds: [] - every shaped ability on the Live side is a disc at or inside melee reach, and the widest of them at 10 yd sits inside the 20 yd ranged floor, so there is nobody a move verb could move. Grand Crusader Dathrohan is the exception: Crusader's Hammer is a 20 yd stun disc with the same target ids as Archaedas's Ground Tremor, so the casters get that row.",
+ "bosses": [
+  {
+   "entry": 10516,
+   "name": "The Unforgiven",
+   "kinds": [],
+   "cite": "acid_classic.sql:16591-16594 creature_id=10516, baked as creatures.json 10516 creatureCasts scriptId 1051601-1051604; there is no boss_ cpp for him. Incorporeal Defense 16331 on spawn ships effects: [], and Sneak 22766 (EVENT_T 1 OOC) plus Stealth 8822 (EVENT_T 10 OOC_LOS) are both targetA 1, the ambush and not a fight mechanic. Frost Nova 14907 is the only shaped one: aoeShape pbaoe radiusYd 10, rawEffects targetA 22 TARGET_LOCATION_CASTER_SRC and targetB 15, castTimeMs 0, mechanic 7, 28-32 frost plus an 8 s root every 11.5-14.1 s. That is the Warder Stilgiss disc - ten yards sits inside RANGED_STAND_MIN_YD 20 (stand.ts:18) so the ranged are already clear, the melee are in it because that is where melee happens, and an instant with no aura on him leaves nothing for buffPresent or castingPresent to gate a walk on. A trinket or a Free Action Potion answers a root and both are class rows."
+  },
+  {
+   "entry": 10558,
+   "name": "Hearthsinger Forresten",
+   "kinds": [],
+   "cite": "The wing bakes FOUR spawn slots on this one creature entry (dungeonSpawns 329 entry 10558 at 3595.8,-3509.9 / 3680.3,-3512.4 / 3692.9,-3363.2 / 3683.8,-3334.1) and stratholme-live.ts:633-644 builds one boss encounter per slot, but the gate matches on ENTRY, so this single row covers all four - the same note sm-graveyard.json carries for its six rare graves. acid_classic.sql:16596-16600 creature_id=10558, baked as creatures.json creatureCasts 1055801-1055805; script 1055801 also sets SET_RANGED_MODE 2 at 25 yd. Enchanting Lullaby 16798 is targetA 6 rangeMax 30 castTimeMs 1000, mechanic 10, a 10 s sleep on a HOSTILE_RANDOM_NOT_TOP raider with dispel 1 magic, which names a dispel and that is a class row. Demoralizing Shout 16244 is aoeShape pbaoe radiusYd 10 with aura 99 attack power -20 for 30 s and NO damage, so a step-out saves nothing - the Houndmaster Grebmar refusal. Multi-Shot 14443 ships effects: [] (Effect 58 weapon-percent, which the bake has no mapper for) and Shoot 16100 is targetA 6 at 5-30 yd for 143-193, both single target with no radiusYd."
+  },
+  {
+   "entry": 10393,
+   "name": "Skul",
+   "kinds": [],
+   "cite": "Two spawn slots on this one creature entry (dungeonSpawns 329 entry 10393 at 3603.6,-3486.8 and 3481.7,-3318.1), stratholme-live.ts:646-657 builds one boss encounter each, and the gate matches on ENTRY, so this single row covers both - the sm-graveyard.json note again. acid_classic.sql:16439-16442 creature_id=10393: 1039301 is action 57 SET_RANGED_MODE 2 at 35 yd and is not a cast, so creatures.json 10393 bakes the other three. Frost Armor 12544 is targetA 1 on himself (armor +12, proc-trigger 6136); Frost Shock 15499 is targetA 6 rangeMax 20 for 132-144 on a HOSTILE_RANDOM every 12-16 s; Frostbolt 16799 and Arcane Bolt 15230 are targetA 6 rangeMax 40 castTimeMs 1000 nukes on the victim. Not one carries a radiusYd or a cone, so there is no shape to stand out of."
+  },
+  {
+   "entry": 11058,
+   "name": "Fras Siabi",
+   "kinds": [],
+   "cite": "Summon-only - 0 spawn rows on map 329, gated on looting Premium Siabi Tobacco GO 176248 (stratholme-live.ts:660-677) - and the encounter passes no bossSpells, so the kit resolves off creatures.json 11058 spells [7964, 17294] with the timers at acid_classic.sql:16640-16642 creature_id=11058. Smoke Bomb 7964 is aoeShape pbaoe radiusYd 5, targetA 22 and tgtB 15, mechanic 12, a 4 s stun every 12.1-18.2 s: that is the Bazil Thredd disc spell for spell, and the-stockade.json already ruled it - five yards on a melee boss is where melee happens, the 20-25 yd stand is already outside it, and a repeated melee stun is answered by a trinket or Tremor Totem. Flame Breath 17294 is a real frontal cone (src_spell_cone ConeDegrees 53, radiusYd 8, castTimeMs 2000, rangeMax 5, on the victim every 7.5-21.5 s) but it is the Ironaya wedge and not the Sarevess one: sessionChase.ts:440-457 meleeFlankSlot reads coneArcsOfKit and slides every non-tank melee out of each kit cone, and coneCovers (combatGeometry.ts:475) refuses an arc past its own radiusYd, so a raider at the ranged stand is never inside 8 yd of him. Flame Breath 20712 (cone radiusYd 15 for 833-967) and Demoralizing Shout 23511 are on charmSpells only, so they are a charm bar and not a schedule."
+  },
+  {
+   "entry": 11143,
+   "name": "Postmaster Malown",
+   "kinds": [],
+   "cite": "Summon-only on the 3rd of six plagued postboxes (stratholme.cpp:463-471; 0 spawn rows on map 329), kit at acid_classic.sql:16662-16668 creature_id=11143 baked as creatures.json creatureCasts 1114301-1114307. Backhand 6253 is targetA 6 rangeMax 5, a 2 s stun on the victim every 5-8 s, and Fear 12542 is targetA 6 rangeMax 20 castTimeMs 1500, a 4 s fear on a HOSTILE_RANDOM with dispel 1 - both single target, and Fear Ward, Tremor Totem or a trinket is the answer, which are class rows. Curse of Weakness 12741 is aoeShape pbaoe radiusYd 30 with aura 13 attack power -1 for 120 s, dispel 2 curse and NO damage: a decurse answers it, and even if a walk were worth the cast time, isWithinRadiusYd hits at <= so the first clear yard is 31, past RANGED_STAND_MAX_YD 30 (stand.ts:19) - the Lord Incendius Curse of the Elemental Lord shape. Curse of Tongues 13338 is targetA 6 at 30 yd on a HOSTILE_RANDOM_MANA, also dispel 2 curse, and Incorporeal Defense 16331 ships effects: []."
+  },
+  {
+   "entry": 10808,
+   "name": "Timmy the Cruel",
+   "kinds": [],
+   "cite": "Summon-only: stratholme.cpp:942-943 SummonCreature(NPC_TIMMY_THE_CRUEL) at scourgeInvaders[0] once every Crimson defender within 40 yd of defensePoints[TIMMY] is dead (:126-133), so he has 0 spawn rows on map 329. Kit at acid_classic.sql:16603-16606 creature_id=10808, baked as creatures.json creatureCasts 1080801-1080804. Thrash 12787 on spawn and on aggro is targetA 1 with aura 42 proc-trigger of 3391, and spell-data 12787 ships effects: [] so it pays nothing on this floor. Ravenous Claw 17470 every 15 s is targetA 6 rangeMax 5, a 925-1075 health_leech on whoever he is tanking - a big single hit and a healer problem, with no radius. Enrage 8599 at 20% HP is targetA 1, haste +30% for 120 s: the Targorr the Dread refusal, a self buff with no ground to stand out of."
+  },
+  {
+   "entry": 11032,
+   "name": "Malor the Zealous",
+   "kinds": [],
+   "cite": "acid_classic.sql:16625-16629 creature_id=11032, baked as creatures.json creatureCasts 1103201-1103205; there is no boss_ cpp for him. Ground Smash 12734 at TARGET_T 17 NEAREST_AOE_TARGET every 9-14 s is the only shaped one: aoeShape pbaoe radiusYd 10, rawEffects targetA 22 and tgtB 15, castTimeMs 0, mechanic 12, 96-128 physical plus a 3 s stun. Ten yards sits inside the melee band and inside RANGED_STAND_MIN_YD 20 (stand.ts:18), so the melee are in it because that is where melee happens and the ranged are already out - the Galgann Firehammer refusal - and instant with no aura there is nothing for buffPresent or castingPresent to gate a walk on. Head Crack 16172 is targetA 6 rangeMax 5 for stamina -1 over 20 s, single target. Lay on Hands 17233 (heal_max_health, targetA 21, one cast an hour) and Holy Light 15493 (castTimeMs 2500, 467-541) fire on EVENT_T 14 FRIENDLY_MISSING_HP and on himself at 20% HP, which is a kick or an Earth Shock: the Fineous Darkvire row, and both are class rows."
+  },
+  {
+   "entry": 10997,
+   "name": "Cannon Master Willey",
+   "kinds": [
+    "use-object"
+   ],
+   "cite": "boss_cannon_master_willey.cpp:28-119; acid_classic.sql:16622 names the cpp instead of writing rows and creatures.json 10997 carries [10101, 16615, 11729] on charmSpells with no spells array, so the schedule is the IR port at scriptdev/stratholme.ts:362-411 (combatEnemySpec.ts:101-109 lets it supersede the bare kit, :138 drops the charm-bar slots). Pummel 15615 is targetA 6 rangeMax 5, 45 physical plus a 5 s interrupt lockout on the victim, 7 s then every 12 s (cpp:49,65-72). Shoot 16496 is targetA 6 rangeMax 30 for 215-289 on an ATTACKING_TARGET_RANDOM picked with SELECT_FLAG_NOT_IN_MELEE_RANGE, 1 s then every 3-4 s (cpp:48,83-93). Knock Away 10101 bakes effects: [] - Effect 58 weapon damage, Effect 98 knockback miscValue 75 and Effect 77 script, none of which the bake maps - so it lands nothing here. Not one ability carries a radiusYd or a cone, which makes this tank-and-spank on the floor as it stands.",
+   "encounterRows": [
+    {
+     "kind": "use-object",
+     "label": "Fire the Scarlet Cannon at the riflemen",
+     "cite": "dbscripts_on_go_template_use 176216/176217 command 13 ACTIVATE_OBJECT buddyEntry 176211 searchRadius 50; gameobject_template 176211 Cannonball is type 6 with trap.spellId 17278 Cannon Fire; acid_classic.sql:16638 script 1105403 is EVENT_T 8 SPELLHIT 17278 on Crimson Rifleman 11054 then ACTION_T 7 - the riflemen die to the cannon. Both cannons stand 11 yd from Willey (dungeonGameObjects 329 guids 3290330/3290331). Payload resolved by engine/game/combatObjectTraps.ts, laid by engine/combat/useObjectTrap.ts; the cannon is Lock 1039, which requires item 12973 Scarlet Cannonball, so the row carries that itemCount gate rather than firing without ammo",
+     "rule": {
+      "id": "raid_enc_10997_cannon",
+      "action": {
+       "kind": "use_object",
+       "goEntry": 176216
+      },
+      "conditions": [
+       {
+        "subject": "self",
+        "metric": "itemCount",
+        "op": ">=",
+        "value": 1,
+        "ref": 12973
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "entry": 10811,
+   "name": "Archivist Galford",
+   "kinds": [],
+   "cite": "acid_classic.sql:16610-16612 creature_id=10811, baked as creatures.json creatureCasts 1081101-1081103; there is no boss_ cpp for him. Fire Nova 17366 at TARGET_T 17 NEAREST_AOE_TARGET every 4-20 s is the only shaped one: aoeShape pbaoe radiusYd 10, rawEffects targetA 22 and tgtB 15, castTimeMs 0, 197-227 fire. Ten yards sits inside the melee band and inside RANGED_STAND_MIN_YD 20 (stand.ts:18), so the melee are in it because that is where melee happens and the ranged are already out - the Galgann Firehammer refusal, and an instant with no aura leaves nothing to gate a walk on. Burning Winds 17293 on the victim is targetA 6 rangeMax 30 castTimeMs 1000, mechanic 12, an 8 s stun plus a fire dot ticking 200 every 1000 ms, and Pyroblast 17274 is targetA 6 rangeMax 35 castTimeMs 6000 for 637-739 plus a dot: both single target with no radiusYd, and what answers them is a trinket, a heal and a kick, which are class rows. Fire Nova 23462 (aoeShape pbaoe radiusYd 100 for 555-645) is on charmSpells only and NOT on creatures.json 10811 spells, so it is a charm-bar slot and never on his schedule."
+  },
+  {
+   "entry": 10812,
+   "name": "Grand Crusader Dathrohan",
+   "kinds": [
+    "position"
+   ],
+   "note": "Crusader's Hammer stuns everything within 20 yd of Dathrohan every 12 seconds. The melee have to eat it. The ranged only need to stand a yard further back.",
+   "cite": "boss_dathrohan_balnazzar.cpp:28-210, ported at scriptdev/stratholme.ts:426-586; acid_classic.sql:16613 names the cpp and creatures.json 10812 carries [17286, 20830] on charmSpells with no spells array, so the schedule is the IR (combatEnemySpec.ts:101-109). The transform is a PHASE, not a party verb: cpp:134-146 at GetHealthPercent() < 40.0f casts SPELL_BALNAZZARTRANSFORM 17288 on HIMSELF (Effect 67 heal max health, Effect 30 energize, Effect 64 trigger of 17398), does UpdateEntry to Balnazzar 10813 and yells - no add, no ground, no order to impose, and the one thing it puts on the floor is Balnazzar Transform Stun 17398, aoeShape pbaoe radiusYd 100, a one-shot 5 s stun on the whole chamber whose first clear yard would be 101, past RANGED_STAND_MAX_YD 30 and past every cast range in the game. Phase 1 asks for nothing either: Shadow Shock 17399 is pbaoe radiusYd 15, inside the 20 yd ranged floor; Psychic Scream 13704 is the 8 yd melee fear disc that Fear Ward and Tremor Totem answer; Sleep 12098 and Mind Blast 17287 are targetA 6 single target; and Mind Control 15690 bakes effects: [] off a DBC row that is targetA 1 TARGET_UNIT_CASTER, so nothing lands. Crusader Strike 17281 and Holy Strike 17284 are rangeMax 5 on the victim and 17284 also ships effects: []. Crusader's Hammer is the row.",
+   "encounterRows": [
+    {
+     "kind": "position",
+     "label": "Casters step out of Crusader's Hammer",
+     "cite": "spell 17286 Crusader's Hammer bakes aoeShape pbaoe radiusYd 20, rawEffects targetA 22 TARGET_LOCATION_CASTER_SRC and targetB 15, castTimeMs 0, mechanic 12, a 4000 ms stun and zero damage. scriptdev/stratholme.ts:455-465 arms it at 8 s then every 12 s in PHASE 0 ONLY, off boss_dathrohan_balnazzar.cpp:69,109-115; the cpp casts it at GetVictim() but a pbaoe always sits on the CASTER, so the target picks who it centres on and not where the disc lands, exactly as the Lord Roccor row says. Same 20 yd radius and the same target ids as Archaedas's Ground Tremor 6524 at twice the stun, so this is that row: isWithinRadiusYd (combatGeometry.ts:216-227) hits at <=, 21 is the first clear yard, and the 24 yd trigger is deliberately wider than the park because a row released on the yard it parks on re-arms on the boss's next step and cancels its own walk. The 25 yd ranged stand (stand.ts:20 RANGED_STAND_DEFAULT_YD) sits outside the trigger, so this only ever moves a caster who has drifted in or a hunter sitting on the 20 yd floor (stand.ts:18), which the disc reaches at <=. isCaster keeps the melee out of it - a permanent 21 yd park is four times MELEE_REACH_YD and would end melee to dodge a 4 s stun - and the tank is exempt anyway, because sessionMechanicMove.ts:550 refuses keep_range for whoever holds the boss's current victim slot. Instant with no aura, so like the Archaedas row this is a standing position rule and not a reaction. It also goes quiet at the transform, which is correct rather than a hole: keep_range matches the LIVE spec.creatureEntry (sessionMechanicMove.ts:532) and so does creatureDistanceYd (pickAction.ts:1700-1714), the morph sets that entry to 10813 (eventAi.ts:1403-1406), and the cpp never casts 17286 again once m_bTransformed is true.",
+     "rule": {
+      "id": "raid_enc_10812_range_17286",
+      "action": {
+       "kind": "move",
+       "move": {
+        "kind": "keep_range",
+        "minYd": 21,
+        "entry": 10812
+       }
+      },
+      "conditions": [
+       {
+        "subject": "self",
+        "metric": "isCaster",
+        "op": "==",
+        "value": 1
+       },
+       {
+        "subject": "self",
+        "metric": "creatureDistanceYd",
+        "op": "<=",
+        "value": 24,
+        "ref": 10812
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ]
+  }
+ ]
+}

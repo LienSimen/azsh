@@ -1,0 +1,131 @@
+{
+ "raid": "uldaman",
+ "note": "Reviewed for E5.4 against boss_archaedas.cpp, eventai/uldaman.ts and acid_classic.sql. Seven of the eight bosses come back kinds: [] and that is the finding - every shaped ability in this wing is a disc at or inside melee reach, which the melee have to stand in to fight at all, and the one frontal cone (Ironaya's Arcing Smash) is already walked out of by the engine's own melee slot solver. Archaedas is the exception: Ground Tremor is a 20 yd disc, the same radius and the same target ids as High Priestess Jeklik's Sonic Burst, so the ranged get the same row.",
+ "bosses": [
+  {
+   "entry": 6910,
+   "name": "Revelosh",
+   "kinds": [],
+   "cite": "eventai/uldaman.ts:119-153 scripts 691001-691004, acid_classic.sql:17135-17138 creature_id=6910. 691001 puts him in ranged mode at 25 yd; the rest is Chain Lightning 16006 (Effect 2 targetA 6, rangeMax 30, castTimeMs 3000) and Lightning Bolt 15801 (targetA 6, rangeMax 40, castTimeMs 3000), plus Chain Lightning 15117 on the charm bar. Every one is a single-target nuke with no radiusYd and no aoeShape in the bake, so there is no shape to stand out of."
+  },
+  {
+   "entry": 6906,
+   "name": "Baelog",
+   "kinds": [],
+   "cite": "eventai/uldaman.ts:19-30 script 690602, acid_classic.sql:17125-17128 creature_id=6906. Strike 14516 is rangeMax 5 targetA 6 and Shoot 15620 is rangeMax 30 targetA 6, both single target with no radius; 690601 sets ranged mode 25 yd and 690602 flees for assist at 15% HP. Nothing in the kit has an area shape, so this is tank-and-spank."
+  },
+  {
+   "entry": 7228,
+   "name": "Ironaya",
+   "kinds": [],
+   "cite": "eventai/uldaman.ts:36-69 scripts 722801-722803, acid_classic.sql:17192-17194 creature_id=7228. Arcing Smash 8374 is the only shaped ability: src_spell_cone.ConeDegrees 71 with radiusYd 5 and rangeMax 5, a wedge that reaches melee only. The product already answers it - sessionChase.ts:440-461 meleeFlankSlot reads coneArcsOfKit(tgt.spec.spells) and slides every non-tank melee out of the front half plus each kit cone (combatGeometry.ts:567-586), and coneCovers (combatGeometry.ts:475-484) refuses an arc past its own radiusYd, so a raider at the 20-30 yd stand is never in this one. War Stomp 11876 is pbaoe radiusYd 5, mechanic 12, a 5 s stun - a disc at melee reach, the Stockade shape. Knock Away 10101 is targetA 6 single target."
+  },
+  {
+   "entry": 7023,
+   "name": "Obsidian Sentinel",
+   "kinds": [
+    "halt-dps"
+   ],
+   "cite": "eventai/uldaman.ts:222-281 scripts 702301-702306, acid_classic.sql:17151-17156 creature_id=7023. At 80/60/40/20% HP it casts Summon Obsidian Shard 10061 (Effect 42 SUMMON_GUARDIAN, miscValue 7209) with Splintered Obsidian 10072, which is targetA 1 on ITSELF: attack power -60, 4 stacks. Spell Reflection 9941 is targetA 1, aura 28 at 19%, durationIndex 21 until-cancelled, cast on spawn - a permanent passive, not a window. uldaman.ts:436-475 models the four thresholds as phase-chained hpThreshold spawns, so the shards arrive one per phase and never coexist. Nothing here carries a radiusYd.",
+   "encounterRows": [
+    {
+     "kind": "halt-dps",
+     "label": "Casters off the shards, they reflect",
+     "cite": "The blocked note this replaces was wrong on its own premise, checked 2026-08-27 against the bake. It said 7209 'has no overlay in eventai/uldaman.ts, so the aura is never up'. An overlay is PREFERRED, not required: combatEnemySpec.ts:95 is `bossEventAiOverlay(def.entry) ?? def.ai`, and 7209's baked ai already carries the row - creatures.json 7209 `ai.scripts[0]` is id 720901, eventType 11 SPAWNED, action type 11 CAST param1 10074 (src_creature_ai_scripts id=720901, creature_id=7209), and its kit is `spells: [10074]`, so `spellFromKit` resolves it. The aura is up, and has been. Spell Reflection 10074 is Effect 6 APPLY_AURA, EffectApplyAuraName1 28, basePoints 99 with dieSides 1, targetA 1 self, DurationIndex 21 - the 4294967295 sentinel the bake reads as permanent. Aura 28 resolves to a `reflect` effect (interpreter handlers/auras-control.ts:898), so a nuke aimed at a shard comes back at the caster for its full value, all fight. Scoped to 7209 by `entries`, which is what makes the row safe: the SENTINEL takes nukes normally and only the shards are off limits. PHYSICAL is deliberately out of the school list - aura 28 reflects SPELLS, so melee keep killing the shard, and a halt that stopped white swings would take threat and the combat flag off it (stepSession.ts:2278, the Mandokir stalemate). The sentinel's own Spell Reflection 9941 is 19% and stays unrowed: a fifth of a nuke is a cost, not a wall.",
+     "rule": {
+      "id": "raid_enc_7023_halt_10074",
+      "action": {
+       "kind": "halt_dps",
+       "school": [
+        "holy",
+        "fire",
+        "nature",
+        "frost",
+        "shadow",
+        "arcane"
+       ],
+       "entries": [
+        7209
+       ]
+      },
+      "conditions": [
+       {
+        "subject": "target",
+        "metric": "buffPresent",
+        "op": "==",
+        "value": 1,
+        "ref": 10074
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "entry": 7206,
+   "name": "Ancient Stone Keeper",
+   "kinds": [],
+   "cite": "eventai/uldaman.ts:287-310 scripts 720601-720602, acid_classic.sql:17185-17186 creature_id=7206. Both abilities are Sand Storms - 10094 (rangeMin 10, rangeMax 30) and 10132 (rangeMax 10), each Effect 42 SUMMON_GUARDIAN miscValue 7226. summonCast.ts:54-73 puts that body on the floor as a GUARDIAN, and a guardian follows its summoner at 1.5 yd (summonCast.ts:31), so the storm parks on the boss instead of wandering. Its kit is Sand Storm 10092 (acid_classic.sql:17190), an aura 23 that triggers Harsh Winds 10093 every 1000 ms: pbaoe radiusYd 5, a 1 s silence and 20 physical. Five yards on the boss is melee reach, and the 20-30 yd ranged stand is already clear of it."
+  },
+  {
+   "entry": 7291,
+   "name": "Galgann Firehammer",
+   "kinds": [],
+   "cite": "eventai/uldaman.ts:316-364 scripts 729101-729105, acid_classic.sql:17201-17205 creature_id=7291. Fire Nova 11969 is the only shaped ability: pbaoe radiusYd 10, targetA 22 and targetB 15, castTimeMs 0, 100-112 fire and no aura left on him. Ten yards sits inside the melee band and inside RANGED_STAND_MIN_YD 20 (stand.ts:18), so the melee are in it because that is where melee happens and the ranged are already out - there is nobody a move verb could move. Amplify Flames 9482 (spell_taken +100, dispel 1 magic) and Flame Lash 3356 are single-target debuffs a dispel answers; Flame Shock 8053 is a single-target dot."
+  },
+  {
+   "entry": 4854,
+   "name": "Grimlok",
+   "kinds": [],
+   "cite": "eventai/uldaman.ts:159-184 scripts 485401-485403, acid_classic.sql:17105-17107 creature_id=4854 - ranged mode 35 yd and two yells, no ACTION_T_CAST at all. The kit comes off src_creature_template.SpellList 485401: Chain Bolt 8292 and Lightning Bolt 9532 are targetA 6 single-target nukes, Bloodlust 6742 is targetA 21 friendly haste at 30 yd (a purge the class rotations own), and Shrink 11892 is pbaoe radiusYd 5 with castTimeMs 3000, dispel 2 curse, -1 strength and -1 stamina - five yards on a mob standing at 35 yd, so it lands on whoever chased him and a decurse answers it. uldaman.ts:193 also hands him Tremor Totem 8143, a summon_totem of creature 5913, which is a body and not a party verb."
+  },
+  {
+   "entry": 2748,
+   "name": "Archaedas",
+   "kinds": [
+    "position",
+    "kill-order"
+   ],
+   "note": "Ground Tremor stuns everything within 20 yd of him every 8 to 17 seconds. The melee have to eat it. The ranged only need to stand a yard further back.",
+   "cite": "boss_archaedas.cpp:29-237. There are no ACID rows for 2748 and creatures.json 2748 has no spells array - the kit is the ScriptDev port at src/domain/scriptdev/uldaman.ts:178-244, which combatEnemySpec.ts:103-127 resolves into the spec and sessionInject.ts:58-84 arms as the cast schedule. Ground Tremor 6524 (cpp:32, :68, :173-179) is the one raid-side ability: initial 7-14 s, then every 8-17 s. The awaken casts 10252 / 10258 / 10259 are radiusYd 100 auras whose only job is to strip Stoned 10255 off the earthen (cpp:190-226), so they ask the party for nothing positional.",
+   "encounterRows": [
+    {
+     "kind": "position",
+     "label": "Casters step out of Ground Tremor",
+     "cite": "spell 6524 Ground Tremor is aoeShape pbaoe radiusYd 20, rawEffects targetA 22 TARGET_LOCATION_CASTER_SRC and targetB 15, mechanic 12, a 2000 ms stun, castTimeMs 0. That is the same disc as High Priestess Jeklik's Sonic Burst 23918 (radiusYd 20, targetA 22 and targetB 15), so this is that row: isWithinRadiusYd hits at <=, so 21 is the first clear yard, and the trigger is deliberately wider than the park because a row released on the yard it parks on re-arms on the boss's next step. 24 in / 21 out leaves 2.5 yd to stand and cast in, and the 25 yd ranged stand (stand.ts:20 RANGED_STAND_DEFAULT_YD) sits outside the trigger so the camp is not armed all fight. isCaster keeps the melee out of it: 21 yd is four times MIN_AGGRO_DISTANCE 5 (creatureAiConstants.ts:76) and a permanent park there would end melee for a 2 s stun. Hunters are NOT excluded, unlike the Jeklik row - that exclusion is for her Charge bait row and Archaedas has no bait, so a hunter sitting on the 20 yd floor (stand.ts:18 RANGED_STAND_MIN_YD, which the disc reaches at <=) takes the same one-yard step. He leaves no aura and has no cast bar, so like the Vaelastrasz flank row this is a standing position rule and not a reaction. Rows are keyed on the focus entry (raidEncounterTactics.ts:111), so it is off while a raider is on an awakened Earthen Guardian.",
+     "rule": {
+      "id": "raid_enc_2748_range_6524",
+      "action": {
+       "kind": "move",
+       "move": {
+        "kind": "keep_range",
+        "minYd": 21,
+        "entry": 2748
+       }
+      },
+      "conditions": [
+       {
+        "subject": "self",
+        "metric": "isCaster",
+        "op": "==",
+        "value": 1
+       },
+       {
+        "subject": "self",
+        "metric": "creatureDistanceYd",
+        "op": "<=",
+        "value": 24,
+        "ref": 2748
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ],
+   "blockedBy": {
+    "kill-order": "boss_archaedas.cpp:147-154 wakes the adds in a STAGED order, never together: below 66.6% one cast of Awaken Earthen Guardians 10252 wakes all six 7076, and only below 33.2% does Awaken Vault Warder 10258 wake the two 10120. Nothing in the cpp or in classic-db says either must die first, and uldaman.ts:601-624 models both as phase-chained hpThreshold spawns, so the two sets never coexist and there is no order to impose. The one add that would justify a healer-first order is Earthen Hallshaper 7077 with Reconstruct 10260 (acid_classic.sql:17171, aura 8 periodic heal, 149 over 20 s), and it arrives only through the 9-12 s GetClosestDwarfNotInCombat trickle (cpp:156-171) that uldaman.ts:584 records as an omitted GAP."
+   }
+  }
+ ]
+}

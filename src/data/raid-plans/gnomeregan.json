@@ -1,0 +1,131 @@
+{
+ "raid": "gnomeregan",
+ "note": "Reviewed for E5.4 against boss_thermaplugg.cpp, gnomeregan.cpp, eventai/gnomeregan.ts and acid_classic.sql. Two of the six earn a row and four do not. Electrocutioner 6000 carries the only cast bar in the wing - Megavolt 11082 is a 53 degree cone reaching 30 yd, so the ranged stand is inside it too - and Thermaplugg's Walking Bombs are 95 HP bodies that detonate a 10 yd disc on their own first swing. The rest is instant discs at or inside 10 yd on a melee boss, which is the Stockade finding.",
+ "bosses": [
+  {
+   "entry": 7361,
+   "name": "Grubbis",
+   "kinds": [],
+   "cite": "gnomeregan.cpp:128-130 summons him as pack 7 of the Blastmaster Emi Shortfuse escort, and he has no boss script - boss_thermaplugg.cpp is the only one in this wing. creature_template_spells 7361 is all zeros in the ClassicDB and the live dump alike, neither creature_ai_scripts table has a row for him, and baked creatures.json entry 7361 has spells null: a 5285 HP melee elite with no cast at all. Chomper 6215 spawns beside him carrying Cheap Shot 6409, rangeMax 5, a single-target 5 s stun (mechanic 12) that a trinket answers, and nothing in the DB puts either body first."
+  },
+  {
+   "entry": 7079,
+   "name": "Viscous Fallout",
+   "kinds": [],
+   "cite": "No ScriptDev file and no EventAI. 7079 has no row at all in src_creature_template_spells or live_creature_template_spells, none in src_creature_ai_scripts or live_creature_ai_scripts, and baked creatures.json entry 7079 carries spells null - the same reading src/data/dungeons/gnomeregan.ts:149-150 already records. A 2865 HP melee elite: there is nothing on the floor to stand out of."
+  },
+  {
+   "entry": 6235,
+   "name": "Electrocutioner 6000",
+   "kinds": [
+    "position"
+   ],
+   "cite": "eventai/gnomeregan.ts:115-153, acid_classic.sql:15327-15330 creature_id=6235. Shock 11084 is targetA 6 at 20 yd, instant, single target, and Chain Bolt 11085 is targetA 6 with EffectChainTarget 3 on a 2500 ms cast, so it jumps to three bodies - neither carries a radius, and neither is a raid verb. Megavolt 11082 is the one that is.",
+   "encounterRows": [
+    {
+     "kind": "position",
+     "label": "Get out of his front while Megavolt winds up",
+     "cite": "spell 11082 Megavolt is targetA 24 TARGET_ENUM_UNITS_ENEMY_IN_CONE_24 with EffectRadiusIndex1 radiusYd 30, and src_spell_cone Id 11082 ConeDegrees 53: a 53 degree wedge reaching 30 yd, so unlike every other AoE in Gnomeregan the 25 yd ranged stand is inside it and not only the melee. CastingTimeIndex gives 2000 ms, the only readable window on any AoE in this wing, and it is well inside pickAction.ts:774 RUNOUT_YIELD_AFTER_MS 4000. Same gate as the Vaelastrasz row (blackwing-lair.json 13020): inTargetCone plus targetAttackingMe 0 so the tank keeps holding him facing away. behind_target rather than flank_target because he has no rear cone - Shock and Chain Bolt are point targets, so coneArcsOfKit sees the Megavolt arc alone. After E5.3 (sessionMechanicMove.ts:385-417) a ranged mover rotates to the nearest bearing outside the arc at its own radius instead of walking twice its range, and melee take the far side. One number to know before reading this as measured protection: src_spell_template gives EffectBasePoints1 4 with EffectRealPointsPerLevel1 5.0 at MinLevel 32, about 160 nature damage, but spell-data.json 11082 bakes direct_damage min 5 max 5 because the bake does not scale creature spell damage by level. The cone's SHAPE is baked and the row works off it; the payload is not.",
+     "rule": {
+      "id": "raid_enc_6235_behind_11082",
+      "action": {
+       "kind": "move",
+       "move": {
+        "kind": "behind_target"
+       }
+      },
+      "conditions": [
+       {
+        "subject": "self",
+        "metric": "targetAttackingMe",
+        "op": "==",
+        "value": 0
+       },
+       {
+        "subject": "self",
+        "metric": "inTargetCone",
+        "op": "==",
+        "value": 1
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "entry": 6229,
+   "name": "Crowd Pummeler 9-60",
+   "kinds": [],
+   "cite": "eventai/gnomeregan.ts:17-50, acid_classic.sql:15308-15310 creature_id=6229. All three are castTimeMs 0 and none leaves an aura, so there is no window a move verb can be gated on: Crowd Pummel 10887 is aoeShape pbaoe radiusYd 10 targetA 22/15, mechanic 26 interrupt with a 5000 ms lockout; Trample 5568 is the same 10 yd disc and bakes no effect at all; Arcing Smash 8374 is a 71 degree cone (src_spell_cone) that stops at 5 yd. A 10 yd disc on a melee boss is where the melee have to stand, the 25 yd ranged stand is already outside the lockout, and a locked-out caster is a class row. The 8 yd Arcing Smash 16169 sits on creatures.json charmSpells, not spells, so the floor kit takes 8374's 5 yd."
+  },
+  {
+   "entry": 6228,
+   "name": "Dark Iron Ambassador",
+   "kinds": [],
+   "cite": "eventai/gnomeregan.ts:159-214, acid_classic.sql:15301-15306 creature_id=6228. Fire Shield II 184 is a 60 s self aura, aura 23 periodic-trigger every 3000 ms firing 3053 Fire Shield Effect II - baked pbaoe radiusYd 5 for 15 fire damage, a disc INSIDE melee reach, which is the Dextren Ward reading. Frost Armor 12544 is targetA 1 self and Fireball 9053 is targetA 6 at 40 yd; acid_classic.sql:15302 puts him in ranged mode at 35 yd on aggro, so the party closes on him rather than the other way. acid_classic.sql:15305 casts Summon Burning Servant 10870 twice on a 2000-3000 ms timer for two 7738, whose whole script is Summon Embers 10869 (acid_classic.sql:15364) - two adds with no DB priority between them and the boss, so no kill-order."
+  },
+  {
+   "entry": 7800,
+   "name": "Mekgineer Thermaplugg",
+   "kinds": [
+    "kill-order",
+    "use-object"
+   ],
+   "cite": "boss_thermaplugg.cpp:203-238 activates a random one of six bomb faces every 12-17 s (6-12 s past the 50% phase at :181) and every active face drops a Walking Bomb 7915 on a 10000-25000 ms timer. His own kit answers nothing: Knock Away 10101 is targetA 6 single target, the phase-two 11130 is aoeShape pbaoe radiusYd 10 with castTimeMs 0 so nothing can be gated on it, and creatures.json entry 7800 has spells null with 10101 sitting on charmSpells, so neither reaches the floor kit. The bombs do, and they are the fight.",
+   "encounterRows": [
+    {
+     "kind": "kill-order",
+     "label": "Kill the Walking Bombs before they reach the boss",
+     "cite": "boss_thermaplugg.cpp:143-158 walks each summoned 7915 to a point and then MoveFollow(Thermaplugg), so the bombs converge on exactly where the melee are standing. acid_classic.sql:15376 creature_id=7915 casts 11830 Walking Bomb Passive Proc on spawn: aura 42 proc-trigger at ProcChance 100 with ProcFlags 4 PROC_FLAG_DEAL_MELEE_SWING (SpellMgr.h:1662), triggering 11504 - aoeShape pbaoe radiusYd 10, 200-300 physical, plus SPELL_EFFECT_INSTAKILL on itself. So it detonates on its own first landed swing, with no cast and no aura on any raider: fleeAuras needs an aura whose removal fires the payload and keep_range needs a window, and there is neither. keep_range 11 off a body that follows the boss would also just mean never meleeing the boss. What does work is killing it first - creature_template 7915 is HealthMultiplier 0.1, 95 HP, one hit - and kill_order spends no GCD (evaluate.ts:659). The bodies are real on the floor: liveAggroStream.ts:1113-1131 pushes entry 7915 hostile 4-6 yd off the boss for each active face. One gap named rather than hidden: spell-data.json 11830 bakes effects [], so the proc does not currently fire even though 11504's payload is baked, and the row orders the kill either way.",
+     "rule": {
+      "id": "raid_enc_7800_kill",
+      "action": {
+       "kind": "kill_order",
+       "entries": [
+        7915
+       ]
+      },
+      "conditions": [],
+      "enabled": true
+     }
+    },
+    {
+     "kind": "use-object",
+     "label": "Send a ranged dps to the lit gnomeface button to shut the bomb vent",
+     "cite": "boss_thermaplugg.cpp:263-281 GOUse_go_gnomeface_button maps button 142214..142219 to face 0..5 and calls instance_gnomeregan.cpp:263-274 DoDeactivateBombFace, which is the only thing that closes a vent - and it returns without doing anything on a face that is already dark. So the row names the SET of six and resolves to whichever one is lit: goEntries, the same rewrite an item family already takes (evaluate.ts actionForEval). The bake carries all six buttons on map 90, one spawn each, gameobject_template type 1 BUTTON - which is why a press does not spend the slot (GameObject.cpp:1458 'buttons never really despawn'). They stand 39.8-41.3 yd from Thermaplugg's own spawn, measured off dungeonGameObjects/dungeonSpawns map 90, so the clicker WALKS: pickAction turns an out-of-reach click into the move_to the tree already ships and lands the press inside INTERACTION_DISTANCE 5 (ObjectDefines.h:25), the same standing a hand click needs. isCaster == 1 with isHealer == 0 is the shipped way to scope a row to the ranged (blackrock-depths.json Lord Roccor is the same pair of conditions minus the healer term): a ranged dps leaves the boss for the vent, the healer stays on the tank and the melee never move. What the row answers is boss_thermaplugg.cpp:203-238 - every activated face drops a Walking Bomb 7915 on a 10000-25000 ms timer, and the kill-order row beside this one kills the bombs that are already out while this one stops more arriving.",
+     "rule": {
+      "id": "raid_enc_7800_button",
+      "action": {
+       "kind": "use_object",
+       "goEntry": 142214,
+       "goEntries": [
+        142214,
+        142215,
+        142216,
+        142217,
+        142218,
+        142219
+       ]
+      },
+      "conditions": [
+       {
+        "subject": "self",
+        "metric": "isCaster",
+        "op": "==",
+        "value": 1
+       },
+       {
+        "subject": "self",
+        "metric": "isHealer",
+        "op": "==",
+        "value": 0
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ]
+  }
+ ]
+}

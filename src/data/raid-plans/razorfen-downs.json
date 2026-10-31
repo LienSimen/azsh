@@ -1,0 +1,75 @@
+{
+ "raid": "razorfen-downs",
+ "note": "Reviewed for E5.4 against eventai/razorfen-downs.ts, acid_classic.sql and razorfen_downs.cpp. Five of the six come back kinds: []. CMaNGOS has no boss script for this wing either - razorfen_downs.cpp is the Belnistrasz escort - and every boss shape with a radius is an instant 10 yd disc centred on a melee boss, which the Stockade already answered: the melee are inside it because that is where melee happens, the 25 yd ranged stand is outside it, and an instant leaves no cast and no aura for a move row to trigger on. Tuten'kash is the exception and the only row in either Razorfen wing - Web Spray 12252 is a real 53 degree frontal cone, so rotating out of it costs nobody a swing.",
+ "bosses": [
+  {
+   "entry": 7355,
+   "name": "Tuten'kash",
+   "kinds": [
+    "position"
+   ],
+   "cite": "eventai/razorfen-downs.ts:735501-735503, acid_classic.sql:15671-15673 creature_id=7355. Web Spray 12252 is the one shape in either Razorfen wing a move verb clears: src_spell_cone Id 12252 ConeDegrees 53, radiusYd 20, a 10 s root (mechanic 7) every 6-8 s. Curse of Tuten'kash 12255 is aoeShape pbaoe radiusYd 30, dispel 2 curse, 900000 ms - it does reach past the 25 yd ranged stand, but it is castMs 0 with no aura on him to gate on and a decurse is a class row. Virulent Poison Proc 12254 is a passive that arms 12251, dispel 4 poison.",
+   "encounterRows": [
+    {
+     "kind": "position",
+     "label": "Rotate out of the web spray",
+     "cite": "spell 12252 Web Spray bakes aoeShape cone, coneDeg 53 (src_spell_cone Id 12252 ConeDegrees 53), radiusYd 20, castMs 0, root 10 s mechanic root, on a 6-8 s timer (acid_classic.sql:15672 event_param3/4). It is a wedge off Tuten'kash's own facing, and combatGeometry.ts:450 coneArcsOfKit reads it straight off his kit (creatures.json 7355 spells 12254/12252/12255), so inTargetCone is true only for a raider actually inside the 53 degree arc within 20 yd. behind_target is the melee answer: sessionMechanicMove.ts:419-427 walks melee to MELEE_REACH_YD past him on the far side of his victim, so clearing the cone costs no swing. targetAttackingMe == 0 keeps the tank out of the row - walking the aggro holder drags the boss across the party, the same reason the Vaelastrasz flank row carries it (blackwing-lair.json raid_enc_13020_behind). No isCaster gate: the arc stops at 20 yd and the 25 yd ranged stand (stand.ts:20) sits outside it, and a caster who is inside takes the ranged rotate branch at sessionMechanicMove.ts:385-410 rather than a walk.",
+     "rule": {
+      "id": "raid_enc_7355_behind_12252",
+      "action": {
+       "kind": "move",
+       "move": {
+        "kind": "behind_target"
+       }
+      },
+      "conditions": [
+       {
+        "subject": "self",
+        "metric": "targetAttackingMe",
+        "op": "==",
+        "value": 0
+       },
+       {
+        "subject": "self",
+        "metric": "inTargetCone",
+        "op": "==",
+        "value": 1
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "entry": 7357,
+   "name": "Mordresh Fire Eye",
+   "kinds": [],
+   "cite": "acid_classic.sql:15680-15681 creature_id=7357 - eventai/razorfen-downs.ts:735701-735702 ports only the ranged mode and the yells, and the kit array razorfen-downs.ts:347 is what carries both casts. Fire Nova 12470 is aoeShape pbaoe radiusYd 10, targetA 22 tgtB 15, 148-170 damage, castMs 0, every 11-16 s. Instant means there is no castingPresent to gate a walk-out on, and it leaves no aura on him for buffPresent, so keep_range has no trigger; the 25 yd ranged stand (stand.ts:20) is already outside 10 and the melee cannot leave 10 and still melee. Fireball 12466 is castMs 3000 interruptFlags 15, a kick, which is a class row."
+  },
+  {
+   "entry": 7356,
+   "name": "Plaguemaw the Rotting",
+   "kinds": [],
+   "cite": "eventai/razorfen-downs.ts:735601-735602, acid_classic.sql:15675-15676 creature_id=7356. Putrid Stench 12946 is aoeShape pbaoe radiusYd 10, targetA 22 tgtB 15, a 10 s silence (mechanic 9, aura 27) plus -51 strength and -51 agility, dispel 3 disease, castMs 0 every 15-23 s. Same wall as Fire Nova: instant, no caster aura, so nothing for keep_range to fire off - and the healer already stands at 25 yd (stand.ts:20), outside the disc, while a disease cleanse is a class row. Withered Touch 12947 is a passive proc arming 11442."
+  },
+  {
+   "entry": 7354,
+   "name": "Ragglesnout",
+   "kinds": [],
+   "cite": "eventai/razorfen-downs.ts:735401-735405, acid_classic.sql:15665-15669 creature_id=7354. Every cast is single target. Dominate Mind 7645 is mechanic 1 charm, castMs 2000, interruptFlags 13, dispel 1 magic on a random non-top hostile every 15-20 s; Heal 12039 is castMs 3000 interruptFlags 15; Shadow Word: Pain 11639 and Shadow Bolt 12471 are targetA 6. src_creature_template_spells 7354 adds 10892 and 11659, the higher ranks the razorfen-downs.ts:346 kit ships. A kick and a dispel, both class rows, and no radius anywhere in the kit."
+  },
+  {
+   "entry": 8567,
+   "name": "Glutton",
+   "kinds": [],
+   "cite": "acid_classic.sql:15696-15699 creature_id=8567 - there is no in-tree EventAI overlay for 8567, so the OOC Thrash swap and the 50%/15% rows are unported and razorfen-downs.ts:348 is what carries the kit. Disease Cloud 16345 and 12627 are self auras (aura 23, amplitude 3000) that pulse 16346 and 12626, and both payloads are aoeShape pbaoe radiusYd 5 for 16-30 damage - a disc exactly at MELEE_REACH_YD 5 (creatureAiConstants.ts:76), so keep_range 6 means no melee at all. Thrash 8876 and 12787 arm 3391 extra attacks, and Enrage 12795 is a self haste buff. All four are tank-and-healer problems, not party verbs."
+  },
+  {
+   "entry": 7358,
+   "name": "Amnennar the Coldbringer",
+   "kinds": [],
+   "cite": "eventai/razorfen-downs.ts:735807-735808, acid_classic.sql:15683-15693 creature_id=7358. There is no Blizzard in the 1.12 kit: the combat casts are Frost Nova 15531, Amnennar's Wrath 13009, Frostbolt 15530 and the spawn-time Frost Armor 12556, and razorfen-downs.ts:351 ships the first three. Frost Nova 15531 is aoeShape pbaoe radiusYd 10, targetA 22 tgtB 15, 111-129 plus an 8 s root, castMs 0 every 15 s - instant, no caster aura, so nothing to gate keep_range on, and the 25 yd ranged stand is outside it. Amnennar's Wrath 13009 is Effect 98 SPELL_EFFECT_KNOCK_BACK (SpellEffectDefines.h:124) on the current target at rangeMax 5, and the bake gives it an empty effects[], so today it lands nothing at all. Summon Frost Spectres 12642 puts 3x 8585 down at 66% and 33% with no order the DB names, and 858502 despawns them on his death."
+  }
+ ]
+}

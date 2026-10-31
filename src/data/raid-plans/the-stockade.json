@@ -1,0 +1,42 @@
+{
+ "raid": "the-stockade",
+ "note": "Reviewed for E5.4 against eventai/the-stockade.ts and acid_classic.sql. All six bosses come back kinds: [] and that is the finding - KI-993's wipe on Bazil Thredd is not a tactics gap. Every AoE in this wing is a disc at melee range that the melee have to be standing in to fight at all, so no MOVE verb can answer one without giving up the damage. What answers them is per-class: a trinket, Tremor Totem, Fear Ward, Berserker Rage - which lives in the class rotation, not in a raid row.",
+ "bosses": [
+  {
+   "entry": 1696,
+   "name": "Targorr the Dread",
+   "kinds": [],
+   "cite": "eventai/the-stockade.ts:169601-169602, acid_classic.sql:17027-17028 creature_id=1696. Enrage 8599 at <=30% HP is a self buff, haste +30% for 120 s, and the bake gives it no dispel type. Thrash 3391 is extra_attacks on self. Both are tank-and-healer problems, not raid-side verbs - there is nothing on the floor to stand out of."
+  },
+  {
+   "entry": 1666,
+   "name": "Kam Deepfury",
+   "kinds": [],
+   "cite": "eventai/the-stockade.ts:166601-166604, acid_classic.sql:17022-17025 creature_id=1666. Improved Blocking 3418 and Defensive Stance 7164 are self, targetA 1. Shield Slam 8242 is rangeMax 5 targetA 6 - a single-target 2 s stun plus 20 damage on whoever he is hitting. Nothing area, nothing to position around."
+  },
+  {
+   "entry": 1717,
+   "name": "Hamhock",
+   "kinds": [],
+   "cite": "eventai/the-stockade.ts:171701-171702, acid_classic.sql:17056-17057 creature_id=1717. Bloodlust 6742 is targetA 21 TARGET_UNIT_FRIEND at 30 yd - a haste buff he puts on an ADD, which is a purge/dispel the class rotations already own. Chain Lightning 421 is targetA 6 at 30 yd, a single-target nuke. Neither has a radius."
+  },
+  {
+   "entry": 1716,
+   "name": "Bazil Thredd",
+   "kinds": [],
+   "cite": "eventai/the-stockade.ts:171603-171605, acid_classic.sql:17051-17054 creature_id=1716. This is the KI-993 wall and it is NOT a tactics gap. Smoke Bomb 7964 is aoeShape pbaoe radiusYd 5, targetA 22 and 18 - both caster locations, so a 5 yd disc centred on him - and it is a 4 s STUN (mechanic 12) every 8.0-26.9 s. A move verb cannot answer it: standing outside 5 yd of Bazil means not meleeing Bazil, and ranged are already outside it at the 25 yd stand. What answers a repeated melee stun is a trinket or a stun break in the class rotation. Battle Shout 9128 is a 20 yd friendly buff. Flees for assist at 15%."
+  },
+  {
+   "entry": 1663,
+   "name": "Dextren Ward",
+   "kinds": [],
+   "cite": "eventai/the-stockade.ts:166301-166304, acid_classic.sql:17017-17020 creature_id=1663. Intimidating Shout 19134 is aoeShape pbaoe radiusYd 8, targetA 6 then 22/22, mechanic 5 fear, triggering 29544 - the single target plus everyone within 8 yd of HIM. Same shape as Bazil's stun: the melee are inside 8 yd because that is where melee happens, and the ranged stand is already outside it. Fear Ward, Tremor Totem and Berserker Rage are the answer and they are class rows. Strike 11976 is rangeMax 5 targetA 6; Battle Stance 7165 is self on spawn."
+  },
+  {
+   "entry": 1720,
+   "name": "Bruegal Ironknuckle",
+   "kinds": [],
+   "cite": "eventai/the-stockade.ts:172001-172002, acid_classic.sql:17059-17060 creature_id=1720. Two ACTION_T_TEXT scripts and a flee-for-assist at 15%, no ACTION_T_CAST at all - his whole kit is the creature_template melee. Pure tank-and-spank."
+  }
+ ]
+}

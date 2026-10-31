@@ -1,0 +1,392 @@
+{
+  "generated": "2026-08-24T18:30:09.939Z",
+  "generator": "bake-dungeon-floorplans.mjs",
+  "vmapMagic": "VMAP_7.0",
+  "mid": 17066.66666656,
+  "projection": "internal=(MID-x,MID-y); left∝iy; top∝ix; forced-square box; VMapManager2.cpp:65-74 + seed-zone-map.mjs:99-104",
+  "alterac-valley": {
+    "mapId": 30,
+    "floorplan": "/maps/floorplan/30-alterac-valley.json",
+    "box": [15590.340387, 22907.841947, 13508.197887, 20825.699447],
+    "zMin": -44.421,
+    "zMax": 232.493
+  },
+  "arathi-basin": {
+    "mapId": 529,
+    "floorplan": "/maps/floorplan/529-arathi-basin.json",
+    "box": [15649.540867, 16433.364467, 15690.749867, 16474.573467],
+    "zMin": -111.8,
+    "zMax": 160.032
+  },
+  "azuregos": {
+    "mapId": 1,
+    "floorplan": "/maps/floorplan/1-azuregos.json",
+    "box": [14356.678067, 14962.685267, 22900.453067, 23506.460267],
+    "zMin": -19.193,
+    "zMax": 140.907
+  },
+  "blackfathom-deeps": {
+    "mapId": 48,
+    "floorplan": "/maps/floorplan/48-blackfathom-deeps.json",
+    "box": [17078.861067, 18085.300267, 16583.502067, 17589.941267],
+    "zMin": -80.971,
+    "zMax": 20.649
+  },
+  "blackfathom-deeps-ent": {
+    "mapId": 1,
+    "floorplan": "/maps/floorplan/1-blackfathom-deeps-ent.json",
+    "box": [12759.945067, 13362.588267, 15967.175067, 16569.818267],
+    "zMin": -44.465,
+    "zMax": 134.763
+  },
+  "blackrock-depths": {
+    "mapId": 230,
+    "floorplan": "/maps/floorplan/230-blackrock-depths.json",
+    "box": [15492.565387, 16899.228947, 16678.533387, 18085.196947],
+    "zMin": -203.821,
+    "zMax": 69.188
+  },
+  "blackrock-mountain-ent": {
+    "mapId": 0,
+    "floorplan": "/maps/floorplan/0-blackrock-mountain-ent.json",
+    "box": [23917.551467, 25150.271867, 17563.800967, 18796.521367],
+    "zMin": 127.026,
+    "zMax": 588.897
+  },
+  "blackwing-lair": {
+    "mapId": 469,
+    "floorplan": "/maps/floorplan/469-blackwing-lair.json",
+    "box": [24364.562647, 24833.050687, 17894.868147, 18363.356187],
+    "zMin": 199.206,
+    "zMax": 593.552
+  },
+  "deadmines": {
+    "mapId": 36,
+    "floorplan": "/maps/floorplan/36-deadmines.json",
+    "box": [16892.682977, 17554.088297, 17370.037507, 18031.442827],
+    "zMin": -32.597,
+    "zMax": 206.758
+  },
+  "deadmines-ent": {
+    "mapId": 0,
+    "floorplan": "/maps/floorplan/0-deadmines-ent.json",
+    "box": [28169.073267, 28635.660067, 15024.828267, 15491.415067],
+    "zMin": -1.727,
+    "zMax": 84.824
+  },
+  "dire-maul-east": {
+    "mapId": 429,
+    "floorplan": "/maps/floorplan/429-dire-maul.json",
+    "box": [15703.826707, 17689.876627, 15973.335707, 17959.385627],
+    "zMin": -122.831,
+    "zMax": 214.119
+  },
+  "dire-maul-ent": {
+    "mapId": 1,
+    "floorplan": "/maps/floorplan/1-dire-maul-ent.json",
+    "box": [20045.109517, 21867.663817, 15350.343267, 17172.897567],
+    "zMin": 17.247,
+    "zMax": 384.361
+  },
+  "dire-maul-north": {
+    "mapId": 429,
+    "floorplan": "/maps/floorplan/429-dire-maul.json",
+    "box": [15703.826707, 17689.876627, 15973.335707, 17959.385627],
+    "zMin": -122.831,
+    "zMax": 214.119
+  },
+  "dire-maul-west": {
+    "mapId": 429,
+    "floorplan": "/maps/floorplan/429-dire-maul.json",
+    "box": [15703.826707, 17689.876627, 15973.335707, 17959.385627],
+    "zMin": -122.831,
+    "zMax": 214.119
+  },
+  "dungeon-locations-east": {
+    "mapId": 0,
+    "floorplan": "/maps/floorplan/0-dungeon-locations-east.json",
+    "box": [12444.604486, 30211.968594, 9370.614678, 27137.978786],
+    "zMin": -107.978,
+    "zMax": 734.676
+  },
+  "dungeon-locations-west": {
+    "mapId": 1,
+    "floorplan": "/maps/floorplan/1-dungeon-locations-west.json",
+    "box": [11795.278372, 26510.625273, 10491.648123, 25206.995024],
+    "zMin": -37.637,
+    "zMax": 247.75
+  },
+  "flightpaths-alliance-east": {
+    "mapId": 0,
+    "floorplan": "/maps/floorplan/0-flightpaths-alliance-east.json",
+    "box": [13451.212133, 32884.0812, 9502.292133, 28935.1612],
+    "zMin": -0.416,
+    "zMax": 771.853
+  },
+  "flightpaths-alliance-west": {
+    "mapId": 1,
+    "floorplan": "/maps/floorplan/1-flightpaths-alliance-west.json",
+    "box": [7148.838533, 25564.8748, 8560.543533, 26976.5798],
+    "zMin": -188.196,
+    "zMax": 701.497
+  },
+  "flightpaths-horde-east": {
+    "mapId": 0,
+    "floorplan": "/maps/floorplan/0-flightpaths-horde-east.json",
+    "box": [13392.687333, 32857.526, 9209.397333, 28674.236],
+    "zMin": -85.269,
+    "zMax": 347.455
+  },
+  "flightpaths-horde-west": {
+    "mapId": 1,
+    "floorplan": "/maps/floorplan/1-flightpaths-horde-west.json",
+    "box": [8087.184533, 25307.3188, 9130.214533, 26350.3488],
+    "zMin": -188.196,
+    "zMax": 710.669
+  },
+  "four-dragons": {
+    "mapId": 1,
+    "floorplan": "/maps/floorplan/1-four-dragons.json",
+    "box": [12649.492667, 28833.290667, 10030.972667, 26214.770667],
+    "zMin": 26.801,
+    "zMax": 173.544
+  },
+  "gnomeregan": {
+    "mapId": 90,
+    "floorplan": "/maps/floorplan/90-gnomeregan.json",
+    "box": [17265.812147, 18138.821187, 16285.532147, 17158.541187],
+    "zMin": -331.795,
+    "zMax": -91.378
+  },
+  "gnomeregan-ent": {
+    "mapId": 0,
+    "floorplan": "/maps/floorplan/0-gnomeregan-ent.json",
+    "box": [21888.321488, 22419.241865, 16062.964985, 16593.885362],
+    "zMin": 241.06,
+    "zMax": 632.538
+  },
+  "lbrs": {
+    "mapId": 229,
+    "floorplan": "/maps/floorplan/229-blackrock-spire.json",
+    "box": [16796.933147, 17310.371187, 17222.529147, 17735.967187],
+    "zMin": -47.215,
+    "zMax": 155.614
+  },
+  "lord-kazzak": {
+    "mapId": 0,
+    "floorplan": "/maps/floorplan/0-lord-kazzak.json",
+    "box": [28779.102667, 29362.930667, 19294.977667, 19878.805667],
+    "zMin": -47.431,
+    "zMax": 10.878
+  },
+  "maraudon": {
+    "mapId": 349,
+    "floorplan": "/maps/floorplan/349-maraudon.json",
+    "box": [15834.019227, 17316.607107, 16470.751727, 17953.339607],
+    "zMin": -208.922,
+    "zMax": 102.582
+  },
+  "maraudon-ent": {
+    "mapId": 1,
+    "floorplan": "/maps/floorplan/1-maraudon-ent.json",
+    "box": [17877.949267, 18919.664067, 13953.334267, 14995.049067],
+    "zMin": 65.16,
+    "zMax": 291.961
+  },
+  "molten-core": {
+    "mapId": 409,
+    "floorplan": "/maps/floorplan/409-molten-core.json",
+    "box": [15745.249367, 16606.038967, 17492.781867, 18353.571467],
+    "zMin": -233.437,
+    "zMax": -20.755
+  },
+  "naxxramas": {
+    "mapId": 533,
+    "floorplan": "/maps/floorplan/533-naxxramas.json",
+    "box": [12600.356267, 15232.837067, 19796.316267, 22428.797067],
+    "zMin": -241.555,
+    "zMax": 547.704
+  },
+  "onyxias-lair": {
+    "mapId": 249,
+    "floorplan": "/maps/floorplan/249-onyxias-lair.json",
+    "box": [17055.913642, 17282.431487, 17111.991894, 17338.509739],
+    "zMin": -96.278,
+    "zMax": -7.244
+  },
+  "ragefire-chasm": {
+    "mapId": 389,
+    "floorplan": "/maps/floorplan/389-ragefire-chasm.json",
+    "box": [17050.942967, 17510.740867, 16754.639117, 17214.437017],
+    "zMin": -65.932,
+    "zMax": 51.224
+  },
+  "razorfen-downs": {
+    "mapId": 129,
+    "floorplan": "/maps/floorplan/129-razorfen-downs.json",
+    "box": [14342.996187, 14872.427147, 15927.784187, 16457.215147],
+    "zMin": 23.509,
+    "zMax": 87.231
+  },
+  "razorfen-kraul": {
+    "mapId": 47,
+    "floorplan": "/maps/floorplan/47-razorfen-kraul.json",
+    "box": [14615.801867, 15316.511467, 15003.041867, 15703.751467],
+    "zMin": 46.463,
+    "zMax": 149.052
+  },
+  "ruins-of-ahnqiraj": {
+    "mapId": 509,
+    "floorplan": "/maps/floorplan/509-ruins-of-ahnqiraj.json",
+    "box": [25485.674667, 26912.938667, 14618.944667, 16046.208667],
+    "zMin": -64.455,
+    "zMax": 310.649
+  },
+  "scarlet-monastery-ent": {
+    "mapId": 0,
+    "floorplan": "/maps/floorplan/0-scarlet-monastery-ent.json",
+    "box": [13911.0762, 14261.207153, 17579.949704, 17930.080657],
+    "zMin": 106.526,
+    "zMax": 163.049
+  },
+  "scholomance": {
+    "mapId": 289,
+    "floorplan": "/maps/floorplan/289-scholomance.json",
+    "box": [16760.164995, 17116.338239, 16836.245145, 17192.418389],
+    "zMin": 70.773,
+    "zMax": 157.081
+  },
+  "shadowfang-keep": {
+    "mapId": 33,
+    "floorplan": "/maps/floorplan/33-shadowfang-keep.json",
+    "box": [17125.640775, 17383.450659, 14724.866725, 14982.676609],
+    "zMin": 18.284,
+    "zMax": 172.386
+  },
+  "sm-armory": {
+    "mapId": 189,
+    "floorplan": "/maps/floorplan/189-scarlet-monastery.json",
+    "box": [14917.684927, 17130.620407, 15451.390427, 17664.325907],
+    "zMin": -10.485,
+    "zMax": 66.267
+  },
+  "sm-cathedral": {
+    "mapId": 189,
+    "floorplan": "/maps/floorplan/189-scarlet-monastery.json",
+    "box": [14917.684927, 17130.620407, 15451.390427, 17664.325907],
+    "zMin": -10.485,
+    "zMax": 66.267
+  },
+  "sm-graveyard": {
+    "mapId": 189,
+    "floorplan": "/maps/floorplan/189-scarlet-monastery.json",
+    "box": [14917.684927, 17130.620407, 15451.390427, 17664.325907],
+    "zMin": -10.485,
+    "zMax": 66.267
+  },
+  "sm-library": {
+    "mapId": 189,
+    "floorplan": "/maps/floorplan/189-scarlet-monastery.json",
+    "box": [14917.684927, 17130.620407, 15451.390427, 17664.325907],
+    "zMin": -10.485,
+    "zMax": 66.267
+  },
+  "stratholme-live": {
+    "mapId": 329,
+    "floorplan": "/maps/floorplan/329-stratholme.json",
+    "box": [12835.861867, 13783.651467, 19938.611867, 20886.401467],
+    "zMin": 78.073,
+    "zMax": 216.964
+  },
+  "stratholme-undead": {
+    "mapId": 329,
+    "floorplan": "/maps/floorplan/329-stratholme.json",
+    "box": [12835.861867, 13783.651467, 19938.611867, 20886.401467],
+    "zMin": 78.073,
+    "zMax": 216.964
+  },
+  "sunken-temple": {
+    "mapId": 109,
+    "floorplan": "/maps/floorplan/109-sunken-temple.json",
+    "box": [17305.691007, 17774.362327, 16746.909507, 17215.580827],
+    "zMin": -189.73,
+    "zMax": -45.318
+  },
+  "sunken-temple-ent": {
+    "mapId": 0,
+    "floorplan": "/maps/floorplan/0-sunken-temple-ent.json",
+    "box": [27166.854667, 27774.578667, 20760.079667, 21367.803667],
+    "zMin": -107.978,
+    "zMax": 23.887
+  },
+  "temple-of-ahnqiraj": {
+    "mapId": 531,
+    "floorplan": "/maps/floorplan/531-temple-of-ahnqiraj.json",
+    "box": [24851.825067, 26407.988267, 14734.753567, 16290.916767],
+    "zMin": -112.621,
+    "zMax": 294.682
+  },
+  "the-stockade": {
+    "mapId": 34,
+    "floorplan": "/maps/floorplan/34-the-stockade.json",
+    "box": [16774.167377, 17099.423257, 16898.281227, 17223.537107],
+    "zMin": -35.19,
+    "zMax": -0.906
+  },
+  "ubrs": {
+    "mapId": 229,
+    "floorplan": "/maps/floorplan/229-blackrock-spire.json",
+    "box": [16796.933147, 17310.371187, 17222.529147, 17735.967187],
+    "zMin": -47.215,
+    "zMax": 155.614
+  },
+  "uldaman": {
+    "mapId": 70,
+    "floorplan": "/maps/floorplan/70-uldaman.json",
+    "box": [16859.838947, 17458.264387, 16510.010947, 17108.436387],
+    "zMin": -58.52,
+    "zMax": -5.611
+  },
+  "uldaman-ent": {
+    "mapId": 0,
+    "floorplan": "/maps/floorplan/0-uldaman-ent.json",
+    "box": [22891.029067, 23509.274267, 19727.269067, 20345.514267],
+    "zMin": 201.827,
+    "zMax": 448.33
+  },
+  "wailing-caverns": {
+    "mapId": 43,
+    "floorplan": "/maps/floorplan/43-wailing-caverns.json",
+    "box": [16688.563147, 17713.416187, 16465.062147, 17489.915187],
+    "zMin": -118.079,
+    "zMax": 35.332
+  },
+  "wailing-caverns-ent": {
+    "mapId": 1,
+    "floorplan": "/maps/floorplan/1-wailing-caverns-ent.json",
+    "box": [17559.309767, 18172.230567, 19160.006267, 19772.927067],
+    "zMin": 12.665,
+    "zMax": 222.446
+  },
+  "warsong-gulch": {
+    "mapId": 489,
+    "floorplan": "/maps/floorplan/489-warsong-gulch.json",
+    "box": [15476.333627, 16200.072707, 15247.822127, 15971.561207],
+    "zMin": 301.631,
+    "zMax": 437.43
+  },
+  "zul-farrak": {
+    "mapId": 209,
+    "floorplan": "/maps/floorplan/209-zul-farrak.json",
+    "box": [15087.424267, 15858.279067, 15694.998267, 16465.853067],
+    "zMin": -0.184,
+    "zMax": 138.407
+  },
+  "zul-gurub": {
+    "mapId": 309,
+    "floorplan": "/maps/floorplan/309-zul-gurub.json",
+    "box": [28444.586667, 29544.846667, 18128.856667, 19229.116667],
+    "zMin": -2.392,
+    "zMax": 206.784
+  }
+}

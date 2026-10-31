@@ -1,0 +1,4048 @@
+[
+  {
+    "levels": "60",
+    "spec": "frost",
+    "buffs": [
+      {
+        "spell": "Arcane Intellect",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Ice Armor",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Food",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 8076
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Ruby",
+        "when": "item count < 2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 2,
+            "ref": 8008
+          }
+        ]
+      },
+      {
+        "spell": "Dampen Magic",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Agate",
+        "when": "item count < 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5514
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Jade",
+        "when": "item count < 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5513
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Water",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 8079
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Citrine",
+        "when": "item count < 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 8007
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Polymorph",
+        "when": "polymorph DR is fresh",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "==",
+            "value": 0,
+            "ref": 5
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Evocation",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "item": "Free Action Potion",
+        "when": "rooted AND I carry one",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 5634
+          }
+        ]
+      },
+      {
+        "item": "Free Action Potion",
+        "when": "snared AND I carry one",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "snared",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 5634
+          }
+        ]
+      },
+      {
+        "item": "Spider Belt",
+        "when": "rooted AND I wear one",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Spider Belt",
+        "when": "snared AND I wear one",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "snared",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting a heal",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingIsHeal",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "move": {
+          "kind": "keep_range",
+          "minYd": 20
+        },
+        "when": "target inside 20 yd AND it fights in melee AND it is rooted or snared AND I am not casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "targetDistanceYd",
+            "op": "<=",
+            "value": 20
+          },
+          {
+            "subject": "target",
+            "metric": "isCaster",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "snared",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "spell": "Arcane Explosion",
+        "when": "target is a hunter AND it is in melee with me",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "classId",
+            "op": "==",
+            "value": 3
+          },
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Fire Ward",
+        "when": "target is a warlock AND buff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "classId",
+            "op": "==",
+            "value": 9
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Fire Ward",
+        "when": "target is not a warlock AND it fights at range AND buff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "classId",
+            "op": "!=",
+            "value": 9
+          },
+          {
+            "subject": "target",
+            "metric": "isCaster",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "item": "Gyrofreeze Ice Reflector",
+        "when": "enemy is casting frost AND I wear one",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingSchool",
+            "op": "==",
+            "value": 4
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Hyper-Radiant Flame Reflector",
+        "when": "enemy is casting fire AND I wear one",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingSchool",
+            "op": "==",
+            "value": 2
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Ultra-Flash Shadow Reflector",
+        "when": "enemy is casting shadow AND I wear one",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingSchool",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Thorium Grenade",
+        "when": "enemy is casting out of melee AND I carry one",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Iron Grenade",
+        "when": "enemy is casting out of melee AND I carry one",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Gnomish Rocket Boots",
+        "when": "target is more than 15 yd away AND I wear them",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "targetDistanceYd",
+            "op": ">",
+            "value": 15
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Goblin Rocket Boots",
+        "when": "target is more than 15 yd away AND I wear them",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "targetDistanceYd",
+            "op": ">",
+            "value": 15
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "spell": "Ice Block",
+        "when": "self health < 15%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 15
+          }
+        ]
+      },
+      {
+        "spell": "Cold Snap",
+        "when": "self health < 15% (Ice Block on CD — resets frost CDs)",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 15
+          }
+        ]
+      },
+      {
+        "spell": "Blink",
+        "when": "self is rooted (Blink carries mechanic_immunity 7)",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Frost Nova",
+        "when": "melee on me AND root DR under 2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "<",
+            "value": 2,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Mana Shield",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Remove Lesser Curse",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Cone of Cold",
+        "when": "two enemies within 10 yd of me",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemiesWithinYd",
+            "op": ">=",
+            "value": 2,
+            "ref": 10
+          }
+        ],
+        "after": {
+          "stepBackYd": 10
+        }
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "always"
+      },
+      {
+        "spell": "Shoot",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      },
+      {
+        "spell": "Ice Barrier",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Polymorph",
+        "when": "a second body is up AND polymorph DR is fresh",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "==",
+            "value": 0,
+            "ref": 5
+          }
+        ],
+        "target": "other"
+      },
+      {
+        "spell": "Dampen Magic",
+        "when": "target fights at range AND buff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "isCaster",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      }
+    ]
+  },
+  {
+    "levels": "60",
+    "spec": "frost",
+    "variant": "shatter-v1",
+    "note": "Frost nova first, then spend the frozen window. A frost root on the target is +50% crit for every mage nuke (applySpell.ts:1134-1142, Mage.cpp:58-70 ShatterMage; frozen = a live frost root/stun, class-scripts-kit.ts:168-178). The default pvp band novas only to escape melee, so the window it opens is never spent on purpose.",
+    "buffs": [
+      {
+        "spell": "Arcane Intellect",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Ice Armor",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Food",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 8076
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Ruby",
+        "when": "item count < 2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 2,
+            "ref": 8008
+          }
+        ]
+      },
+      {
+        "spell": "Dampen Magic",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Agate",
+        "when": "item count < 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5514
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Jade",
+        "when": "item count < 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5513
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Water",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 8079
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Citrine",
+        "when": "item count < 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 8007
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Polymorph",
+        "when": "polymorph DR is fresh",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "==",
+            "value": 0,
+            "ref": 5
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Evocation",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting a heal",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingIsHeal",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Ice Block",
+        "when": "self health < 15%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 15
+          }
+        ]
+      },
+      {
+        "spell": "Blink",
+        "when": "self is rooted (Blink carries mechanic_immunity 7)",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Frost Nova",
+        "when": "melee on me AND target not already rooted AND root DR under 2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "<",
+            "value": 2,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "target is rooted (Shatter window)",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "target is rooted (Shatter window, instant)",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Cone of Cold",
+        "when": "target is rooted (Shatter window, and re-chills on the way out)",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ],
+        "after": {
+          "stepBackYd": 10
+        }
+      },
+      {
+        "spell": "Ice Barrier",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Remove Lesser Curse",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Polymorph",
+        "when": "second enemy AND polymorph DR is fresh",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "==",
+            "value": 0,
+            "ref": 5
+          }
+        ]
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "always"
+      },
+      {
+        "spell": "Shoot",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      }
+    ]
+  },
+  {
+    "levels": "20-29",
+    "spec": "frost",
+    "note": "Nova then spend the root: Shatter is +crit vs frozen (applySpell.ts:1134-1142, Mage.cpp:58-70). This bracket has NO defensive: the pvp dps frost premade never learns Ice Block, Barrier or Mana Shield, so a Mana Shield row was authored, measured as dropped by the builder and taken out (pvpBands.combatRowsInTheBuiltRotation). Stone and potion are the whole recovery.",
+    "buffs": [
+      {
+        "spell": "Arcane Intellect",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Frost Armor",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Food",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 1114
+          }
+        ]
+      },
+      {
+        "spell": "Dampen Magic",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Agate",
+        "when": "item count < 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5514
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Water",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 2136
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Evocation",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting a heal",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingIsHeal",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Blink",
+        "when": "self is rooted (Blink carries mechanic_immunity 7)",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Frost Nova",
+        "when": "melee on me AND target not already rooted AND root DR under 2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "<",
+            "value": 2,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "target is rooted (Shatter window)",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "target is rooted (Shatter window, instant)",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Cone of Cold",
+        "when": "target is rooted (Shatter window, and re-chills on the way out)",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ],
+        "after": {
+          "stepBackYd": 10
+        }
+      },
+      {
+        "spell": "Remove Lesser Curse",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "always"
+      },
+      {
+        "spell": "Shoot",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      }
+    ]
+  },
+  {
+    "levels": "30-39",
+    "spec": "frost",
+    "note": "Nova then spend the root. Shatter crit vs frozen: applySpell.ts:1134-1142 / Mage.cpp:58-70. Cold Snap and Mana Shield rows were authored here on the claim that the premade knows them, measured as DROPPED by the builder, and taken out - this premade learns neither, and neither does it learn Ice Block, so there is still no defensive at 39.",
+    "buffs": [
+      {
+        "spell": "Arcane Intellect",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Ice Armor",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Food",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 1487
+          }
+        ]
+      },
+      {
+        "spell": "Dampen Magic",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Agate",
+        "when": "item count < 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5514
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Jade",
+        "when": "item count < 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5513
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Water",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 3772
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      }
+    ],
+    "recovery": [
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "spell": "Evocation",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting a heal",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingIsHeal",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Blink",
+        "when": "self is rooted (Blink carries mechanic_immunity 7)",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Frost Nova",
+        "when": "melee on me AND target not already rooted AND root DR under 2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "<",
+            "value": 2,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "target is rooted (Shatter window)",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "target is rooted (Shatter window, instant)",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Cone of Cold",
+        "when": "target is rooted (Shatter window, and re-chills on the way out)",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ],
+        "after": {
+          "stepBackYd": 10
+        }
+      },
+      {
+        "spell": "Remove Lesser Curse",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "always"
+      },
+      {
+        "spell": "Shoot",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      }
+    ]
+  },
+  {
+    "levels": "40-49",
+    "spec": "frost",
+    "note": "Nova then spend the root from the 18 yd seat (arenaLab buildLabDuel / battleground.ts:97). Frostbolt snare keeps the gap; Frost Nova on melee opens the Shatter window (+crit vs frozen, applySpell.ts:1134-1142 / Mage.cpp:58-70); Blink on root escapes. Re-gated Frost@60 Polymorph (enemyCount>=2) onto melee peel and Cone of Cold onto rooted. No Ice Barrier (not learned at midpoint 44). No healthstone/potion (bgConsumes.ts:66-86).",
+    "buffs": [
+      {
+        "spell": "Arcane Intellect",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Ice Armor",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Food",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 8075
+          }
+        ]
+      },
+      {
+        "spell": "Dampen Magic",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Agate",
+        "when": "item count < 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5514
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Jade",
+        "when": "item count < 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5513
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Water",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 8077
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Evocation",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting a heal",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingIsHeal",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Ice Block",
+        "when": "self health < 15%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 15
+          }
+        ]
+      },
+      {
+        "spell": "Cold Snap",
+        "when": "self health < 15% (Ice Block on CD — resets frost CDs)",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 15
+          }
+        ]
+      },
+      {
+        "spell": "Blink",
+        "when": "self is rooted (Blink carries mechanic_immunity 7)",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Frost Nova",
+        "when": "melee on me AND target not already rooted AND root DR under 2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "<",
+            "value": 2,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "target is rooted (Shatter window)",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "target is rooted (Shatter window, instant)",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Cone of Cold",
+        "when": "target is rooted (Shatter window; was enemiesWithinYd>=2)",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ],
+        "after": {
+          "stepBackYd": 10
+        }
+      },
+      {
+        "spell": "Polymorph",
+        "when": "melee on me AND target not rooted AND polymorph DR is fresh (1v1 peel; was enemyCount>=2)",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "==",
+            "value": 0,
+            "ref": 5
+          }
+        ]
+      },
+      {
+        "spell": "Mana Shield",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Remove Lesser Curse",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "always"
+      },
+      {
+        "spell": "Shoot",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      }
+    ]
+  },
+  {
+    "levels": "50-59",
+    "spec": "frost",
+    "note": "Same Nova→Shatter kite as 40-49 from the 18 yd seat (arenaLab buildLabDuel / battleground.ts:97). Frostbolt keeps the gap; Nova on melee opens Shatter (applySpell.ts:1134-1142 / Mage.cpp:58-70); Blink on root escapes. Ice Barrier replaces Mana Shield (learned by midpoint 54). Re-gated Frost@60 Polymorph onto melee peel and Cone of Cold onto rooted. No healthstone/potion (bgConsumes.ts:66-86). No Mana Ruby (not learned at midpoint 54).",
+    "buffs": [
+      {
+        "spell": "Arcane Intellect",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Ice Armor",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Food",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 8076
+          }
+        ]
+      },
+      {
+        "spell": "Dampen Magic",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Agate",
+        "when": "item count < 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5514
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Jade",
+        "when": "item count < 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 5513
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Water",
+        "when": "item count < 5",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 5,
+            "ref": 8078
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Citrine",
+        "when": "item count < 1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 1,
+            "ref": 8007
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Evocation",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting a heal",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingIsHeal",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Ice Block",
+        "when": "self health < 15%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 15
+          }
+        ]
+      },
+      {
+        "spell": "Cold Snap",
+        "when": "self health < 15% (Ice Block on CD — resets frost CDs)",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 15
+          }
+        ]
+      },
+      {
+        "spell": "Blink",
+        "when": "self is rooted (Blink carries mechanic_immunity 7)",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Frost Nova",
+        "when": "melee on me AND target not already rooted AND root DR under 2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "<",
+            "value": 2,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "target is rooted (Shatter window)",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "target is rooted (Shatter window, instant)",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Cone of Cold",
+        "when": "target is rooted (Shatter window; was enemiesWithinYd>=2)",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ],
+        "after": {
+          "stepBackYd": 10
+        }
+      },
+      {
+        "spell": "Polymorph",
+        "when": "melee on me AND target not rooted AND polymorph DR is fresh (1v1 peel; was enemyCount>=2)",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "==",
+            "value": 0,
+            "ref": 5
+          }
+        ]
+      },
+      {
+        "spell": "Ice Barrier",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Remove Lesser Curse",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "always"
+      },
+      {
+        "spell": "Shoot",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      }
+    ]
+  },
+  {
+    "levels": "10-19",
+    "spec": "frost",
+    "buffs": [
+      {
+        "spell": "Arcane Intellect",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Frost Armor",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Dampen Magic",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Frost Nova",
+        "when": "melee on me AND target not already rooted AND root DR under 2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "<",
+            "value": 2,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "target is rooted (Shatter window)",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "target is rooted (Shatter window, instant)",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Remove Lesser Curse",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "always"
+      },
+      {
+        "spell": "Shoot",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      }
+    ]
+  },
+  {
+    "levels": "60",
+    "spec": "frost",
+    "variant": "w2b-poly-shatter",
+    "note": "2v2: sheep the other (healer) above filler; nova only when one body is in 10 yd so the sheep is not smashed; spend Shatter. Default Frost@60 puts Fire Blast always above Poly (frost.json). target other needs enemyCount>=2 or evaluate.ts drops it. Shatter +50% crit vs frozen (applySpell.ts:1229, Mage.cpp:58-70). pickCcTarget sheeps a rooted healer (PlayerbotAI.cpp:5458-5485).",
+    "buffs": [
+      {
+        "spell": "Arcane Intellect",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Ice Armor",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Ruby",
+        "when": "item count < 2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 2,
+            "ref": 8008
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Polymorph",
+        "when": "second enemy AND polymorph DR is fresh",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "==",
+            "value": 0,
+            "ref": 5
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Evocation",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Counterspell",
+        "when": "off-target is casting a heal",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingIsHeal",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting a heal",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingIsHeal",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Ice Block",
+        "when": "self health < 15%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 15
+          }
+        ]
+      },
+      {
+        "spell": "Cold Snap",
+        "when": "self health < 15% (Ice Block on CD — resets frost CDs)",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 15
+          }
+        ]
+      },
+      {
+        "spell": "Blink",
+        "when": "self is rooted (Blink carries mechanic_immunity 7)",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Polymorph",
+        "when": "second enemy AND polymorph DR is fresh",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "==",
+            "value": 0,
+            "ref": 5
+          }
+        ]
+      },
+      {
+        "spell": "Frost Nova",
+        "when": "melee on me AND only one enemy in 10 yd AND target not rooted AND root DR under 2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "enemiesWithinYd",
+            "op": "==",
+            "value": 1,
+            "ref": 10
+          },
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "<",
+            "value": 2,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "target is rooted (Shatter window)",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "target is rooted (Shatter window, instant)",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Ice Barrier",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "move": {
+          "kind": "keep_range",
+          "minYd": 20
+        },
+        "when": "target inside 20 yd AND it fights in melee AND it is snared AND I am not casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "targetDistanceYd",
+            "op": "<=",
+            "value": 20
+          },
+          {
+            "subject": "target",
+            "metric": "isCaster",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "snared",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "spell": "Remove Lesser Curse",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Shoot",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      }
+    ]
+  },
+  {
+    "levels": "60",
+    "spec": "frost",
+    "variant": "w8a-poly-offheal",
+    "note": "5v5: sheep the other healer (pickCcTarget prefers groupRole healer; PlayerbotClassAI.cpp:659 GetBotJob) above filler; Counterspell heals on other then focus; nova only when one body is in 10 yd so the sheep is not smashed. Default Frost@60 puts Fire Blast always above Poly (frost.json). target other needs enemyCount>=2 (evaluate.ts). Shatter +50% crit vs frozen (applySpell.ts:1229, Mage.cpp:58-70).",
+    "buffs": [
+      {
+        "spell": "Arcane Intellect",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Ice Armor",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Ruby",
+        "when": "item count < 2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 2,
+            "ref": 8008
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Polymorph",
+        "when": "second enemy AND polymorph DR is fresh",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "==",
+            "value": 0,
+            "ref": 5
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Evocation",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Counterspell",
+        "when": "off-target is casting a heal",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingIsHeal",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting a heal",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingIsHeal",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Ice Block",
+        "when": "self health < 15%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 15
+          }
+        ]
+      },
+      {
+        "spell": "Cold Snap",
+        "when": "self health < 15% (Ice Block on CD — resets frost CDs)",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 15
+          }
+        ]
+      },
+      {
+        "spell": "Blink",
+        "when": "self is rooted (Blink carries mechanic_immunity 7)",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Polymorph",
+        "when": "second enemy AND polymorph DR is fresh",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "==",
+            "value": 0,
+            "ref": 5
+          }
+        ]
+      },
+      {
+        "spell": "Frost Nova",
+        "when": "melee on me AND only one enemy in 10 yd AND target not rooted AND root DR under 2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "enemiesWithinYd",
+            "op": "==",
+            "value": 1,
+            "ref": 10
+          },
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "<",
+            "value": 2,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "target is rooted (Shatter window)",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "target is rooted (Shatter window, instant)",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Ice Barrier",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "move": {
+          "kind": "keep_range",
+          "minYd": 20
+        },
+        "when": "target inside 20 yd AND it fights in melee AND it is snared AND I am not casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "targetDistanceYd",
+            "op": "<=",
+            "value": 20
+          },
+          {
+            "subject": "target",
+            "metric": "isCaster",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "snared",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "spell": "Remove Lesser Curse",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Shoot",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      }
+    ]
+  },
+  {
+    "levels": "60",
+    "spec": "frost",
+    "variant": "w8b-poly-offheal",
+    "note": "5v5: sheep the other healer above filler (pickCcTarget GetBotJob PlayerbotClassAI.cpp:659); nova only when one body is in 10 yd so the sheep is not smashed; Counterspell off-target heals. Default Frost@60 puts Fire Blast always above Poly (frost.json). Shatter +50% crit vs frozen (applySpell.ts:1229, Mage.cpp:58-70).",
+    "buffs": [
+      {
+        "spell": "Arcane Intellect",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Ice Armor",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Ruby",
+        "when": "item count < 2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 2,
+            "ref": 8008
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Polymorph",
+        "when": "second enemy AND polymorph DR is fresh",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "==",
+            "value": 0,
+            "ref": 5
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Evocation",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Counterspell",
+        "when": "off-target is casting a heal",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingIsHeal",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting a heal",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingIsHeal",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Polymorph",
+        "when": "second enemy AND polymorph DR is fresh",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "==",
+            "value": 0,
+            "ref": 5
+          }
+        ]
+      },
+      {
+        "spell": "Ice Block",
+        "when": "self health < 15%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 15
+          }
+        ]
+      },
+      {
+        "spell": "Cold Snap",
+        "when": "self health < 15% (Ice Block on CD — resets frost CDs)",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 15
+          }
+        ]
+      },
+      {
+        "spell": "Blink",
+        "when": "self is rooted (Blink carries mechanic_immunity 7)",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Frost Nova",
+        "when": "melee on me AND only one enemy in 10 yd AND target not rooted AND root DR under 2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "enemiesWithinYd",
+            "op": "==",
+            "value": 1,
+            "ref": 10
+          },
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "<",
+            "value": 2,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "target is rooted (Shatter window)",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Fire Blast",
+        "when": "target is rooted (Shatter window, instant)",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Ice Barrier",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "move": {
+          "kind": "keep_range",
+          "minYd": 20
+        },
+        "when": "target inside 20 yd AND it fights in melee AND it is snared AND I am not casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "targetDistanceYd",
+            "op": "<=",
+            "value": 20
+          },
+          {
+            "subject": "target",
+            "metric": "isCaster",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "snared",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "spell": "Remove Lesser Curse",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Shoot",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      }
+    ]
+  },
+  {
+    "levels": "60",
+    "spec": "frost",
+    "variant": "w14a-poly-sheep",
+    "note": "5v5 peel w26: Shoot when silenced (Spell.cpp:6049 PACIFY; CondMetric silenced; copy w14b-poly-shoot) — w23 asB 744 dmg vs 3825 as ALLY, silence x23, Shoot cold on powerPct<20. Sheep other healer (pickCcTarget PlayerbotClassAI.cpp:659); nova when one body in 10 yd; Counterspell off-target heals. Drops Fire Blast (w8a cold: out of range under keep_range 20). Shatter +50% crit vs frozen (Mage.cpp:58-70).",
+    "buffs": [
+      {
+        "spell": "Arcane Intellect",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Ice Armor",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Ruby",
+        "when": "item count < 2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 2,
+            "ref": 8008
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Polymorph",
+        "when": "second enemy AND polymorph DR is fresh",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "==",
+            "value": 0,
+            "ref": 5
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Evocation",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Counterspell",
+        "when": "off-target is casting a heal",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingIsHeal",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting a heal",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingIsHeal",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Polymorph",
+        "when": "second enemy AND polymorph DR is fresh",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "==",
+            "value": 0,
+            "ref": 5
+          }
+        ]
+      },
+      {
+        "spell": "Ice Block",
+        "when": "self health < 15%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 15
+          }
+        ]
+      },
+      {
+        "spell": "Cold Snap",
+        "when": "self health < 15% (Ice Block on CD — resets frost CDs)",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 15
+          }
+        ]
+      },
+      {
+        "spell": "Blink",
+        "when": "self is rooted (Blink carries mechanic_immunity 7)",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Frost Nova",
+        "when": "melee on me AND only one enemy in 10 yd AND target not rooted AND root DR under 2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "enemiesWithinYd",
+            "op": "==",
+            "value": 1,
+            "ref": 10
+          },
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "<",
+            "value": 2,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "target is rooted (Shatter window)",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Ice Barrier",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "move": {
+          "kind": "keep_range",
+          "minYd": 20
+        },
+        "when": "target inside 20 yd AND it fights in melee AND it is snared AND I am not casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "targetDistanceYd",
+            "op": "<=",
+            "value": 20
+          },
+          {
+            "subject": "target",
+            "metric": "isCaster",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "snared",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "spell": "Remove Lesser Curse",
+        "when": "self.dispellablePresent==1",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "dispellablePresent",
+            "op": "==",
+            "value": 1,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Shoot",
+        "when": "silenced (PreventionType PACIFY - Frostbolt cannot fire)",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "silenced",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      }
+    ]
+  },
+  {
+    "levels": "60",
+    "spec": "frost",
+    "variant": "w14b-poly-shoot",
+    "note": "5v5: sheep the other healer (pickCcTarget GetBotJob PlayerbotClassAI.cpp:659); Shoot when silenced (Spell.cpp:6049; Shoot preventionType PACIFY not SILENCE - answers w8b silence x15 / enemy-seat collapse). Drops Fire Blast (w8b cold: out of range) and Remove Lesser Curse (w8b cold: nothing to dispel).",
+    "buffs": [
+      {
+        "spell": "Arcane Intellect",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Ice Armor",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Conjure Mana Ruby",
+        "when": "item count < 2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": "<",
+            "value": 2,
+            "ref": 8008
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Polymorph",
+        "when": "second enemy AND polymorph DR is fresh",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "==",
+            "value": 0,
+            "ref": 5
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Evocation",
+        "when": "self power < 20%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Counterspell",
+        "when": "off-target is casting a heal",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingIsHeal",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting a heal",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingIsHeal",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Counterspell",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Polymorph",
+        "when": "second enemy AND polymorph DR is fresh",
+        "target": "other",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "==",
+            "value": 0,
+            "ref": 5
+          }
+        ]
+      },
+      {
+        "spell": "Ice Block",
+        "when": "self health < 25%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          }
+        ]
+      },
+      {
+        "spell": "Cold Snap",
+        "when": "self health < 25% (Ice Block on CD - resets frost CDs)",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 25
+          }
+        ]
+      },
+      {
+        "spell": "Blink",
+        "when": "self is rooted (Blink carries mechanic_immunity 7)",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Frost Nova",
+        "when": "melee on me AND only one enemy in 10 yd AND target not rooted AND root DR under 2",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "enemiesWithinYd",
+            "op": "==",
+            "value": 1,
+            "ref": 10
+          },
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "<",
+            "value": 2,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "target is rooted (Shatter window)",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Ice Barrier",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "move": {
+          "kind": "keep_range",
+          "minYd": 20
+        },
+        "when": "target inside 20 yd AND it fights in melee AND it is snared AND I am not casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "targetDistanceYd",
+            "op": "<=",
+            "value": 20
+          },
+          {
+            "subject": "target",
+            "metric": "isCaster",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "snared",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "spell": "Shoot",
+        "when": "silenced (PreventionType PACIFY - Frostbolt cannot fire)",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "silenced",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Frostbolt",
+        "when": "always"
+      }
+    ]
+  }
+]

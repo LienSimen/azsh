@@ -1,0 +1,169 @@
+{
+ "raid": "molten-core",
+ "bosses": [
+  {
+   "entry": 12118,
+   "name": "Lucifron",
+   "kinds": [
+    "resist",
+    "dispel"
+   ],
+   "cite": "boss_lucifron.cpp whole; Flamewaker Protector EventAI Dominate Mind",
+   "resist": "fire",
+   "cureAuras": [
+    {
+     "aura": 19702,
+     "on": "anyone",
+     "label": "When anyone has Impending Doom, cure it",
+     "cite": "boss_lucifron.cpp:33,49,79-82 SPELL_IMPENDINGDOOM 19702"
+    },
+    {
+     "aura": 19703,
+     "on": "anyone",
+     "label": "When anyone has Lucifron's Curse, cure it",
+     "cite": "boss_lucifron.cpp:34,50,85-88 SPELL_LUCIFRONCURSE 19703"
+    }
+   ]
+  },
+  {
+   "entry": 11982,
+   "name": "Magmadar",
+   "kinds": [
+    "resist",
+    "flee",
+    "position"
+   ],
+   "cite": "boss_magmadar.cpp:49-50 LAVA_BOMB 19411 / 20474 on a random raider; :34,56 FRENZY 19451 triggers LAVA_BREATH 19272, a 35 yd cone, twice per frenzy",
+   "resist": "fire",
+   "blockedBy": {
+    "position": "no ROW is owed here, and the old reason is stale. This used to say behind_target walks a ranged raider ~60 yd (back = max(MELEE_REACH_YD, cur)) and RUNOUT_YIELD_AFTER_MS abandons it at 4 s. E5.3 changed that: past MELEE_REACH_YD + MELEE_PARK_SLACK_YD the move now rotates to coneClearBandRad's nearest clear bearing at the mover's OWN radius (sessionMechanicMove.ts:385-393), which is an arc step, not a diameter. coneArcsOfKit reads the KIT rather than the cast bar, and 19272 Lava Breath is aoeShape cone radiusYd 35 with no coneDeg so it takes the 60 deg default; Magmadar carries it on charmSpells, which combatEnemySpec.ts:93-94 merges into spec.spells, so the arc is visible. Measured instead of asserted: capability frenzyCone has Frenzy 19451 landing 9x and Lava Breath sweeping 6x over 800 ticks with the ranged raider clear of 6 of 6 - the motion layer already answers this fight's position ask, so a row would be a second answer to a solved question. The 31-vs-33 deaths measurement the old text quoted was taken against the pre-E5.3 move and no longer describes the tree. Left in kinds and in blockedBy because no ROW delivers it, which is what this field records."
+   },
+   "encounterRows": [
+    {
+     "kind": "flee",
+     "label": "Step out of the Lava Bomb fire",
+     "cite": "boss_magmadar.cpp:49-50 LAVA_BOMB 19411 / 20474; SpellEffects.cpp:737-742,753-757 the dummy casts 20494 / 20495 on the raider, which summon GO 177704 - trap.spellId 19428 Conflagration, trap.radius 2.5, trap.cooldown 1. applySpell.ts:1251-1300 lays that trap down as a ground pool named after the payload, so hazardProximityYd reads its edge",
+     "rule": {
+      "id": "raid_enc_11982_avoid_19428",
+      "action": {
+       "kind": "move",
+       "move": {
+        "kind": "avoid_zone",
+        "id": "Conflagration"
+       }
+      },
+      "conditions": [
+       {
+        "subject": "self",
+        "metric": "hazardProximityYd",
+        "op": "<=",
+        "value": 0
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "entry": 12259,
+   "name": "Gehennas",
+   "kinds": [
+    "resist"
+   ],
+   "cite": "boss_gehennas.cpp curse kit",
+   "resist": "fire"
+  },
+  {
+   "entry": 12057,
+   "name": "Garr",
+   "kinds": [
+    "resist"
+   ],
+   "cite": "boss_garr.cpp Firesworn eruption",
+   "resist": "fire"
+  },
+  {
+   "entry": 12264,
+   "name": "Shazzrah",
+   "kinds": [
+    "resist"
+   ],
+   "cite": "boss_shazzrah.cpp Gate blink",
+   "resist": "fire"
+  },
+  {
+   "entry": 12056,
+   "name": "Baron Geddon",
+   "kinds": [
+    "flee",
+    "resist"
+   ],
+   "cite": "boss_baron_geddon.cpp:111 Living Bomb 20475",
+   "resist": "fire",
+   "fleeAuras": [
+    {
+     "aura": 20475,
+     "radiusYd": 18,
+     "cite": "boss_baron_geddon.cpp:36 SPELL_LIVING_BOMB 20475 -> payload 20476 radiusYd 18"
+    }
+   ]
+  },
+  {
+   "entry": 11988,
+   "name": "Golemagg the Incinerator",
+   "kinds": [
+    "resist"
+   ],
+   "cite": "boss_golemagg.cpp Core Rager link",
+   "resist": "fire"
+  },
+  {
+   "entry": 12098,
+   "name": "Sulfuron Harbinger",
+   "kinds": [
+    "resist"
+   ],
+   "cite": "boss_sulfuron.cpp Flamewaker Priest",
+   "resist": "fire"
+  },
+  {
+   "entry": 12018,
+   "name": "Majordomo Executus",
+   "kinds": [
+    "kill-order",
+    "resist"
+   ],
+   "cite": "boss_majordomo.cpp 8 Flamewakers; healers first",
+   "resist": "fire",
+   "encounterRows": [
+    {
+     "kind": "kill-order",
+     "label": "Flamewaker Healers, then Elites",
+     "cite": "boss_majordomo_executus.cpp:96 SetDeathPrevention; molten_core.cpp:29-39 4x Elite 11664 + 4x Healer 11663; healers first",
+     "rule": {
+      "id": "raid_enc_12018_kill",
+      "action": {
+       "kind": "kill_order",
+       "entries": [
+        11663,
+        11664
+       ]
+      },
+      "conditions": [],
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "entry": 11502,
+   "name": "Ragnaros",
+   "kinds": [
+    "resist"
+   ],
+   "cite": "boss_ragnaros.cpp sons of flame / Wrath of Ragnaros",
+   "resist": "fire"
+  }
+ ]
+}

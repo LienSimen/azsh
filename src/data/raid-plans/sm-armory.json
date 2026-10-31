@@ -1,0 +1,53 @@
+{
+ "raid": "sm-armory",
+ "note": "First five-man plan pack (E5.4). Herod is the whole wing, and KI-973 is 'auto-run 3-wipes on Herod (0/1 bosses)' - the party never kills the only boss here.",
+ "bosses": [
+  {
+   "entry": 3975,
+   "name": "Herod",
+   "kinds": [
+    "position",
+    "kill-order"
+   ],
+   "cite": "boss_herod.cpp:50-52 RUSHINGCHARGE 8260 on aggro, CLEAVE 15496 and WHIRLWIND 8989 on timers, FRENZY 8269 once at <=30% (scarletMonastery.ts:85-93 ports all four). Cleave 15496 is rangeMax 5 targetA 6, a single-target melee hit with no arc, and Frenzy 8269 is a self buff - neither is a raid verb. Whirlwind is, and it is the only one.",
+   "encounterRows": [
+    {
+     "kind": "position",
+     "label": "Everyone off Herod while Whirlwind spins",
+     "cite": "spell 8989 Whirlwind is targetA 1 TARGET_UNIT_CASTER: aura 23 periodic-trigger, amplitude 2000, duration 10000, triggering 15578. 15578 is aoeShape pbaoe radiusYd 8 targetA 22 TARGET_LOCATION_CASTER_SRC, so it is a disc centred on Herod that pulses every 2 s for 10 s - five pulses on everyone within 8 yd. isWithinRadiusYd hits at <=, so 9 is the first clear yard. Capability herodWhirl measures the cost of standing in it: 40 hits over 4 casts. The trigger is deliberately wider than the park (12 vs 9) for the same reason the Jeklik row gives - a row released on the yard it parks on re-arms on the boss's next step and cancels the cast in flight. NOT gated on isCaster, unlike every other keep_range row shipped: this disc is 8 yd and it is the MELEE who are standing in it, which is the whole point of the row.",
+     "rule": {
+      "id": "raid_enc_3975_range_8989",
+      "action": {
+       "kind": "move",
+       "move": {
+        "kind": "keep_range",
+        "minYd": 9,
+        "entry": 3975
+       }
+      },
+      "conditions": [
+       {
+        "subject": "target",
+        "metric": "buffPresent",
+        "op": "==",
+        "value": 1,
+        "ref": 8989
+       },
+       {
+        "subject": "self",
+        "metric": "creatureDistanceYd",
+        "op": "<=",
+        "value": 12,
+        "ref": 3975
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ],
+   "blockedBy": {
+    "kill-order": "boss_herod.cpp:89 JustDied summons 20x Scarlet Trainee 6575 - AFTER he dies, so there is no kill-order for the fight itself. sm-armory.ts names the escort path and the spawn stagger as GAPs; the bodies arrive via ScriptDev summon_count and the default rotation picks them up unordered."
+   }
+  }
+ ]
+}

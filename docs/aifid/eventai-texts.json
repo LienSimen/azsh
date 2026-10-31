@@ -1,0 +1,4414 @@
+{
+ "texts": [
+  {
+   "entry": 11914,
+   "content_default": "Return the amulet! Return to me what was stolen!!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 11727,
+   "content_default": "You do not belong here!  Ancients, rise against these intruders!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 11700,
+   "content_default": "The massive floating eyeball in the center of the chamber turns its gaze upon you. You stand before a god.",
+   "content_other": "",
+   "type": 7,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 11614,
+   "content_default": "Crush them all!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 11613,
+   "content_default": "Invaders approaching from the south!",
+   "content_other": "Invaders approaching from the south!",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 11564,
+   "content_default": "Is that the best you can do?",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 11563,
+   "content_default": "%s's eyes glow red for a brief moment.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 11538,
+   "content_default": "HOLD THE LINE! LET NOTHING THROUGH!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 11435,
+   "content_default": "Impudent fool! I will kill you myself!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 11434,
+   "content_default": "Warriors, Captains, continue the fight! ",
+   "content_other": "",
+   "type": 1,
+   "sound": 8613,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 11433,
+   "content_default": "Breathe your last!",
+   "content_other": "",
+   "type": 1,
+   "sound": 8604,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 11430,
+   "content_default": "Presents for everyone! Father Winter's put gifts under the tree for all.",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 11401,
+   "content_default": "Let me give you my regards for Greatfather Winter, scum...",
+   "content_other": "Let me give you my regards for Greatfather Winter, scum...\n",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 11400,
+   "content_default": "It's a rescue attempt!  Let no one escape!",
+   "content_other": "It's a rescue attempt!  Let no one escape!\n",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 11399,
+   "content_default": "These land lubbers are here for the reindeer!  Give 'em the shank!",
+   "content_other": "These land lubbers are here for the reindeer!  Give 'em the shank!\n",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 11397,
+   "content_default": "Ye'll be feasting on me blade this Winter Veil!  Yeargh!",
+   "content_other": "Ye'll be feasting on me blade this Winter Veil!  Yeargh!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 11389,
+   "content_default": "Greetings, citizen.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 11288,
+   "content_default": "For the Horde!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 11270,
+   "content_default": "%s squeezes the last bit of life out of $N and swallows their soul.",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 11269,
+   "content_default": "The Nightmare cannot be stopped!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 11067,
+   "content_default": "You are not worth my time, $n!",
+   "content_other": "",
+   "type": 1,
+   "sound": 8614,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 11009,
+   "content_default": "Kill $N!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 25,
+   "language": 0
+  },
+  {
+   "entry": 10894,
+   "content_default": "%s will be armed in 3 seconds!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 10805,
+   "content_default": "Your treachery only speeds your doom.  This world will fall to darkness!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 10799,
+   "content_default": "Chugga-chugga, woo-woo!  Happy Hallow's End, $N!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 10789,
+   "content_default": "",
+   "content_other": "Ooo, so strong!  Happy Hallow's End, $N!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 10787,
+   "content_default": "",
+   "content_other": "I may have ninety-nine problems, but dancin' ain't one of them!  Happy Hallow's End, $N!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 10786,
+   "content_default": "Bawk, bawk, bawk!  Happy Hallow's End, $N!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 10755,
+   "content_default": "%s emits a strange noise.",
+   "content_other": "",
+   "type": 7,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 10743,
+   "content_default": "",
+   "content_other": "C'Thun will retake this world!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 10742,
+   "content_default": "",
+   "content_other": "You will make a fitting sacrifice!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 10696,
+   "content_default": "Your life is a fitting sacrifice for my master, $c.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 10695,
+   "content_default": "It is my duty and honor to die for the Abyssal Council!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 10694,
+   "content_default": "My lord will be outraged to learn of this ambush.  Let us hope your death will appease him.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 10686,
+   "content_default": "The Abyssal Council does not tolerate deceit!  Feel our wrath, little $r!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 10658,
+   "content_default": "A terrible and costly mistake you have made. It is not my time, mortals.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 10549,
+   "content_default": "%s flees toward the safety of another tiger.",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 10449,
+   "content_default": "Welcome to the great show, friends.  Step right up to die!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 10261,
+   "content_default": "I didn't know bees didn't like fire!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 22,
+   "language": 1
+  },
+  {
+   "entry": 10260,
+   "content_default": "I'm so tired of running, but these bees won't leave me alone!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 22,
+   "language": 1
+  },
+  {
+   "entry": 10259,
+   "content_default": "Help! I'm being chased by a swarm of bees!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 22,
+   "language": 1
+  },
+  {
+   "entry": 10136,
+   "content_default": "For a limited time only, Crunchy Frog available exclusively here at the Darkmoon Faire.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 1,
+   "language": 0
+  },
+  {
+   "entry": 10135,
+   "content_default": "You've got money and we've got food.  What are you waiting for?!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 1,
+   "language": 0
+  },
+  {
+   "entry": 10134,
+   "content_default": "Darkmoon Dogs fresh off the grill.  Come and get em while they're hot!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 1,
+   "language": 0
+  },
+  {
+   "entry": 10133,
+   "content_default": "Step right up!  Get your Red Hot Wings right here!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 1,
+   "language": 0
+  },
+  {
+   "entry": 10025,
+   "content_default": "Snivvle is here!  Snivvle claims the Coldtooth mine!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 10009,
+   "content_default": "Invaders! Invaders! We're under attack, boys! Get 'em!",
+   "content_other": "",
+   "type": 6,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9969,
+   "content_default": "The blood samples must be protected!  Destroy the intruders!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9960,
+   "content_default": "Foolish $N, you serve me now! ",
+   "content_other": "",
+   "type": 1,
+   "sound": 8273,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9958,
+   "content_default": "Intruders have breached the hatchery! Sound the alarm! Protect the eggs at all costs!\n",
+   "content_other": "",
+   "type": 1,
+   "sound": 8272,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9763,
+   "content_default": "%s breaks free of its spectral bonds with a tremendous crash of thunder!",
+   "content_other": "",
+   "type": 7,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9679,
+   "content_default": "%s causes a gale to sweep across the land, the sound of his mindless fury coming from the northwest.",
+   "content_other": "",
+   "type": 7,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9676,
+   "content_default": "Where are the so-called heroes of this world?  Too frightened to come out and play?",
+   "content_other": "",
+   "type": 6,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9674,
+   "content_default": "If you mortals are all so craven, this will be easier than I thought!",
+   "content_other": "",
+   "type": 6,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9673,
+   "content_default": "You be too scared!  Me find you!",
+   "content_other": "",
+   "type": 6,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9669,
+   "content_default": "%s and his invading forces appear amidst a tumultuous conflagration in the northwest of Silithus.",
+   "content_other": "",
+   "type": 7,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9668,
+   "content_default": "%s dissipates into the ether, his howling winds still ringing in your ears.",
+   "content_other": "",
+   "type": 7,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9666,
+   "content_default": "This frozen land shall suffice for a start.  Come to me, mortals - and I shall give you a quick and painful death.",
+   "content_other": "",
+   "type": 6,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9664,
+   "content_default": "You will all pay dearly when I return from the depths!",
+   "content_other": "",
+   "type": 6,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9662,
+   "content_default": "Hear me, denizens of the Crater!  I come to burn this land of its impurity!",
+   "content_other": "",
+   "type": 6,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9661,
+   "content_default": "You have not seen the last of me fools!  All shall be consumed in the end!",
+   "content_other": "",
+   "type": 6,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9660,
+   "content_default": "What?!  You no can beat me!  Me will return!",
+   "content_other": "",
+   "type": 6,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9658,
+   "content_default": "Tiny mortals - me HERE! Doom you meet!",
+   "content_other": "",
+   "type": 6,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9614,
+   "content_default": "I have regained control! Everyone - back to your posts!",
+   "content_other": "",
+   "type": 1,
+   "sound": 8274,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9589,
+   "content_default": "I cannot permit you to enter the Temple!  I must destroy you for your own good!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9489,
+   "content_default": "%s senses your presence and opens a nether portal!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9481,
+   "content_default": "You no challenge me, scrubs!  I'm da king now, and I stay king FOREVER!!!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9478,
+   "content_default": "Help me crush these punys!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9477,
+   "content_default": "%s begins to retaliate all attacks against him!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9418,
+   "content_default": "No one get past me and threaten da king!  Ungh, take it!!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 5,
+   "language": 0
+  },
+  {
+   "entry": 9414,
+   "content_default": "%s goes into a drunken rage!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9413,
+   "content_default": "%s lets out a deep roar, alerting nearby allies and becoming enraged!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9407,
+   "content_default": "Who dares disrupt the sanctity of Eldre'Thalas? Face me, cowards!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9376,
+   "content_default": "%s has grown to full size!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9375,
+   "content_default": "%s continues to grow!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9374,
+   "content_default": "%s begins to grow!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9304,
+   "content_default": "NO!!!  It puts the tannin in the basket, or it gets the mallet again!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9144,
+   "content_default": "%s puts his club away and begins swinging wildly!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9093,
+   "content_default": "Target lost....resuming search patterns Delta",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9092,
+   "content_default": "Unknown life forms detected....assessing...",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9091,
+   "content_default": "Scanning life forms....target not found",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 9000,
+   "content_default": "I am in charge of recruitment for the Frostwolf Clan. As a soldier of Frostwolf, it is your responsibility to check in with me as your rank among the clan rises.$B$BHonor and respect are earned on this frigid field.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 1,
+   "language": 0
+  },
+  {
+   "entry": 8916,
+   "content_default": "%s attacks!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 8915,
+   "content_default": "%s emerges from the plant, allowing it to heal.",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 8852,
+   "content_default": "Mine! Mine! Mine!  Gizlock is the ruler of this domain!  You shall never reveal my presence!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 8675,
+   "content_default": "%s springs forth to defend its hive!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 8640,
+   "content_default": "",
+   "content_other": "Nothing must befoul the gardens! You must be destroyed!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 8639,
+   "content_default": "",
+   "content_other": "You do not belong in these gardens.  Your body shall nourish our lovely creations!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 8619,
+   "content_default": "%s's death wail has stirred the nearby silithid hive!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 8351,
+   "content_default": "No!  You cannot be stronger than the Foulweald!  No!!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 8350,
+   "content_default": "You are a little gnat to the Foulweald!  Die!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 7979,
+   "content_default": "HELP! ASSASSINS HAVE COME TO KILL ME!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 7599,
+   "content_default": "",
+   "content_other": "If I should fall, take my pouch. Make certain that it gets to the High General.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 7597,
+   "content_default": "",
+   "content_other": "My back is killing me.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 7596,
+   "content_default": "",
+   "content_other": "I sense danger up ahead.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 7595,
+   "content_default": "",
+   "content_other": "Assassins! Guards! Guards!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 7570,
+   "content_default": "%s splits into two new Lava Spawns!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 7462,
+   "content_default": "You merely prolong the inevitable, $r. Succumb. She will free your misguided soul.",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 7274,
+   "content_default": "",
+   "content_other": "Are they all... dead?",
+   "type": 0,
+   "sound": 0,
+   "emote": 1,
+   "language": 0
+  },
+  {
+   "entry": 7273,
+   "content_default": "",
+   "content_other": "Is someone there? Tirion my old friend, is that you? Have you come to save us?",
+   "type": 0,
+   "sound": 0,
+   "emote": 1,
+   "language": 0
+  },
+  {
+   "entry": 7272,
+   "content_default": "",
+   "content_other": "So dark...",
+   "type": 0,
+   "sound": 0,
+   "emote": 1,
+   "language": 0
+  },
+  {
+   "entry": 7261,
+   "content_default": "Well, well. Looks like we got ourselves some competition. Get 'em boys!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 7239,
+   "content_default": "Next time, bring friends.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 7238,
+   "content_default": "You weren't worth the energy expenditure. <Nathanos spits.>",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 7237,
+   "content_default": "Is that the best you can do?",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 7236,
+   "content_default": "Disappointing.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 7235,
+   "content_default": "The reckoning is upon you, weakling!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 7234,
+   "content_default": "Pathetic.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 7233,
+   "content_default": "How dare you!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 7232,
+   "content_default": "If you run now, you may live.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 7231,
+   "content_default": "I can smell your fear, $r.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 7230,
+   "content_default": "I shall wear your entrails as a necklace.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 7229,
+   "content_default": "Prepare for a severe beating.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6874,
+   "content_default": "%s is lured out into the open!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6546,
+   "content_default": "%s emerges from the shadows to defend the cauldron!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6538,
+   "content_default": "Join us!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5864,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6530,
+   "content_default": "You've been MALOWNED!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6512,
+   "content_default": "%s attempts to casts Death Pact on his servants!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6511,
+   "content_default": "%s raises an undead servant back to life!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6504,
+   "content_default": "Prepare to be Malowned!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6497,
+   "content_default": "$C - I will consume your light!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6496,
+   "content_default": "The Scourge beckons you, foolish $r.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6495,
+   "content_default": "Who dares to approach this cauldron?  Taste my dark blade!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6494,
+   "content_default": "$R flesh... must feed!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6470,
+   "content_default": "No tampering with the mail!",
+   "content_other": "No tampering with the mail!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6448,
+   "content_default": "Thieves! I shall smelt your remains!",
+   "content_other": "Thieves! I shall smelt your remains!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6426,
+   "content_default": "Welcome to flavor country!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6425,
+   "content_default": "Ramstein hunger for flesh!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6422,
+   "content_default": "I'm going to wear your skin as a smoking jacket! The stogies? You'll have to pry them from my cold dead... er... RAWR!!!!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6420,
+   "content_default": "Looking for these???? You'll never have em!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6258,
+   "content_default": "%s belches out a disgusting Bile Slime!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6257,
+   "content_default": "%s explodes and releases several Bile Slimes!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6234,
+   "content_default": "We are betrayed!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6228,
+   "content_default": "The Sandfury reign supreme!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5878,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6227,
+   "content_default": "Feel the fury of the sands!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5879,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6226,
+   "content_default": "Die, outlander!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5877,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6225,
+   "content_default": "This desert be mine!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5876,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6224,
+   "content_default": "Justice is done!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5875,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6223,
+   "content_default": "Let the executions begin!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5874,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6220,
+   "content_default": "Turn back! Do not wake the dreamer!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5866,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6219,
+   "content_default": "Hakkar shall live again!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5865,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6217,
+   "content_default": "The Soulflayer comes!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5862,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6216,
+   "content_default": "I'll feast on your bones!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5860,
+   "emote": 0,
+   "language": 14
+  },
+  {
+   "entry": 6214,
+   "content_default": "Die! Die!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5854,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6213,
+   "content_default": "Me Grimlok, king!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5853,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6212,
+   "content_default": "By Thaurissan's beard! Slay them!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5852,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6207,
+   "content_default": "I'll rip the secrets from your flesh!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5850,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6206,
+   "content_default": "Naughty secrets!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5849,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6205,
+   "content_default": "Purged by pain!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5848,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6204,
+   "content_default": "Tell me... tell me everything!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5847,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6203,
+   "content_default": "More... More souls!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5845,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6202,
+   "content_default": "No rest... for the angry dead!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5846,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6201,
+   "content_default": "We hunger for vengeance.",
+   "content_other": "",
+   "type": 1,
+   "sound": 5844,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6192,
+   "content_default": "I am the hand of the Lich King!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5827,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6190,
+   "content_default": "Come, spirits - attend your master!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5829,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6189,
+   "content_default": "To me, my servants!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5828,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6188,
+   "content_default": "Too easy.",
+   "content_other": "",
+   "type": 0,
+   "sound": 5826,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6187,
+   "content_default": "You'll never leave this place alive.",
+   "content_other": "",
+   "type": 1,
+   "sound": 5825,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6186,
+   "content_default": "Me feast on you all!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5824,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6185,
+   "content_default": "Me smell stench of the living!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5823,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6184,
+   "content_default": "Slay them, my brethren! For the Scourge!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5822,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6183,
+   "content_default": "",
+   "content_other": "Our new allies will avenge us!",
+   "type": 1,
+   "sound": 5814,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6182,
+   "content_default": "",
+   "content_other": "Bah! My power rules here!",
+   "type": 1,
+   "sound": 5816,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6181,
+   "content_default": "",
+   "content_other": "You outsiders will pay for encroaching on our land!",
+   "type": 1,
+   "sound": 5815,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6180,
+   "content_default": "",
+   "content_other": "Who's next?",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6179,
+   "content_default": "",
+   "content_other": "Troublesome whelps. I'll teach you to interfere!",
+   "type": 1,
+   "sound": 5813,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6178,
+   "content_default": "Victory! For Agamaggan!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5812,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6177,
+   "content_default": "Electric justice!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5811,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6172,
+   "content_default": "Dust to dust.",
+   "content_other": "",
+   "type": 1,
+   "sound": 5803,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6171,
+   "content_default": "Who dares disturb my meditation?",
+   "content_other": "",
+   "type": 1,
+   "sound": 5802,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6170,
+   "content_default": "",
+   "content_other": "Paltry kill.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6169,
+   "content_default": "",
+   "content_other": "You should not be here! Slay them!",
+   "type": 1,
+   "sound": 5799,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6150,
+   "content_default": "TIMMY!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6097,
+   "content_default": "",
+   "content_other": "None can stand against the Serpent Lords!",
+   "type": 1,
+   "sound": 5786,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6096,
+   "content_default": "I am the serpent king! I can do anything! ",
+   "content_other": "",
+   "type": 1,
+   "sound": 5788,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6095,
+   "content_default": "The coils of death will crush you!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5787,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6094,
+   "content_default": "You will never wake the dreamer!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5785,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6065,
+   "content_default": "The Brotherhood shall prevail!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5784,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6064,
+   "content_default": "Fools! Our cause is righteous!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5783,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6063,
+   "content_default": "Lapdogs, all of you!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5782,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6062,
+   "content_default": "And stay down!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5781,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6061,
+   "content_default": "None may challenge the Brotherhood!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5780,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 6033,
+   "content_default": "%s is summoned through a temporal rift!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5987,
+   "content_default": "%s and Raider Kerr charge into battle...",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5954,
+   "content_default": "Hmmm, this one looks like something that would be better off as a windchime. Take notes class... This is NOT what you want to summon in the heat of battle.",
+   "content_other": "Hmmm, this one looks like something that would be better off as a windchime. Take notes class... This is NOT what you want to summon in the heat of battle.",
+   "type": 0,
+   "sound": 0,
+   "emote": 94,
+   "language": 0
+  },
+  {
+   "entry": 5953,
+   "content_default": "Wow, this one is just plain useless. Let me try again.",
+   "content_other": "Wow, this one is just plain useless. Let me try again.",
+   "type": 0,
+   "sound": 0,
+   "emote": 11,
+   "language": 0
+  },
+  {
+   "entry": 5952,
+   "content_default": "This one is slightly better than the last. However, it still suffers from the same flimsy bone structure as the others. When you summon one of these, you are on the right path.",
+   "content_other": "This one is slightly better than the last. However, it still suffers from the same flimsy bone structure as the others. When you summon one of these, you are on the right path.",
+   "type": 0,
+   "sound": 0,
+   "emote": 6,
+   "language": 0
+  },
+  {
+   "entry": 5951,
+   "content_default": "Note the weak binding structure of this one. Be sure to finish your incantations or this is what you will end up with.",
+   "content_other": "Note the weak binding structure of this one. Be sure to finish your incantations or this is what you will end up with.",
+   "type": 0,
+   "sound": 0,
+   "emote": 1,
+   "language": 0
+  },
+  {
+   "entry": 5950,
+   "content_default": "Now this is an example of what not to summon. Look, it's frail and brittle. One good whack from a mace will send bone shards flying.",
+   "content_other": "Now this is an example of what not to summon. Look, it's frail and brittle. One good whack from a mace will send bone shards flying.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5832,
+   "content_default": "You have summoned me, fool!  Now DIE!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5788,
+   "content_default": "%s lets out a shrill cry.",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5773,
+   "content_default": "The living are here!",
+   "content_other": "",
+   "type": 1,
+   "sound": 6596,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5772,
+   "content_default": "%s collapses but the broken body rises again!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5619,
+   "content_default": "VanCleef pay big for you heads!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5774,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5614,
+   "content_default": "",
+   "content_other": "%s summons a Blackhand Veteran to his aid!",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5613,
+   "content_default": "",
+   "content_other": "%s begins to summon in a Blackhand Veteran!",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5612,
+   "content_default": "",
+   "content_other": "%s summons a Blackhand Dreadweaver to his aid!",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5611,
+   "content_default": "",
+   "content_other": "%s begins to summon in a Blackhand Dreadweaver!",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5594,
+   "content_default": "%s's will falters.",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5556,
+   "content_default": "Listen carefully, for the lord of Blackrock will surely destroy you, should you not be prepared.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5555,
+   "content_default": "At last - one among you is worthy of my knowledge. Worry not - I have probed your thoughts, no harm will come to you.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5548,
+   "content_default": "%s lets loose a guttural growl as her body collapses. A horrifying howl can be heard echoing through the halls of Blackrock Spire. Something is very, very angry.",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5547,
+   "content_default": "I am here!  Now, puny little worms, you will pay for your intrusion!",
+   "content_other": "",
+   "type": 6,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5545,
+   "content_default": "Kibler is being investigated by G.E.T.A.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5544,
+   "content_default": "They all go to the Spire but none ever come back... just like Bijou.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5543,
+   "content_default": "Opus wants some Cuergo's Gold... with worm.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5542,
+   "content_default": "Bijou knows where treasures are hidden.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5540,
+   "content_default": "Ask Kibler about the treasure! SQUAWK!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5539,
+   "content_default": "SQUAWK!! *cough* *cough* I need to quit smoking!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5460,
+   "content_default": "%s begs to be put out of his misery.",
+   "content_other": "%s begs to be put out of her misery.",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5459,
+   "content_default": "%s weeps pitifully.",
+   "content_other": "%s weeps pitifully.",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5458,
+   "content_default": "%s groans.",
+   "content_other": "%s groans.",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5297,
+   "content_default": "Intruders in the Manufactory? My constructs will destroy you!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5283,
+   "content_default": "%s begins to summon a lava spawn!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5061,
+   "content_default": "I cannot be destroyed! By the will of Ragnaros, I shall be reborn!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 5059,
+   "content_default": "I will be reborn, mortals! Incendius shall raise me from these ashes!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 4998,
+   "content_default": "%s gets really dizzy!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 4962,
+   "content_default": "What are you doing?  Intruders!!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 4838,
+   "content_default": "%s explodes into chunks of acidic slime!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 4837,
+   "content_default": "%s pounds his chest, calling for help!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 4703,
+   "content_default": "This evil cannot be allowed to enter this world!  Come my children!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 4566,
+   "content_default": "Guards! Help me!",
+   "content_other": "Guards! Help me!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 4561,
+   "content_default": "Guards!",
+   "content_other": "Guards!",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 1
+  },
+  {
+   "entry": 4549,
+   "content_default": "Who dares summon me?",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 4546,
+   "content_default": "DIE, MORTALS!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5871,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 4541,
+   "content_default": "%s seems to no longer be able to cast spells. The Felcurse is working!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 4540,
+   "content_default": "",
+   "content_other": "%s is substantially more susceptible to your attacks. The Felcurse is working!",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 4539,
+   "content_default": "%s is noticeably weakened. The Felcurse is working!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 4516,
+   "content_default": "%s is VERY HUNGRY!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 4515,
+   "content_default": "%s is getting really hungry!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 4485,
+   "content_default": "My banishment is ended! Let the blood flow!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 14
+  },
+  {
+   "entry": 4484,
+   "content_default": "Intruders! Attack the intruders!",
+   "content_other": "Intruders! Attack the intruders!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 33
+  },
+  {
+   "entry": 4483,
+   "content_default": "%s begins to summon wraiths out of the freezing cold air!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 4437,
+   "content_default": "Soon, the Scourge will rule the world!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5821,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 4436,
+   "content_default": "We will spread across this barren land!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5820,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 4435,
+   "content_default": "We will enslave the quilboar!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5819,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 4421,
+   "content_default": "There'll be a new trade risin' up round your carcass, $N. We'll call it 'flesh-craftin.'",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 4392,
+   "content_default": "Obsidion rise and serve your master!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 4364,
+   "content_default": "You know not what you do!  We must destroy you for your own good.",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 4178,
+   "content_default": "The children of Sul will protect their master. Rise once more Sul'lithuz!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 4177,
+   "content_default": "Rise and defend your master!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 4166,
+   "content_default": "Lunch has arrived, my beautiful children. Tear them to pieces!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 4142,
+   "content_default": "Warning! Warning! Intruder alert! Intruder alert!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 4021,
+   "content_default": "",
+   "content_other": "Straight from the lush forests of Elwynn, get your fresh fruit right here.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 4020,
+   "content_default": "",
+   "content_other": "Sink your teeth into a fresh, ripe apple.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 4019,
+   "content_default": "",
+   "content_other": "Juicy fruits for sale!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 4015,
+   "content_default": "",
+   "content_other": "Come get yer fresh bread!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 4014,
+   "content_default": "",
+   "content_other": "Fresh bread, baked this very morning.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 4013,
+   "content_default": "",
+   "content_other": "Fresh bread for sale!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 3936,
+   "content_default": "The Defias shall succeed! No meek adventurer will stop us!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 3934,
+   "content_default": "What?! How dare you!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 3829,
+   "content_default": "Aaaaahhh! So close to escaping.",
+   "content_other": "Aaaaahhh! So close to escaping.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 3713,
+   "content_default": "%s prepares to sting its victim as a last desperate move!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 3693,
+   "content_default": "Prepare yourselves for an eternity of anguish and torture - vengeance shall be mine...",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 3692,
+   "content_default": "Face my champion, mortals!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 3691,
+   "content_default": "Ilifar, your master calls!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 3689,
+   "content_default": "Let the flames of chaos engulf you!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 3642,
+   "content_default": "%s's physical form is weakened. You notice the Stone of Binding near the creature is glowing! Strike now!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 3543,
+   "content_default": "%s is now armed!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 3542,
+   "content_default": "%s will be armed in 5 seconds!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 3541,
+   "content_default": "%s will be armed in 10 seconds!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 3367,
+   "content_default": "%s is splashed by the blood and becomes irradiated!",
+   "content_other": "%s is splashed by the blood and becomes irradiated!",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 3263,
+   "content_default": "%s chips and splinters!",
+   "content_other": "%s chips and splinters!",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 3170,
+   "content_default": "SQUAWK!!!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 3131,
+   "content_default": "%s blood sprays into the air!",
+   "content_other": "%s blood sprays into the air!",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 3074,
+   "content_default": "%s is angered and attacks!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 2867,
+   "content_default": "The Brotherhood will not be hampered by insects.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 2848,
+   "content_default": "Aku'mai is dead! At last, I can leave this wretched place.",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 2655,
+   "content_default": "Release the hounds!",
+   "content_other": "",
+   "type": 1,
+   "sound": 5841,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 2627,
+   "content_default": "The light condemns all who harbor evil.  Now you will die!",
+   "content_other": "The light condemns all who harbor evil.  Now you will die!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 2626,
+   "content_default": "There is no escape for you.  The Crusade shall destroy all who carry the scourge's taint.",
+   "content_other": "There is no escape for you.  The Crusade shall destroy all who carry the scourge's taint.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 2625,
+   "content_default": "You carry the taint of the scourge.  Prepare to enter the twisting nether.",
+   "content_other": "You carry the taint of the scourge.  Prepare to enter the twisting nether.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 2571,
+   "content_default": "What?  Oh no, I don't care what you have to say.  I just enjoy inflicting pain.",
+   "content_other": "What?  Oh no, I don't care what you have to say.  I just enjoy inflicting pain.",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 2570,
+   "content_default": "Confess and we shall set you free.",
+   "content_other": "Confess and we shall set you free.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 2569,
+   "content_default": "You will talk eventually.  You might as well spill it now.",
+   "content_other": "You will talk eventually.  You might as well spill it now.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 2564,
+   "content_default": "%s escapes into the void!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 2553,
+   "content_default": "%s is sucked into the coffer!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 2481,
+   "content_default": "%s lets out a high pitched screech, calling for help!",
+   "content_other": "%s lets out a high pitched screech, calling for help!",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 2441,
+   "content_default": "%s lets out a massive roar, calling for aid!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 15,
+   "language": 0
+  },
+  {
+   "entry": 2384,
+   "content_default": "%s becomes enraged!",
+   "content_other": "%s becomes enraged!",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 2231,
+   "content_default": "",
+   "content_other": "You will be easy prey, $C.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 2230,
+   "content_default": "",
+   "content_other": "My talons will shred your puny body, $R.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 2229,
+   "content_default": "",
+   "content_other": "A fine trophy your head will make, $R.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 2082,
+   "content_default": "%s begins to make a copy of itself!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 2081,
+   "content_default": "%s lets out a shriek, calling for help!",
+   "content_other": "%s lets out a shriek, calling for help!",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1991,
+   "content_default": "",
+   "content_other": "Interesting... Now this is more than I expected. Delicious...",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 8
+  },
+  {
+   "entry": 1987,
+   "content_default": "You will live forever in torment for this, pathetic warlock.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 8
+  },
+  {
+   "entry": 1953,
+   "content_default": "Hiccup!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1942,
+   "content_default": "Time to join us, $c.",
+   "content_other": "Time to join us, $c.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1941,
+   "content_default": "A living $r... soon to be a dead like me.",
+   "content_other": "A living $r... soon to be a dead like me.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1940,
+   "content_default": "Brains...",
+   "content_other": "Brains...",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1939,
+   "content_default": "Long live the Dragonmaw! Die you worthless $R!",
+   "content_other": "Long live the Dragonmaw! Die you worthless $R!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 1
+  },
+  {
+   "entry": 1938,
+   "content_default": "Your bones will break under my boot, $R!",
+   "content_other": "Your bones will break under my boot, $R!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 1
+  },
+  {
+   "entry": 1937,
+   "content_default": "For the Dragonmaw!",
+   "content_other": "For the Dragonmaw!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 1
+  },
+  {
+   "entry": 1936,
+   "content_default": "Feel the power of the Dark Iron Dwarves!",
+   "content_other": "Feel the power of the Dark Iron Dwarves!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1935,
+   "content_default": "Time to die, $C.",
+   "content_other": "Time to die, $C.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1934,
+   "content_default": "Never cross a Dark Iron, $C.",
+   "content_other": "Never cross a Dark Iron, $C.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1927,
+   "content_default": "Raaaaaaaaaaaaaaaaaaaaaaaaaaaaaar!!! Me smash $R!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 1,
+   "language": 0
+  },
+  {
+   "entry": 1926,
+   "content_default": "Me smash! You die!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1925,
+   "content_default": "I'll crush you!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1922,
+   "content_default": "So what do you want to do today?",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1921,
+   "content_default": "Me no run from $C like you!",
+   "content_other": "Me no run from $C like you!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1920,
+   "content_default": "Yip! Me kill!",
+   "content_other": "Yip! Me kill!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1919,
+   "content_default": "Oh, we are going to get along just fine, $N.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 14
+  },
+  {
+   "entry": 1918,
+   "content_default": "You dare defile Frostmane Hold, $R. Prepare to die!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 14
+  },
+  {
+   "entry": 1917,
+   "content_default": "Time to bash!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1916,
+   "content_default": "I smell a $R",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1915,
+   "content_default": "Destroy!",
+   "content_other": "Destroy!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1914,
+   "content_default": "Kill!",
+   "content_other": "Kill!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1913,
+   "content_default": "Crush!",
+   "content_other": "Crush!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1912,
+   "content_default": "I'll cut you!",
+   "content_other": "I'll cut you!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1911,
+   "content_default": "All you $R want is my weed.",
+   "content_other": "All you $R want is my weed.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 14
+  },
+  {
+   "entry": 1910,
+   "content_default": "Have a taste of Frostmane magics.",
+   "content_other": "Have a taste of Frostmane magics.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 14
+  },
+  {
+   "entry": 1875,
+   "content_default": "You are no match for the Blackrock Orcs!",
+   "content_other": "You are no match for the Blackrock Orcs!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 1
+  },
+  {
+   "entry": 1874,
+   "content_default": "Feel the power of the Blackrock Orcs!",
+   "content_other": "Feel the power of the Blackrock Orcs!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 1
+  },
+  {
+   "entry": 1871,
+   "content_default": "More bones to gnaw on...",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1870,
+   "content_default": "Grrrr... fresh meat!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1868,
+   "content_default": "You no take candle!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1867,
+   "content_default": "Feel the power of the Brotherhood!",
+   "content_other": "Feel the power of the Brotherhood!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1866,
+   "content_default": "The Brotherhood will not tolerate your actions.",
+   "content_other": "The Brotherhood will not tolerate your actions.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1865,
+   "content_default": "Ah, a chance to use this freshly sharpened blade.",
+   "content_other": "Ah, a chance to use this freshly sharpened blade.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1864,
+   "content_default": "Yiieeeee! Me run!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1756,
+   "content_default": "Alright! Alright! We surrender... Just put your weapons down, I'll cooperate!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 1,
+   "language": 7
+  },
+  {
+   "entry": 1521,
+   "content_default": "",
+   "content_other": "%s returns the rude gesture to $n.",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1415,
+   "content_default": "%s arrives!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1410,
+   "content_default": "%s splits open!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1409,
+   "content_default": "%s begins to crack and open...",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1408,
+   "content_default": "%s lays an egg!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1404,
+   "content_default": "Keep it up, $n, and I'll beat some manners into you.",
+   "content_other": "Keep it up, $n, and I'll beat some manners into you.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1403,
+   "content_default": "Don't make me go medieval on you.",
+   "content_other": "Don't make me go medieval on you.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1402,
+   "content_default": "You're pushing it, $n.",
+   "content_other": "You're pushing it, $n.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1401,
+   "content_default": "%s is not impressed.",
+   "content_other": "%s is not impressed.",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1395,
+   "content_default": "Death to the Warden's men!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1394,
+   "content_default": "I'll crush your skull beneath my boot!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1393,
+   "content_default": "Fresh meat!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1392,
+   "content_default": "It'll be quick, but it won't be painless!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1391,
+   "content_default": "Tell the Warden this prison is ours now!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1390,
+   "content_default": "More of the Warden's errand boys!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1388,
+   "content_default": "Outsiders! Kill em all!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1387,
+   "content_default": "Welcome to the Stockade!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1385,
+   "content_default": "%s grabs for his poisoned dagger!",
+   "content_other": "%s grabs for her poisoned dagger!",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1327,
+   "content_default": "%s jumps out of the shadows!",
+   "content_other": "%s jumps out of the shadows!",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1312,
+   "content_default": "You cannot hide from us, little paladin!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1254,
+   "content_default": "%s charges!",
+   "content_other": "%s charges!",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1234,
+   "content_default": "%s growls in your direction before taking time to sniff you.",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1225,
+   "content_default": "%s faces southeast and whimpers before looking back at you.",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1224,
+   "content_default": "",
+   "content_other": "Finally, my soul may rest... Oh, dearest Cerellean...",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1191,
+   "content_default": "%s goes into a frenzy!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1151,
+   "content_default": "%s goes into a rage after seeing a friend fall in battle!",
+   "content_other": "%s goes into a rage after seeing a friend fall in battle!",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1150,
+   "content_default": "%s attempts to run away in fear!",
+   "content_other": "%s attempts to run away in fear!",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1147,
+   "content_default": "Anyone want to take a break?  Well too bad!  Get to work you oafs!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1146,
+   "content_default": "Get those parts moving down to the ship!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1145,
+   "content_default": "The cannons must be finished soon.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1113,
+   "content_default": "Oh now you've gone and angered me! Time to see the true force of the Stone of Tides!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1100,
+   "content_default": "Why do we always go the same way?",
+   "content_other": "Why do we always go the same way?",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1099,
+   "content_default": "My feet hurt.",
+   "content_other": "My feet hurt.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1098,
+   "content_default": "Is it true? Are there really crocilisks in the canals?",
+   "content_other": "Is it true? Are there really crocilisks in the canals?",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1097,
+   "content_default": "I wanna see the Mage Tower.",
+   "content_other": "I wanna see the Mage Tower.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1094,
+   "content_default": "Where we goin'?",
+   "content_other": "Where we goin'?",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1092,
+   "content_default": "Are we there yet?",
+   "content_other": "Are we there yet?",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 1080,
+   "content_default": "%s digs its way out of the sand to protect its eggs.",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1079,
+   "content_default": "I am summoned!  Intruders, come to my tent and face your death!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 1
+  },
+  {
+   "entry": 1064,
+   "content_default": "%s calls for help!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1048,
+   "content_default": "%s calls more of his allies out of the shadows.",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1017,
+   "content_default": "I am slain!  Summon Verog!",
+   "content_other": "I am slain!  Summon Verog!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 976,
+   "content_default": "WHO DARES?! You shall be destroyed!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 966,
+   "content_default": "The light appears to have forsaken us.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 965,
+   "content_default": "I fear something dark is coming.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 964,
+   "content_default": "Why haven't the Stormwind guards come?",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 947,
+   "content_default": "I've been expecting you, $n.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 3
+  },
+  {
+   "entry": 913,
+   "content_default": "",
+   "content_other": "I sense danger deep within the grove...",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 911,
+   "content_default": "",
+   "content_other": "A corruption taints our sacred forest.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 910,
+   "content_default": "",
+   "content_other": "Something needs to be done about the Blackwood tribe.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 909,
+   "content_default": "",
+   "content_other": "The Blackwood tribe is disrupting our sacred lands.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 908,
+   "content_default": "",
+   "content_other": "The forest spirits are uneasy...",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 907,
+   "content_default": "%s seems much calmer now that it has eaten the remains of $n.",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 906,
+   "content_default": "%s starts flapping it's wings wildly and sqawking loud.  You have a feeling that you are about to be it's next meal.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 904,
+   "content_default": "Gizmos... check. Doothingies... check. Wizzers... check.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 899,
+   "content_default": "Brzt... click... whir...",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 896,
+   "content_default": "You have my word that I shall find a use for your body after I've killed you, $r.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 895,
+   "content_default": "You will never stop the Forsaken, $r. The Dark Lady shall make you suffer.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 815,
+   "content_default": "No!  Leave us!  We must not fail our task!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 814,
+   "content_default": "Take that!  The Drywhiskers will prevail!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 812,
+   "content_default": "Stand firm, brothers.  And don't worry!  Size is on our side!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 808,
+   "content_default": "The Great One will smash you!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 807,
+   "content_default": "Die!  You will not free Myzrael!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 791,
+   "content_default": "Well, that's what I get for oversleeping!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 790,
+   "content_default": "Sure does seem like it's been a long time since anyone has relieved me from my post.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 789,
+   "content_default": "I tire of this nonsense! Prepare to die, $r!",
+   "content_other": "I tire of this nonsense! Prepare to die, $r!",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 778,
+   "content_default": "DON'T LET THIS STATUE BE MY ONLY COMPANY.  COME OUT AND PLAY!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 777,
+   "content_default": "HAVE YOU RUN OUT OF SHIPS TO SEND?  WHERE'S YOUR COURAGE?",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 776,
+   "content_default": "I HAVE YOUR LITTLE BELT TIED AROUND MY FINGER, SMOTTS.  DON'T YOU WANT IT BACK?",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 775,
+   "content_default": "COME OUT TO JANEIRO'S POINT.  I'M WAITING FOR YOU, SMOTTS...",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 774,
+   "content_default": "I PROMISE I WON'T KILL YOUR CREW THIS TIME.  HAH!  BUT MY BROTHER MIGHT EAT THEM!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 773,
+   "content_default": "SMOTTS, I HAVE YOUR LITTLE BELT...COME GET IT.",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 772,
+   "content_default": "YOU WERE SUCH GOOD SPORT THE LAST TIME...COME OUT!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 764,
+   "content_default": "SMOTTS!  HEY, SMOTTS!!  COME OUT AND PLAY!",
+   "content_other": "",
+   "type": 1,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 759,
+   "content_default": "%s is reduced to rubble, but still continues to fight",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 758,
+   "content_default": "%s's strength dwindles as chunks of rock break off",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 757,
+   "content_default": "%s begins to crack and break apart.",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 741,
+   "content_default": "%s begins to summon in reinforcements!",
+   "content_other": "%s begins to summon in reinforcements!",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 739,
+   "content_default": "Orcs are smarter than those couriers! Where the blazes are they?",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 6,
+   "language": 7
+  },
+  {
+   "entry": 738,
+   "content_default": "Stupidity! I'm surrounded by stupidity!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 5,
+   "language": 7
+  },
+  {
+   "entry": 737,
+   "content_default": "Where in the Outlands are those shipments? For days they keep me waiting!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 5,
+   "language": 7
+  },
+  {
+   "entry": 638,
+   "content_default": "Wahehe! I'm taking you down with me!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 637,
+   "content_default": "%s's eyes glow red as he lights his dynamite and begins to cackle madly!",
+   "content_other": "",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 629,
+   "content_default": "More agents of the Syndicate I'll wager! You'll never take back Alterac... or Southshore!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 616,
+   "content_default": "I spent my whole life caring for these trees. Pruning and nurturing them... only fitting that they have joined me in death.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 615,
+   "content_default": "This orchard is now as barren and lifeless as my rotting shell. Once these trees bloomed with fruit but now there is only rot.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 614,
+   "content_default": "My trees.... they have withered up and died just like me.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 609,
+   "content_default": "Guards! Guards!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 605,
+   "content_default": "Mmm... I love my delicious Southshore stout.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 575,
+   "content_default": "The Agamand Mills is held by the Scourge, $C.  Join us!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 574,
+   "content_default": "Here to visit the family?  Die, fool!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 509,
+   "content_default": "I shall spill your blood, $C!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 508,
+   "content_default": "Who dares disturb me?  Die $N!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 506,
+   "content_default": "",
+   "content_other": "%s lets out a high pitched screech, calling for help.",
+   "type": 2,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 500,
+   "content_default": "",
+   "content_other": "I shall return in time..",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 456,
+   "content_default": "I am Balgaras the Foul.  And you, $N, are about to become nothing more than ash and dust.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 6
+  },
+  {
+   "entry": 455,
+   "content_default": "This land belongs to the Dark Iron Dwarves.  Prepare to see the afterlife, $C!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 6
+  },
+  {
+   "entry": 453,
+   "content_default": "$N!  Prepare to meet your doom!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 6
+  },
+  {
+   "entry": 448,
+   "content_default": "The Loch belongs to the Stonesplinter Tribe now, $N!  Now die!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 447,
+   "content_default": "The only good $R is a dead $R!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 446,
+   "content_default": "Die, $R!  These lands belong to the Stonesplinter Tribe!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 444,
+   "content_default": "A $C called $N? You'll make a fine breakfast!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 443,
+   "content_default": "Weak $C! You are no match for the Stonesplinter Tribe!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 442,
+   "content_default": "The Stonewrought Dam will be destroyed!  Long live Ragnaros!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 441,
+   "content_default": "Kill the filthy $R!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 440,
+   "content_default": "All those who betray Ragnaros must die!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 438,
+   "content_default": "What have we here?  $N the $C?  Attack!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 437,
+   "content_default": "This $C intrudes on our work! Die fool!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 436,
+   "content_default": "King Magni Bronzebeard is a fool and a charlatan!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 435,
+   "content_default": "The Thandol Span fell to Ragnaros.  So shall the Stonewrought Dam!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 434,
+   "content_default": "Die in the name of Ragnaros!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 427,
+   "content_default": "You have disturbed my rest, $c.  Now face my wrath!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 317,
+   "content_default": "The Scarlet Crusade shall not fail in its mission!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 316,
+   "content_default": "These undead atrocities will be destroyed!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 314,
+   "content_default": "These lands shall be cleansed!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 111,
+   "content_default": "Wait...you are not my husband.  But he must have sent you.  And you...look..delicious!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 110,
+   "content_default": "Aber?  Is that you...?  Oh...I'm so hungry, Aber!  SO HUNGRY!!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 86,
+   "content_default": "So much to do, so much to do!  Where does the time go?",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 85,
+   "content_default": "Welcome to the Lion's Pride Inn.  Make yourself at home!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 84,
+   "content_default": "If your glass is full may it be again!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 82,
+   "content_default": "This dark taint is downright bad for business.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 81,
+   "content_default": "Step right up and wet your whistle.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 1,
+   "language": 7
+  },
+  {
+   "entry": 80,
+   "content_default": "Psssst.  We just got some Moonshine in. . . .",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 1,
+   "language": 7
+  },
+  {
+   "entry": 79,
+   "content_default": "There is something greater than magic at work in the night sky.  One day they'll listen to me. . . .",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 77,
+   "content_default": "The stars will be in perfect form tonight!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 70,
+   "content_default": "Constant bickering will get us nowhere.  We need to take action.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 69,
+   "content_default": "The people of Darkshire expect more from the Council.  We cannot let them suffer from this unholy wrath which plagues us.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 68,
+   "content_default": "The Council of Duskwood must take action.  Evil lingers in the air.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 63,
+   "content_default": "Undead are crawling all over the land.  Where is the Stormwind Army?",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 62,
+   "content_default": "",
+   "content_other": "Fear not.  The Night Watch will rid the land of this foul taint soon enough.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 61,
+   "content_default": "",
+   "content_other": "Stay on the roads.  The forest is overrun with undead.",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 60,
+   "content_default": "They might have run all the other farmers off, but the Saldean's will never leave Westfall.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 59,
+   "content_default": "A bunch of thugs and thieves aren't going to get me to leave my land!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 58,
+   "content_default": "Now how am I supposed to get those mechanical wretches out of my fields?",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 57,
+   "content_default": "We'll be out of here just as soon as I get this wagon fixed. . . .",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 56,
+   "content_default": "Can't believe the forsaken wagon broke down.  Ain't no luck to be had in this land. . . .",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 55,
+   "content_default": "",
+   "content_other": "I never thought the day would come that I'd leave my homeland of Westfall. . . .",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 54,
+   "content_default": "",
+   "content_other": "Don't worry, Old Blanchy, we'll get you something to eat soon. . .",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 53,
+   "content_default": "Marshal Marris expects the reserve from Stormwind any time now. . . .",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 52,
+   "content_default": "Still no sign of the 2nd Battalion from Stormwind.  Reports are coming in of Shadowhide movement in the Northeast.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 51,
+   "content_default": "Where are those reinforcements from Stormwind?  Heavy Blackrock activity has been reported in the East.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 49,
+   "content_default": "",
+   "content_other": "Hopefully the reinforcements from Stormwind show up soon. . . .",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 44,
+   "content_default": "Stormwind's desertion shall not be forgiven by the people of Westfall.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 1,
+   "language": 7
+  },
+  {
+   "entry": 43,
+   "content_default": "All clear on Sentinel Hill, Lord Stoutmantle.  Heavy Defias movement reported in Moonbrook, however.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 1,
+   "language": 7
+  },
+  {
+   "entry": 42,
+   "content_default": "Lots of gnoll activity reported in the Gold Coast Quarry and the Jangolode Mine.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 1,
+   "language": 7
+  },
+  {
+   "entry": 41,
+   "content_default": "",
+   "content_other": "Defias activity reported on the costal horizon.  All clear on Sentinel Hill.",
+   "type": 0,
+   "sound": 0,
+   "emote": 1,
+   "language": 7
+  },
+  {
+   "entry": 38,
+   "content_default": "I'm here for the gold.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 37,
+   "content_default": "The boss wants all hands on high alert.  The rusty anchor sinks tonight.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 36,
+   "content_default": "Stonemasons. . .errr. . Defias be warned:  The rusty anchor sinks tonight.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 35,
+   "content_default": "Come one! Come all! Perelli's elixirs will dazzle!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 28,
+   "content_default": "So close to blessed Lakeshire.  By the Light, let my legs carry me a bit further!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 25,
+   "content_default": "$n, my wounds are grave.  Forgive my slow pace but my injuries won't allow me to walk any faster.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 24,
+   "content_default": "You're not joining anyone, Thorsen..",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 23,
+   "content_default": "Well I'm here.  And I'm ready to rejoin...",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 22,
+   "content_default": "Another herd brought in successfully!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 6
+  },
+  {
+   "entry": 19,
+   "content_default": "Hey, follow me!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 6
+  },
+  {
+   "entry": 17,
+   "content_default": "All right, you guys! Time to get up",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 16,
+   "content_default": "All right people, look alive!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 15,
+   "content_default": "Good for nothing Kobolds!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 14,
+   "content_default": "Grrrr! Idiots!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 13,
+   "content_default": "Work scum!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 11,
+   "content_default": "You can go tell Stoutmantle this is where the Defias Gang is holed up, $N.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 10,
+   "content_default": "The entrance is hidden here in Moonbrook.  Keep your eyes peeled for thieves.  They want me dead.",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 7
+  },
+  {
+   "entry": 4,
+   "content_default": "Forward.. MARCH!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 3,
+   "content_default": "Company.. HALT!  ... Fall IN!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  },
+  {
+   "entry": 1,
+   "content_default": "Help help!  I'm being repressed!",
+   "content_other": "",
+   "type": 0,
+   "sound": 0,
+   "emote": 0,
+   "language": 0
+  }
+ ],
+ "unresolved": [
+  34,
+  21,
+  18,
+  12,
+  8,
+  6,
+  2
+ ]
+}

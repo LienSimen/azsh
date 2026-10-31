@@ -1,0 +1,169 @@
+{
+  "deadmines": {
+    "5397": {
+      "encounters": [],
+      "outside": true
+    }
+  },
+  "gnomeregan": {
+    "6893": {
+      "encounters": [
+        "electrocutioner-6000"
+      ],
+      "outside": false
+    }
+  },
+  "uldaman": {
+    "7733": {
+      "encounters": [],
+      "outside": true
+    }
+  },
+  "zul-farrak": {
+    "8444": {
+      "encounters": [
+        "sandfury-executioner",
+        "209-f201cff7"
+      ],
+      "outside": false
+    },
+    "9240": {
+      "encounters": [],
+      "outside": true
+    }
+  },
+  "sunken-temple": {
+    "10460": {
+      "encounters": [
+        "hakkari-bloodkeeper"
+      ],
+      "outside": false
+    },
+    "10465": {
+      "encounters": [],
+      "outside": true
+    }
+  },
+  "blackrock-depths": {
+    "11140": {
+      "encounters": [
+        "high-interrogator-gerstahn"
+      ],
+      "outside": false
+    }
+  },
+  "lbrs": {
+    "12534": {
+      "encounters": [
+        "highlord-omokk"
+      ],
+      "outside": false
+    },
+    "22049": {
+      "encounters": [],
+      "outside": true
+    }
+  },
+  "ubrs": {
+    "12344": {
+      "encounters": [],
+      "outside": true
+    },
+    "22056": {
+      "encounters": [],
+      "outside": true
+    }
+  },
+  "dire-maul-east": {
+    "18249": {
+      "encounters": [
+        "pusillin"
+      ],
+      "outside": false
+    },
+    "22050": {
+      "encounters": [],
+      "outside": true
+    }
+  },
+  "dire-maul-north": {
+    "18250": {
+      "encounters": [
+        "429-69ec3065",
+        "429-e8e4a98d",
+        "guard-moldar",
+        "guard-fengus",
+        "429-64e9e9ef",
+        "guard-slipkik",
+        "gordok-bushwacker",
+        "captain-kromcrush"
+      ],
+      "outside": false
+    },
+    "18266": {
+      "encounters": [
+        "429-69ec3065",
+        "429-5be13ae9",
+        "429-0abf43f0",
+        "429-4348ec72",
+        "429-e8e4a98d",
+        "429-400faeed",
+        "429-f579b316",
+        "429-c78e5a20",
+        "429-349c6678",
+        "429-a3c4baf9",
+        "429-5183b3c4",
+        "429-9124091e",
+        "429-8f5fc6c9",
+        "429-3762424f",
+        "429-470a626c",
+        "429-a835913a",
+        "429-e3b4f4bc",
+        "429-f7e4ccfe",
+        "429-5cb56128",
+        "429-64e9e9ef",
+        "429-140a6ea0",
+        "429-b70326a7",
+        "429-adeffca5",
+        "429-941bac38",
+        "429-b0ba6863",
+        "429-df4685f7",
+        "429-ad532e75",
+        "429-95c9b52a",
+        "429-4b2a6d91",
+        "429-4b0aa9e8",
+        "429-6e7e330a",
+        "429-73644d35",
+        "429-d4de0d6f",
+        "429-6caec86d"
+      ],
+      "outside": false
+    },
+    "18268": {
+      "encounters": [
+        "guard-moldar"
+      ],
+      "outside": false
+    }
+  },
+  "scholomance": {
+    "12368": {
+      "encounters": [],
+      "outside": true
+    },
+    "13523": {
+      "encounters": [
+        "jandice-barov",
+        "doctor-theolen-krastinov",
+        "289-dc725300"
+      ],
+      "outside": false
+    },
+    "13873": {
+      "encounters": [
+        "rattlegore"
+      ],
+      "outside": false
+    }
+  }
+}

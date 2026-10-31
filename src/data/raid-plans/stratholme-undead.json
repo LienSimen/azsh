@@ -1,0 +1,73 @@
+{
+ "raid": "stratholme-undead",
+ "note": "Reviewed for E5.4 against boss_baroness_anastari.cpp, boss_maleki_the_pallid.cpp, stratholme.cpp, eventai/stratholme-undead.ts and acid_classic.sql:16556-16608. All seven bosses come back kinds: [] and that is the finding. The wing's standard shape is a 10 yd disc centred on a melee boss - Banshee Curse, Silence, Crowd Pummel, Trample - which the melee are standing in because that is where melee happens, and the 20-25 yd ranged stand is already outside it. Two things the fight does ask for have no verb behind them and are recorded in blockedBy: Anastari's Possess runs the opposite way from mcEntries, and Rivendare's Unholy Aura is a 30 yd disc that is wider than the band the party can stand in.",
+ "bosses": [
+  {
+   "entry": 10809,
+   "name": "Stonespine",
+   "kinds": [],
+   "cite": "acid_classic.sql:16607-16608 creature_id=10809 is his whole kit, one script, and there is no ScriptDev cpp for 10809 and no overlay row in eventai/stratholme-undead.ts. 1080901 casts Vicious Rend 14331 at TARGET_T 4 HOSTILE_RANDOM every 7-12 s after a 0-10 s opener, and 14331 is targetA 6 rangeMax 5, mechanic 15 bleed, a 34-per-3 s physical dot for 15 s that stacks to 3. Single target, no radiusYd and no aoeShape - tank and spank. stratholme-undead.ts:852-867 also marks him optional, because pools.json 46803 holds his one guid against a substitute and he is not up every run."
+  },
+  {
+   "entry": 10436,
+   "name": "Baroness Anastari",
+   "kinds": [
+    "mc"
+   ],
+   "cite": "boss_baroness_anastari.cpp:30-216; acid_classic.sql:16561 names the cpp and carries no rows for 10436, and creatures.json 10436 holds [16867, 16565, 18327, 17244] on charmSpells only, so the schedule is the port at scriptdev/stratholme.ts:95-248 that registry.ts:549 binds. Banshee Wail 16565 is targetA 6 rangeMax 40, a 213-287 shadow nuke on a random raider every 2-3 s. Banshee Curse 16867 and Silence 18327 are both aoeShape pbaoe radiusYd 10, targetA 22 TARGET_LOCATION_CASTER_SRC and tgtB 15 - a 12 s -10% hit debuff (dispel 2 curse) and a 10 s silence (mechanic 9, dispel 1 magic) on everything within 10 yd of HER, every 20 s and every 25 s. Ten yards on a melee boss is the Galgann Firehammer disc: the melee are inside it because that is where melee happens, the 20-25 yd stand (stand.ts:18-20) is already outside, and a decurse or a dispel answers both, which are class rows. Possess 17244 is the fight and it is in blockedBy.",
+   "encounterRows": [
+    {
+     "kind": "mc",
+     "label": "Break the Possess: burn the possessed raider under half health",
+     "cite": "boss_baroness_anastari.cpp:159-173 casts Possess 17244 every 30 s at SelectAttackingTarget(RANDOM, 1, SELECT_FLAG_PLAYER), so the BOSS takes a raider for 120 s, and :107-115 plus AnastariPossess OnPeriodicTickEnd :201-205 strip it the moment that raider drops under 50% health - scriptdev/stratholme.ts:156-224 ports it as charmBreakHpFrac 0.5 and crowdControl.ts break_charm_if_hp_below executes it. Two of the three pieces were already here: the possessed raider is in every other party member's hostile pool because charm flips a unit's faction (sessionPools.ts:170-173 factionOfFighter), and the exit condition is armed. What was missing was an ORDER that can name an ally seat - kill_order takes creature_template entries and a raider has none - so killOrder.ts KILL_ORDER_CHARMED_ALLY is that term, resolved the same way in pickAction and sessionFocus. The MT is excluded from following an order (pickAction.ts:2231), so the tank keeps Anastari and the DPS peel onto their own possessed member.",
+     "rule": {
+      "id": "raid_enc_10436_break_possess",
+      "action": {
+       "kind": "kill_order",
+       "entries": [
+        0
+       ]
+      },
+      "conditions": [],
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "entry": 10437,
+   "name": "Nerub'enkan",
+   "kinds": [],
+   "cite": "eventai/stratholme-undead.ts:93-136 scripts 1043701-1043704, acid_classic.sql:16562-16566 creature_id=10437. Encasing Webs 4962 is targetA 6 rangeMax 20 castTimeMs 2000, mechanic 7, a 6 s root plus a -100% haste on one raider every 15-20 s; Pierce Armor 6016 is targetA 6 rangeMax 5, -50% armor for 20 s on whoever he is hitting. Neither carries a radiusYd. The two summons do put bodies on the floor - planCastSummons falls back to rawEffects 41/42 with count basePoints+1 (summonCast.ts:94-108), so Crypt Scarabs 16418 (Effect 41, miscValue 10577, basePoints 5) drops six every 4-5 s and Raise Undead Scarab 17235 (Effect 42, miscValue 10876) one every 17-20 s - but nothing in the DB says either precedes the boss and neither is worth an order: creatures.json 10577 Crypt Scarab is level 58 with 2 HP whose only casts are a 0.5 s snare on spawn and a suicide passive, and 10876 Undead Scarab has no spells array at all."
+  },
+  {
+   "entry": 10438,
+   "name": "Maleki the Pallid",
+   "kinds": [],
+   "cite": "boss_maleki_the_pallid.cpp:28-124; acid_classic.sql:16567 names the cpp and carries no rows for 10438, and creatures.json 10438 holds [17238, 16869, 17503, 17243] on charmSpells only, so the schedule is the port at scriptdev/stratholme.ts:261-350. All five are single target or self and not one has a radiusYd: Frostbolt 17503 is targetA 6 rangeMax 40 castTimeMs 2000 every 3-4 s, Ice Tomb 16869 is targetA 6 rangeMax 40 castTimeMs 1500, mechanic 12, a 10 s stun on a NON-tank every 15-20 s (cpp:76 SelectAttackingTarget RANDOM, 1), Drain Life 17238 and Drain Mana 17243 are both targetA 6 rangeMax 20 ticking over 5 s, and Frost Armor 12556 is targetA 1 on himself. A 10 s stun on one raider is a trinket and the two drains are a dispel, and both are class rows."
+  },
+  {
+   "entry": 10435,
+   "name": "Magistrate Barthilas",
+   "kinds": [],
+   "cite": "acid_classic.sql:16556-16560 creature_id=10435 is his whole kit and there is no ScriptDev cpp for 10435. Crowd Pummel 10887 is the only shaped ability: aoeShape pbaoe radiusYd 10, targetA 22 and tgtB 15, castTimeMs 0, mechanic 26 interrupt, baking as interrupt_cast with a 5000 ms lockout plus a knockback, every 15 s. It is a disc at melee reach, and the raiders it would lock out are the casters, who stand at 20-25 yd (stand.ts:18-20) and are already clear of it. Draining Blow 16793 is targetA 6 rangeMax 5, a 250 shadow health leech every 15 s; Mighty Blow 14099 is targetA 6 rangeMax 10 and ships effects: [] because its Effect 17 WEAPON_DAMAGE row has no bake mapper. Furious Anger 16792 on aggro is targetA 1 aura 42 proc-trigger of 16791, a self haste that stacks to 25, and Transformation 16794 on death is a displayId swap (miscValue 2335). His flee is a map event and not a party verb: stratholme-undead.ts:455-500 relocates him from the Service Entrance Gate to the Slaughter Square approach after 8 s if he is still out of combat."
+  },
+  {
+   "entry": 10439,
+   "name": "Ramstein the Gorger",
+   "kinds": [],
+   "cite": "eventai/stratholme-undead.ts:52-87 scripts 1043901-1043904, acid_classic.sql:16569-16572 creature_id=10439. Three abilities. Flurry 15088 on spawn is targetA 1 aura 42 proc-trigger of 17687, a self haste. Knockout 17307 is targetA 6 rangeMax 10 every 10 s, a 6 s stun (aura 12) plus a knockback on whoever he is hitting - single target, no radiusYd, and a trinket is the answer. Trample 5568 is the only shape and it is inert twice over: aoeShape pbaoe radiusYd 10, targetA 22 and tgtB 15, castTimeMs 0 at TARGET_T 17 NEAREST_AOE_TARGET every 7-8 s, which is the Stockade disc at melee reach, and spell-data 5568 ships effects: [] because its one row is Effect 58 WEAPON_PERCENT_DAMAGE, which the bake has no mapper for. He is a gauntlet payoff and that is exactly why there is no kill-order: stratholme.cpp:264-297 only summons him once abomCount reaches 0, so every Slaughter Square abomination is already dead when he lands, and the 30x Mindless Undead 11030 plus 5x Black Guard Sentry 10394 arrive at TYPE_RAMSTEIN DONE (stratholme.cpp:305-329), i.e. after he dies, which stratholme-undead.ts:1046-1064 models as its own Black Guard Gauntlet encounter. He fights alone."
+  },
+  {
+   "entry": 10440,
+   "name": "Baron Rivendare",
+   "kinds": [
+    "position"
+   ],
+   "cite": "eventai/stratholme-undead.ts:26-46 script 1044005, acid_classic.sql:16574-16581 creature_id=10440. Mortal Strike 15708 (targetA 6 rangeMax 5, 300% weapon plus -50% healing taken for 5 s), Cleave 15754 and the encounter's 15284 (targetA 6 rangeMax 5, chainTargets 3, both effects: [] on Effect 58) and Shadow Bolt 17393 (targetA 6 rangeMax 40 castTimeMs 2000 at TARGET_T 4 HOSTILE_RANDOM every 10 s) are all single target with no radiusYd. Unholy Aura 17467 is the one area shape and it is in blockedBy. The skeletons are NOT a kill-order: the in-tree overlay drops the ACID SPELLHIT chain 1044006-1044007 and SPAWNs six Mindless Skeleton 11197 straight onto the floor every 15 s, and creatures.json 11197 is level 60 with 296-306 HP carrying one cast row - Death Pact 17472, an instakill on ITSELF fired on SPELLHIT 17471 (acid_classic.sql:16670 creature_id=11197) - so they never cast at the party and they never heal him, 17471 being a 10 point health leech. Nothing in stratholme.cpp or in the DB says they precede him, and kill_order is a filter that returns the first LIVING entry on its list (evaluate.ts:578), so naming 11197 on a boss who adds six more every 15 s would hold the focus off a 46,620 HP body for the whole fight.",
+   "blockedBy": {
+    "position": "Unholy Aura is a real 30 yd disc and it is too wide for keep_range - the Doom'rel refusal in blackrock-depths.json, reached from a permanent aura instead of an 8-12 s volley. 17467 bakes proc_trigger_spell of 17466 on a 2000 ms tick with durationIndex 21, the permanent sentinel, and 17466 is aoeShape pbaoe radiusYd 30, targetA 22 TARGET_LOCATION_CASTER_SRC and tgtB 15, castTimeMs 0, 150 shadow. isWithinRadiusYd (combatGeometry.ts:216) hits at <=, so the first clear yard is 31, which is past RANGED_STAND_MAX_YD 30 (stand.ts:19): a 30 yd disc means the whole party is inside it by construction, the ranged topping out at 30 and the melee at MELEE_REACH_YD 5, and there is no aura window to wait out because the trigger never drops. The out-of-combat half is SOLVED and no longer part of the refusal: 84955233d makes a TIMER_OOC self aura spawn state, so he arrives wearing 17467 (creatureCasts eventType 1, castFlags 34, scriptId 1044001), and src/dev/smoke/triggerPayloadLands.mjs drives him at host 1 payload 88. The disc is the whole blocker now."
+   }
+  }
+ ]
+}

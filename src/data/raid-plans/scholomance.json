@@ -1,0 +1,170 @@
+{
+ "raid": "scholomance",
+ "note": "Reviewed for E5.4 against boss_jandice_barov.cpp, boss_darkmaster_gandling.cpp, scholomance.cpp, eventai/scholomance.ts and acid_classic.sql:16061-16243. Eleven of the thirteen come back kinds: [] - most of this wing is a disc at or inside melee reach, which the melee have to stand in to fight at all, and the three abilities that ARE wider are 30 and 45 yd, which is past the ranged stand, so there is no ground left to step onto. Two earn a row: Vectus drops a real Flamestrike pool under a random raider, and Ras Frostwhisper carries the 20 yd disc that is the Archaedas shape.",
+ "bosses": [
+  {
+   "entry": 10506,
+   "name": "Kirtonos the Herald",
+   "kinds": [
+    "position"
+   ],
+   "cite": "eventai/scholomance.ts:347-469 scripts 1050601-1050611, acid_classic.sql:16175-16185 creature_id=10506. Phase 1 is melee only: Swoop 18144 and Wing Flap 12882 are both src_spell_cone ConeDegrees 71 at radiusYd 5 and 10, and the product already answers them - sessionChase.ts:440 meleeFlankSlot reads coneArcsOfKit (combatGeometry.ts:451) and slides every non-tank melee out of each kit cone, while coneCovers (:475) refuses an arc past its own radiusYd, so a raider at the 20-25 yd stand is never inside one. That is the Hurley Blackbreath wedge, not the Lady Sarevess one. Pierce Armor 6016 (armor -50% for 20 s) and Disarm 8379 (mechanic 3, 10 s) are targetA 6 rangeMax 5 single target. Kirtonos Transform 16467 flips him to phase 2, where Curse of Tongues 12889 is pbaoe radiusYd 20 for haste -50% with dispel 2 curse - a decurse, which is a class row - and Dominate Mind 14515 is a single-target 15 s charm a dispel answers. Shadow Bolt Volley 17228 is the one ability that asks for something and no verb reaches it.",
+   "blockedBy": {
+    "position": "Shadow Bolt Volley 17228 bakes aoeShape pbaoe radiusYd 30, rawEffects targetA 22 TARGET_LOCATION_CASTER_SRC and targetB 15, castTimeMs 0, 128-172 shadow, fired every 4-7 s once he is transformed (script 1050607, acid_classic.sql:16181). isWithinRadiusYd hits at <=, so the first clear yard is 31, which is past RANGED_STAND_MAX_YD 30 (stand.ts:19) and past the 30 yd rangeMax the caster nukes sit on. That is the Doom'rel refusal in blackrock-depths.json spell for spell: a 30 yd disc means the whole party is inside it, so a park at 31 buys the volley and costs every cast."
+   }
+  },
+  {
+   "entry": 10503,
+   "name": "Jandice Barov",
+   "kinds": [],
+   "cite": "boss_jandice_barov.cpp:28-112, ported at scriptdev/scholomance.ts:302-402; there are no ACID rows for 10503 and creatures.json 10503 has no spells array, so the schedule is the IR. Curse of Blood 16098 is pbaoe radiusYd 10 with a 2000 ms cast, physical damage taken +2 for 600 s and dispel 2 curse - a decurse at melee reach. Banish 8994 is targetA 6, mechanic 18, a 15 s banish on a random not-top raider every 17-21 s (cpp:73-82), answered by a trinket or a dispel. The illusions are ADDS, not a kill-order, and that is the finding: Summon Illusions 17773 is Effect 42 basePoints 14 dieSides 1 miscValue 11439, so all 15 bodies are ONE entry (scriptdev/scholomance.ts:115-124) - there is no order to impose among them and nothing in the cpp says they precede her. They are not a gate either: Spread Jandice 17774 hides her for 8000 ms only (DurationIndex 31, scriptdev/scholomance.ts:121-130) while 17773 runs 30000 ms, so she is attackable again long before they expire. creatures.json 11439 carries only Spread 17772 on spells, a self confuse plus speed aura, with Cleave 15584 sitting on charmSpells, which combatEnemySpec.ts:136-138 never turns into a cast row - they land nothing. A kill_order on 11439 would hold the party on 15 bodies of 3144 HP each (src_creature_template 11439) against a boss with 30180, re-summoned every 25 s, and firstLivingKillOrderEntry (evaluate.ts:578) would never fall through to her. The cpp's own note at :20 says the illusions should be immune to AoE and vulnerable only to direct damage, which is a statement that they are meant to die fast."
+  },
+  {
+   "entry": 11622,
+   "name": "Rattlegore",
+   "kinds": [],
+   "cite": "eventai/scholomance.ts:628-661 scripts 1162201-1162203, acid_classic.sql:16241-16243 creature_id=11622. War Stomp 16727 every 13.1-26.4 s is aoeShape pbaoe radiusYd 5, targetA 22 and targetB 15, castTimeMs 0, mechanic 12, a 5 s stun plus a weapon hit - five yards is melee reach exactly, the Magmus and Smoke Bomb shape, and the 20-25 yd stand is already outside it. A repeated melee stun is answered by a trinket, Tremor Totem or Berserker Rage, which are class rows. Knock Away 10101 is targetA 6 rangeMax 10 single target and Strike 18368 bakes effects: [] because its Effect 17 has no mapper. Nothing in the kit is wider than melee."
+  },
+  {
+   "entry": 10433,
+   "name": "Marduk Blackpool",
+   "kinds": [
+    "position"
+   ],
+   "cite": "eventai/scholomance.ts:142-186 scripts 1043301-1043305, acid_classic.sql:16065-16069 creature_id=10433. Cleave 15754 is targetA 6 rangeMax 5 and Shadow Shield 12040 is targetA 1, a 200 absorb plus a 10 damage shield on himself - a purge, which is a class row. Defiling Aura 17695 on aggro is targetA 1, aura 23 amplitude 2000, triggering Defiling Aura 17697, and 17697 is pbaoe radiusYd 30 for shadow resistance -100 with NO damage, so even at full width a step-out saves nothing; it also pays nothing here, because stepSession.ts:1732 resolves the payload with spellFromKit(src.spec.spells, 17697) and 17697 is on none of the three lists combatEnemySpec.ts:87-96 builds that array from. Shadow Bolt Volley 17228 is the ability that asks for something.",
+   "blockedBy": {
+    "position": "Shadow Bolt Volley 17228 is the same 30 yd disc Kirtonos casts and the same refusal - aoeShape pbaoe radiusYd 30, targetA 22 and targetB 15, castTimeMs 0, 128-172 shadow, here every 6.2-14.9 s at TARGET_T 1 (script 1043303, acid_classic.sql:16067). isWithinRadiusYd hits at <=, so the first clear yard is 31 and RANGED_STAND_MAX_YD is 30 (stand.ts:19): there is no stand a keep_range could name that is not already outside the party's own casting band."
+   }
+  },
+  {
+   "entry": 10432,
+   "name": "Vectus",
+   "kinds": [
+    "position"
+   ],
+   "note": "Flamestrike drops a burning patch under one party member and it keeps ticking for 8 seconds. Step off it.",
+   "cite": "eventai/scholomance.ts:108-136 scripts 1043201-1043203, acid_classic.sql:16061-16063 creature_id=10432. Fire Shield 13377 on spawn bakes effects: [] and its trigger 13376 is not on his kit, so it lands nothing. Blast Wave 16046 every 12-14 s is aoeShape pbaoe radiusYd 10, targetA 22 and targetB 15, castTimeMs 0, 161-187 fire - ten yards sits inside the melee band and inside RANGED_STAND_MIN_YD 20 (stand.ts:18), so the melee are in it because that is where melee happens and the ranged are already out. Flamestrike 18399 is the row.",
+   "encounterRows": [
+    {
+     "kind": "position",
+     "label": "Get out of Flamestrike",
+     "cite": "spell 18399 Flamestrike bakes aoe true, aoeShape ground, radiusYd 5, castTimeMs 3000, rangeMax 30: 152-176 fire on impact from rawEffects effect 2 targetA 16 AT_DEST_LOC, plus effect 27 targetA 28 AT_DYNOBJ_LOC, auraName 3, amplitude 2000, durationIndex 31 for 8000 ms. aoe true plus a dot effect is exactly what dynamicObject.ts:220-224 isPersistentAreaEffect accepts, so applySpell.ts:1204-1206 creates a real GroundPool stamped with spellId 18399, hazards.ts:94-112 listHazards publishes every live pool, and hazardMatches (:134) matches a row id against String(spellId) - so avoid_zone \"18399\" names this pool and nothing else. It is Jammal'an's Flamestrike 12468 field for field, and the row is the app's own avoid verb copied from raidCustomRows.ts:411-422: avoid_zone on the spell id gated on hazardProximityYd <= 0, with no notTanking clause because the pool is where the pool is and the tank is standing in it too. combatGeometry.ts:317-319 aoeFanFromCaster returns false for a ground shape, so applySpell.ts:1261 sites the pool on the TARGET side, and script 1043203 casts it at EventAI TARGET_T 4 HOSTILE_RANDOM (aiTargeting.ts:29) after a 2-4 s opener then every 20-25 s - the patch lands under a random raider, not under Vectus. His body is not published as a second hazard beside it: hazards.ts:75-84 groundAoeOf requires spellAoeFromCaster and targetA 16 is not in CASTER_LOCATION_TARGET_A (combatGeometry.ts:321-329). Unlike a pbaoe the patch does not follow anybody - it is static for 8 s - and pickAction.ts:770 moveOwnsPastDeadline exempts avoid_zone from the 4000 ms give-up while the pool is alive, so the walk finishes. Not driven on the floor per CLAUDE.md section 3, so this ships shipped-unverified.",
+     "rule": {
+      "id": "raid_enc_10432_avoid_18399",
+      "action": {
+       "kind": "move",
+       "move": {
+        "kind": "avoid_zone",
+        "id": "18399"
+       }
+      },
+      "conditions": [
+       {
+        "subject": "self",
+        "metric": "hazardProximityYd",
+        "op": "<=",
+        "value": 0
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "entry": 10508,
+   "name": "Ras Frostwhisper",
+   "kinds": [
+    "position"
+   ],
+   "note": "Frostbolt Volley hits everything within 20 yd of Ras for about 230 frost every 10 to 20 seconds. The ranged only need one more yard.",
+   "cite": "eventai/scholomance.ts:476-542 scripts 1050801-1050808, acid_classic.sql:16192-16199 creature_id=10508. Chill Nova 18099 is pbaoe radiusYd 10 for 139-161 frost and Knock Away 11130 is pbaoe radiusYd 10 with effects: [] - both sit inside the melee band and inside RANGED_STAND_MIN_YD 20 (stand.ts:18). Freeze 18763 is targetA 6, mechanic 12, a 15 s stun with a 3500 ms cast and interruptFlags 15, which a kick or an Earth Shock answers from the class rotation, and Fear 12096 is targetA 6 rangeMax 20 on whoever he is hitting. Frost Armor 18100 is targetA 1 on himself. There is no SET_RANGED_MODE script on him, so he closes to the tank and every disc rides with him. Frostbolt Volley 8398 is the row.",
+   "encounterRows": [
+    {
+     "kind": "position",
+     "label": "Casters step out of Frostbolt Volley",
+     "cite": "spell 8398 Frostbolt Volley bakes aoeShape pbaoe radiusYd 20, rawEffects targetA 22 TARGET_LOCATION_CASTER_SRC and targetB 15, castTimeMs 2000, 226-240 frost plus effectMechanic 11 snare for 8 s. Script 1050807 fires it after a 0-10 s opener then every 10-20 s at TARGET_T 17 NEAREST_AOE_TARGET (aiTargeting.ts:42), which picks who it centres on but not where the disc sits - a pbaoe is always on the caster. Same 20 yd radius and the same target ids as Archaedas's Ground Tremor, so this is that row: isWithinRadiusYd hits at <=, 21 is the first clear yard, and the 24 yd trigger is deliberately wider than the park because a row released on the yard it parks on re-arms on the boss's next step and cancels its own walk. 24 in / 21 out leaves 2.5 yd to stand and cast in, and the 25 yd ranged stand (stand.ts:20 RANGED_STAND_DEFAULT_YD) sits outside the trigger, so this only ever moves a caster who has drifted in or a hunter sitting on the 20 yd floor (stand.ts:18), which the disc reaches at <=. isCaster keeps the melee out of it: 21 yd is four times MIN_AGGRO_DISTANCE 5 (creatureAiConstants.ts:76) and a permanent park there would end melee. The 2000 ms cast bar is not what the row is gated on - like the Archaedas and Phalanx rows this is a standing position rule and not a reaction, and 21 yd also clears both 10 yd discs above. Rows are keyed on the focus entry (raidEncounterTactics.ts:158-183). Not driven on the floor per CLAUDE.md section 3, so this ships shipped-unverified.",
+     "rule": {
+      "id": "raid_enc_10508_range_8398",
+      "action": {
+       "kind": "move",
+       "move": {
+        "kind": "keep_range",
+        "minYd": 21,
+        "entry": 10508
+       }
+      },
+      "conditions": [
+       {
+        "subject": "self",
+        "metric": "isCaster",
+        "op": "==",
+        "value": 1
+       },
+       {
+        "subject": "self",
+        "metric": "creatureDistanceYd",
+        "op": "<=",
+        "value": 24,
+        "ref": 10508
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "entry": 10505,
+   "name": "Instructor Malicia",
+   "kinds": [],
+   "cite": "eventai/scholomance.ts:278-340 scripts 1050501-1050506, acid_classic.sql:16168-16173 creature_id=10505. Heal 15586 at <=50% HP (879-1021, castTimeMs 3500), Flash Heal 17843 on a friendly under 40% and Renew 8362 are self-rescue a kick or a purge answers, and those are class rows. Slow 13747 is the only ability wider than melee: pbaoe radiusYd 20, targetA 22 and targetB 15, castTimeMs 0, haste -54% for 10 s, dispel 1 magic, every 12-18 s at TARGET_T 5 HOSTILE_RANDOM_NOT_TOP. It carries no damage, so a step-out saves nothing a Dispel Magic does not already answer - the Houndmaster Grebmar refusal in blackrock-depths.json. Corruption 18376 (pbaoe radiusYd 10, 60 per 3 s for 24 s) and Call of the Grave 17831 (pbaoe radiusYd 5, one 35 tick over 60 s) DO make real ground pools, because aoe true plus a dot is what dynamicObject.ts:222 accepts, but a pbaoe pool is sited on the CASTER - applySpell.ts:1261 aoeFanFromCaster is true for pbaoe, so the origin is posOf of Malicia's own side - and an avoid_zone on either would push the melee off the boss for the whole fight. That is the Faerlina 28794 row hazards.ts:66-73 names as the one not to write."
+  },
+  {
+   "entry": 11261,
+   "name": "Doctor Theolen Krastinov",
+   "kinds": [],
+   "cite": "eventai/scholomance.ts:587-622 scripts 1126101-1126103, acid_classic.sql:16212-16214 creature_id=11261. Three abilities and not one carries a radiusYd. Enrage 8269 once at <=50% HP is targetA 1, haste +60% for 120 s on himself, a tank-and-healer problem with no ground to stand out of. Rend 16509 is targetA 6 rangeMax 5, mechanic 15, 27 per 3 s for 15 s, and Backhand 18103 is targetA 6 rangeMax 5, mechanic 12, a 2 s stun on whoever he is hitting. Pure tank-and-spank."
+  },
+  {
+   "entry": 10901,
+   "name": "Lorekeeper Polkelt",
+   "kinds": [],
+   "cite": "eventai/scholomance.ts:548-581 scripts 1090101-1090103, acid_classic.sql:16203-16205 creature_id=10901. Noxious Catalyst 18151 is targetA 6 rangeMax 5, nature resistance -6 for 120 s, dispel 3 disease. Volatile Infection 18149 is also targetA 6 rangeMax 5 with a 2000 ms cast: aura 23 amplitude 15000 triggering Volatile Infection 18150, which is pbaoe radiusYd 10 for 9 nature - nine damage every 15 s is not a spacing problem at level 60, and it fires nothing here anyway, because 18150 is on none of the lists combatEnemySpec.ts:87-96 builds spec.spells from and stepSession.ts:1732 resolves the payload against exactly that array. Corrosive Acid 8245 is pbaoe radiusYd 5 for armor -16, a disc at melee reach. An Abolish Disease answers the whole kit and that is a class row."
+  },
+  {
+   "entry": 10507,
+   "name": "The Ravenian",
+   "kinds": [],
+   "cite": "eventai/scholomance.ts:28-102 overlay scripts 1050701-1050707 (sourced from creature_ai_scripts creature_id=10507); acid_classic.sql:16187-16190 carries the same four casts. Sundering Cleave 17963 is targetA 6 rangeMax 5, a stacking armor -24 debuff, and Cleave 15584 and Knock Away 18670 are targetA 6 with effects: [] because Effect 58 has no mapper in the bake. Trample 15550 is the only shaped one - aoeShape pbaoe radiusYd 10, targetA 22 and targetB 15, every 3-21 s at TARGET_T 17 NEAREST_AOE_TARGET - and it bakes effects: [] for the same reason, the hole the Ring of Law row records for 15589, so it lands nothing on this floor and ten yards would be inside the melee band regardless. The 17963 stack phase machine (script 1050703, EVENT_T 24 TARGET_AURA) is recorded as unported at eventai/scholomance.ts:47-58 and changes nothing positional."
+  },
+  {
+   "entry": 10504,
+   "name": "Lord Alexei Barov",
+   "kinds": [
+    "position"
+   ],
+   "cite": "eventai/scholomance.ts:251-272 scripts 1050401-1050402, acid_classic.sql:16165-16166 creature_id=10504. Two rows. Veil of Shadow 17820 every 15-21 s is aoeShape pbaoe radiusYd 8, targetA 22 and targetB 15, castTimeMs 1500, healing taken -75% for 15 s with dispel 2 curse - eight yards is the Dextren Ward disc, the melee are inside it because that is where melee happens, the 20-25 yd stand is already outside it, and a decurse is the named answer. Immolate 15506 bakes effects: [] (aura 42 proc, customChance 25, and its trigger 15570 is not on his kit). Unholy Aura 17467 is the mechanic and it is in blockedBy.",
+   "blockedBy": {
+    "position": "Unholy Aura 17467 is a permanent self aura - targetA 1, DurationIndex 21, the 4294967295 sentinel the bake reads as durationMs 0 and applySpell.ts:1873 turns into an infinite expiresAt - cast out of combat by script 1050401 and never re-armed. Its aura 23 fires Unholy Aura 17466 every 2000 ms, and 17466 is pbaoe radiusYd 30 for a flat 150 shadow. stepSession.ts:1745-1770 fans an aoe payload to every living hostile inside radiusYd of the SOURCE, so as sourced this is a 30 yd disc pulsing on the whole party for the entire fight, and no keep_range reaches it: isWithinRadiusYd hits at <=, so the first clear yard is 31, past RANGED_STAND_MAX_YD 30 (stand.ts:19). That is the Doom'rel refusal - a 30 yd disc means the whole party is inside it. THAT SECOND CLAUSE IS DEAD as of 2026-08-26 and the row is blocked on the disc alone. It used to add that 17466 pays nothing because no supplier listed it. That is settled and the mechanism changed again on 2026-08-26: af65a57ec put the payload in the kit, E6.2 took it back out, and the aura-23 tick resolves it through the session spell store instead (stepSession.ts:1746, ctx.spellOf; combatSession.ts:1012 injects it). Measured through the spec builder today: 17467 in kit, 17466 NOT in kit and resolved by id, and spawnOocSelfAuraRows returns both 17467 and Immolate 15506 for him off 84955233d TIMER_OOC spawn state. The mechanic became real; it did not become answerable."
+   }
+  },
+  {
+   "entry": 10502,
+   "name": "Lady Illucia Barov",
+   "kinds": [
+    "position"
+   ],
+   "cite": "eventai/scholomance.ts:192-245 scripts 1050201-1050205, acid_classic.sql:16158-16162 creature_id=10502. Silence 12528 is pbaoe radiusYd 5 with a 1500 ms cast, mechanic 9, a 10 s silence - five yards is melee reach and the 20-25 yd stand is already outside it. Shadow Shock 17289 is targetA 6 rangeMax 20 for 314-364, a single-target nuke with no radius. Fear 12542 (mechanic 5, 4 s) and Dominate Mind 14515 (mechanic 1, a 15 s charm every 21-26 s) are both targetA 6 single target, answered by a trinket, Fear Ward or a dispel, which are class rows. Curse of Agony 18671 is the wide one and it is in blockedBy.",
+   "blockedBy": {
+    "position": "Curse of Agony 18671 bakes aoeShape pbaoe radiusYd 45, rawEffects targetA 22 TARGET_LOCATION_CASTER_SRC and targetB 15, castTimeMs 0, aura 3 amplitude 3000 for 51 shadow a tick over 30 s, cast at TARGET_T 0 SELF every 30-36 s (script 1050203, acid_classic.sql:16160). Forty-five yards is the whole room: the first clear yard is 46, which is past RANGED_STAND_MAX_YD 30 (stand.ts:19), so there is no stand a keep_range could name. That is the same refusal Lord Incendius's Curse of the Elemental Lord 26977 gets in blackrock-depths.json at the same 45 yd. avoid_zone does not reach it either: 18671 DOES make a pool, because aoe true plus a dot is what dynamicObject.ts:222 accepts, but a pbaoe pool is sited on the caster (applySpell.ts:1262 spellAoeFromCaster short-circuits true for pbaoe at combatGeometry.ts:362) with radius 45, so the pool covers the room the disc already did. dispel 2 curse names the real answer and a decurse is a class row."
+   }
+  },
+  {
+   "entry": 1853,
+   "name": "Darkmaster Gandling",
+   "kinds": [],
+   "cite": "boss_darkmaster_gandling.cpp:28-129, ported at scriptdev/scholomance.ts:179-281; there are no ACID rows for 1853 and creatures.json 1853 has no spells array, so the schedule is the IR. Arcane Missiles 15790 on the victim every 8 s is a targetA 1 channel, aura 23 amplitude 1000 for 5 s, ticking 15791 for 112 arcane at the same single target - the IR carries 15791 on spellIds (scriptdev/scholomance.ts:184-189) so it does pay, and nothing about it has a radiusYd. Shadow Shield 12040 is targetA 1, a 200 absorb plus a 10 damage shield on himself, and Curse of the Darkmaster 18702 is targetA 6 rangeMax 30 with a 2000 ms cast for strength -50 and stamina -50, dispel 2 curse - a purge and a decurse, both class rows. Shadow Portal 17950 is the teleport and it is NOT a move verb, read off the cpp rather than assumed: cpp:92-112 draws ATTACKING_TARGET_RANDOM off the THREAT LIST with SELECT_FLAG_PLAYER, casts 17950 on that player and then wipes 100% of their threat, so nothing about where anybody stands changes who is picked or where they land, and the spell carries no radiusYd and no ground to step off. It does even less here - 17950 is Effect 3 SPELL_EFFECT_DUMMY only and bakes effects: [], which is why the IR marks it CAST_FLAG.FORCE_CAST so the schedule survives canCast (scriptdev/scholomance.ts:237-245). The six classroom rooms are paced as InstanceDef waves of Risen Guardian 11598 that run BEFORE the boss wave (scholomance.ts:203-213 SCHOLO_GANDLING_WAVES), so the guardians and Gandling never coexist and there is no kill-order to impose; the def's own [gandling-portal-isolation] residual at scholomance.ts:7-9 records the missing player isolation."
+  }
+ ]
+}

@@ -1,0 +1,30 @@
+{
+ "raid": "ragefire-chasm",
+ "note": "Reviewed for E5.4 against eventai/ragefire-chasm.ts and acid_classic.sql. All four bosses come back kinds: [] and that is the finding - none of them has a ScriptDev cpp, and between them the whole wing is six single-target script casts plus one 10 yd nova on Taragaman that the melee are inside because that is where melee happens. Level 16 content asks for nothing a move verb could deliver.",
+ "bosses": [
+  {
+   "entry": 11517,
+   "name": "Oggleflint",
+   "kinds": [],
+   "cite": "eventai/ragefire-chasm.ts:1151701, acid_classic.sql:15583 creature_id=11517. Cleave 15584 is his only script action and his only spell: Effect 58 WEAPON_DAMAGE basePoints 29, targetA 6, rangeIdx 2 melee, radiusYd 0.0 - no arc and no disc - on an 8.4-15.9 s timer. creature_linking_template puts Ragefire Trogg 11318 and Ragefire Shaman 11319 on him (master 11517, flag 3, search_range 15), but an aggro link is not a kill order: nothing ranks those bodies, and ragefire-chasm.ts:5-7 names the link as an unported residual the cluster packs already carry."
+  },
+  {
+   "entry": 11520,
+   "name": "Taragaman the Hungerer",
+   "kinds": [],
+   "cite": "eventai/ragefire-chasm.ts:1152001-1152002, acid_classic.sql:15591-15592 creature_id=11520, creature_template_spells 11520 spell1 11970 spell2 18072. Fire Nova 11970 is the wing's only area effect: targetA 22 then 15, radiusYd 10.0, Effect 2 SCHOOL_DAMAGE basePoints 99, instant with no cast to watch, every 10.4-18.1 s. It is a disc the melee have to stand in to swing at all, and the party's own back line already opens outside it at DEFAULT_OPEN_YD 18 (combatGeometry.ts:66) - the same reading the Stockade wing came back with. Uppercut 18072 is targetA 6, Effect 58 WEAPON_DAMAGE plus Effect 98 KNOCK_BACK miscValue 10 on the current victim only, so it displaces the tank and nobody else."
+  },
+  {
+   "entry": 11518,
+   "name": "Jergosh the Invoker",
+   "kinds": [],
+   "cite": "eventai/ragefire-chasm.ts:1151801-1151802, acid_classic.sql:15585-15586 creature_id=11518. Immolate 20800 is targetA 6, Effect 2 for 55 plus aura 3 periodic damage 15 every 3000 ms for 21 s, and Curse of Weakness 18267 is targetA 6, dispel 2 curse, aura 13 damage done -2 for 30 s. Both are single-target with no radius, and both are answered by a decurse or a dispel, which are class rows. Searing Cultist 11322 aggro-links to him (master 11518, flag 3, search_range 15) but nothing ranks that body either."
+  },
+  {
+   "entry": 11519,
+   "name": "Bazzalan",
+   "kinds": [],
+   "cite": "eventai/ragefire-chasm.ts:1151901-1151902, acid_classic.sql:15588-15589 creature_id=11519. Poison Proc 3616 is targetA 1 on spawn, aura 42 proc-trigger firing 744 Poison - a single-target 30 s DoT for 11 on whoever his weapon lands on. Sinister Strike 14873 is Effect 17 WEAPON_DAMAGE_NOSCHOOL, targetA 6, radiusYd 0.0, every 4.9-15.7 s. He has no area effect at all and no ACTION_T_CAST that leaves the tank - pure tank-and-spank."
+  }
+ ]
+}

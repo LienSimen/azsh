@@ -1,0 +1,850 @@
+[
+  {
+    "levels": "60",
+    "spec": "Fury",
+    "buffs": [
+      {
+        "spell": "Battle Shout",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      }
+    ],
+    "pull": [
+      {
+        "spell": "Berserker Stance",
+        "when": "not in Berserker Stance",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "!=",
+            "value": 19
+          }
+        ]
+      },
+      {
+        "spell": "Charge",
+        "when": "target is out of melee AND in Battle Stance",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 17
+          }
+        ]
+      },
+      {
+        "spell": "Bloodrage",
+        "when": "self rage < 30%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": "<",
+            "value": 30
+          }
+        ]
+      }
+    ],
+    "combat": [
+      {
+        "spell": "Berserker Rage",
+        "when": "feared AND in Berserker Stance",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "feared",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 19
+          }
+        ]
+      },
+      {
+        "item": "Free Action Potion",
+        "when": "rooted AND I carry one",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 5634
+          }
+        ]
+      },
+      {
+        "item": "Free Action Potion",
+        "when": "snared AND I carry one",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "snared",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": 5634
+          }
+        ]
+      },
+      {
+        "item": "Spider Belt",
+        "when": "rooted AND I wear one",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Spider Belt",
+        "when": "snared AND I wear one",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "snared",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "spell": "Pummel",
+        "when": "enemy is casting a heal",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingIsHeal",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Shield Bash",
+        "when": "enemy is casting a heal",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingIsHeal",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Pummel",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Shield Bash",
+        "when": "enemy is casting",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Disarm",
+        "when": "a melee enemy is on me",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "isCaster",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Intimidating Shout",
+        "when": "self health < 35% AND a melee enemy is on me AND fear DR is fresh",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          },
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "==",
+            "value": 0,
+            "ref": 4
+          }
+        ],
+        "after": {
+          "stepBackYd": 10
+        }
+      },
+      {
+        "spell": "Recklessness",
+        "when": "target is a warlock AND a melee enemy is on me AND buff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "classId",
+            "op": "==",
+            "value": 9
+          },
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Recklessness",
+        "when": "target is not a warlock AND target health < 20% AND buff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "classId",
+            "op": "!=",
+            "value": 9
+          },
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 20
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Retaliation",
+        "when": "target is a rogue AND a melee enemy is on me AND buff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "classId",
+            "op": "==",
+            "value": 4
+          },
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Intercept",
+        "when": "target is out of melee AND in Berserker Stance",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 19
+          }
+        ]
+      },
+      {
+        "spell": "Charge",
+        "when": "target is out of melee AND in Battle Stance",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 17
+          }
+        ]
+      },
+      {
+        "item": "Gyrofreeze Ice Reflector",
+        "when": "enemy is casting frost AND I wear one",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingSchool",
+            "op": "==",
+            "value": 4
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Hyper-Radiant Flame Reflector",
+        "when": "enemy is casting fire AND I wear one",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingSchool",
+            "op": "==",
+            "value": 2
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Ultra-Flash Shadow Reflector",
+        "when": "enemy is casting shadow AND I wear one",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "castingSchool",
+            "op": "==",
+            "value": 5
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Thorium Grenade",
+        "when": "enemy is casting out of melee AND I carry one",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Iron Grenade",
+        "when": "enemy is casting out of melee AND I carry one",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "castingPresent",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "itemCount",
+            "op": ">=",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Gnomish Rocket Boots",
+        "when": "target is more than 15 yd away AND I wear them",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "targetDistanceYd",
+            "op": ">",
+            "value": 15
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "item": "Goblin Rocket Boots",
+        "when": "target is more than 15 yd away AND I wear them",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "targetDistanceYd",
+            "op": ">",
+            "value": 15
+          },
+          {
+            "subject": "self",
+            "metric": "itemEquipped",
+            "op": "==",
+            "value": 1,
+            "ref": "ITEM"
+          }
+        ]
+      },
+      {
+        "spell": "Death Wish",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Execute",
+        "when": "target health < 20%",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      },
+      {
+        "spell": "Whirlwind",
+        "when": "in Berserker Stance",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 19
+          }
+        ]
+      },
+      {
+        "spell": "Hamstring",
+        "when": "snare absent AND root DR under 2",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "target",
+            "metric": "drLevel",
+            "op": "<",
+            "value": 2,
+            "ref": 2
+          }
+        ]
+      },
+      {
+        "spell": "Overpower",
+        "when": "after target dodges AND in Battle Stance",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "dodgedRecently",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 17
+          }
+        ]
+      },
+      {
+        "spell": "Piercing Howl",
+        "when": "not in melee AND in howl range AND target not snared",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "target",
+            "metric": "targetDistanceYd",
+            "op": "<=",
+            "value": 10
+          },
+          {
+            "subject": "target",
+            "metric": "snared",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "spell": "Battle Shout",
+        "when": "buff absent",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "buffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Demoralizing Shout",
+        "when": "debuff absent",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          }
+        ]
+      },
+      {
+        "spell": "Rend",
+        "when": "debuff absent AND target health > 30%",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "debuffPresent",
+            "op": "==",
+            "value": 0,
+            "ref": "ACTION_SPELL"
+          },
+          {
+            "subject": "target",
+            "metric": "healthPct",
+            "op": ">",
+            "value": 30
+          }
+        ]
+      },
+      {
+        "spell": "Cleave",
+        "when": "multi AND self rage >= 50%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": ">=",
+            "value": 50
+          }
+        ]
+      },
+      {
+        "spell": "Heroic Strike",
+        "when": "single AND self rage >= 45%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "enemyCount",
+            "op": "<",
+            "value": 2
+          },
+          {
+            "subject": "self",
+            "metric": "powerPct",
+            "op": ">=",
+            "value": 45
+          }
+        ]
+      },
+      {
+        "spell": "Defensive Stance",
+        "when": "target is out of melee AND I am rooted AND not in Defensive Stance",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "rooted",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "!=",
+            "value": 18
+          }
+        ]
+      },
+      {
+        "spell": "Defensive Stance",
+        "when": "target is out of melee AND I am snared AND not in Defensive Stance",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "inMelee",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "subject": "self",
+            "metric": "snared",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "!=",
+            "value": 18
+          }
+        ]
+      },
+      {
+        "move": {
+          "kind": "behind_target"
+        },
+        "when": "the target is stunned",
+        "conditions": [
+          {
+            "subject": "target",
+            "metric": "stunned",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "spell": "Bloodthirst",
+        "when": "always"
+      }
+    ],
+    "recovery": [
+      {
+        "spell": "Intimidating Shout",
+        "when": "self health < 40% AND pack on me",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 40
+          },
+          {
+            "subject": "self",
+            "metric": "enemiesWithinYd",
+            "op": ">=",
+            "value": 2,
+            "ref": 8
+          }
+        ]
+      },
+      {
+        "spell": "Shield Wall",
+        "when": "self health < 30% AND in Defensive Stance",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 30
+          },
+          {
+            "subject": "self",
+            "metric": "formId",
+            "op": "==",
+            "value": 18
+          }
+        ]
+      },
+      {
+        "item": "Minor Healthstone",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      },
+      {
+        "item": "Minor Healing Potion",
+        "when": "self health < 35%",
+        "conditions": [
+          {
+            "subject": "self",
+            "metric": "healthPct",
+            "op": "<",
+            "value": 35
+          }
+        ]
+      }
+    ]
+  }
+]

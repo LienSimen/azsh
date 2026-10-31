@@ -1,0 +1,18 @@
+{
+ "raid": "onyxias-lair",
+ "bosses": [
+  {
+   "entry": 10184,
+   "name": "Onyxia",
+   "kinds": [
+    "flee",
+    "resist"
+   ],
+   "cite": "boss_onyxia.cpp:55-64 breath arrays; :387-393 fireball threat wipe",
+   "resist": "fire",
+   "blockedBy": {
+    "flee": "onyxiasLair.ts:17-21 the 8 directional breath arrays (17086/18351/18576/18609/18564/18584/18596/18617, 7-20 spell_target_position rows each) plus HEATED_GROUND 22191 need the E5 avoid_zone CORRIDOR primitive and a spell_target_position bake; with no flight path the breath has no direction to run out of"
+   }
+  }
+ ]
+}

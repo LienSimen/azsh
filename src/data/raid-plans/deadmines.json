@@ -1,0 +1,55 @@
+{
+ "raid": "deadmines",
+ "note": "Reviewed for E5.4 against eventai/deadmines.ts, acid_classic.sql and boss_mr_smite.cpp. All eight bosses come back kinds: [] and that is the finding - the whole wing carries exactly two spells with a radius, and neither one leaves a yard to stand on. Cookie's Acid Splash 6306 is a 5.0 yd disc, which is melee reach itself, and Mr. Smite's Smite Stomp 6432 is 45.0 yd, wider than the ranged stand and every body in the room. Everything else lands on the tank or on one random party member, so the answers are a trinket, a Cure Poison or a dispel - class rows.",
+ "bosses": [
+  {
+   "entry": 644,
+   "name": "Rhahk'Zor",
+   "kinds": [],
+   "cite": "eventai/deadmines.ts:130-147, acid_classic.sql:16959-16960 creature_id=644. His whole combat kit is one spell. Rhahk'Zor Slam 6304 is targetA 6 with radiusYd 0 and rangeIdx 12 (5 yd) - a 3 s stun (mechanic 12) plus 63 school damage on whoever he is hitting, repeating every 15-25 s. Single target on the tank, nothing on the floor."
+  },
+  {
+   "entry": 3586,
+   "name": "Miner Johnson",
+   "kinds": [],
+   "cite": "eventai/deadmines.ts:247-269, acid_classic.sql:16993-16994 creature_id=3586. Pierce Armor 12097 is targetA 6 at rangeIdx 2 (5 yd) with radiusYd 0 - aura 101 MOD_RESISTANCE_PCT basePoints -76 miscValue 1, a 20 s armor shred on his current target every 45-60 s. He also flees for assist at 15% (ACTION_T_FLEE_FOR_ASSIST), which is mob motion and not a party verb."
+  },
+  {
+   "entry": 642,
+   "name": "Sneed's Shredder",
+   "kinds": [],
+   "cite": "eventai/deadmines.ts:82-105, acid_classic.sql:16954-16955 creature_id=642. Distracting Pain 3603 is targetA 6, aura 65 MOD_CASTING_SPEED_NOT_STACK basePoints -36 for 15 s; Terrify 7399 is targetA 6, mechanic 5 fear for 4 s, dispel 1 magic, cast on EventAI target 5 HOSTILE_RANDOM_NOT_TOP. Both are single target with radiusYd 0, and a fear on one random party member is Fear Ward, Tremor Totem or a trinket - class rows. Eject Sneed 5141 (Effect 41 SUMMON_WILD miscValue 643) drops Sneed on death, ported at deadmines.ts:211 as onDeathSummon, and a summon has no ground to stand out of."
+  },
+  {
+   "entry": 1763,
+   "name": "Gilnid",
+   "kinds": [],
+   "cite": "eventai/deadmines.ts:219-241, acid_classic.sql:16990-16991 creature_id=1763. Molten Metal 5213 is his only combat cast: targetA 6 at rangeIdx 2 (5 yd), radiusYd 0, stacking aura 3 periodic 29 every 3 s over 15 s with aura 33 MOD_DECREASE_SPEED basePoints -51 and aura 138 MOD_MELEE_HASTE basePoints -55. A single-target DoT plus a snare is a heal and a dispel, not a position."
+  },
+  {
+   "entry": 646,
+   "name": "Mr. Smite",
+   "kinds": [],
+   "note": "Mr. Smite's weapon swap is a tank and healer problem, not a party one. The stomp that opens it reaches 45 yards, so there is nowhere to stand, and it stuns everyone it touches. Hold threat through the swap and heal the slam that follows it.",
+   "cite": "boss_mr_smite.cpp:203-251 and :132-167. There are no ACID rows for 646 at all - creature_template gives him ScriptName boss_mr_smite and no AIName, so the C++ is the whole kit. The stagger is a tank-and-healer problem: at <66% and again at <33% he casts Smite Stomp 6432, targetA 22 / tgtB 15 at radiusYd 45.0 (SpellRadius index 11) for a 10 s stun (aura 12), then AttackStop(true), walks to GO_SMITE_CHEST, kneels 3 s, re-equips (axe pair above 33%, hammer 6436 below) and PhaseEquipEnd re-picks ATTACKING_TARGET_TOPAGGRO. No move verb can answer that disc: 45 yd is nine times melee reach and wider than the 25 yd ranged stand (stand.ts:20), CastingTimeIndex 1 makes it instant so there is no cast to walk out of ahead of time, and it is a stun, so once it lands nobody can move at all. What is left is threat and healing - phase 2 adds Thrash 12787 (aura 42 proc triggering 3391 ADD_EXTRA_ATTACKS), phase 3 Smite Slam 6435 every 11 s (mechanic 12, 3 s stun plus 49 damage, targetA 6), and the iron-clad door in front of him is already an objectGate on the defias-cannon encounter (deadmines.ts:248-256)."
+  },
+  {
+   "entry": 647,
+   "name": "Captain Greenskin",
+   "kinds": [],
+   "cite": "eventai/deadmines.ts:190-213, acid_classic.sql:16967-16968 creature_id=647. Poisoned Harpoon 5208 goes on EventAI target 4 HOSTILE_RANDOM at rangeIdx 7 (10 yd) with radiusYd 0 - dispel 4 poison, aura 3 ticking 44 every 10 s for 60 s plus Effect 58 weapon damage. Cleave 5532 is Effect 58 targetA 6 at rangeIdx 2 (5 yd) with NO row in src_spell_cone, so it is a single-target melee hit and not an arc to stand out of. A poison DoT is Cure Poison, which is a class row."
+  },
+  {
+   "entry": 639,
+   "name": "Edwin VanCleef",
+   "kinds": [],
+   "cite": "eventai/deadmines.ts:16-76, acid_classic.sql:16941-16947 creature_id=639, and his src_creature_template_spells row is all zeros. Five of his seven scripts are ACTION_T_TEXT. VanCleef's Allies 5200 at 50% is Effect 42 SUMMON_GUARDIAN miscValue 636 Defias Blackguard for 300 s - a summon, so there is no ground to stand out of, and nothing in the ACID rows or the instance C++ names an order the adds have to die in. Thrash 12787 (proc aura 42 triggering 3391) and Dual Wield 674 are targetA 1 self."
+  },
+  {
+   "entry": 645,
+   "name": "Cookie",
+   "kinds": [],
+   "cite": "eventai/deadmines.ts:153-184, acid_classic.sql:16962-16964 creature_id=645. Acid Splash 6306 is the one disc in his kit: targetA 22 / tgtB 15 at radiusYd 5.0, aura 3 ticking 49 every 5 s for 30 s, fired every 57-66 s. 5.0 yd is exactly melee reach (MELEE_REACH_YD 5, combatGeometry.ts:37), so backing out of it means not meleeing Cookie at all, and the ranged stand at 25 yd is already clear - there is no yard in between for a verb to park on. Cookie's Cooking 5174 is Effect 10 HEAL targetA 1 self on a 2000 ms cast at 50%, so the answer is a kick or a Counterspell, and he flees for assist at 15%."
+  }
+ ]
+}

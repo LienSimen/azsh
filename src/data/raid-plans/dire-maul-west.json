@@ -1,0 +1,75 @@
+{
+ "raid": "dire-maul-west",
+ "note": "Reviewed for E5.4 against acid_classic.sql:14917-15026 and instance_dire_maul.cpp. There is NO eventai/dire-maul-west.ts overlay in this tree and no per-boss cpp anywhere in Dire Maul, so every kit here is the ACID rows plus the baked charm bar; the instance script owns only the five pylon kill gates (:528-530, :595-612) and the Prince's faction flip when Immol'thar dies (:261-271). Five of the six come back kinds: [] - the discs in this wing are all at melee reach or wide enough to cover the whole room. Illyanna Ravenoak is the exception: Volley 22908 lays a real 8 yd ground pool on a random raider, which is the one shape here a move verb clears.",
+ "bosses": [
+  {
+   "entry": 11489,
+   "name": "Tendris Warpwood",
+   "kinds": [],
+   "cite": "acid_classic.sql:14990-14994 creature_id=11489. Grasping Vines 22924 is the widest thing he has and it is still a melee-band disc: aoeShape pbaoe radiusYd 10, targetA 22 tgtB 15, castTimeMs 1000, 525-675 physical plus a 10 s root and a trigger of Knockdown 5164. Ten yards sits inside RANGED_STAND_MIN_YD 20 (stand.ts:18), so the ranged are already clear and the melee are in it because that is where melee happens, and a 1000 ms cast is not a walk out of 10 yd. Trample 5568 is the same 10 yd disc instant, and it is the Ghamoo-ra row from blackfathom-deeps.json - Effect 58 WEAPON_DAMAGE, which the bake has no mapper for, so 5568 ships effects: [] and lands nothing today. Uppercut 22916 (rangeMax 10) and Entangle 22994 (rangeMax 100, a 10 s root on whoever is far, armed on EVENT_T 9 at 50% chance) are single target, and a root is a trinket or a Free Action Potion - a class row. His aggro script also calls for help at 40 yd."
+  },
+  {
+   "entry": 11488,
+   "name": "Illyanna Ravenoak",
+   "kinds": [
+    "spread",
+    "kill-order"
+   ],
+   "note": "Volley drops a burning patch under one of the party every minute or so. Step out of it.",
+   "cite": "acid_classic.sql:14983-14988 creature_id=11488. 1148801 puts her in ranged mode at 25 yd. Concussive Shot 22914 is aoeShape pbaoe radiusYd 45 triggering Improved Concussive Shot 22915, a 3 s stun at the same 45 yd - a disc that covers the entire prison, so there is no yard to stand on and nothing a verb can buy. Immolation Trap 22910 is Effect 104 SUMMON_OBJECT_SLOT1 miscValue 164875 at radiusYd 2, a trap laid at her own feet, and Multi-Shot 20735 is targetA 6 with chainTargets 10 and no radius (it bakes effects: [] - Effect 58 WEAPON_DAMAGE). Volley 22908 is the one shape a verb clears, and it gets the row.",
+   "encounterRows": [
+    {
+     "kind": "spread",
+     "label": "Step out of Volley (8 yd pool)",
+     "cite": "spell 22908 Volley bakes aoe true, aoeShape ground, radiusYd 8, rawEffects Effect 27 PERSISTENT_AREA_AURA auraName 3 amplitude 1000, so isPersistentAreaEffect (dynamicObject.ts:220-224) sends it down applySpell.ts:1205-1271 and a real 6 s pool of 300 arcane a second is created. This is High Priest Venoxis's Poison Cloud row (zul-gurub.json raid_enc_14507_avoid_23861) with the same three parts: same bake shape, same avoid_zone by spell id, same hazardProximityYd gate (pickAction.ts:1591-1602 reads the pool list the move reads). The pool sits on a RAIDER, not on her: applySpell.ts:1261 sites it with aoeFanFromCaster, 'ground' resolves to the primary target's feet, and acid_classic.sql:14984 casts with target 4 HOSTILE_RANDOM, so it lands under whoever it rolled. Nothing double-matches an id of \"22908\": groundAoeOf (hazards.ts:75-85) refuses to publish her body for it, because spellAoeFromCaster (combatGeometry.ts:351-366) reads rawEffects targetA 28 AT_DYNOBJ_LOC, which is not one of the caster-location targets at :329 - so this row cannot become the Faerlina shape that hazards.ts:66-73 warns about. moveOwnsPastDeadline (pickAction.ts:770-774) keeps the walk alive while the pool lives, which is the whole 6 s. Cast every 60-85.5 s after an 18-36.2 s opener, so the row is armed rarely and 8 yd is a short walk from any stand.",
+     "rule": {
+      "id": "raid_enc_11488_avoid_22908",
+      "action": {
+       "kind": "move",
+       "move": {
+        "kind": "avoid_zone",
+        "id": "22908"
+       }
+      },
+      "conditions": [
+       {
+        "subject": "self",
+        "metric": "hazardProximityYd",
+        "op": "<=",
+        "value": 0
+       }
+      ],
+      "enabled": true
+     }
+    }
+   ],
+   "blockedBy": {
+    "kill-order": "Ferra is her pet in the lore and the DB does not model it as one, so there is no order to impose. Ferra 14308 is a plain static spawn: src_creature guid 4290911 at (-87.34, 543.80, 28.62) on map 429 against Illyanna's guid 4290558 at (-98.02, 502.12, 28.60), about 43 yd apart, with NO row in src_creature_linking or src_creature_linking_template for either - unlike King Gordok and Cho'Rush, whose linking_template flag 3 is what earned the kill-order row in dire-maul-north.json. Her own kit is two rows and neither touches Illyanna: Charge 22911 on a random hostile and Maul 17156 on her victim (acid_classic.sql:15075-15076). dire-maul-west.ts:54-55 keeps her in the trash list for the same reason."
+   }
+  },
+  {
+   "entry": 11487,
+   "name": "Magister Kalendris",
+   "kinds": [],
+   "cite": "acid_classic.sql:14974-14981 creature_id=11487, ranged mode 25 yd. Not one ability in the kit has a radiusYd or an aoeShape: Mind Flay 22919 (rangeMax 20, chainTargets 3), Shadow Word: Pain 17146 and Mind Blast 17287 (rangeMax 30) are targetA 6 nukes and dots. Dominate Mind 7645 is the mechanic the fight is about - targetA 6 at rangeMax 20, castTimeMs 2000, mechanic 1 charm, 10 s, dispel 1 magic - and it lands on ONE raider with no ground under it, so the answers are a dispel or a trinket and both are class rows; the `mc` kind in a pack is the party mind-controlling an add, which is not what this is. Shadowform 22917 at 60% and its removal at 30% are targetA 1 self buffs (-40% physical taken, +40% damage done, dispel 0 so not even a purge), a tank and healer problem with nothing to stand out of."
+  },
+  {
+   "entry": 11467,
+   "name": "Tsu'zee",
+   "kinds": [],
+   "cite": "acid_classic.sql:14917-14919 creature_id=11467 - three cast rows and that is the whole rare elite. Sinister Strike 15581 and Gouge 12540 are targetA 6 at rangeMax 5, and Gouge is a 4 s incapacitate on whoever she is facing. Blind 21060 is targetA 6 at rangeMax 10 on a random non-tank (target 5), a 10 s incapacitate plus a 60% snare with radiusYd None - single target, so there is no disc and nothing to walk out of, and a trinket or a dispel is the answer. This is the Stockade finding with the radius removed entirely."
+  },
+  {
+   "entry": 11496,
+   "name": "Immol'thar",
+   "kinds": [],
+   "cite": "acid_classic.sql:15022-15026 creature_id=11496. Trample 5568 is aoeShape pbaoe radiusYd 10 castTimeMs 0 and bakes effects: [] (Effect 58 WEAPON_DAMAGE), the Tendris and Ghamoo-ra shape - a melee-reach disc with no window. Infected Bite 16128 (rangeMax 5, dispel 3 disease) is single target, Portal of Immol'thar 22950 teleports a random non-tank to a DB location and so moves its own victim, and Enrage 8269 at 67% is a targetA 1 self haste. Eye of Immol'thar 22899 is Effect 42 miscValue 14396, a body: the Eye's own kit is Random Aggro 22913 on spawn and Eye of Immol'thar 22909, targetA 6 at rangeMax 5 for a 4 s haste and cast-speed debuff (acid_classic.sql:15183-15184). The pylons are an ACCESS gate and not a fight verb - instance_dire_maul.cpp:595-612 marks a generator DONE when all its guards die, :528-530 checks the five, and :533-559 opens the forcefield - and dire-maul-west.ts:96-219 already models that as five instance flags with bake-sourced guard guids."
+  },
+  {
+   "entry": 11486,
+   "name": "Prince Tortheldrin",
+   "kinds": [],
+   "cite": "acid_classic.sql:14967-14972 creature_id=11486; he is faction 1354 until instance_dire_maul.cpp:261-271 flips him hostile on Immol'thar's death, and the core gives him no damage buff from the crystals. Whirlwind 15589 is the one disc and it is NOT Herod's: aoeShape pbaoe radiusYd 8, targetA 22 tgtB 15, castTimeMs 0, durMs 0, and it bakes effects: [] because Effect 17 WEAPON_PERCENT_DAMAGE has no mapper. Herod earned the keep_range row in sm-armory.json because 8989 is targetA 1 with a 10 s aura that pulses 15578, so buffPresent 8989 had a window to open and close; 15589 is a single instant hit with no aura and no duration, so there is nothing to gate a walk on and by the time a walk started the hit has landed. Everything else is single target: Arcane Blast 22920 and Thrash 3391 at rangeMax 5, Counterspell 20537 on EVENT_T 13 target-casting (a caster's problem, answered by not standing still, not by a party verb), and Summon 22995, Effect 43 at rangeMax 50000 that yanks a random raider to him and so moves its own victim."
+  }
+ ]
+}

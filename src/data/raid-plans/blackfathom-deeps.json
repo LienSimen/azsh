@@ -1,0 +1,86 @@
+{
+  "raid": "blackfathom-deeps",
+  "note": "Reviewed for E5.4 against eventai/blackfathom-deeps.ts, acid_classic.sql:13842-13878 and instance_blackfathom_deeps.cpp. There is no per-boss cpp in this wing, so every kit is EventAI plus the creature_template spell list, and the instance script only gates the Fathom Stone summon and the four-brazier shrine event. Six of the seven come back kinds: [] - every AoE here is an instant disc at or just past melee reach, which is where the melee have to stand. Lady Sarevess is the one exception: Forked Lightning 8435 is a real 53 degree frontal cone with a 2 s cast, and that is the one shape in Blackfathom Deeps a move verb clears.",
+  "bosses": [
+    {
+      "entry": 4887,
+      "name": "Ghamoo-ra",
+      "kinds": [],
+      "cite": "eventai/blackfathom-deeps.ts:195-208, acid_classic.sql:13862 creature_id=4887. His whole kit is one script: Trample 5568 every 9-15 s. 5568 is aoeShape pbaoe radiusYd 10, targetA 22 and tgtB 15, castTimeMs 0 - an instant disc centred on him with no window to gate a walk on. The DBC effect is 58 SPELL_EFFECT_WEAPON_DAMAGE basePoints 7 perLevel 1, which the bake has no mapper for, so spell-data 5568 ships effects: [] and it lands nothing on this floor today."
+    },
+    {
+      "entry": 4831,
+      "name": "Lady Sarevess",
+      "kinds": [
+        "position"
+      ],
+      "cite": "eventai/blackfathom-deeps.ts:117-189, acid_classic.sql:13847-13854 creature_id=4831. Four spells and only one has a shape a verb can use. Frost Nova 865 is aoeShape pbaoe radiusYd 10 castTimeMs 0, an instant 33-37 frost plus an 8 s root with nothing to react to; Slow 246 is targetA 6 haste -35% for 10 s; Shoot 6660 is targetA 6 at 30 yd for 36-48. Forked Lightning 8435 is the row: src_spell_cone ConeDegrees 53, radiusYd 30, castTimeMs 2000, targetA 24.",
+      "encounterRows": [
+        {
+          "kind": "position",
+          "label": "Off Sarevess's front arc (Forked Lightning)",
+          "cite": "spell 8435 Forked Lightning: src_spell_cone Id=8435 ConeDegrees 53, EffectRadiusIndex 10 radiusYd 30, targetA 24, castTimeMs 2000, cast every 5-20 s in ranged mode (acid 13852, flags 1281) and every 2-8 s in melee mode (acid 13853, flags 1537). She is SET_RANGED_MODE 2 at 25 yd (acid 13847), so the whole party stands inside the 30 yd the wedge reaches. This is a cone with a bounded radius and a real cast time, which is exactly what E5.3 fixed behind_target for: sessionMechanicMove.ts:347-425 reads coneArcsOfKit off her baked kit (creatures.json 4831 spells 865/246/8435/6660, spell-data 8435 aoeShape cone coneDeg 53 radiusYd 30) and, past MELEE_REACH_YD 5 + MELEE_PARK_SLACK_YD 0.5, rotates to coneClearBandRad's nearest clear bearing at the mover's OWN radius - about 38 deg off her facing, a 16 yd arc walk at 25 yd, well inside the 4000 ms RUNOUT_YIELD_AFTER_MS in pickAction.ts:774. Melee take the far-side step, which they want anyway for parry. Gated the way blackwing-lair.json Vaelastrasz gates its arc row: not the tank (targetAttackingMe 0), and only while actually covered (inTargetCone 1, pickAction.ts:1613-1626), so it disarms itself on arrival. Honest about the payload: the DBC row is basePoints 4 dieSides 1 perLevel 5 at spellLevel 1, so CMaNGOS CalculateDamage scales it to roughly 125 at her level 25, but the bake does not apply perLevel and spell-data 8435 ships direct_damage min 5 max 5. The shape and the window are sourced; the damage this row saves today is that 5.",
+          "rule": {
+            "id": "raid_enc_4831_cone_8435",
+            "action": {
+              "kind": "move",
+              "move": {
+                "kind": "behind_target"
+              }
+            },
+            "conditions": [
+              {
+                "subject": "self",
+                "metric": "targetAttackingMe",
+                "op": "==",
+                "value": 0
+              },
+              {
+                "subject": "self",
+                "metric": "inTargetCone",
+                "op": "==",
+                "value": 1
+              }
+            ],
+            "enabled": true
+          }
+        }
+      ]
+    },
+    {
+      "entry": 6243,
+      "name": "Gelihast",
+      "kinds": [],
+      "cite": "eventai/blackfathom-deeps.ts:214-231, acid_classic.sql:13870-13871 creature_id=6243. Battle Stance 7165 is a self shapeshift to form 17 on spawn. Net 6533 every 7-13 s is targetA 6 at rangeMax 20, mechanic 7 root, a 10 s root on whoever he is hitting, and its Effect 64 trigger 11920 Net Guard is aura 4 dummy on the same single target with no radius. Nothing area, nothing to position around - a single-target root is a trinket or a Free Action Potion, which is a class row."
+    },
+    {
+      "entry": 12876,
+      "name": "Baron Aquanis",
+      "kinds": [],
+      "cite": "eventai/blackfathom-deeps.ts:237-273, acid_classic.sql:13875-13878 creature_id=12876. He is the Fathom Stone quest summon (instance_blackfathom_deeps.cpp:275-288 GOUse_go_fathom_stone, TYPE_AQUANIS) and his kit is NOT empty: Frost Nova 15531 every 14-19 s and Frostbolt 15043, in ranged mode at 35 yd. 15531 is aoeShape pbaoe radiusYd 10, targetA 22 and tgtB 15, castTimeMs 0 - an instant 111-129 frost plus an 8 s root, so there is no cast to gate a walk on, and 10 yd is twice melee reach so a keep_range 11 parks the melee out of the fight to dodge nothing. 15043 is targetA 6 at 40 yd, castTimeMs 3000, 96-128 single target. Could not source spell 14907 to this entry: blackfathom-deeps.ts:167 lists it in his bossSpells, but creatures.json 12876 carries only 15531 and 15043 and the ACID rows name only those two."
+    },
+    {
+      "entry": 4832,
+      "name": "Twilight Lord Kelris",
+      "kinds": [],
+      "cite": "eventai/blackfathom-deeps.ts:48-96, acid_classic.sql:13856-13860 creature_id=4832. Mind Blast 15587 every 7-21 s is targetA 6 at 30 yd, castTimeMs 1500, 139-161 shadow single target - a flat nuke. Sleep 8399 every 15-30 s is aoeShape pbaoe radiusYd 5, targetA 22 and tgtB 15, mechanic 10 sleep, 10 s, dispel 1 magic, and the bake tags it breakOnDamage true. That 5 yd disc is melee reach exactly, the same shape as the Stockade's Smoke Bomb: the melee are inside it because that is where melee happens, and the ranged stand is already outside. A dispel or a trinket answers it and both are class rows. His aggro script also fires CALL_FOR_HELP at 60 yd (acid 13856), which is a pull radius, not a party verb."
+    },
+    {
+      "entry": 4830,
+      "name": "Old Serra'kis",
+      "kinds": [
+        "position"
+      ],
+      "cite": "eventai/blackfathom-deeps.ts:102-110, acid_classic.sql:13845 creature_id=4830. One script, an on-spawn self cast of Leech Pulse 8434: passive, DurationIndex 21 which is the permanent sentinel 4294967295, aura 23 periodic-trigger amplitude 4000 firing 8433. 8433 is aoeShape pbaoe radiusYd 10, targetA 22 and tgtB 15, health_leech 50 - so in CMaNGOS he drains 50 off everyone within 10 yd every 4 s for the whole fight and heals himself for it. On this floor he drains nothing: the aura-23 mapper wants a real duration and index 21 is the permanent sentinel, so spell-data 8434 ships effects: [] while 8433 is intact and never triggered.",
+      "blockedBy": {
+        "position": "even with the pulse live there is no verb for it. CORRECTED 2026-08-27: this used to claim \"every keep_range row shipped is gated on a buff or a cast that ends\", and that is FALSE - ten shipped rows are gated on isCaster plus creatureDistanceYd with no buff and no cast (Lord Roccor and Ring of Law, Phalanx, Zevrim Thornhoof, Princess Theradras, Ras Frostwhisper, Grand Crusader Dathrohan, Atal alarion, Archaedas, Gahz rilla), and Roccor s own cite says so outright. What actually blocks this row, which is what lets the party walk out and come back - Herod's Whirlwind 8989 is 10 s (sm-armory.json). 8434 never drops, so buffPresent 8434 arms on pull and stays armed, and a keep_range 11 would hold the melee 11 yd off Old Serra'kis for the entire encounter. The ranged stand is already past 10 yd, so the only units the row could move are the ones that must not be moved."
+      }
+    },
+    {
+      "entry": 4829,
+      "name": "Aku'mai",
+      "kinds": [],
+      "cite": "eventai/blackfathom-deeps.ts:19-42, acid_classic.sql:13842-13843 creature_id=4829. Poison Cloud 3815 every 25-30 s is aoeShape pbaoe radiusYd 8, targetA 22 and tgtB 15, castTimeMs 1000, dispel 4 poison, and the bake ships it as a dot of 50 every 5000 ms for 45000 ms. It applies once and then rides the player, so leaving the disc after it lands changes nothing, and 8 yd is the Dextren Ward radius - the melee are in it because that is where melee happens. Dispel type poison names the answer, and Cure Poison, Abolish Poison and a Poison Cleansing Totem are all class rows. Frenzied Rage 3490 every 6-30 s is targetA 1, haste +75% for 5 s on himself, which is a tank-and-healer problem with no ground to stand out of."
+    }
+  ]
+}

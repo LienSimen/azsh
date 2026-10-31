@@ -1,0 +1,23 @@
+{
+  "raid": "sm-library",
+  "note": "Reviewed for E5.4 against boss_arcanist_doan.cpp, eventai/sm-library.ts and acid_classic.sql. Loksey is two friendly buffs a purge already answers. Doan is the one five-man fight so far whose mechanic really is a run-out, and the run-out cannot be walked: Detonation is a 30 yd disc and the whole party stands inside it from pull to kill.",
+  "bosses": [
+    {
+      "entry": 3974,
+      "name": "Houndmaster Loksey",
+      "kinds": [],
+      "cite": "eventai/sm-library.ts:397402-397404, acid_classic.sql:15897-15900 creature_id=3974. Battle Shout 6192 is targetA 20 with radiusYd 20.0, aura 99 attack power +54 for 120 s, and Bloodlust 6742 is targetA 21 friendly, aura 138 melee haste +29% for 30 s - ACID 397403 casts it on himself and 397404 re-casts it on any friendly within 15 yd that is missing it. The friendly in range is a kennel Scarlet Tracking Hound 4304 standing inside the 5 yd CallForHelp radius (sm-library.ts:160-175), so the answer is a purge or a dispel, which is a class row. Neither spell has a hostile radius and there is nothing on the floor to stand out of."
+    },
+    {
+      "entry": 6487,
+      "name": "Arcanist Doan",
+      "kinds": [
+        "position"
+      ],
+      "cite": "boss_arcanist_doan.cpp:33-37 the whole kit; acid_classic.sql:16028 defers 6487 to the cpp and there is no creature_template_spells row for him. Polymorph 13323 is targetA 6 on a random non-top-threat unit, mechanic 17 for 20 s - a dispel, so a class row. Silence 8988 is targetA 22 then 15, radiusYd 20.0, aura 27 mechanic 9 for 10 s, and Arcane Explosion 9433 is targetA 22 then 15, radiusYd 10.0, Effect 2 for 185, every 2.5-8.5 s - both are instant with no observable cast, so there is no edge a row could fire on, and the 10 yd disc is the one the melee have to be inside to fight at all. Detonation 9435 is the real mechanic and it goes in blockedBy.",
+      "blockedBy": {
+        "position": "Detonation 9435 is Effect 2 SCHOOL_DAMAGE basePoints 637, targetA 22 TARGET_LOCATION_CASTER_SRC then targetB 15, radiusYd 30.0 - a 30 yd disc centred on Doan, fired once when Arcane Bubble 9438 goes up at <=50% HP (boss_arcanist_doan.cpp:88-95 the bubble, :92 m_uiDetonationTimer = 1000, :73 the cast). isWithinRadiusYd hits at <=, so the first clear yard is 31, and that is farther out than the game's own outermost stand: CASTER_RING_OUTER_YD is 30 and the party opens at DEFAULT_OPEN_YD 18 (combatGeometry.ts:152,66). Every raider from tank to back line is inside the disc for the whole fight, so keep_range would be asking the party to walk off the ring the placement code builds. The clock refuses it as well: the C++ gives 1000 ms between bubble and payload, and this tree's port collapses that arm into the same phase tick as the bubble (scarletMonastery.ts:255-260, named as the doan-detonation-delay GAP at sm-library.ts:6-9), so a row gated on buffPresent 9438 or on the cast fires after the damage has already landed. CORRECTED 2026-08-27 - this used to say RUNOUT_YIELD_AFTER_MS abandons the move after 4000 ms \"which is less than the 13+ yard walk a raider at the open band would need\", and the arithmetic is simply wrong: 13 yd at BASE_RUN_SPEED 7.0 (speed.ts:44) is 1.86 s, well inside the 4 s, and the cite had drifted from pickAction.ts:774 to :774. It is false for every seat, not just the open band. What actually blocks this row."
+      }
+    }
+  ]
+}

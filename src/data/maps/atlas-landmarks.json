@@ -1,0 +1,1711 @@
+{
+  "generated": "2026-07-27",
+  "generator": "tmp-w7-close.mjs",
+  "note": "Painted Atlas label → world point from EncounterDef.origin / instance-geometry. Oracle for landmarks bucket; not a projection input.",
+  "blackfathom-deeps/1": {
+    "x": -442.424,
+    "y": 211.822,
+    "z": -52.6367,
+    "entry": 4887,
+    "name": "Ghamoo-ra",
+    "source": "encounter-origin",
+    "via": "ghamoo-ra"
+  },
+  "blackfathom-deeps/3": {
+    "x": -299.917,
+    "y": 413.755,
+    "z": -57.1229,
+    "entry": 4831,
+    "name": "Lady Sarevess",
+    "source": "encounter-origin",
+    "via": "lady-sarevess"
+  },
+  "blackfathom-deeps/5": {
+    "x": -412.653,
+    "y": 40.919,
+    "z": -48.1363,
+    "entry": 6243,
+    "name": "Gelihast",
+    "source": "encounter-origin",
+    "via": "gelihast"
+  },
+  "blackfathom-deeps/7": {
+    "x": -782.21,
+    "y": -63.26,
+    "z": -42.43,
+    "entry": 12876,
+    "name": "Baron Aquanis",
+    "source": "encounter-origin",
+    "via": "baron-aquanis"
+  },
+  "blackfathom-deeps/8": {
+    "x": -818.832,
+    "y": -155.576,
+    "z": -25.7923,
+    "entry": 4832,
+    "name": "Twilight Lord Kelris",
+    "source": "encounter-origin",
+    "via": "twilight-lord-kelris"
+  },
+  "blackfathom-deeps/9": {
+    "x": -746.744,
+    "y": -169.427,
+    "z": -50.6239,
+    "entry": 4830,
+    "name": "Old Serra'kis",
+    "source": "encounter-origin",
+    "via": "old-serrakis"
+  },
+  "blackfathom-deeps/10": {
+    "x": -848.446,
+    "y": -453.865,
+    "z": -33.8922,
+    "entry": 4829,
+    "name": "Aku'mai",
+    "source": "encounter-origin",
+    "via": "akumai"
+  },
+  "blackrock-depths/1": {
+    "x": 654.636,
+    "y": -172.435,
+    "z": -73.6131,
+    "entry": 9025,
+    "name": "Lord Roccor",
+    "source": "encounter-origin",
+    "via": "lord-roccor"
+  },
+  "blackrock-depths/5": {
+    "x": 310.558,
+    "y": -146.251,
+    "z": -70.3029,
+    "entry": 9018,
+    "name": "High Interrogator Gerstahn",
+    "source": "encounter-origin",
+    "via": "high-interrogator-gerstahn"
+  },
+  "blackrock-depths/9": {
+    "x": 960.023,
+    "y": -340.886,
+    "z": -71.4581,
+    "entry": 9056,
+    "name": "Fineous Darkvire",
+    "source": "encounter-origin",
+    "via": "fineous-darkvire"
+  },
+  "blackrock-depths/10": {
+    "x": 893.546,
+    "y": -267.056,
+    "z": -71.9002,
+    "entry": 9017,
+    "name": "Lord Incendius",
+    "source": "encounter-origin",
+    "via": "lord-incendius"
+  },
+  "blackrock-depths/11": {
+    "x": 702.416,
+    "y": 184.462,
+    "z": -71.988,
+    "entry": 9016,
+    "name": "Bael'Gar",
+    "source": "encounter-origin",
+    "via": "bael-gar"
+  },
+  "blackrock-depths/13": {
+    "x": 652.39,
+    "y": 21.3737,
+    "z": -59.976,
+    "entry": 9033,
+    "name": "General Angerforge",
+    "source": "encounter-origin",
+    "via": "general-angerforge"
+  },
+  "blackrock-depths/14": {
+    "x": 846.801,
+    "y": 16.2806,
+    "z": -53.6395,
+    "entry": 8983,
+    "name": "Golem Lord Argelmach",
+    "source": "encounter-origin",
+    "via": "golem-lord-argelmach"
+  },
+  "blackrock-depths/16": {
+    "x": 1009.75,
+    "y": -239.017,
+    "z": -61.3038,
+    "entry": 9156,
+    "name": "Ambassador Flamelash",
+    "source": "encounter-origin",
+    "via": "ambassador-flamelash"
+  },
+  "blackrock-depths/17": {
+    "x": 1173.75,
+    "y": -187.816,
+    "z": -65.455,
+    "entry": 8923,
+    "name": "Panzor the Invincible (Rare)",
+    "source": "encounter-origin",
+    "via": "panzor-the-invincible"
+  },
+  "blackrock-depths/20": {
+    "x": 1380.72,
+    "y": -659.314,
+    "z": -91.9711,
+    "entry": 9938,
+    "name": "Magmus",
+    "source": "encounter-origin",
+    "via": "magmus"
+  },
+  "blackrock-depths/21": {
+    "x": 1380.18,
+    "y": -831.645,
+    "z": -87.59,
+    "entry": 9019,
+    "name": "Emperor Dagran Thaurissan",
+    "source": "encounter-origin",
+    "via": "emperor-dagran-thaurissan"
+  },
+  "lbrs/4": {
+    "x": -37.05,
+    "y": -387.07,
+    "z": 31.8,
+    "entry": 9219,
+    "name": "Spirestone Butcher (Rare)",
+    "source": "encounter-origin",
+    "via": "spirestone-butcher"
+  },
+  "lbrs/5": {
+    "x": -22.79,
+    "y": -300.68,
+    "z": 31.8,
+    "entry": 9196,
+    "name": "Highlord Omokk",
+    "source": "encounter-origin",
+    "via": "highlord-omokk"
+  },
+  "lbrs/6": {
+    "x": -52.41,
+    "y": -306.9,
+    "z": 43.34,
+    "entry": 9218,
+    "name": "Spirestone Battle Lord (Rare)",
+    "source": "encounter-origin",
+    "via": "spirestone-battle-lord"
+  },
+  "lbrs/7": {
+    "x": -121.19,
+    "y": -482.18,
+    "z": 24.71,
+    "entry": 9236,
+    "name": "Shadow Hunter Vosh'gajin",
+    "source": "encounter-origin",
+    "via": "shadow-hunter-voshgajin"
+  },
+  "lbrs/9": {
+    "x": -10.045,
+    "y": -458.635,
+    "z": -18.645,
+    "entry": 9237,
+    "name": "War Master Voone",
+    "source": "encounter-origin",
+    "via": "war-master-voone"
+  },
+  "lbrs/12": {
+    "x": -26.6918,
+    "y": -428.557,
+    "z": -18.935,
+    "entry": 9596,
+    "name": "Bannok Grimaxe (Rare)",
+    "source": "encounter-origin",
+    "via": "bannok-grimaxe-0"
+  },
+  "lbrs/13": {
+    "x": -135.51,
+    "y": -565.85,
+    "z": 10.17,
+    "entry": 10596,
+    "name": "Mother Smolderweb",
+    "source": "encounter-origin",
+    "via": "mother-smolderweb"
+  },
+  "lbrs/14": {
+    "x": -138.318,
+    "y": -468.999,
+    "z": 13.8768,
+    "entry": 10376,
+    "name": "Crystal Fang (Rare)",
+    "source": "encounter-origin",
+    "via": "crystal-fang"
+  },
+  "lbrs/16": {
+    "x": -191.052,
+    "y": -475.636,
+    "z": 87.3902,
+    "entry": 9736,
+    "name": "Quartermaster Zigris",
+    "source": "encounter-origin",
+    "via": "quartermaster-zigris"
+  },
+  "lbrs/17": {
+    "x": -193.914,
+    "y": -338.148,
+    "z": 64.4879,
+    "entry": 10220,
+    "name": "Halycon",
+    "source": "encounter-origin",
+    "via": "halycon"
+  },
+  "lbrs/18": {
+    "x": -50.3003,
+    "y": -298.146,
+    "z": 70.9406,
+    "entry": 9718,
+    "name": "Ghok Bashguud (Rare)",
+    "source": "encounter-origin",
+    "via": "ghok-bashguud-0"
+  },
+  "lbrs/19": {
+    "x": -22.6325,
+    "y": -486.186,
+    "z": 90.7531,
+    "entry": 9568,
+    "name": "Overlord Wyrmthalak",
+    "source": "encounter-origin",
+    "via": "overlord-wyrmthalak"
+  },
+  "ubrs/1": {
+    "x": 144.59,
+    "y": -258.05,
+    "z": 96.5,
+    "entry": 9816,
+    "name": "Pyroguard Emberseer",
+    "source": "encounter-origin",
+    "via": "pyroguard-emberseer"
+  },
+  "ubrs/2": {
+    "x": 51.11098,
+    "y": -266.0549,
+    "z": 92.87846,
+    "entry": 10264,
+    "name": "Solakar Flamewreath",
+    "source": "encounter-origin",
+    "via": "solakar-flamewreath"
+  },
+  "ubrs/4": {
+    "x": 144.583,
+    "y": -257.865,
+    "z": 110.915,
+    "entry": 10509,
+    "name": "Jed Runewatcher (Rare)",
+    "source": "encounter-origin",
+    "via": "jed-runewatcher"
+  },
+  "ubrs/5": {
+    "x": 140.98,
+    "y": -249.36,
+    "z": 110.95,
+    "entry": 10899,
+    "name": "Goraluk Anvilcrack (Rare)",
+    "source": "encounter-origin",
+    "via": "goraluk-anvilcrack"
+  },
+  "ubrs/8": {
+    "x": 87.38,
+    "y": -554.12,
+    "z": 111.1,
+    "entry": 10430,
+    "name": "The Beast",
+    "source": "encounter-origin",
+    "via": "the-beast"
+  },
+  "ubrs/9": {
+    "x": 36.4509,
+    "y": -285.994,
+    "z": 111.036,
+    "entry": 10363,
+    "name": "General Drakkisath",
+    "source": "encounter-origin",
+    "via": "general-drakkisath"
+  },
+  "dire-maul-east/1": {
+    "x": 86,
+    "y": -198,
+    "z": -4,
+    "entry": 14354,
+    "name": "Pusillin (Chase Begins)",
+    "source": "encounter-origin",
+    "via": "pusillin"
+  },
+  "dire-maul-east/2": {
+    "x": 86,
+    "y": -198,
+    "z": -4,
+    "entry": 14354,
+    "name": "Pusillin (Chase Ends)",
+    "source": "encounter-origin",
+    "via": "pusillin"
+  },
+  "dire-maul-east/3": {
+    "x": -34.983,
+    "y": -448,
+    "z": -37.8785,
+    "entry": 11490,
+    "name": "Zevrim Thornhoof",
+    "source": "encounter-origin",
+    "via": "zevrim-thornhoof"
+  },
+  "dire-maul-east/4": {
+    "x": -72.1719,
+    "y": -283.252,
+    "z": -57.7497,
+    "entry": 11491,
+    "name": "Old Ironbark",
+    "source": "encounter-origin",
+    "via": "429-88782a20"
+  },
+  "dire-maul-east/5": {
+    "x": 274.844,
+    "y": -427.251,
+    "z": -119.962,
+    "entry": 11492,
+    "name": "Alzzin the Wildshaper",
+    "source": "encounter-origin",
+    "via": "alzzin-the-wildshaper"
+  },
+  "dire-maul-north/1": {
+    "x": 411,
+    "y": -3,
+    "z": -25,
+    "entry": 14326,
+    "name": "Guard Mol'dar",
+    "source": "encounter-origin",
+    "via": "guard-moldar"
+  },
+  "dire-maul-north/2": {
+    "x": 491,
+    "y": 97,
+    "z": -3,
+    "entry": 14322,
+    "name": "Stomper Kreeg",
+    "source": "encounter-origin",
+    "via": "stomper-kreeg"
+  },
+  "dire-maul-north/3": {
+    "x": 357,
+    "y": 258,
+    "z": 12,
+    "entry": 14321,
+    "name": "Guard Fengus",
+    "source": "encounter-origin",
+    "via": "guard-fengus"
+  },
+  "dire-maul-north/5": {
+    "x": 628,
+    "y": 482,
+    "z": 29,
+    "entry": 14325,
+    "name": "Captain Kromcrush",
+    "source": "encounter-origin",
+    "via": "captain-kromcrush"
+  },
+  "dire-maul-north/6": {
+    "x": 829.697,
+    "y": 481.328,
+    "z": 37.4015,
+    "entry": 11501,
+    "name": "King Gordok",
+    "source": "encounter-origin",
+    "via": "king-gordok"
+  },
+  "dire-maul-west/2": {
+    "x": 14.3925,
+    "y": 475.848,
+    "z": -23.3028,
+    "entry": 11489,
+    "name": "Tendris Warpwood",
+    "source": "encounter-origin",
+    "via": "tendris-warpwood"
+  },
+  "dire-maul-west/3": {
+    "x": -84.3469,
+    "y": 543.958,
+    "z": 28.6151,
+    "entry": 11488,
+    "name": "Illyanna Ravenoak",
+    "source": "encounter-origin",
+    "via": "illyanna-ravenoak"
+  },
+  "dire-maul-west/4": {
+    "x": 33.14,
+    "y": 575.552,
+    "z": -4.31052,
+    "entry": 11487,
+    "name": "Magister Kalendris",
+    "source": "encounter-origin",
+    "via": "magister-kalendris"
+  },
+  "dire-maul-west/5": {
+    "x": 128.643,
+    "y": 561.759,
+    "z": -4.31221,
+    "entry": 11467,
+    "name": "Tsu'zee (Rare)",
+    "source": "encounter-origin",
+    "via": "tsuzee"
+  },
+  "dire-maul-west/6": {
+    "x": -38.0807,
+    "y": 812.44,
+    "z": -29.4525,
+    "entry": 11496,
+    "name": "Immol'thar",
+    "source": "encounter-origin",
+    "via": "immolthar"
+  },
+  "dire-maul-west/7": {
+    "x": 133,
+    "y": 626,
+    "z": -48,
+    "entry": 11486,
+    "name": "Prince Tortheldrin",
+    "source": "encounter-origin",
+    "via": "prince-tortheldrin"
+  },
+  "dire-maul-west/8": {
+    "x": 128.643,
+    "y": 561.759,
+    "z": -4.31221,
+    "entry": 11467,
+    "name": "Revanchion (Scourge Invasion)",
+    "source": "encounter-origin",
+    "via": "tsuzee"
+  },
+  "gnomeregan/4": {
+    "x": -471.39,
+    "y": 48.4756,
+    "z": -207.954,
+    "entry": 7079,
+    "name": "Viscous Fallout",
+    "source": "encounter-origin",
+    "via": "viscous-fallout"
+  },
+  "gnomeregan/5": {
+    "x": -549.431,
+    "y": 500.916,
+    "z": -216.81,
+    "entry": 6235,
+    "name": "Electrocutioner 6000",
+    "source": "encounter-origin",
+    "via": "electrocutioner-6000"
+  },
+  "gnomeregan/6": {
+    "x": -889.137,
+    "y": 360.668,
+    "z": -272.513,
+    "entry": 6229,
+    "name": "Crowd Pummeler 9-60 (Upper)",
+    "source": "encounter-origin",
+    "via": "crowd-pummeler-9-60"
+  },
+  "gnomeregan/7": {
+    "x": -670.911,
+    "y": 686.071,
+    "z": -326.812,
+    "entry": 6228,
+    "name": "Dark Iron Ambassador (Rare)",
+    "source": "encounter-origin",
+    "via": "dark-iron-ambassador"
+  },
+  "gnomeregan/8": {
+    "x": -531.324,
+    "y": 670.159,
+    "z": -325.185,
+    "entry": 7800,
+    "name": "Mekgineer Thermaplugg",
+    "source": "encounter-origin",
+    "via": "mekgineer-thermaplugg"
+  },
+  "maraudon/2": {
+    "x": 1130.4,
+    "y": -191.342,
+    "z": -80.0014,
+    "entry": 13282,
+    "name": "Noxxion",
+    "source": "encounter-origin",
+    "via": "noxxion"
+  },
+  "maraudon/3": {
+    "x": 978.887,
+    "y": -10.152,
+    "z": -62.5035,
+    "entry": 12258,
+    "name": "Razorlash",
+    "source": "encounter-origin",
+    "via": "razorlash"
+  },
+  "maraudon/5": {
+    "x": 748.874,
+    "y": -219.647,
+    "z": -47.6926,
+    "entry": 12236,
+    "name": "Lord Vyletongue",
+    "source": "encounter-origin",
+    "via": "lord-vyletongue"
+  },
+  "maraudon/6": {
+    "x": 632.101,
+    "y": -92.409,
+    "z": -57.4999,
+    "entry": 12237,
+    "name": "Meshlok the Harvester (Rare)",
+    "source": "encounter-origin",
+    "via": "meshlok-the-harvester"
+  },
+  "maraudon/7": {
+    "x": 726.106,
+    "y": 77.9764,
+    "z": -86.5913,
+    "entry": 12225,
+    "name": "Celebras the Cursed",
+    "source": "encounter-origin",
+    "via": "celebras-the-cursed"
+  },
+  "maraudon/8": {
+    "x": 356.681,
+    "y": -185.455,
+    "z": -59.8156,
+    "entry": 12203,
+    "name": "Landslide",
+    "source": "encounter-origin",
+    "via": "landslide"
+  },
+  "maraudon/9": {
+    "x": 134.902,
+    "y": -313.731,
+    "z": -173.555,
+    "entry": 13601,
+    "name": "Tinkerer Gizlock",
+    "source": "encounter-origin",
+    "via": "tinkerer-gizlock"
+  },
+  "maraudon/10": {
+    "x": 42.0826,
+    "y": -65.9511,
+    "z": -199.554,
+    "entry": 13596,
+    "name": "Rotgrip",
+    "source": "encounter-origin",
+    "via": "rotgrip"
+  },
+  "maraudon/11": {
+    "x": 27.8981,
+    "y": 83.1932,
+    "z": -124.483,
+    "entry": 12201,
+    "name": "Princess Theradras",
+    "source": "encounter-origin",
+    "via": "princess-theradras"
+  },
+  "ragefire-chasm/2": {
+    "x": -244.743,
+    "y": 150.085,
+    "z": -18.749,
+    "entry": 11520,
+    "name": "Taragaman the Hungerer",
+    "source": "encounter-origin",
+    "via": "taragaman"
+  },
+  "ragefire-chasm/3": {
+    "x": -376.811,
+    "y": 209.224,
+    "z": -21.801,
+    "entry": 11518,
+    "name": "Jergosh the Invoker",
+    "source": "encounter-origin",
+    "via": "jergosh"
+  },
+  "ragefire-chasm/4": {
+    "x": -384.867,
+    "y": 146.045,
+    "z": 7.822,
+    "entry": 11519,
+    "name": "Bazzalan",
+    "source": "encounter-origin",
+    "via": "bazzalan"
+  },
+  "razorfen-downs/1": {
+    "x": 2515.43,
+    "y": 856.94,
+    "z": 45.28,
+    "entry": 7355,
+    "name": "Tuten'kash",
+    "source": "encounter-origin",
+    "via": "tutenkash-gong"
+  },
+  "razorfen-downs/3": {
+    "x": 2466.62,
+    "y": 671.443,
+    "z": 63.4694,
+    "entry": 7357,
+    "name": "Mordresh Fire Eye",
+    "source": "encounter-origin",
+    "via": "mordresh-fire-eye"
+  },
+  "razorfen-downs/4": {
+    "x": 2468.71,
+    "y": 1006.83,
+    "z": 23.7573,
+    "entry": 8567,
+    "name": "Glutton",
+    "source": "encounter-origin",
+    "via": "glutton"
+  },
+  "razorfen-downs/5": {
+    "x": 2364.75,
+    "y": 904.524,
+    "z": 28.7671,
+    "entry": 7354,
+    "name": "Ragglesnout (Rare, Varies)",
+    "source": "encounter-origin",
+    "via": "ragglesnout"
+  },
+  "razorfen-downs/6": {
+    "x": 2403.37,
+    "y": 960.93,
+    "z": 55.1437,
+    "entry": 7358,
+    "name": "Amnennar the Coldbringer",
+    "source": "encounter-origin",
+    "via": "amnennar"
+  },
+  "razorfen-downs/7": {
+    "x": 2610.66,
+    "y": 730.583,
+    "z": 54.652,
+    "entry": 7356,
+    "name": "Plaguemaw the Rotting",
+    "source": "encounter-origin",
+    "via": "belnistrasz-ritual"
+  },
+  "razorfen-kraul/1": {
+    "x": 2142.99,
+    "y": 1581.57,
+    "z": 80.3842,
+    "entry": 6168,
+    "name": "Roogug",
+    "source": "encounter-origin",
+    "via": "roogug"
+  },
+  "razorfen-kraul/2": {
+    "x": 2082.31,
+    "y": 1463.54,
+    "z": 73.1789,
+    "entry": 4424,
+    "name": "Aggem Thorncurse",
+    "source": "encounter-origin",
+    "via": "aggem-thorncurse"
+  },
+  "razorfen-kraul/3": {
+    "x": 2146.43,
+    "y": 1411.24,
+    "z": 73.9538,
+    "entry": 4428,
+    "name": "Death Speaker Jargba",
+    "source": "encounter-origin",
+    "via": "death-speaker-jargba"
+  },
+  "razorfen-kraul/4": {
+    "x": 2203.13,
+    "y": 1640.05,
+    "z": 85.9022,
+    "entry": 4420,
+    "name": "Overlord Ramtusk",
+    "source": "encounter-origin",
+    "via": "overlord-ramtusk"
+  },
+  "razorfen-kraul/5": {
+    "x": 1994.4,
+    "y": 1976.44,
+    "z": 63.292,
+    "entry": 4422,
+    "name": "Agathelos the Raging",
+    "source": "encounter-origin",
+    "via": "agathelos-the-raging"
+  },
+  "razorfen-kraul/6": {
+    "x": 2201,
+    "y": 1978,
+    "z": 57,
+    "entry": 4425,
+    "name": "Blind Hunter (Rare)",
+    "source": "encounter-origin",
+    "via": "blind-hunter"
+  },
+  "razorfen-kraul/7": {
+    "x": 2190.4,
+    "y": 1864.29,
+    "z": 79.1389,
+    "entry": 4421,
+    "name": "Charlga Razorflank",
+    "source": "encounter-origin",
+    "via": "charlga-razorflank"
+  },
+  "sm-armory/1": {
+    "x": 1965.09,
+    "y": -431.607,
+    "z": 6.26076,
+    "entry": 3975,
+    "name": "Herod",
+    "source": "encounter-origin",
+    "via": "herod"
+  },
+  "sm-cathedral/1": {
+    "x": 1159,
+    "y": 1354,
+    "z": 30,
+    "entry": 4542,
+    "name": "High Inquisitor Fairbanks",
+    "source": "encounter-origin",
+    "via": "fairbanks"
+  },
+  "sm-cathedral/2": {
+    "x": 1153.87,
+    "y": 1398.39,
+    "z": 32.6112,
+    "entry": 3976,
+    "name": "Scarlet Commander Mograine",
+    "source": "encounter-origin",
+    "via": "mograine-whitemane"
+  },
+  "sm-cathedral/3": {
+    "x": 1202.13,
+    "y": 1399.07,
+    "z": 29.0931,
+    "entry": 3977,
+    "name": "High Inquisitor Whitemane",
+    "source": "encounter-origin",
+    "via": "189-fd379477"
+  },
+  "sm-graveyard/1": {
+    "x": 1786.55,
+    "y": 1124.44,
+    "z": 7.57362,
+    "entry": 3983,
+    "name": "Interrogator Vishas",
+    "source": "encounter-origin",
+    "via": "interrogator-vishas"
+  },
+  "sm-graveyard/3": {
+    "x": 1820.34,
+    "y": 1416.71,
+    "z": -7.91731,
+    "entry": 4543,
+    "name": "Bloodmage Thalnos",
+    "source": "encounter-origin",
+    "via": "bloodmage-thalnos"
+  },
+  "sm-graveyard/1'": {
+    "x": 1791,
+    "y": 1356,
+    "entry": 6489,
+    "name": "Ironspine (Rare)",
+    "source": "encounter-origin",
+    "via": "ironspine-0"
+  },
+  "sm-library/1": {
+    "x": 119.938,
+    "y": -260.869,
+    "z": 18.6299,
+    "entry": 3974,
+    "name": "Houndmaster Loksey",
+    "source": "encounter-origin",
+    "via": "houndmaster-loksey"
+  },
+  "sm-library/2": {
+    "x": 148.32,
+    "y": -428.692,
+    "z": 18.4864,
+    "entry": 6487,
+    "name": "Arcanist Doan",
+    "source": "encounter-origin",
+    "via": "arcanist-doan"
+  },
+  "scholomance/2": {
+    "x": 309.65,
+    "y": 93.47,
+    "z": 101.66,
+    "entry": 10506,
+    "name": "Kirtonos the Herald (Summon)",
+    "source": "encounter-origin",
+    "via": "kirtonos-the-herald"
+  },
+  "scholomance/3": {
+    "x": 268.223,
+    "y": 73.633,
+    "z": 95.9245,
+    "entry": 10503,
+    "name": "Jandice Barov",
+    "source": "encounter-origin",
+    "via": "jandice-barov"
+  },
+  "scholomance/5": {
+    "x": 137.145,
+    "y": 171.676,
+    "z": 95.9664,
+    "entry": 11622,
+    "name": "Rattlegore (Lower)",
+    "source": "encounter-origin",
+    "via": "rattlegore"
+  },
+  "scholomance/6": {
+    "x": 150,
+    "y": 116,
+    "z": 105,
+    "entry": 10433,
+    "name": "Marduk Blackpool",
+    "source": "encounter-origin",
+    "via": "marduk-blackpool"
+  },
+  "scholomance/7": {
+    "x": -25.1079,
+    "y": 141.284,
+    "z": 83.9083,
+    "entry": 10508,
+    "name": "Ras Frostwhisper",
+    "source": "encounter-origin",
+    "via": "ras-frostwhisper"
+  },
+  "scholomance/8": {
+    "x": 87,
+    "y": -2,
+    "z": 85,
+    "entry": 10505,
+    "name": "Instructor Malicia",
+    "source": "encounter-origin",
+    "via": "instructor-malicia"
+  },
+  "scholomance/9": {
+    "x": 182,
+    "y": -95,
+    "z": 85,
+    "entry": 11261,
+    "name": "Doctor Theolen Krastinov",
+    "source": "encounter-origin",
+    "via": "doctor-theolen-krastinov"
+  },
+  "scholomance/10": {
+    "x": 274.877,
+    "y": 1.33366,
+    "z": 85.3117,
+    "entry": 10901,
+    "name": "Lorekeeper Polkelt",
+    "source": "encounter-origin",
+    "via": "lorekeeper-polkelt"
+  },
+  "scholomance/11": {
+    "x": 103.305,
+    "y": -1.67752,
+    "z": 75.2183,
+    "entry": 10507,
+    "name": "The Ravenian",
+    "source": "encounter-origin",
+    "via": "the-ravenian"
+  },
+  "scholomance/12": {
+    "x": 178.724,
+    "y": -91.0232,
+    "z": 70.8568,
+    "entry": 10504,
+    "name": "Lord Alexei Barov",
+    "source": "encounter-origin",
+    "via": "lord-alexei-barov"
+  },
+  "scholomance/13": {
+    "x": 265.956,
+    "y": 0.903429,
+    "z": 75.3334,
+    "entry": 10502,
+    "name": "Lady Illucia Barov",
+    "source": "encounter-origin",
+    "via": "lady-illucia-barov"
+  },
+  "scholomance/14": {
+    "x": 180.771,
+    "y": -5.429,
+    "z": 75.57,
+    "entry": 1853,
+    "name": "Darkmaster Gandling",
+    "source": "encounter-origin",
+    "via": "darkmaster-gandling"
+  },
+  "shadowfang-keep/1": {
+    "x": -252.091,
+    "y": 2123.11,
+    "z": 81.1795,
+    "entry": 3914,
+    "name": "Rethilgore",
+    "source": "encounter-origin",
+    "via": "rethilgore"
+  },
+  "shadowfang-keep/4": {
+    "x": -202.596,
+    "y": 2257.96,
+    "z": 76.2846,
+    "entry": 3886,
+    "name": "Razorclaw the Butcher",
+    "source": "encounter-origin",
+    "via": "razorclaw"
+  },
+  "shadowfang-keep/5": {
+    "x": -275.342,
+    "y": 2297.35,
+    "z": 76.2365,
+    "entry": 3887,
+    "name": "Baron Silverlaine",
+    "source": "encounter-origin",
+    "via": "baron-silverlaine"
+  },
+  "shadowfang-keep/6": {
+    "x": -222.592,
+    "y": 2259.44,
+    "z": 102.839,
+    "entry": 4278,
+    "name": "Commander Springvale",
+    "source": "encounter-origin",
+    "via": "commander-springvale"
+  },
+  "shadowfang-keep/7": {
+    "x": -236.708,
+    "y": 2146.08,
+    "z": 100.112,
+    "entry": 4279,
+    "name": "Sever (Scourge Invasion)",
+    "source": "encounter-origin",
+    "via": "odo"
+  },
+  "shadowfang-keep/8": {
+    "x": -236.708,
+    "y": 2146.08,
+    "z": 100.112,
+    "entry": 4279,
+    "name": "Odo the Blindwatcher",
+    "source": "encounter-origin",
+    "via": "odo"
+  },
+  "shadowfang-keep/9": {
+    "x": -192.012,
+    "y": 2124.54,
+    "z": 97.3899,
+    "entry": 3872,
+    "name": "Deathsworn Captain (Rare)",
+    "source": "encounter-origin",
+    "via": "deathsworn-captain"
+  },
+  "shadowfang-keep/10": {
+    "x": -135.609,
+    "y": 2168.66,
+    "z": 128.779,
+    "entry": 4274,
+    "name": "Fenrus the Devourer",
+    "source": "encounter-origin",
+    "via": "fenrus"
+  },
+  "shadowfang-keep/11": {
+    "x": -120.725,
+    "y": 2162.03,
+    "z": 155.762,
+    "entry": 3927,
+    "name": "Wolf Master Nandos",
+    "source": "encounter-origin",
+    "via": "wolf-master-nandos"
+  },
+  "shadowfang-keep/12": {
+    "x": -76.7541,
+    "y": 2152.41,
+    "z": 155.792,
+    "entry": 4275,
+    "name": "Archmage Arugal",
+    "source": "encounter-origin",
+    "via": "archmage-arugal"
+  },
+  "stratholme-live/1": {
+    "x": 3603.55,
+    "y": -3486.83,
+    "z": 135.853,
+    "entry": 10393,
+    "name": "Skul (Rare, Varies)",
+    "source": "encounter-origin",
+    "via": "skul-0"
+  },
+  "stratholme-live/3": {
+    "x": 3680.27,
+    "y": -3512.37,
+    "z": 136.152,
+    "entry": 10558,
+    "name": "Hearthsinger Forresten (Rare, Varies)",
+    "source": "encounter-origin",
+    "via": "hearthsinger-forresten-0"
+  },
+  "stratholme-live/4": {
+    "x": 3718.48,
+    "y": -3426.68,
+    "z": 131.759,
+    "entry": 10516,
+    "name": "The Unforgiven",
+    "source": "encounter-origin",
+    "via": "the-unforgiven"
+  },
+  "stratholme-live/6": {
+    "x": 3614.702,
+    "y": -3187.642,
+    "z": 131.406,
+    "entry": 10808,
+    "name": "Timmy the Cruel",
+    "source": "encounter-origin",
+    "via": "timmy-the-cruel"
+  },
+  "stratholme-live/7": {
+    "x": 3621.07,
+    "y": -3126.82,
+    "z": 135.748,
+    "entry": 11032,
+    "name": "Malor the Zealous",
+    "source": "encounter-origin",
+    "via": "malor-the-zealous"
+  },
+  "stratholme-live/9": {
+    "x": 3573.57,
+    "y": -2937.31,
+    "z": 125.085,
+    "entry": 10997,
+    "name": "Cannon Master Willey",
+    "source": "encounter-origin",
+    "via": "cannon-master-willey"
+  },
+  "stratholme-live/10": {
+    "x": 3455.96,
+    "y": -3103.41,
+    "z": 136.545,
+    "entry": 10811,
+    "name": "Archivist Galford",
+    "source": "encounter-origin",
+    "via": "archivist-galford"
+  },
+  "stratholme-live/11": {
+    "x": 3415.84,
+    "y": -3044.54,
+    "z": 136.814,
+    "entry": 10812,
+    "name": "Grand Crusader Dathrohan",
+    "source": "encounter-origin",
+    "via": "dathrohan-balnazzar"
+  },
+  "stratholme-live/12": {
+    "x": 3663.23,
+    "y": -3619.14,
+    "z": 137.984,
+    "entry": 10435,
+    "name": "Magistrate Barthilas (Varies)",
+    "source": "encounter-origin",
+    "via": "magistrate-barthilas"
+  },
+  "stratholme-live/14": {
+    "x": 3841.89,
+    "y": -3614.96,
+    "z": 145.062,
+    "entry": 10809,
+    "name": "Stonespine (Rare, Wanders)",
+    "source": "encounter-origin",
+    "via": "stonespine"
+  },
+  "stratholme-live/15": {
+    "x": 3855.34,
+    "y": -3715.75,
+    "z": 148.175,
+    "entry": 10436,
+    "name": "Baroness Anastari",
+    "source": "encounter-origin",
+    "via": "baroness-anastari"
+  },
+  "stratholme-live/16": {
+    "x": 3854.98,
+    "y": -3528.84,
+    "z": 144.293,
+    "entry": 10437,
+    "name": "Nerub'enkan",
+    "source": "encounter-origin",
+    "via": "nerubenkan"
+  },
+  "stratholme-live/17": {
+    "x": 4035.81,
+    "y": -3647.78,
+    "z": 135.738,
+    "entry": 10438,
+    "name": "Maleki the Pallid",
+    "source": "encounter-origin",
+    "via": "maleki-the-pallid"
+  },
+  "stratholme-live/18": {
+    "x": 4032.643,
+    "y": -3378.546,
+    "z": 119.752,
+    "entry": 10439,
+    "name": "Ramstein the Gorger",
+    "source": "encounter-origin",
+    "via": "ramstein-the-gorger"
+  },
+  "stratholme-live/19": {
+    "x": 4035.83,
+    "y": -3336.31,
+    "z": 115.144,
+    "entry": 10440,
+    "name": "Baron Rivendare",
+    "source": "encounter-origin",
+    "via": "baron-rivendare"
+  },
+  "deadmines/1": {
+    "x": -191.671,
+    "y": -453.176,
+    "z": 54.521,
+    "entry": 644,
+    "name": "Rhahk'Zor",
+    "source": "encounter-origin",
+    "via": "rhahkzor"
+  },
+  "deadmines/2": {
+    "x": -153.073,
+    "y": -532.106,
+    "z": 49.683,
+    "entry": 3586,
+    "name": "Miner Johnson (Rare)",
+    "source": "encounter-origin",
+    "via": "miner-johnson"
+  },
+  "deadmines/4": {
+    "x": -177.969,
+    "y": -576.657,
+    "z": 19.311,
+    "entry": 1763,
+    "name": "Gilnid",
+    "source": "encounter-origin",
+    "via": "gilnid"
+  },
+  "deadmines/6": {
+    "x": -22.847,
+    "y": -797.283,
+    "z": 20.375,
+    "entry": 646,
+    "name": "Mr. Smite",
+    "source": "encounter-origin",
+    "via": "mr-smite"
+  },
+  "the-stockade/1": {
+    "x": 115.804,
+    "y": 18.356,
+    "z": -28.356,
+    "entry": 1696,
+    "name": "Targorr the Dread (Varies)",
+    "source": "encounter-origin",
+    "via": "targorr-the-dread"
+  },
+  "the-stockade/2": {
+    "x": 142.644,
+    "y": -71.854,
+    "z": -34.856,
+    "entry": 1666,
+    "name": "Kam Deepfury",
+    "source": "encounter-origin",
+    "via": "kam-deepfury"
+  },
+  "the-stockade/3": {
+    "x": 105.523,
+    "y": -105.795,
+    "z": -35.106,
+    "entry": 1717,
+    "name": "Hamhock",
+    "source": "encounter-origin",
+    "via": "hamhock"
+  },
+  "the-stockade/4": {
+    "x": 92.007,
+    "y": -134.439,
+    "z": -33.94,
+    "entry": 1716,
+    "name": "Bazil Thredd",
+    "source": "encounter-origin",
+    "via": "bazil-thredd"
+  },
+  "the-stockade/5": {
+    "x": 153.749,
+    "y": 117.991,
+    "z": -33.912,
+    "entry": 1663,
+    "name": "Dextren Ward",
+    "source": "encounter-origin",
+    "via": "dextren-ward"
+  },
+  "the-stockade/6": {
+    "x": 133.275,
+    "y": 6.721,
+    "z": -34.773,
+    "entry": 1720,
+    "name": "Bruegal Ironknuckle (Rare)",
+    "source": "encounter-origin",
+    "via": "bruegal-ironknuckle"
+  },
+  "sunken-temple/2": {
+    "x": -465.1336,
+    "y": -2.150236,
+    "z": -91.85531999999999,
+    "entry": 5708,
+    "name": "Spawn of Hakkar (Wanders)",
+    "source": "encounter-origin",
+    "via": "109-7bd08fd4"
+  },
+  "sunken-temple/3": {
+    "x": -466.867,
+    "y": 272.312,
+    "z": -90.744,
+    "entry": 8443,
+    "name": "Avatar of Hakkar",
+    "source": "encounter-origin",
+    "via": "avatar-of-hakkar"
+  },
+  "sunken-temple/4": {
+    "x": -426.677,
+    "y": -85.7376,
+    "z": -88.1407,
+    "entry": 5710,
+    "name": "Jammal'an the Prophet",
+    "source": "encounter-origin",
+    "via": "jammalan-the-prophet"
+  },
+  "sunken-temple/7": {
+    "x": -646.48,
+    "y": 122.121,
+    "z": -90.8295,
+    "entry": 5719,
+    "name": "Morphaz",
+    "source": "encounter-origin",
+    "via": "morphaz"
+  },
+  "sunken-temple/8": {
+    "x": -659.994,
+    "y": -34.0331,
+    "z": -90.7518,
+    "entry": 5709,
+    "name": "Shade of Eranikus",
+    "source": "encounter-origin",
+    "via": "shade-of-eranikus"
+  },
+  "uldaman/1": {
+    "x": -353,
+    "y": 117,
+    "z": -44,
+    "entry": 6906,
+    "name": "Baelog",
+    "source": "encounter-origin",
+    "via": "baelog"
+  },
+  "uldaman/3": {
+    "x": -225.598,
+    "y": 161.224,
+    "z": -44.5463,
+    "entry": 6910,
+    "name": "Revelosh",
+    "source": "encounter-origin",
+    "via": "revelosh"
+  },
+  "uldaman/4": {
+    "x": -235.673,
+    "y": 309.639,
+    "z": -47.598,
+    "entry": 7228,
+    "name": "Ironaya",
+    "source": "encounter-origin",
+    "via": "ironaya"
+  },
+  "uldaman/5": {
+    "x": -163.76,
+    "y": 387.992,
+    "z": -36.3564,
+    "entry": 7023,
+    "name": "Obsidian Sentinel",
+    "source": "encounter-origin",
+    "via": "obsidian-sentinel"
+  },
+  "uldaman/7": {
+    "x": -38.429,
+    "y": 221.253,
+    "z": -48.3663,
+    "entry": 7206,
+    "name": "Ancient Stone Keeper",
+    "source": "encounter-origin",
+    "via": "ancient-stone-keeper"
+  },
+  "uldaman/8": {
+    "x": -10.3813,
+    "y": 414.708,
+    "z": -46.8571,
+    "entry": 7291,
+    "name": "Galgann Firehammer",
+    "source": "encounter-origin",
+    "via": "galgann-firehammer"
+  },
+  "uldaman/9": {
+    "x": 56.7096,
+    "y": 455.299,
+    "z": -40.9623,
+    "entry": 4854,
+    "name": "Grimlok",
+    "source": "encounter-origin",
+    "via": "grimlok"
+  },
+  "uldaman/10": {
+    "x": 104.338,
+    "y": 272.31,
+    "z": -51.6959,
+    "entry": 2748,
+    "name": "Archaedas (Lower)",
+    "source": "encounter-origin",
+    "via": "archaedas"
+  },
+  "wailing-caverns/2": {
+    "x": -151.139,
+    "y": 414.367,
+    "z": -72.629,
+    "entry": 3669,
+    "name": "Lord Cobrahn",
+    "source": "encounter-origin",
+    "via": "lord-cobrahn"
+  },
+  "wailing-caverns/3": {
+    "x": -16.865,
+    "y": 218.824,
+    "z": -89.709,
+    "entry": 3671,
+    "name": "Lady Anacondra",
+    "source": "encounter-origin",
+    "via": "lady-anacondra"
+  },
+  "wailing-caverns/4": {
+    "x": -64.408,
+    "y": 319.084,
+    "z": -106.699,
+    "entry": 3653,
+    "name": "Kresh",
+    "source": "encounter-origin",
+    "via": "kresh"
+  },
+  "wailing-caverns/5": {
+    "x": 36.807,
+    "y": -241.064,
+    "z": -79.499,
+    "entry": 3670,
+    "name": "Lord Pythas",
+    "source": "encounter-origin",
+    "via": "lord-pythas"
+  },
+  "wailing-caverns/6": {
+    "x": -283.574,
+    "y": -310.881,
+    "z": -69.184,
+    "entry": 3674,
+    "name": "Skum",
+    "source": "encounter-origin",
+    "via": "skum"
+  },
+  "wailing-caverns/7": {
+    "x": -118.801,
+    "y": -25.132,
+    "z": -28.52,
+    "entry": 3673,
+    "name": "Lord Serpentis (Upper)",
+    "source": "encounter-origin",
+    "via": "lord-serpentis"
+  },
+  "wailing-caverns/8": {
+    "x": -81.855,
+    "y": 32.257,
+    "z": -30.994,
+    "entry": 5775,
+    "name": "Verdan the Everliving (Upper)",
+    "source": "encounter-origin",
+    "via": "verdan"
+  },
+  "wailing-caverns/9": {
+    "x": 150.943,
+    "y": 262.797,
+    "z": -103.903,
+    "entry": 3654,
+    "name": "Mutanus the Devourer",
+    "source": "encounter-origin",
+    "via": "mutanus"
+  },
+  "wailing-caverns/10": {
+    "x": 3.991,
+    "y": -48.752,
+    "z": -66.03,
+    "entry": 5912,
+    "name": "Deviate Faerie Dragon (Rare)",
+    "source": "encounter-origin",
+    "via": "deviate-faerie-dragon"
+  },
+  "zul-farrak/1": {
+    "x": 1815.85,
+    "y": 670.392,
+    "z": 15.023,
+    "entry": 8127,
+    "name": "Antu'sul",
+    "source": "encounter-origin",
+    "via": "antusul"
+  },
+  "zul-farrak/2": {
+    "x": 1778.49,
+    "y": 859.017,
+    "z": 9.00179,
+    "entry": 7272,
+    "name": "Theka the Martyr",
+    "source": "encounter-origin",
+    "via": "theka-the-martyr"
+  },
+  "zul-farrak/3": {
+    "x": 1912.17,
+    "y": 1016.11,
+    "z": 11.5988,
+    "entry": 7271,
+    "name": "Witch Doctor Zum'rah",
+    "source": "encounter-origin",
+    "via": "witch-doctor-zumrah"
+  },
+  "zul-farrak/4": {
+    "x": 1882.32,
+    "y": 1201.45,
+    "z": 8.96,
+    "entry": 7796,
+    "name": "Nekrum Gutchewer",
+    "source": "encounter-origin",
+    "via": "nekrum-gutchewer"
+  },
+  "zul-farrak/5": {
+    "x": 1883,
+    "y": 1299,
+    "z": 48,
+    "entry": 7604,
+    "name": "Sergeant Bly",
+    "source": "encounter-origin",
+    "via": "sergeant-bly"
+  },
+  "zul-farrak/6": {
+    "x": 1680.51,
+    "y": 1225.1,
+    "z": 8.98723,
+    "entry": 7795,
+    "name": "Hydromancer Velratha",
+    "source": "encounter-origin",
+    "via": "hydromancer-velratha"
+  },
+  "zul-farrak/7": {
+    "x": 1726.73,
+    "y": 1018.31,
+    "z": 54.9723,
+    "entry": 7267,
+    "name": "Chief Ukorz Sandscalp",
+    "source": "encounter-origin",
+    "via": "chief-ukorz-sandscalp"
+  },
+  "zul-farrak/8": {
+    "x": 1707.91,
+    "y": 881.421,
+    "z": 11.9567,
+    "entry": 10082,
+    "name": "Zerillis (Rare, Wanders)",
+    "source": "encounter-origin",
+    "via": "zerillis"
+  },
+  "zul-farrak/9": {
+    "x": 1661.51,
+    "y": 900.463,
+    "z": 8.91101,
+    "entry": 10080,
+    "name": "Sandarr Dunereaver (Rare)",
+    "source": "encounter-origin",
+    "via": "sandarr-dunereaver"
+  },
+  "blackrock-depths/7": {
+    "x": 525.063,
+    "y": -238.897,
+    "z": -41.042,
+    "entry": 164689,
+    "name": "Monument of Franclorn Forgewright",
+    "source": "gameobject",
+    "via": "mangos.gameobject id=164689 guid=2300103 map=230"
+  },
+  "blackrock-depths/25": {
+    "x": 1107.97,
+    "y": -156.909,
+    "z": -74.359,
+    "entry": 173232,
+    "name": "Blacksmithing Plans",
+    "source": "gameobject",
+    "via": "mangos.gameobject id=173232 guid=2300121 map=230",
+    "spawnsOnMap": 4,
+    "pickedBy": "nearest to this instance's encounter-origin centroid"
+  },
+  "lbrs/3": {
+    "x": -37.786,
+    "y": -589.639,
+    "z": 30.996,
+    "entry": 175886,
+    "name": "Roughshod Pike",
+    "source": "gameobject",
+    "via": "mangos.gameobject id=175886 guid=2290345 map=229",
+    "spawnsOnMap": 6,
+    "pickedBy": "nearest to this instance's encounter-origin centroid"
+  },
+  "lbrs/10": {
+    "x": -58.243,
+    "y": -436.186,
+    "z": -18.935,
+    "entry": 175334,
+    "name": "Bijou's Belongings",
+    "source": "gameobject",
+    "via": "mangos.gameobject id=175334 guid=2290312 map=229",
+    "spawnsOnMap": 11,
+    "pickedBy": "nearest to this instance's encounter-origin centroid"
+  },
+  "lbrs/11": {
+    "x": -19.073,
+    "y": -361.991,
+    "z": -31.524,
+    "entry": 176090,
+    "name": "Human Remains (Lower)",
+    "source": "gameobject",
+    "via": "mangos.gameobject id=176090 guid=2290392 map=229"
+  },
+  "lbrs/15": {
+    "x": -14.35,
+    "y": -395.828,
+    "z": 48.507,
+    "entry": 175621,
+    "name": "Urok's Tribute Pile",
+    "source": "gameobject",
+    "via": "mangos.gameobject id=175621 guid=2290334 map=229"
+  },
+  "ubrs/3": {
+    "x": 65.418,
+    "y": -280.416,
+    "z": 94.046,
+    "entry": 175385,
+    "name": "Darkstone Tablet",
+    "source": "gameobject",
+    "via": "mangos.gameobject id=175385 guid=2290288 map=229"
+  },
+  "sm-library/1'": {
+    "x": 131.826,
+    "y": -432.618,
+    "z": 18.516,
+    "entry": 103821,
+    "name": "Doan's Strongbox",
+    "source": "gameobject",
+    "via": "mangos.gameobject id=103821 guid=1890042 map=189"
+  },
+  "scholomance/4": {
+    "x": 175.154,
+    "y": 167.22,
+    "z": 110.734,
+    "entry": 176487,
+    "name": "The Deed to Tarren Mill",
+    "source": "gameobject",
+    "via": "mangos.gameobject id=176487 guid=2890042 map=289"
+  },
+  "scholomance/2'": {
+    "x": 167.378,
+    "y": 98.986,
+    "z": 104.727,
+    "entry": 176944,
+    "name": "Old Treasure Chest",
+    "source": "gameobject",
+    "via": "mangos.gameobject id=176944 guid=2890048 map=289"
+  },
+  "stratholme-live/1'": {
+    "x": 3651.64,
+    "y": -3165.24,
+    "z": 128.157,
+    "entry": 176349,
+    "name": "Crusaders' Square Postbox",
+    "source": "gameobject",
+    "via": "mangos.gameobject id=176349 guid=3290641 map=329"
+  },
+  "stratholme-live/2'": {
+    "x": 3682.24,
+    "y": -3401.63,
+    "z": 132.84,
+    "entry": 176346,
+    "name": "Market Row Postbox",
+    "source": "gameobject",
+    "via": "mangos.gameobject id=176346 guid=3290640 map=329"
+  },
+  "stratholme-live/3'": {
+    "x": 3660.31,
+    "y": -3476.31,
+    "z": 138.379,
+    "entry": 176350,
+    "name": "Festival Lane Postbox",
+    "source": "gameobject",
+    "via": "mangos.gameobject id=176350 guid=3290642 map=329"
+  },
+  "stratholme-live/4'": {
+    "x": 3662.84,
+    "y": -3629.71,
+    "z": 138.513,
+    "entry": 176351,
+    "name": "Elders' Square Postbox",
+    "source": "gameobject",
+    "via": "mangos.gameobject id=176351 guid=3290643 map=329"
+  },
+  "stratholme-live/5'": {
+    "x": 3567.3,
+    "y": -3351.87,
+    "z": 130.696,
+    "entry": 176352,
+    "name": "King's Square Postbox",
+    "source": "gameobject",
+    "via": "mangos.gameobject id=176352 guid=3290644 map=329"
+  },
+  "stratholme-live/6'": {
+    "x": 3500.43,
+    "y": -3295.64,
+    "z": 131.034,
+    "entry": 176353,
+    "name": "Fras Siabi's Postbox",
+    "source": "gameobject",
+    "via": "mangos.gameobject id=176353 guid=3290645 map=329"
+  },
+  "deadmines/5": {
+    "x": -106.409,
+    "y": -617.284,
+    "z": 13.85,
+    "entry": 17155,
+    "name": "Defias Gunpowder",
+    "source": "gameobject",
+    "via": "mangos.gameobject id=17155 guid=3600008 map=36"
+  },
+  "sunken-temple/1": {
+    "x": -420.848,
+    "y": 94.749,
+    "z": -174.196,
+    "entry": 148836,
+    "name": "Altar of Hakkar",
+    "source": "gameobject",
+    "via": "mangos.gameobject id=148836 guid=1090012 map=109"
+  },
+  "uldaman/11": {
+    "x": 161.826,
+    "y": 298.283,
+    "z": -51.37,
+    "entry": 131474,
+    "name": "The Discs of Norgannon (Lower)",
+    "source": "gameobject",
+    "via": "mangos.gameobject id=131474 guid=7000182 map=70"
+  }
+}

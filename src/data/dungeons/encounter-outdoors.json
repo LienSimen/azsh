@@ -1,0 +1,359 @@
+{
+  "generated": "2026-08-22T19:45:24.318Z",
+  "generator": "src/dev/etl/bake-encounter-outdoors.mjs",
+  "sources": [
+    "datadump/t0/vmaps/* (VMAP_7.0 WMO group MOGP flags)",
+    "datadump/t0/maps/*.map (GetAreaInfo terrain veto)",
+    "src/data/dungeons/index.ts EncounterDef.origin"
+  ],
+  "notes": [
+    "IsOutdoorWMO(mogpFlags) = (mogpFlags & 0x8000) != 0 — GridMap.cpp:886.",
+    "No WMO under the point is OUTDOORS — TerrainInfo::IsOutdoors, GridMap.cpp:892-903.",
+    "AreaTable.dbc carries no inside/outside bit in 1.12, so nothing coarser can answer this.",
+    "An instance absent from `instances` is outdoors everywhere (the same default)."
+  ],
+  "instances": {
+    "ragefire-chasm": {
+      "map": 389,
+      "encounters": 117,
+      "default": "indoors",
+      "outdoors": []
+    },
+    "wailing-caverns": {
+      "map": 43,
+      "encounters": 107,
+      "default": "indoors",
+      "outdoors": [
+        "43-b6b80200"
+      ]
+    },
+    "deadmines": {
+      "map": 36,
+      "encounters": 58,
+      "default": "indoors",
+      "outdoors": [
+        "36-452a2e5c",
+        "36-cf65f075",
+        "36-32f82d11",
+        "36-f153a3ba",
+        "36-e7c47e90",
+        "36-f6e87c92",
+        "36-95991f9d",
+        "36-894647fc",
+        "36-a59689bf"
+      ]
+    },
+    "shadowfang-keep": {
+      "map": 33,
+      "encounters": 35,
+      "default": "indoors",
+      "outdoors": [
+        "33-a678cad1",
+        "33-b651da7b",
+        "33-3883ead2",
+        "33-dc0d98cb",
+        "33-076a9af5",
+        "33-cab6bb06",
+        "33-45cd4871"
+      ]
+    },
+    "the-stockade": {
+      "map": 34,
+      "encounters": 28,
+      "default": "indoors",
+      "outdoors": [
+        "34-e93e141c"
+      ]
+    },
+    "blackfathom-deeps": {
+      "map": 48,
+      "encounters": 111,
+      "default": "indoors",
+      "outdoors": [
+        "48-a4ecde92",
+        "48-82f94eeb"
+      ]
+    },
+    "gnomeregan": {
+      "map": 90,
+      "encounters": 114,
+      "default": "indoors",
+      "outdoors": [
+        "90-d8bf30dc",
+        "90-7f87d165",
+        "90-0ee75aef"
+      ]
+    },
+    "razorfen-kraul": {
+      "map": 47,
+      "encounters": 66,
+      "default": "indoors",
+      "outdoors": [
+        "47-946f0573",
+        "47-e60653c7",
+        "47-b23710b7",
+        "47-26d996fe"
+      ]
+    },
+    "sm-graveyard": {
+      "map": 189,
+      "encounters": 38,
+      "default": "indoors",
+      "outdoors": [
+        "189-6dabcf3f",
+        "189-2c5b52b4",
+        "189-7077fcf1"
+      ]
+    },
+    "sm-library": {
+      "map": 189,
+      "encounters": 19,
+      "default": "indoors",
+      "outdoors": [
+        "189-646ae288"
+      ]
+    },
+    "sm-armory": {
+      "map": 189,
+      "encounters": 23,
+      "default": "indoors",
+      "outdoors": []
+    },
+    "sm-cathedral": {
+      "map": 189,
+      "encounters": 31,
+      "default": "indoors",
+      "outdoors": [
+        "189-eac535b5",
+        "189-6db33b14",
+        "189-cf0a946e",
+        "189-33909691",
+        "189-dead3d42"
+      ]
+    },
+    "razorfen-downs": {
+      "map": 129,
+      "encounters": 49,
+      "default": "indoors",
+      "outdoors": [
+        "tutenkash-gong"
+      ]
+    },
+    "uldaman": {
+      "map": 70,
+      "encounters": 82,
+      "default": "indoors",
+      "outdoors": [
+        "70-fd4e463c",
+        "70-10def1b0",
+        "70-d642a770"
+      ]
+    },
+    "zul-farrak": {
+      "map": 209,
+      "encounters": 115,
+      "default": "outdoors",
+      "indoors": [
+        "antusul",
+        "209-8b6d6f99",
+        "sandfury-executioner",
+        "sergeant-bly",
+        "209-a9227ed7",
+        "chief-ukorz-sandscalp",
+        "ruuzlu",
+        "209-f201cff7"
+      ]
+    },
+    "maraudon": {
+      "map": 349,
+      "encounters": 176,
+      "default": "indoors",
+      "outdoors": [
+        "349-924bcc9c",
+        "349-5ba3f404",
+        "349-818b4ab0"
+      ]
+    },
+    "sunken-temple": {
+      "map": 109,
+      "encounters": 61,
+      "default": "indoors",
+      "outdoors": [
+        "109-fce31521",
+        "109-c3ba3681"
+      ]
+    },
+    "blackrock-depths": {
+      "map": 230,
+      "encounters": 257,
+      "default": "indoors",
+      "outdoors": [
+        "230-97b60cd7",
+        "230-a4177b55",
+        "230-3578b844",
+        "230-97ea5a71"
+      ]
+    },
+    "lbrs": {
+      "map": 229,
+      "encounters": 81,
+      "default": "indoors",
+      "outdoors": [
+        "229-b001bb33",
+        "229-30c19231",
+        "229-72daae4b",
+        "229-9bc1a8a1"
+      ]
+    },
+    "ubrs": {
+      "map": 229,
+      "encounters": 60,
+      "default": "indoors",
+      "outdoors": []
+    },
+    "dire-maul-east": {
+      "map": 429,
+      "encounters": 79,
+      "default": "indoors",
+      "outdoors": [
+        "429-3d6e0918"
+      ]
+    },
+    "dire-maul-west": {
+      "map": 429,
+      "encounters": 90,
+      "default": "indoors",
+      "outdoors": [
+        "429-2860b927"
+      ]
+    },
+    "dire-maul-north": {
+      "map": 429,
+      "encounters": 59,
+      "default": "indoors",
+      "outdoors": [
+        "429-5183b3c4"
+      ]
+    },
+    "scholomance": {
+      "map": 289,
+      "encounters": 68,
+      "default": "indoors",
+      "outdoors": [
+        "289-f087c730",
+        "289-2fbf87b1"
+      ]
+    },
+    "stratholme-live": {
+      "map": 329,
+      "encounters": 70,
+      "default": "indoors",
+      "outdoors": [
+        "postmaster-malown"
+      ]
+    },
+    "stratholme-undead": {
+      "map": 329,
+      "encounters": 49,
+      "default": "indoors",
+      "outdoors": [
+        "329-de5b427f",
+        "329-1256abbb",
+        "329-3dd57b09",
+        "329-585111ab"
+      ]
+    },
+    "onyxias-lair": {
+      "map": 249,
+      "encounters": 4,
+      "default": "indoors",
+      "outdoors": []
+    },
+    "molten-core": {
+      "map": 409,
+      "encounters": 89,
+      "default": "indoors",
+      "outdoors": []
+    },
+    "zul-gurub": {
+      "map": 309,
+      "encounters": 182,
+      "default": "outdoors",
+      "indoors": [
+        "309-86112854",
+        "309-26a7d8f1",
+        "309-4183c98c",
+        "309-25a7d75e",
+        "309-3401e772",
+        "309-383799cc",
+        "309-94db0c7a",
+        "309-b7943075",
+        "309-79fe9177",
+        "309-55eee177",
+        "309-54860d0d",
+        "309-36037915",
+        "309-f5d31329",
+        "309-8b14660c",
+        "309-c04584e8",
+        "309-41da5822",
+        "309-0daebddf",
+        "309-b54ff404",
+        "309-5001b688",
+        "309-8c0978fa",
+        "309-634a68b8",
+        "309-14cde667",
+        "309-4d398d95",
+        "309-355ea1b6",
+        "309-761b810a",
+        "309-0ae7ae77",
+        "309-6f115905",
+        "bloodlord-mandokir",
+        "high-priest-thekal",
+        "high-priestess-arlokk",
+        "309-c4eee2ca",
+        "hakkar"
+      ]
+    },
+    "blackwing-lair": {
+      "map": 469,
+      "encounters": 62,
+      "default": "indoors",
+      "outdoors": [
+        "469-525e5c4e",
+        "469-f95974e4"
+      ]
+    },
+    "ruins-of-ahnqiraj": {
+      "map": 509,
+      "encounters": 120,
+      "default": "outdoors",
+      "indoors": []
+    },
+    "temple-of-ahnqiraj": {
+      "map": 531,
+      "encounters": 105,
+      "default": "indoors",
+      "outdoors": [
+        "531-27556829",
+        "531-ad31fa5c",
+        "531-55671e49",
+        "531-52401412",
+        "531-03d54584",
+        "531-3322597e",
+        "531-4dc8b5d8"
+      ]
+    },
+    "naxxramas": {
+      "map": 533,
+      "encounters": 277,
+      "default": "indoors",
+      "outdoors": [
+        "533-8927966d",
+        "533-05eec0b9",
+        "533-cc47c3d3",
+        "533-89f6d084",
+        "533-c914e9c1"
+      ]
+    }
+  }
+}
