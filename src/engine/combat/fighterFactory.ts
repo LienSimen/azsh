@@ -1115,7 +1115,7 @@ export function makeFighter(side: Side, spec: CombatantSpec): Fighter {
     pendingFinisherComboPoints: 0,
     lightwell: null,
     speedDirty: true,
-    speedCache: BASE_RUN_SPEED * (spec.speedRun ?? 1),
+    speedCache: BASE_RUN_SPEED,
     lastAvoidanceDir: null,
   };
   // Start-in-form: full package + Cat AGI (spec.attackPower is form-free base).

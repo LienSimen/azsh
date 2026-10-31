@@ -1308,19 +1308,16 @@ export function buildCombatSessionApi(ctx: CombatContext, hooks: SessionApiHooks
         if (e.kind !== 'speed' || e.aura == null) continue;
         live.push({ aura: e.aura, pct: e.pct ?? 0 });
       }
-      // Template SpeedRun rides on the rate, the same multiply sessionMotionKit makes. Cite: Unit.cpp:8409.
-      const baseRate = unit?.spec.speedRun ?? 1;
-      if (live.length === 0) return BASE_RUN_SPEED * baseRate;
-      return effectiveSpeeds({ effects: live, mounted: mount != null }).run * baseRate;
+      if (live.length === 0) return BASE_RUN_SPEED;
+      return effectiveSpeeds({ effects: live, mounted: mount != null }).run;
     },
     unitBaseRunSpeedYd: (side: string): number => {
       const unit = fightingUnitOfSide(side);
       const rows = [...(unit?.spec.permanentSpeedAuras ?? [])];
       const mount = unit?.spec.mount;
       if (mount) rows.push({ aura: AURA_INCREASE_MOUNTED_SPEED, pct: mount.speedPct });
-      const baseRate = unit?.spec.speedRun ?? 1;
-      if (rows.length === 0) return BASE_RUN_SPEED * baseRate;
-      return effectiveSpeeds({ effects: rows, mounted: mount != null }).run * baseRate;
+      if (rows.length === 0) return BASE_RUN_SPEED;
+      return effectiveSpeeds({ effects: rows, mounted: mount != null }).run;
     },
     /**
      * Ride or step off. Unit::Mount / Unit::Unmount — the caller owns WHETHER (mounting.ts gates

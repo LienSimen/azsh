@@ -369,11 +369,11 @@ export function hireSkillMap(
   );
 }
 
-// The companion's trade skills: what the player assigned, else the seed-derived set. The cap is the
-// trainer rank they reached, so a line just taken up sits at 75 until skill 50 buys Journeyman.
+// The companion's trade skills: what the player assigned (`{}` = all unlearned), else the seed-derived
+// set. The cap is the trainer rank they reached, so a line just taken up sits at 75 until skill 50.
 export function companionSkillMap(comp: Companion, level: number): Character['skills'] {
   const assigned = comp.professions;
-  if (!assigned || Object.keys(assigned).length === 0) {
+  if (assigned == null) {
     return hireSkillMap(comp.seed, level, comp.gearProfile);
   }
   const levelCap = professionSkillCap(level);

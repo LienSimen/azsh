@@ -2839,12 +2839,11 @@ const settleFight = (session: CombatSession, opts?: { holdLoot?: boolean }): Fig
   state.char = applyCombatWear(state.char, ds.item, wear);
   state.char = applyDurabilityDamageFromLandedSpells(state.char, result.events, (id) => ds.spell(id), ds.item);
   for (const [i, comp] of (state.squad ?? []).entries()) {
-    const shell = companionCharacter(comp, companionLevel(comp, state.char.level), ds);
-    // The 10% is charged to whoever actually died, not to everyone when the PLAYER did: passing the
-    // player's death through made a companion who stood the whole fight pay the repair bill.
+    // Only allies in the session pay, each for their own death: no end state means a solo pull.
     const end = result.allies?.[i];
-    const allyDied = end ? end.hp <= 0 : wear.died;
-    const worn = applyCombatWear(shell, ds.item, { ...wear, died: allyDied, side: `ally_${i}` });
+    if (!end) continue;
+    const shell = companionCharacter(comp, companionLevel(comp, state.char.level), ds);
+    const worn = applyCombatWear(shell, ds.item, { ...wear, died: end.hp <= 0, side: `ally_${i}` });
     comp.durability = worn.durability ?? {};
   }
 
@@ -3199,8 +3198,11 @@ const settleFight = (session: CombatSession, opts?: { holdLoot?: boolean }): Fig
   };
 };
 
-const fight = (creatureEntry: number): ActionResult<Omit<FightOutcome, 'ok'>> => {
-  const b = beginFight(creatureEntry);
+const fight = (
+  creatureEntry: number,
+  opts?: { withSquad?: boolean; noAoe?: boolean },
+): ActionResult<Omit<FightOutcome, 'ok'>> => {
+  const b = beginFight(creatureEntry, opts);
   if (!b.ok) return b;
   b.session.runToEnd();
   return resolveFight(b.session);

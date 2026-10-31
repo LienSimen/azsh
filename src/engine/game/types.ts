@@ -447,7 +447,10 @@ export type SortContainerTarget =
 export interface Game {
   readonly state: GameState;
   /** Auto-resolve a whole fight (AI plays the player). */
-  fight(creatureEntry: number): ActionResult<Omit<FightOutcome, 'ok'>>;
+  fight(
+    creatureEntry: number,
+    opts?: { withSquad?: boolean; noAoe?: boolean },
+  ): ActionResult<Omit<FightOutcome, 'ok'>>;
   // Start a live, interactive fight. `withSquad` brings hired companions (default: solo).
   // `attack` reads the Attack dial; `noAoe` skips farm-dial extras (detected pickpocket).
   beginFight(

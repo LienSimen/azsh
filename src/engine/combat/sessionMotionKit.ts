@@ -213,8 +213,7 @@ export function createMotionKit(deps: MotionKitDeps): MotionKit {
       const speed = live.length === 0
         ? BASE_RUN_SPEED
         : effectiveSpeeds({ effects: live, mounted: f.spec.mount != null }).run;
-      // A creature rides its template SpeedRun on top of the aura rate. Cite: Unit.cpp:8403-8409.
-      f.speedCache = speed * (f.spec.speedRun ?? 1);
+      f.speedCache = speed;
       f.speedDirty = false;
     }
     return f.speedCache * woundedSlowdown(f);

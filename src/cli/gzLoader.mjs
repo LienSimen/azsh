@@ -1,12 +1,11 @@
 // Module hooks: an `import x from './t.json' with { type: 'json' }` whose file is missing resolves to
 // `t.json.gz` and is gunzipped on load. Lets every bake table ship gzipped without touching the
-// 42 modules that static-import one. Registered by src/cli/register.mjs.
-import { existsSync } from 'node:fs';
-import { readFile } from 'node:fs/promises';
+// 42 modules that static-import one. Registered in-thread by src/cli/register.mjs.
+import { existsSync, readFileSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
-export async function resolve(specifier, context, next) {
+export function resolve(specifier, context, next) {
   if (specifier.endsWith('.json') && /^\.\.?\//.test(specifier) && context.parentURL) {
     const url = new URL(specifier, context.parentURL);
     const path = fileURLToPath(url);
@@ -17,10 +16,10 @@ export async function resolve(specifier, context, next) {
   return next(specifier, context);
 }
 
-export async function load(url, context, next) {
+export function load(url, context, next) {
   if (url.endsWith('.json.gz')) {
-    const buf = await readFile(fileURLToPath(url));
-    return { format: 'json', source: gunzipSync(buf).toString('utf8'), shortCircuit: true };
+    const source = gunzipSync(readFileSync(fileURLToPath(url))).toString('utf8');
+    return { format: 'json', source, shortCircuit: true };
   }
   return next(url, context);
 }

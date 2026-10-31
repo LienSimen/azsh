@@ -7,8 +7,10 @@ add a scenario to `src/cli/tuiCheck.mjs`, run `npm run check:all`, tick the box 
 Ground rules (from memory and `README.md`):
 
 - azsh owns only `src/cli`. Engine, domain, world, quest, autopilot and data fixes land in
-  `D:/projects/phonecraft` and get re-copied. The copy is in sync today except `src/engine/combat/simWorker.ts`
-  (web only) and two azsh-only world shims (`bakeSlug.ts`, `navmeshFloors.ts`).
+  phonecraft and get re-copied with `node scripts/sync-phonecraft.mjs` (path argument or `PHONECRAFT`,
+  default `../../code/phonecraft`; `--dry` lists the changes). The script skips web-only and audio files,
+  keeps the two azsh-only world shims (`bakeSlug.ts`, `navmeshFloors.ts`) and re-applies the azsh patches
+  (the shim imports in `dungeonWingRooms.ts`, the autopilot rest thresholds in `autopilot/config.ts`).
 - Build screens, not scrollback. Cursor list, detail pane, dialogs on the stack, `:` verbs as the escape hatch.
 - Every feature below names the facade methods it needs. All of them already exist on `Game`
   (`src/engine/game/types.ts:447`). Nothing here requires new engine rules unless marked **engine**.
@@ -25,15 +27,15 @@ Phonecraft's UI is the reference for every item. The click handlers are `src/ui/
 
 ## Phase 0: engine fixes to make in phonecraft first
 
-- [ ] `fight(entry)` takes no `withSquad`. Add `opts` for parity with `beginFight` so the quick-fight
+- [x] `fight(entry)` takes no `withSquad`. Add `opts` for parity with `beginFight` so the quick-fight
       key and the REPL `fight` verb can bring the squad. (`src/engine/game/combatSession.ts:3202`)
-- [ ] Durability fallback: on a solo fight `result.allies` is undefined and `allyDied` falls back to the
+- [x] Durability fallback: on a solo fight `result.allies` is undefined and `allyDied` falls back to the
       player's death, so a benched companion pays the 10% death wear. Guard it so only allies who were
       in the session pay. (`combatSession.ts:2846`)
-- [ ] Companion professions: `unlearnCompanionProfession` on the last line leaves `professions: {}`,
+- [x] Companion professions: `unlearnCompanionProfession` on the last line leaves `professions: {}`,
       which `companionSkillMap` reads as unassigned; `learnCompanionProfession` accepts a primary below
       level 5 that `companionSkillMap` then drops. (`src/engine/game/squadDungeon.ts`)
-- [ ] Re-copy `src/engine`, `src/domain`, `src/world`, `src/quests`, `src/progression`,
+- [x] Re-copy `src/engine`, `src/domain`, `src/world`, `src/quests`, `src/progression`,
       `src/persistence`, `src/autopilot`, `src/data` into azsh; keep the two world shims; run
       `npm run data:pack` if data changed; `npm run check:all`.
 

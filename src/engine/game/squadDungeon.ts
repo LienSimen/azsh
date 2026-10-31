@@ -2949,7 +2949,7 @@ export function createSquadMethods(
         for (const k of Object.keys(derived) as SkillLine[]) frozen[k] = derived[k]!.current;
         comp.professions = frozen;
       }
-      const gate = canCompanionLearnProfession(comp, line, ds);
+      const gate = canCompanionLearnProfession(comp, line, ds, lvl);
       if (!gate.ok) return { ok: false, reason: gate.reason };
       comp.professions = { ...comp.professions, [line]: 1 };
       const skills = companionSkillMap(comp, lvl);

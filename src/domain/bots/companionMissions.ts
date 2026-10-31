@@ -4,7 +4,7 @@
 import type { DataStore } from '../../data/dataStore.ts';
 import type { GatherNodeDef, SkillLine, ZoneDef } from '../../data/schema.ts';
 import { isPrimaryProfession, MAX_PRIMARY_PROFESSIONS, rollGather } from '../professions/professions.ts';
-import { companionSkillCap, professionSkillCap } from './botProfessions.ts';
+import { companionSkillCap, PROFESSION_RANK_LADDER, professionSkillCap } from './botProfessions.ts';
 import { hashSeed, mulberry32 } from '../../engine/core/rng.ts';
 import type { Companion } from './squad.ts';
 import type { LootDrop } from '../items/loot.ts';
@@ -100,11 +100,17 @@ export function canCompanionLearnProfession(
   comp: Companion,
   line: SkillLine,
   ds: DataStore,
+  level: number,
 ): { ok: true } | { ok: false; reason: string } {
   const def = ds.profession(line);
   if (!def) return { ok: false, reason: 'Unknown profession' };
   const profs = comp.professions ?? {};
   if (profs[line] != null) return { ok: false, reason: `${comp.name} already knows that` };
+  // companionSkillMap drops a line with no trainer rank, so refuse it here (Apprentice: level 5).
+  if (companionSkillCap(line, 1, level) <= 0) {
+    const req = PROFESSION_RANK_LADDER[0]!.reqLevel;
+    return { ok: false, reason: `${comp.name} must be level ${req} to learn that` };
+  }
   if (isPrimaryProfession(def)) {
     const { primaries } = companionProfessionCount(profs, ds);
     if (primaries >= MAX_PRIMARY_PROFESSIONS) {

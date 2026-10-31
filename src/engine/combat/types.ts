@@ -488,9 +488,6 @@ export interface CombatantSpec {
   // creature_template.StaticFlags2. NO_CRUSHING_BLOWS (0x10) gates crush.
   // Cite: CreatureDefines.h CreatureStaticFlags2; Unit.cpp:3109.
   staticFlags2?: number;
-  // creature_template.SpeedRun, the rate a creature multiplies onto the 7 yd/s base; 8793 of 10384
-  // templates carry 1.14286 = 8 yd/s. Cite: Creature.cpp:2857 SetBaseRunSpeed; Unit.cpp:8409.
-  speedRun?: number;
   // Current map id for CheckCast gates that key off GetMapId() (AQ40 mounts require 531).
   // Cite: Spell.cpp:5762–5775.
   mapId?: number;

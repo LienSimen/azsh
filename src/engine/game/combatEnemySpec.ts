@@ -185,8 +185,6 @@ export function buildEnemySpecFromCreature(
     ...(def.extraFlags ? { extraFlags: def.extraFlags } : {}),
     ...(def.staticFlags ? { staticFlags: def.staticFlags } : {}),
     ...(def.staticFlags2 ? { staticFlags2: def.staticFlags2 } : {}),
-    // The chase multiplies this onto BASE_RUN_SPEED, as bgScreen.ts:307 already does. Cite: Unit.cpp:8409.
-    ...(def.speedRun != null && def.speedRun > 0 ? { speedRun: def.speedRun } : {}),
     spells: enemySpells,
     creatureCasts: castRows.length ? castRows : undefined,
     ...(scriptDevMorphs.length ? { scriptDevMorphs } : {}),
