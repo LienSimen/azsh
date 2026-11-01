@@ -2810,7 +2810,7 @@ export function buildDefaultRotation(
 
 // Bump when a change to the packs or a class hook must reach rotations ALREADY STORED in a save.
 // Untouched defaults rebuild once; a hand-edited rotation is never auto-wiped.
-export const ROTATION_PACK_REV = 13;
+export const ROTATION_PACK_REV = 14;
 
 /** The build-time inputs an auto rotation depends on, for staleness detection. */
 export function rotationAutoSig(

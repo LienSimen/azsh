@@ -3174,7 +3174,12 @@ export function installPickAction(ctx: CombatContext, deps: installPickActionDep
     const seals = f.spec.spells.filter((s) => roleOf(s) === 'seal');
     if (seals.length) {
       if (!f.activeSeal) {
-        const best = seals.find((s) => s.effects.some((e) => e.kind === 'seal' && (e.seal === 'command' || e.seal === 'righteousness'))) ?? seals[0];
+        // Command before Righteousness: the talent seal is the stronger swing proc, and the order the
+        // spell list happens to come in must not decide which one a Ret paladin keeps up.
+        const sealKind = (s: SpellDef): string => { const e = s.effects.find((x) => x.kind === 'seal'); return e && e.kind === 'seal' ? e.seal : ''; };
+        const best = seals.find((s) => sealKind(s) === 'command')
+          ?? seals.find((s) => sealKind(s) === 'righteousness')
+          ?? seals[0];
         if (best && canAfford(f, best) && !onCooldown(f, best)) return best;
       } else {
         const judge = find(f, 'judgement');

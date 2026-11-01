@@ -47,26 +47,31 @@ export function finalizePaladinSealJudge(
 
   const pri = sealKindPriority(spec);
   // Kind first (resolved effects); rank only ties same kind (highest rank wins).
-  const best = [...sealRules].sort((a, b) => {
-    const kindA = sealKindOf(resolvedSealDef(a.def));
-    const kindB = sealKindOf(resolvedSealDef(b.def));
+  const bySpec = (a: SpellDef, b: SpellDef): number => {
+    const kindA = sealKindOf(resolvedSealDef(a));
+    const kindB = sealKindOf(resolvedSealDef(b));
     return (pri[kindB] ?? -1) - (pri[kindA] ?? -1)
-      || (b.def.rank ?? 0) - (a.def.rank ?? 0);
-  })[0]!;
-  const bestId = best.def.id;
-  const dropSealIds = new Set(
-    sealRules.filter((s) => s.def.id !== bestId).map((s) => s.def.id),
-  );
+      || (b.rank ?? 0) - (a.rank ?? 0);
+  };
+  // The pick is among every seal the paladin KNOWS, not only the ones the pack wrote down. The
+  // 20-39 Retribution band authored Seal of Righteousness alone, so a Ret who took Seal of Command
+  // at 20 kept casting the trainer seal until the 40 band named Command. The rule the pack placed is
+  // kept where it sits; only the seal it casts changes.
+  const knownSeals = [...knownById.values()].filter((d) => isSealSpell(d));
+  const authored = sealRules.map((s) => s.def);
+  const best = [...(knownSeals.length ? knownSeals : authored)].sort(bySpec)[0]!;
+  const bestId = best.id;
+  const authoredIds = new Set(authored.map((d) => d.id));
 
   const out: RotationRule[] = [];
   let keptBestSeal = false;
   for (const r of combat) {
-    if (r.action.kind === 'spell' && dropSealIds.has(r.action.spellId)) continue;
-    if (r.action.kind === 'spell' && r.action.spellId === bestId) {
+    if (r.action.kind === 'spell' && authoredIds.has(r.action.spellId)) {
       if (keptBestSeal) continue; // one seal upkeep rule only
       keptBestSeal = true;
       out.push({
         ...r,
+        action: { ...r.action, spellId: bestId },
         conditions: [cond('self', 'buffPresent', '==', 0, bestId)],
       });
       continue;
