@@ -1023,6 +1023,14 @@ export function vendorDialog(app, vendor) {
         const r = a.g.sellCompanionJunk(comp.id);
         if (a.result(r, r.ok ? `Sold ${plural(r.count, 'junk item')} of ${comp.name}'s for ${moneyText(r.earned)}.` : '')) for (const x of r.sold) noteSale(a, x.entry, x.qty, x.refundCopper, comp);
       } },
+      d: { hint: 'destroy', fn: (a, row) => {
+        if (mode === 'sell' && row?.data) { const i = a.g.state.inventory.stacks.indexOf(row.data); if (i >= 0) destroyStack(a, i); return; }
+        const comp = mode === 'party' ? row?.data?.comp : null;
+        const slot = comp ? (comp.bags?.stacks ?? []).indexOf(row.data.s) : -1;
+        if (slot < 0) return;
+        const name = a.itemLabel(row.data.s.item);
+        a.confirm(`Destroy ${name} from ${comp.name}'s bags?`, () => a.result(a.g.discardCompanionBagStack(comp.id, slot), `Destroyed ${name}.`));
+      } },
       ...(vendor.canRepair ? { r: { hint: 'repair', fn: (a) => { const r = a.g.repairAll(vendor.entry); a.result(r, r.ok ? (r.spent ? `Repaired for ${moneyText(r.spent)}.` : 'Nothing needs repair.') : ''); } } } : {}),
     },
     onKey(a, k) {
@@ -1064,7 +1072,7 @@ export function vendorDialog(app, vendor) {
           const total = (it?.sellPrice ?? 0) * s.count;
           rows.push({
             text: `${qualityPaint(it?.quality)(it?.name ?? s.item)}${s.count > 1 ? ` x${s.count}` : ''}  ${total ? yellow(moneyText(total)) : dim('no value')}`, data: s,
-            detail: () => itemLines(a, it, ['', dim('Enter: sell the stack (you can buy it back on the Buyback tab)')]),
+            detail: () => itemLines(a, it, ['', dim('Enter: sell the stack (you can buy it back on the Buyback tab)   d: destroy')]),
             act: () => sellStack(a, slot),
           });
         });
@@ -1091,7 +1099,7 @@ export function vendorDialog(app, vendor) {
             const it = a.ds.item(s.item);
             rows.push({
               text: `  ${qualityPaint(it?.quality)(it?.name ?? s.item)}${s.count > 1 ? ` x${s.count}` : ''}  ${it?.sellPrice ? yellow(moneyText(it.sellPrice * s.count)) : dim('no value')}`, data: { comp, s },
-              detail: () => itemLines(a, it, ['', dim(`Enter: sell it out of ${comp.name}'s bags   j: sell their junk`)]),
+              detail: () => itemLines(a, it, ['', dim(`Enter: sell it out of ${comp.name}'s bags   j: sell their junk   d: destroy`)]),
               act: () => { const r = a.g.sellCompanionItemStack(comp.id, slot); if (a.result(r, r.ok ? `Sold ${comp.name}'s ${it?.name}${r.qty > 1 ? ` x${r.qty}` : ''} for ${moneyText(r.earned)}.` : '')) noteSale(a, s.item, r.qty, r.earned, comp); },
             });
           });

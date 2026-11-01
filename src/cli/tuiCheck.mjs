@@ -110,7 +110,11 @@ if (vendorRow > 0) {
     check('a sale lands on the Buyback tab', /Buyback/.test(frame()) && strip(frame()).includes(ds.item(sold.item).name));
     app.top().cursor = rowIndex((r, t) => t.includes(ds.item(sold.item).name)); term.press('return');
     check('Enter buys it back', countItem(app.g.state.inventory, sold.item) === had && !(app.buyback ?? []).length);
-    term.press('tab'); check('Tab reaches the companions mode', /Companions/.test(strip(frame())));
+    term.press('shift-tab');
+    const doomed = app.g.state.inventory.stacks.find((s) => s.item === sold.item);
+    app.top().cursor = rowIndex((r) => r.data === doomed); term.press('d'); term.press('return');
+    check('d destroys a stack from the Selling tab', countItem(app.g.state.inventory, sold.item) === had - doomed.count && app.top().id.startsWith('vendor-'));
+    term.press('tab'); term.press('tab'); check('Tab reaches the companions mode', /Companions/.test(strip(frame())));
   }
   term.press('escape');
   check('Esc closes the vendor', app.stack.length === 0);
