@@ -13,7 +13,7 @@ azeroth-shell                 # pick a character or roll one (azsh for short)
 From a checkout: `npm install -g .` or `node bin/azsh.mjs`.
 
 Needs Node 22.18 or newer (it strips TypeScript types natively). No dependencies. The tree is
-about 29 MB: 15 MB of gzipped game data and 13 MB of engine source.
+about 32 MB: 15 MB of gzipped game data, 3 MB of creature art and 13 MB of engine source.
 
 ## Playing
 
@@ -21,7 +21,10 @@ In a terminal `azsh` opens the windowed game: a header with your pools and gold,
 cursor-driven list with a detail pane beside it, and a scrolling log underneath. Nothing scrolls
 off the top; every screen redraws in place. The colours are plain ANSI, so your terminal's theme
 sets the palette; for a CRT look turn on the terminal's own retro effect (Windows Terminal:
-`"experimental.retroTerminalEffect": true` on the profile; cool-retro-term elsewhere).
+`"experimental.retroTerminalEffect": true` on the profile; cool-retro-term elsewhere). At 90 columns
+or wider the creature you face is drawn beside the fight frames, and under its detail on the World
+tab, as truecolour half-block art baked from the game's models; a terminal without 24-bit colour
+shows it in the nearest colours it has.
 
 | Key | Does |
 | --- | --- |
@@ -137,6 +140,7 @@ npm run check:pipe   # the real terminal path through pipes: raw key bytes in, A
 npm run check:all    # all three; add --frames to check:tui to print every screen
 npm run check:perf   # timings, not pass/fail: module import, boot stages, heap, a repaint on every tab, a fight tick by tick
 npm run data:pack    # gzip the bake after a data refresh; data:unpack reverses it
+npm run art:bake     # rebuild src/data/model-art.bin.gz from phonecraft's creature renders (needs ffmpeg)
 ```
 
 What is not ported, and why, is the "Not porting" list in `PORT-PLAN.md`.

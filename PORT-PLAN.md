@@ -310,7 +310,9 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
 
 ### Not porting
 
-Audio, map tiles and viewports, canvas floor walk and camera, paperdoll sprites, tactical overlay,
+Audio, map tiles and viewports, canvas floor walk and camera, the geared paperdoll (the creature
+sprites do port: `scripts/bake-model-art.mjs` bakes phonecraft's renders into half-block art for the
+fight screen and the creature detail; a player's body and gear would need the 58k overlays), tactical overlay,
 path and route editors, nav debug, onboarding tutorial, bug reporter, and everything under `src/net`
 (social hub, online party, guild, trade window, server mail and auction). Those are either graphics
 or a multiplayer server the terminal does not talk to.

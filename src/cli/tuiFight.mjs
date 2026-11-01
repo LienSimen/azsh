@@ -15,6 +15,7 @@ import { createCombatMacroHost } from './macroHostCombat.ts';
 import { ensureMeter, noteLoot, cycleFightPane, cycleMeterSort, toggleMeterSegment, fightPane, nextPaneId } from './tuiFightPanes.mjs';
 import { objectiveLines } from './tuiViews.mjs';
 import { runPanelLines, endCard, stopText, stepBody } from './tuiAutopilot.mjs';
+import { creatureArt, artWidth } from './modelArt.mjs';
 
 export const TICK_MS = 100; // one engine tick per 100 ms of real time, like the web client
 const POWER_PAINT = { mana: brightBlue, rage: red, energy: yellow, focus: yellow };
@@ -278,7 +279,18 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       }
       return { player, status, fight: fight.slice(0, Math.max(1, room)) };
     },
+    /** The frames, with the foe you face drawn down the right when the screen is wide enough (modelArt.mjs). */
     render(W, H) {
+      const artW = W >= 90 ? Math.min(28, Math.floor(W * 0.28)) : 0;
+      const entry = session.enemyView()?.creatureEntry ?? this.enemyEntry;
+      const art = artW && entry != null ? creatureArt(app.ds.creature(entry)?.displayId, artW, H) : null;
+      if (!art) return this.renderFrames(W, H);
+      const aw = artWidth(art), lines = this.renderFrames(W - aw - 2, H);
+      while (lines.length < H) lines.push('');
+      const top = Math.max(0, Math.floor((H - art.length) / 2));
+      return lines.map((l, i) => `${fit(l, W - aw - 2)}  ${art[i - top] ?? ''}`);
+    },
+    renderFrames(W, H) {
       const lines = [];
       const { head, below } = this.headLines(W);
       const pv = session.playerView(), now = session.t;

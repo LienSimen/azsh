@@ -9,6 +9,7 @@ import { newGameState } from '../engine/game.ts';
 import { strip } from './text.mjs';
 import { visibleBars } from './tuiBars.mjs';
 import { defaultConditionsForSpell } from './tuiRotationCond.mjs';
+import { creatureArt, hasArt } from './modelArt.mjs';
 import { addItem, countItem } from '../domain/items/inventory.ts';
 import { moneyText as moneyTextOf } from '../domain/economy/money.ts';
 import { offeredQuests } from '../quests/quests.ts';
@@ -134,6 +135,12 @@ const mobRow = app.rowsOf(app.top()).findIndex((r) => r.data?.creature);
 app.top().cursor = mobRow; term.press('return');
 check('live fight started', !!app.fight);
 show('fight start');
+{
+  const art = creatureArt(384, 20, 10); // Hogger
+  check('creature art scales to the room it gets', !!art && art.length <= 10 && art.every((l) => strip(l).length === strip(art[0]).length && strip(l).length <= 20));
+  const foeDisplay = ds.creature(app.fight?.enemyEntry)?.displayId;
+  check('the fight shows the foe beside the frames', !hasArt(foeDisplay) || /[▀▄]/.test(frame()));
+}
 const barName = app.fight?.abilityBar()[0]?.spell.name;
 const hasBar = () => barName && frame().split('\n').some((l) => /^\s*1\s/.test(strip(l)) && strip(l).includes(barName));
 check('auto-play hides the ability bar', !hasBar());

@@ -41,6 +41,7 @@ import { talentBuildsMenu, myTalentLink } from './tuiTalents.mjs';
 import { simLabDialog } from './tuiSimLab.mjs';
 import { autopilotSettingsDialog } from './tuiAutopilotSettings.mjs';
 import { preflightCard } from './tuiAutopilot.mjs';
+import { creatureArt } from './modelArt.mjs';
 import { reputationDialog } from './tuiRep.mjs';
 import { honorDialog, honorRankLine } from './tuiHonor.mjs';
 import { openWorldSearch } from './tuiSearch.mjs';
@@ -156,6 +157,10 @@ export function creatureLines(app, c) {
   out.push(...wanted);
   if ((app.g.state.squad ?? []).length) out.push(squadJoinsPull(app.g, app.ds, c.entry) ? cyan('Your companions join this fight.') : dim('You take this one alone (squad mode, m on Companions).'));
   out.push('', dim('Enter: fight live   f: auto-resolve'));
+  // The creature itself under the text, as large as the pane has room for (modelArt.mjs).
+  const L = app.layout?.();
+  const art = L && c.displayId ? creatureArt(c.displayId, L.detailW - 2, L.mainH - out.length - 1) : null;
+  if (art) out.push('', ...art);
   return out;
 }
 
