@@ -42,6 +42,7 @@
     "build:exe": "node scripts/build-exe.mjs",
     "check:tui": "node --import ./src/cli/register.mjs src/cli/tuiCheck.mjs",
     "check:pipe": "node scripts/tui-pipe-check.mjs",
+    "check:perf": "node --import ./src/cli/register.mjs src/cli/perfCheck.mjs",
     "check:all": "npm run check && npm run check:tui && npm run check:pipe"
   }
 }

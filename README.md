@@ -19,7 +19,9 @@ about 29 MB: 15 MB of gzipped game data and 13 MB of engine source.
 
 In a terminal `azsh` opens the windowed game: a header with your pools and gold, eleven tabs, a
 cursor-driven list with a detail pane beside it, and a scrolling log underneath. Nothing scrolls
-off the top; every screen redraws in place.
+off the top; every screen redraws in place. The colours are plain ANSI, so your terminal's theme
+sets the palette; for a CRT look turn on the terminal's own retro effect (Windows Terminal:
+`"experimental.retroTerminalEffect": true` on the profile; cool-retro-term elsewhere).
 
 | Key | Does |
 | --- | --- |
@@ -133,6 +135,7 @@ npm run check        # boot the store, fight ten kobolds, save and reload
 npm run check:tui    # drive the windowed game headlessly: tabs, quest, vendor, trainer, gear, bank, auction house, live fight, autopilot, crafting, hiring, send goods
 npm run check:pipe   # the real terminal path through pipes: raw key bytes in, ANSI frames out, Esc, paging, quit
 npm run check:all    # all three; add --frames to check:tui to print every screen
+npm run check:perf   # timings, not pass/fail: module import, boot stages, heap, a repaint on every tab, a fight tick by tick
 npm run data:pack    # gzip the bake after a data refresh; data:unpack reverses it
 ```
 
