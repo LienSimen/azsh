@@ -136,7 +136,8 @@ export async function main(argv = []) {
   const held = repo.lock(slot);
   if (!held.ok) { console.log(red(`${state.char.name} is open in another terminal (pid ${held.pid}). Close it there first.`)); rl.close(); return; }
 
-  const g = createGame(ds, state, { travelPace: 'instant' });
+  // Wall clock, like the TUI: both write the same saves, and a fight-chain stamp reads hours off there.
+  const g = createGame(ds, state, { travelPace: 'instant', wallWorldClock: true });
   if (g.state.char.journey) g.completeJourneyNow();
   // Real createInfo has no starting weapon (ETL gap KI-003); phonecraft's harness.mjs hands one over too.
   if (!save && g.state.char.equipped.mainhand == null) {
@@ -577,9 +578,12 @@ export function createCommands({ g, ds, out, persist, slot, arrive, skipJourney 
   // the fight as a real-time session and call `settle(outcome)` when it ends; without it fights are
   // auto-resolved by the engine. `ap.lastKind` is the kind of the step `next()` just took.
   // `quest` pins the run to one quest log entry (Do Quest); it stops when that quest is done or stuck.
-  function createAutopilot(args, { liveFight, quest } = {}) {
+  // `maxSteps` overrides the step count in `args` (Infinity: no cap). `clock` gives the run's real elapsed
+  // ms, so the Stop after setting counts wall time; without it the planner's own clock runs (a second a
+  // step, ten a rest).
+  function createAutopilot(args, { liveFight, quest, maxSteps, clock } = {}) {
     const m = String(args ?? '').match(/^(\d+)?\s*(?:farm\s+(.+))?$/i);
-    const steps = Math.min(Number(m?.[1] ?? 20), 5000);
+    const steps = maxSteps ?? Math.min(Number(m?.[1] ?? 20), 5000);
     // A reward choice is the player's to make, so Do Quest stops at the hand-in for those.
     let mode = quest != null ? { kind: 'quest', entry: quest, pin: true, handInByHand: !!ds.quest(quest)?.rewChoiceItems?.length } : { kind: 'quest' };
     if (m?.[2]) {
@@ -599,6 +603,7 @@ export function createCommands({ g, ds, out, persist, slot, arrive, skipJourney 
     let done = false;
     let lastKind = null;
     let lastQuest = null; // the quest the latest step worked on, blamed when the planner gives up
+    let stopReason = null; // why the run ended: the planner's stop step, or 'steps' when the step budget ran out
     const skipped = [];
     const inLog = (entry) => g.state.questlog.quests.some((qs) => qs.entry === entry && qs.status !== 'turnedIn');
     const blacklist = (entry, why) => {
@@ -617,7 +622,7 @@ export function createCommands({ g, ds, out, persist, slot, arrive, skipJourney 
       } else if (r.outcome === 'win') { prog.consecutiveDefeats = 0; prog.recovering = false; }
     };
     const next = () => {
-      if (done || i >= steps) { done = true; return null; }
+      if (done || i >= steps) { if (!done) stopReason = { reason: 'steps', detail: `${steps} steps done` }; done = true; return null; }
       i++;
       lastKind = null;
       if (isDead()) {
@@ -628,7 +633,17 @@ export function createCommands({ g, ds, out, persist, slot, arrive, skipJourney 
       let step = null;
       let line = '';
       try {
+        if (clock) prog.elapsedMs = clock();
         step = planStep(g.state, ds, mode, cfg, prog);
+        // The planner parks quests it cannot finish on its own; those join the blacklist too, so the
+        // run panel stops offering them as next and later runs skip them from the first step.
+        if (skipping) {
+          for (const e of sets.blockedQuests) {
+            if (questBlacklist.has(e) || !inLog(e)) continue;
+            questBlacklist.add(e); skipped.push(e);
+            out(`${dim(String(i).padStart(3) + '.')} ${yellow(`skipping ${nm(e)}: no way to finish it from here`)}`);
+          }
+        }
         lastKind = step.kind;
         if (prog.eliteNeedsSquad && !companionHintShown && !(g.state.squad ?? []).length) {
           companionHintShown = true;
@@ -669,6 +684,7 @@ export function createCommands({ g, ds, out, persist, slot, arrive, skipJourney 
             const why = `${step.reason}${step.detail ? ` (${step.detail})` : ''}`;
             // Stuck or beaten on a quest: drop that quest and plan again rather than end the run.
             if (skipping && (step.reason === 'noTargets' || step.reason === 'defeated') && lastQuest != null && !sets.blockedQuests.has(lastQuest) && inLog(lastQuest)) { line = blacklist(lastQuest, step.detail ?? step.reason); break; }
+            stopReason = { reason: step.reason, detail: step.detail };
             line = yellow(`autopilot stopped: ${why}`); done = true; break;
           }
           default: line = dim(`unhandled step ${step.kind}`);
@@ -682,7 +698,16 @@ export function createCommands({ g, ds, out, persist, slot, arrive, skipJourney 
       return line ? `${dim(String(i).padStart(3) + '.')} ${line}` : '';
     };
     const summary = () => `Level ${g.state.char.level}, ${moneyText(g.state.char.gold)}, ${zoneHere()?.name}.${skipped.length ? ` Skipped: ${skipped.map(nm).join(', ')}.` : ''}`;
-    return { next, steps, summary, get done() { return done; }, get lastKind() { return lastKind; }, get step() { return i; } };
+    // The windowed game reads the rest for its run panel, Run pane and end card: why the run stopped, which
+    // quests it dropped, the death streak and the planner's own clock (one second a step, ten a rest).
+    return {
+      next, steps, summary, mode, skipped,
+      get done() { return done; }, get lastKind() { return lastKind; }, get step() { return i; },
+      get stopReason() { return stopReason; }, get defeats() { return prog.consecutiveDefeats; }, get elapsedMs() { return prog.elapsedMs; },
+      get lastQuest() { return lastQuest; },
+      skips: (entry) => questBlacklist.has(entry) || sets.blockedQuests.has(entry),
+      questDefeats: (entry) => prog.questDefeats.get(entry) ?? 0,
+    };
   }
 
   function runAutopilot(args) {

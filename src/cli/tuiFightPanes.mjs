@@ -5,13 +5,18 @@
 import { bold, dim, cyan, yellow, green, red, inverse, fit, vis, cut, bar, pct } from './text.mjs';
 import { createDpsMateMeter, partyMeterSnapshot } from '../domain/bots/dpsMate.ts';
 import { moneyText } from '../domain/economy/money.ts';
+import { runPaneLines, questPaneLines, bagsPaneLines } from './tuiAutopilot.mjs';
 
 export const FIGHT_PANES = [
   { id: 'log', label: 'Log' },
   { id: 'meter', label: 'Meter' },
   { id: 'threat', label: 'Threat' },
   { id: 'loot', label: 'Loot' },
+  { id: 'run', label: 'Run' }, // the autopilot's ledger: only once a run exists
+  { id: 'quests', label: 'Quests' }, // during a run: the quests it works on
+  { id: 'bags', label: 'Bags' }, // during a run: the bags, with a cursor, so items can be used while it plays
 ];
+const panesOf = (app) => FIGHT_PANES.filter((p) => (p.id === 'run' ? app.auto || app.lastRun : p.id === 'quests' || p.id === 'bags' ? !!app.auto : true));
 // The meter's views, like a classic meter addon's modes. Each ranks the party by its own number.
 const METER_VIEWS = [
   { id: 'damage', title: 'Damage done', value: (a) => a.damage },
@@ -26,10 +31,22 @@ const meterView = (app) => METER_VIEWS.find((v) => v.id === app.meterSort) ?? ME
 
 export const fightPane = (app) => app.fightPane ?? 'log';
 
+/** The pane shows in a fight and on the autopilot's between-fight panel, so a run holds the chosen pane
+ *  instead of dropping to the log after every kill. */
+export const showsPanes = (app) => !app.stack.length && (app.auto ? !app.auto.browsing : !!app.fight);
+
+/** What Tab moves to next ("meter", "threat", "loot", "log"), for the hint line. */
+export function nextPaneId(app) {
+  const panes = panesOf(app);
+  const i = Math.max(0, panes.findIndex((p) => p.id === fightPane(app)));
+  return panes[(i + 1) % panes.length].id;
+}
+
 /** Tab / Shift-Tab in a fight: the next or previous pane. */
 export function cycleFightPane(app, dir = 1) {
-  const i = Math.max(0, FIGHT_PANES.findIndex((p) => p.id === fightPane(app)));
-  app.fightPane = FIGHT_PANES[(i + dir + FIGHT_PANES.length) % FIGHT_PANES.length].id;
+  const panes = panesOf(app);
+  const i = Math.max(0, panes.findIndex((p) => p.id === fightPane(app)));
+  app.fightPane = panes[(i + dir + panes.length) % panes.length].id;
   app.render();
 }
 
@@ -67,21 +84,23 @@ export function noteLoot(app, taken = [], copper = 0) {
 
 /** The rule between the frames and the pane. In a fight it carries the pane tabs. */
 export function fightPaneRule(app, L) {
-  if (!app.fight || app.stack.length) return dim('─'.repeat(L.W));
+  if (!showsPanes(app)) return dim('─'.repeat(L.W));
   const cur = fightPane(app);
-  const tabs = FIGHT_PANES.map((p) => (p.id === cur ? inverse(` ${p.label} `) : dim(` ${p.label} `))).join(dim('─'));
+  const tabs = panesOf(app).map((p) => (p.id === cur ? inverse(` ${p.label} `) : dim(` ${p.label} `))).join(dim('─'));
   const left = `${dim('──')}${tabs}`;
-  const right = `${dim('Tab: switch')}${dim('──')}`;
+  const folded = cur === 'log' && app.fight?.folded?.() ? dim(`log folded at ${app.fight.speed}x, - unfolds it   `) : '';
+  const right = `${folded}${dim('Tab: switch')}${dim('──')}`;
   const mid = Math.max(0, L.W - vis(left) - vis(right));
   return cut(`${left}${dim('─'.repeat(mid))}${right}`, L.W);
 }
 
 /** The pane's lines (exactly L.logH of them). */
 export function fightPaneLines(app, L) {
-  const ctl = app.fight;
-  if (!ctl || app.stack.length || fightPane(app) === 'log') return app.logLines(L);
+  if (!showsPanes(app) || fightPane(app) === 'log') return app.logLines(L);
+  const ctl = app.fight ?? app.lastFight; // between autopilot fights: the one just over
   const pane = fightPane(app);
-  const lines = pane === 'meter' ? meterLines(app, ctl, L) : pane === 'threat' ? threatLines(app, ctl, L) : lootLines(app, L);
+  const lines = pane === 'run' ? runPaneLines(app, L) : pane === 'quests' ? questPaneLines(app, L) : pane === 'bags' ? bagsPaneLines(app, L)
+    : pane === 'loot' ? lootLines(app, L) : !ctl ? [dim(' No fight yet.')] : pane === 'meter' ? meterLines(app, ctl, L) : threatLines(app, ctl, L);
   const out = lines.slice(0, L.logH).map((l) => fit(l, L.W));
   while (out.length < L.logH) out.push('');
   return out;

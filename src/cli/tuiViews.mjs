@@ -8,12 +8,13 @@ import { moneyText } from '../domain/economy/money.ts';
 import { maxHealth, maxPower } from '../domain/character/character.ts';
 import { effectiveStats, effectiveArmor, attackPower, powerType } from '../domain/character/characterStats.ts';
 import { critChanceDisplay, dodgeChanceDisplay, hitChance, weaponSkillIdForHand, skillBonusFor } from '../domain/character/characterRatings.ts';
-import { COMBAT_SKILL, isLevelRangeCombatSkill, combatSkillDisplayName } from '../domain/character/combatSkills.ts';
+import { COMBAT_SKILL, isLevelRangeCombatSkill, combatSkillDisplayName, isSpellFitByClassAndRace } from '../domain/character/combatSkills.ts';
 import { skillMaxForLevel } from '../engine/combat/mitigation.ts';
 import { knownUsableSpells } from '../domain/character/characterSpells.ts';
 import { bagCapacity, EQUIP_SLOTS, BAG_SLOTS, SLOT_LABEL, itemSlotTargets, DUAL_WIELD_SPELL_ID } from '../domain/items/equipment.ts';
 import { equippedEntry } from '../domain/items/itemInstance.ts';
-import { knows } from '../domain/character/spellbook.ts';
+import { stackBoundToHolder } from '../domain/raid/partyVault.ts';
+import { knows, learnGrantIds } from '../domain/character/spellbook.ts';
 import { availablePoints, canSpend, canRefund, spentInTree } from '../domain/character/talents.ts';
 import { offeredQuests, chainFollowUpOffer, grayLogQuests } from '../quests/quests.ts';
 import { isRepeatableQuest, questRepeatsAvailable } from '../domain/quests/questlog.ts';
@@ -27,6 +28,8 @@ import { squadJoinsPull } from './squad.mjs';
 import { barsDialog, playerBarsOwner } from './tuiBars.mjs';
 import { petWorldRows, petDialog, hasPetClass } from './tuiPet.mjs';
 import { portalRows } from './tuiDungeon.mjs';
+import { conditionEditor, defaultConditionsForSpell, defaultItemRule } from './tuiRotationCond.mjs';
+import { allyIndexOfSide } from '../engine/core/events.ts';
 import { bulkDisenchantDialog, learnAllDialog } from './tuiBulk.mjs';
 import { gearExtraRows, durabilityText, repairOne, slotRepairLines, enchantLines } from './tuiGear.mjs';
 import { outfitterDialog } from './tuiOutfitter.mjs';
@@ -37,6 +40,7 @@ import { pickPocket, pickPocketTag, journeyRows, afterDeparture, ridingRows, obj
 import { talentBuildsMenu, myTalentLink } from './tuiTalents.mjs';
 import { simLabDialog } from './tuiSimLab.mjs';
 import { autopilotSettingsDialog } from './tuiAutopilotSettings.mjs';
+import { preflightCard } from './tuiAutopilot.mjs';
 import { reputationDialog } from './tuiRep.mjs';
 import { honorDialog, honorRankLine } from './tuiHonor.mjs';
 import { openWorldSearch } from './tuiSearch.mjs';
@@ -56,6 +60,19 @@ export function conPaint(playerLevel, level) {
 
 // ---- detail panes --------------------------------------------------------------------------------
 
+// A spell's tooltip text with the tokens the bake left in filled from its own effects: $v max target
+// level, $q misc value (Resurrection's mana), $f damage multiplier (Ferocious Bite). A leading id reads
+// another spell's effect ($3026q1). Anything else stays as written.
+export function spellText(ds, sp) {
+  const text = sp?.description?.trim();
+  if (!text?.includes('$')) return text;
+  const fx = (id, i) => (id ? ds.spell(Number(id)) : sp)?.rawEffects?.[(Number(i) || 1) - 1];
+  return text
+    .replace(/\$v\b/g, (m) => sp.maxTargetLevel != null ? String(sp.maxTargetLevel) : m)
+    .replace(/\$(\d*)q(\d?)/g, (m, id, i) => fx(id, i)?.miscValue != null ? String(fx(id, i).miscValue) : m)
+    .replace(/\$(\d*)f(\d)/g, (m, id, i) => fx(id, i)?.dmgMultiplier != null ? String(fx(id, i).dmgMultiplier) : m);
+}
+
 export function itemLines(app, item, extra = []) {
   if (!item) return ['Unknown item'];
   const out = [qualityPaint(item.quality)(bold(item.name))];
@@ -68,12 +85,37 @@ export function itemLines(app, item, extra = []) {
   if (item.armor) out.push(`${item.armor} Armor`);
   if (item.block) out.push(`${item.block} Block`);
   for (const s of item.stats ?? []) if (s.value) out.push(`${s.value > 0 ? '+' : ''}${s.value} ${STAT_LABEL[s.stat] ?? s.stat}`);
-  if (item.consumable) out.push(green(`Use: Restores ${item.consumable.amountPerTick * Math.round(item.consumable.durationMs / item.consumable.tickMs)} ${item.consumable.effect === 'drink' ? 'mana' : 'health'} over ${Math.round(item.consumable.durationMs / 1000)} sec. Must remain seated.`));
-  if (item.useInCombat?.effect === 'restore_health') out.push(green(`Use: Restores ${item.useInCombat.min} to ${item.useInCombat.max} health.`));
-  if (item.useInCombat?.effect === 'restore_power') out.push(green(`Use: Restores ${item.useInCombat.min} to ${item.useInCombat.max} mana.`));
+  for (const id of new Set(item.equipSpells ?? [])) {
+    const text = spellText(app.ds, app.ds.spell(id));
+    if (text) out.push(green(`Equip: ${text}`));
+  }
+  // ITEM_SPELLTRIGGER_CHANCE_ON_HIT 2.
+  for (const p of item.procs ?? []) {
+    const text = p.trigger === 2 && spellText(app.ds, app.ds.spell(p.spell));
+    if (text) out.push(green(`Chance on hit: ${text}`));
+  }
+  // The use spell's own tooltip text carries the Well Fed rider; a few still hold unresolved $ tokens.
+  const useText = spellText(app.ds, app.ds.spell(item.useSpell ?? item.useInCombat?.spellId));
+  if (useText && !useText.includes('$')) out.push(green(`Use: ${useText}`));
+  else {
+    // Same tick count rest.ts heals for: floor(duration / tick).
+    if (item.consumable) out.push(green(`Use: Restores ${item.consumable.amountPerTick * Math.max(1, Math.floor(item.consumable.durationMs / item.consumable.tickMs))} ${item.consumable.effect === 'drink' ? 'mana' : 'health'} over ${Math.round(item.consumable.durationMs / 1000)} sec. Must remain seated.`));
+    if (item.useInCombat?.effect === 'restore_health') out.push(green(`Use: Restores ${item.useInCombat.min} to ${item.useInCombat.max} health.`));
+    if (item.useInCombat?.effect === 'restore_power') out.push(green(`Use: Restores ${item.useInCombat.min} to ${item.useInCombat.max} mana.`));
+  }
   if (item.requiredLevel > 1) out.push(`Requires Level ${item.requiredLevel}`);
   if (item.allowClass?.length) out.push(`Classes: ${item.allowClass.map(className).join(', ')}`);
   if (item.bagSlots) out.push(`${item.bagSlots} Slot Bag`);
+  const set = item.setId && app.ds.itemSet(item.setId);
+  if (set) {
+    const worn = new Set(Object.values(app.ch?.equipped ?? {}).map(equippedEntry));
+    const have = set.items.filter((e) => worn.has(e)).length;
+    out.push('', yellow(`${set.name ?? 'Item set'} (${have}/${set.items.length})`));
+    for (const b of set.bonuses) {
+      const text = spellText(app.ds, app.ds.spell(b.spell));
+      if (text) out.push((have >= b.pieces ? green : gray)(`(${b.pieces}) Set: ${text}`));
+    }
+  }
   if (item.description) out.push(yellow(`"${item.description}"`));
   if (item.sellPrice) out.push(dim(`Sells for ${moneyText(item.sellPrice)}`));
   out.push(...extra);
@@ -90,7 +132,8 @@ export function spellLines(app, sp, extra = []) {
   if (sp.rangeMax) bits.push(`${sp.rangeMax} yd range`);
   out.push(dim(bits.join('   ')));
   if (sp.reagents?.length) out.push(dim('Reagents: ' + sp.reagents.map((r) => `${app.itemLabel(r.item)}${r.count > 1 ? ` x${r.count}` : ''}`).join(', ')));
-  if (sp.description) out.push(...wrapLines(yellow(sp.description), 60));
+  const text = spellText(app.ds, sp);
+  if (text) out.push(...wrapLines(yellow(text), 60));
   const cd = app.g.spellCooldownRemaining(sp.id);
   if (cd > 0) out.push(red(`Cooldown: ${secondsText(cd)} left`));
   out.push(...extra);
@@ -118,7 +161,7 @@ export function creatureLines(app, c) {
 
 export function questLines(app, q, qs) {
   const ch = app.ch;
-  const out = [bold(q.title) + dim(`  level ${q.questLevel}${q.minLevel > ch.level ? red(`  requires ${q.minLevel}`) : ''}`)];
+  const out = [conPaint(ch.level, q.questLevel)(bold(q.title)) + dim(`  level ${q.questLevel}${q.minLevel > ch.level ? red(`  requires ${q.minLevel}`) : ''}`)];
   if (qs) out.push(qs.status === 'complete' ? green('Ready to turn in') : qs.status === 'failed' ? red('Failed') : yellow('In progress'));
   out.push(...objectiveLines(app, q, qs).map((o) => `  ${o}`));
   const rew = rewardLines(app, q);
@@ -142,7 +185,7 @@ export function objectiveLines(app, q, qs) {
 
 export function rewardLines(app, q) {
   const out = [];
-  if (q.rewXP) out.push(`${q.rewXP} experience`);
+  if (q.rewXP) out.push(magenta(`${q.rewXP} experience`));
   if (q.rewMoney) out.push(yellow(moneyText(q.rewMoney)));
   for (const it of q.rewItems) out.push(`${app.itemLabel(it.item)}${it.count > 1 ? ` x${it.count}` : ''}`);
   if (q.rewChoiceItems?.length) out.push('Choose one of: ' + q.rewChoiceItems.map((it) => app.itemLabel(it.item)).join(', '));
@@ -173,10 +216,11 @@ function worldView(app) {
     id: 'world', title: 'World', hint: 'Enter: open / fight',
     keys: {
       s: { hint: 'search', fn: (a) => openWorldSearch(a) },
+      S: { fn: (a) => openWorldSearch(a, '', true) },
       f: { hint: 'quick fight', fn: (a, row) => { if (row?.data?.creature) a.cmds.commands.fight(String(row.data.creature.entry)); } },
       t: { fn: (a, row) => { const c = row?.data?.creature; if (!c) return; if (a.ch.cls !== 3) { a.flashMsg('Only hunters tame beasts.'); return; } a.result(a.g.tamePet(c.entry), `You tame ${c.name}.`); } },
       P: { fn: (a, row) => { if (row?.data?.creature) pickPocket(a, row.data.creature); } },
-      a: { hint: 'autopilot', fn: (a) => startAutopilot(a) },
+      a: { hint: 'autopilot', fn: (a) => a.push(preflightCard(a)) },
     },
     rows(a) {
       const ds = a.ds, g = a.g, z = a.zone(), ch = a.ch;
@@ -184,8 +228,9 @@ function worldView(app) {
       const rows = [...journeyRows(a), ...meetingStoneQueueRows(a), { text: `${z.name}  ${dim(`levels ${z.levelRange[0]}-${z.levelRange[1]}${z.faction ? `, ${z.faction}` : ''}`)}`, header: true }];
       const people = [];
       for (const t of z.trainers ?? []) if (t.cls === ch.cls) { const d = ds.trainer(t.entry); if (d) people.push({ text: `${d.name} ${dim(`<${className(t.cls)} Trainer>`)}`, detail: () => [bold(d.name), `${className(t.cls)} trainer`, '', dim('Enter: see what you can learn')], act: () => a.push(trainerDialog(a, d)) }); }
-      for (const v of z.vendors ?? []) { const d = ds.vendor(v); if (d) people.push({ text: `${d.name} ${dim(`<${d.subname ?? 'Vendor'}>`)}${d.canRepair ? dim('  repairs') : ''}`, detail: () => [bold(d.name), d.subname ?? 'Vendor', d.canRepair ? 'Repairs armor and weapons' : '', '', dim('Enter: browse wares')], act: () => a.push(vendorDialog(a, d)) }); }
-      for (const i of z.innkeepers ?? []) people.push({ text: `${i.name} ${dim('<Innkeeper>')}`, detail: () => [bold(i.name), 'Innkeeper', '', dim('Enter: make this your home, rest')], act: () => a.push(innDialog(a, i)) });
+      const innEntries = new Set((z.innkeepers ?? []).map((i) => i.entry)); // innkeepers sell too, but list once, as the inn
+      for (const v of z.vendors ?? []) { const d = !innEntries.has(v) && ds.vendor(v); if (d) people.push({ text: `${d.name} ${dim(`<${d.subname ?? 'Vendor'}>`)}${d.canRepair ? dim('  repairs') : ''}`, detail: () => [bold(d.name), d.subname ?? 'Vendor', d.canRepair ? 'Repairs armor and weapons' : '', '', dim('Enter: browse wares')], act: () => a.push(vendorDialog(a, d)) }); }
+      for (const i of z.innkeepers ?? []) people.push({ text: `${i.name} ${dim('<Innkeeper>')}`, detail: () => [bold(i.name), 'Innkeeper', '', dim('Enter: browse wares, make this your home')], act: () => a.push(innDialog(a, i)) });
       for (const p of z.profTrainers ?? []) {
         const d = ds.profTrainer(p);
         if (!d) continue;
@@ -223,19 +268,13 @@ function worldView(app) {
           rows.push({ text: `${conPaint(ch.level, m.level)(m.name)} ${dim(`L${m.level}`)}${wanted ? yellow('  !') : ''}${ch.cls === 4 ? pickPocketTag(a, m) : ''}`, data: { creature: m }, detail: () => creatureLines(a, m), act: () => startFight(a, m.entry) });
         }
       }
-      // Last, since the Quests tab is the main place for these: the same offer list the autopilot reads (chain,
-      // class, race and exclusive-group gates applied); `canAccept` false means visible but level- or
-      // reputation-locked (shown grey, like a silver !).
-      const have = new Map(g.state.questlog.quests.map((qs) => [qs.entry, qs]));
-      const offered = offeredQuests(ds, z.id, ch, g.state.questlog).filter((o) => !have.has(o.quest.entry) && (o.canAccept || o.quest.minLevel <= ch.level + 5));
+      // Last: hand-ins and the zone's offers (the Quests tab shows the same list under its log).
       const ready = g.state.questlog.quests.filter((qs) => qs.status === 'complete').map((qs) => ({ qs, q: ds.quest(qs.entry) })).filter((x) => x.q);
+      const offered = zoneOfferRows(a);
       if (offered.length || ready.length) {
         rows.push({ text: '', header: true }, { text: 'Quests', header: true });
-        for (const { q, qs } of ready) rows.push({ text: `${green('?')} ${q.title} ${dim(`L${q.questLevel}`)}  ${green('turn in')}`, detail: () => questLines(a, q, qs), act: () => a.push(questDialog(a, q, 'log')) });
-        for (const o of offered) {
-          const q = o.quest;
-          rows.push({ text: `${o.canAccept ? yellow('!') : dim('·')} ${o.canAccept ? q.title : dim(q.title)} ${dim(`L${q.questLevel}`)}${!o.canAccept && q.minLevel > ch.level ? dim(`  at level ${q.minLevel}`) : ''}`, detail: () => questLines(a, q), act: () => a.push(questDialog(a, q, 'offer')) });
-        }
+        for (const { q, qs } of ready) rows.push({ text: `${green('?')} ${conPaint(ch.level, q.questLevel)(`${q.title} L${q.questLevel}`)}  ${green('turn in')}`, detail: () => questLines(a, q, qs), act: () => a.push(questDialog(a, q, 'log')) });
+        rows.push(...offered);
       }
       return rows;
     },
@@ -270,9 +309,23 @@ export function landOnTab(app) {
   const v = app.tabs[i]?.view; if (v) { v.cursor = 0; v.scroll = 0; }
 }
 
+/** The quests this zone offers that are not in the log: the same offer list the autopilot reads (chain, class,
+ * race and exclusive-group gates applied). `canAccept` false means visible but level- or reputation-locked
+ * (shown grey, like a silver !); quests more than five levels above you are left out. */
+export function zoneOfferRows(a) {
+  const z = a.zone(), ch = a.ch;
+  if (!z) return [];
+  const have = new Set(a.g.state.questlog.quests.map((qs) => qs.entry));
+  const offered = offeredQuests(a.ds, z.id, ch, a.g.state.questlog).filter((o) => !have.has(o.quest.entry) && (o.canAccept || o.quest.minLevel <= ch.level + 5));
+  return offered.map((o) => {
+    const q = o.quest;
+    return { text: `${o.canAccept ? yellow('!') : dim('·')} ${o.canAccept ? conPaint(ch.level, q.questLevel)(`${q.title} L${q.questLevel}`) : dim(`${q.title} L${q.questLevel}`)}${!o.canAccept && q.minLevel > ch.level ? dim(`  at level ${q.minLevel}`) : ''}`, detail: () => questLines(a, q), act: () => a.push(questDialog(a, q, 'offer')) };
+  });
+}
+
 function questsView(app) {
   return {
-    id: 'quests', title: 'Quest log', hint: 'Enter: open', empty: 'Your quest log is empty. Look for ! in the world.',
+    id: 'quests', title: 'Quest log', hint: 'Enter: open', empty: 'Your quest log is empty and this zone offers nothing. Look for ! in the world.',
     keys: {
       d: { hint: 'do quest', fn: (a, row) => { if (row?.data) doQuest(a, row.data.q); } },
       x: { hint: 'abandon', fn: (a, row) => { if (row?.data) a.confirm(`Abandon ${row.data.q.title}?`, () => a.result(a.g.abandonQuest(row.data.q.entry), `Abandoned ${row.data.q.title}.`)); } },
@@ -285,8 +338,14 @@ function questsView(app) {
       rows.push({ text: `${log.length} of 20 quests`, header: true });
       for (const x of log) {
         const st = x.qs.status === 'complete' ? green('(Complete)') : x.qs.status === 'failed' ? red('(Failed)') : a.cmds.questBlacklist.has(x.q.entry) ? dim('(autopilot skips)') : '';
-        rows.push({ text: `${x.q.title} ${dim(`L${x.q.questLevel}`)} ${st}`, data: x, detail: () => questLines(a, x.q, x.qs), act: () => a.push(questDialog(a, x.q, 'log')) });
+        rows.push({ text: `${conPaint(a.ch.level, x.q.questLevel)(`${x.q.title} L${x.q.questLevel}`)} ${st}`, data: x, detail: () => questLines(a, x.q, x.qs), act: () => a.push(questDialog(a, x.q, 'log')) });
       }
+      // Below the log: what this zone offers that you have not taken, so you need not scroll the World tab for it.
+      const offered = zoneOfferRows(a);
+      if (offered.length) {
+        if (log.length) rows.push({ text: '', header: true });
+        rows.push({ text: `Available in ${a.zone()?.name ?? 'this zone'} (${offered.length})`, header: true }, ...offered);
+      } else if (!log.length) return [];
       return rows;
     },
   };
@@ -299,14 +358,19 @@ export function questDialog(app, q, mode) {
     rows(a) {
       const W = a.layout().listW - 4;
       const ch = a.ch, s = qs();
-      const rows = [{ text: `${bold(q.title)}  ${dim(`L${q.questLevel}`)}`, header: true }, { text: '', header: true }];
-      const text = (t) => wrapLines(questText(t, ch), W).map((l) => ({ text: l, header: true }));
-      if (mode === 'offer') rows.push(...text(q.detailsText), { text: '', header: true }, { text: 'Objectives', header: true }, ...text(q.objectivesText));
-      else if (s?.status === 'complete') rows.push(...text(q.offerRewardText || q.endText || q.objectivesText));
-      else rows.push(...text(q.objectivesText), { text: '', header: true }, ...(q.requestItemsText ? text(q.requestItemsText) : []));
-      rows.push({ text: '', header: true });
-      for (const o of objectiveLines(a, q, s)) rows.push({ text: `  ${o}`, header: true });
-      rows.push({ text: '', header: true });
+      // Each part reads apart: the title in its level colour, cyan section headings, the story in plain
+      // text, the objective in bold with its counts, rewards in their own paint.
+      const P = (t) => ({ text: t, header: true, plain: true });
+      const rows = [P(`${conPaint(ch.level, q.questLevel)(bold(q.title))}  ${dim(`L${q.questLevel}`)}`)];
+      const text = (t, paint = (l) => l) => wrapLines(questText(t, ch), W).map((l) => P(paint(l)));
+      const section = (title, lines) => { if (lines.length) rows.push(P(''), { text: title, header: true }, ...lines); };
+      const story = () => section(s?.status === 'complete' ? 'Completion' : 'Description',
+        text(s?.status === 'complete' ? q.offerRewardText || q.endText || '' : q.detailsText || q.requestItemsText || ''));
+      const objectives = () => section('Objectives', [...text(q.objectivesText ?? '', bold), ...objectiveLines(a, q, s).map((o) => P(`  ${o}`))]);
+      // Offered, the story leads as the giver tells it; in the log, what is left to do comes first.
+      if (mode === 'offer' || s?.status === 'complete') { story(); objectives(); } else { objectives(); story(); }
+      section('Rewards', rewardLines(a, q).map((r) => P(`  ${r}`)));
+      rows.push(P(''));
       if (mode === 'offer') {
         rows.push({ text: green('Accept the quest'), act: () => { if (a.result(a.g.acceptQuest(q.entry), `Quest accepted: ${q.title}`)) a.pop(); } });
         rows.push({ text: dim('Decline'), act: () => a.pop() });
@@ -315,7 +379,7 @@ export function questDialog(app, q, mode) {
         // A repeatable with a fixed reward hands in every round the bags pay for in one go.
         const rounds = s?.status === 'complete' && isRepeatableQuest(q) && questRewardChoices(q).length <= 1 ? questRepeatsAvailable(q, a.g.state.inventory, a.ch.zoneId) : 0;
         if (rounds >= 2) rows.push({ text: green(`Hand it in ${rounds} times`), act: () => repeatTurnIn(a, q) });
-        else rows.push({ text: cyan('Do the quest'), act: () => doQuest(a, q) });
+        else rows.push({ text: 'Do the quest', act: () => doQuest(a, q) });
         rows.push({ text: red('Abandon the quest'), act: () => a.confirm(`Abandon ${q.title}?`, () => { if (a.result(a.g.abandonQuest(q.entry), `Abandoned ${q.title}.`)) a.popTo('__none__'); }) });
         rows.push({ text: dim('Close'), act: () => a.pop() });
       }
@@ -331,7 +395,7 @@ function doQuest(app, q) {
   const s = app.g.state.questlog.quests.find((x) => x.entry === q.entry);
   if (s?.status === 'complete' && q.rewChoiceItems?.length) { turnIn(app, q); return; }
   app.stack = [];
-  startAutopilot(app, 500, undefined, q.entry);
+  startAutopilot(app, Infinity, undefined, q.entry);
 }
 
 function repeatTurnIn(app, q) {
@@ -386,7 +450,7 @@ function bagsView(app) {
   const slotOf = (a, row) => (row?.data && !('keyring' in row.data) ? a.g.state.inventory.stacks.indexOf(row.data) : -1);
   const onStack = (fn) => (a, row) => { const i = slotOf(a, row); if (i >= 0) fn(a, i); };
   return {
-    id: 'bags', title: 'Bags', hint: 'Enter: use / equip / open   m: more', empty: 'Your bags are empty.',
+    id: 'bags', title: 'Bags', hint: 'Enter: use / equip / open', empty: 'Your bags are empty.',
     keys: {
       m: { hint: 'item menu', fn: onStack(itemMenu) },
       s: { hint: 'sell', fn: (a, row) => { if (!a.vendor) { a.flashMsg('Open a vendor first (World tab).'); return; } const i = slotOf(a, row); if (i >= 0) sellStack(a, i); } },
@@ -433,9 +497,19 @@ function wornItem(app, slot) {
   return entry == null ? null : app.ds.item(entry) ?? null;
 }
 
-/** The engine's equipment helper: what in your bags (and the bank, when it is open) beats what you wear. */
+/** The engine's equipment helper: what in your bags, or unbound in a companion's (a crafter's product), beats what you wear. */
 function upgradeList(app) {
-  return app.g.suggestedEquipmentUpgrades().filter((u) => !u.holderId);
+  return app.g.suggestedEquipmentUpgrades();
+}
+
+/** Companions you own, squad first, each once. */
+const ownedCompanions = (g) => [...new Map([...(g.state.squad ?? []), ...Object.values(g.state.botRoster ?? {})].map((c) => [c.id, c])).values()];
+
+/** Wear `entry` in `slot`, first taking one unbound copy from companion `holderId` when it is theirs. */
+function equipFrom(a, entry, slot, holderId) {
+  if (holderId && !a.result(a.g.takeItemFromBot(holderId, entry, 1), '')) return false;
+  const r = a.g.equip(entry, slot);
+  return a.result(r, r.ok ? `You equip ${a.ds.item(entry)?.name ?? entry}.` : '');
 }
 
 /** Lines comparing a candidate with the item worn in `slot`: armor, damage and stat deltas. */
@@ -459,8 +533,18 @@ function gearView(app) {
     id: 'gear', title: 'Equipment', hint: 'Enter: change what you wear',
     keys: {
       u: { hint: 'equip all upgrades', fn: (a) => {
-        if (!upgradeList(a).length) { a.flashMsg('Nothing in your bags beats what you wear.'); return; }
-        const n = a.g.autoEquipUpgrades();
+        if (!upgradeList(a).length) { a.flashMsg("Nothing in your bags or your companions' beats what you wear."); return; }
+        // Best first, re-scored after each piece (two rings, a two-hander). Works in suggest mode too,
+        // where autoEquipUpgrades stands down. Each entry is tried once, so displaced pieces cannot ping-pong.
+        let n = 0;
+        const tried = new Set();
+        for (let i = 0; i < 16; i++) {
+          const u = upgradeList(a).find((x) => !tried.has(x.entry));
+          if (!u) break;
+          tried.add(u.entry);
+          if (u.holderId && !a.g.takeItemFromBot(u.holderId, u.entry, 1).ok) continue;
+          if (a.g.equip(u.entry, u.slot).ok) n++;
+        }
         a.say(n ? green(`You put on ${plural(n, 'upgrade')}.`) : red('The upgrades could not be equipped.'));
       } },
       x: { hint: 'take off', fn: (a, row) => { if (row?.data?.it) a.result(a.g.unequip(row.data.slot), `You take off ${row.data.it.name}.`); } },
@@ -471,19 +555,19 @@ function gearView(app) {
       const rows = [];
       const ups = upgradeList(a);
       if (ups.length) {
-        rows.push({ text: `${green('▲')} Better gear in your bags (${ups.length})   ${dim('Enter: put on   u: put on all')}`, header: true });
+        rows.push({ text: `${green('▲')} Better gear for you (${ups.length})   ${dim('Enter: put on   u: put on all')}`, header: true });
         for (const u of ups) {
           const it = a.ds.item(u.entry), cur = u.currentEntry != null ? a.ds.item(u.currentEntry) : null;
           rows.push({
-            text: `  ${fit(SLOT_LABEL[u.slot] ?? u.slot, 10)} ${qualityPaint(it?.quality)(it?.name ?? u.entry)}  ${green(`+${Math.round(u.delta)}`)}${cur ? dim(`  replaces ${cur.name}`) : ''}${u.displaces?.length ? yellow(`  frees ${u.displaces.map((s) => SLOT_LABEL[s] ?? s).join(', ')}`) : ''}`,
+            text: `  ${fit(SLOT_LABEL[u.slot] ?? u.slot, 10)} ${qualityPaint(it?.quality)(it?.name ?? u.entry)}  ${green(`+${Math.round(u.delta)}`)}${cur ? dim(`  replaces ${cur.name}`) : ''}${u.displaces?.length ? yellow(`  frees ${u.displaces.map((s) => SLOT_LABEL[s] ?? s).join(', ')}`) : ''}${u.holderId ? cyan(`  ${u.holderName} has it`) : ''}`,
             data: { upgrade: u },
-            detail: () => itemLines(a, it, compareLines(a, it, cur)),
-            act: () => { const r = a.g.equip(u.entry, u.slot); a.result(r, r.ok ? `You equip ${it?.name}.` : ''); },
+            detail: () => itemLines(a, it, [...compareLines(a, it, cur), ...(u.holderId ? ['', dim(`In ${u.holderName}'s bags. Enter takes it and puts it on.`)] : [])]),
+            act: () => equipFrom(a, u.entry, u.slot, u.holderId),
           });
         }
         rows.push({ text: '', header: true });
       }
-      rows.push({ text: `What you wear   ${dim('Enter: pick from bags' + (cityAccess(a).bank ? ' and bank' : '') + '   x: take off')}`, header: true });
+      rows.push({ text: `What you wear   ${dim('Enter: pick from bags' + (cityAccess(a).bank ? ', bank' : '') + ' and companions   x: take off')}`, header: true });
       for (const slot of [...EQUIP_SLOTS, ...BAG_SLOTS]) {
         const it = wornItem(a, slot);
         const up = ups.some((u) => u.slot === slot);
@@ -513,19 +597,18 @@ function slotDialog(app, slot) {
       const ups = new Map(upgradeList(a).filter((u) => u.slot === slot).map((u) => [u.entry, u]));
       const rows = [{ text: `${bold(label)}: ${worn ? qualityPaint(worn.quality)(worn.name) : dim('empty')}`, header: true }, { text: '', header: true }];
       if (worn) rows.push({ text: dim(`Take off ${worn.name}`), act: () => { if (a.result(a.g.unequip(slot), `You take off ${worn.name}.`)) a.pop(); } });
-      const row = (s, from) => {
+      const row = (s, from, comp) => {
         const it = ds.item(s.item);
         const up = ups.get(s.item);
         const low = it.requiredLevel > ch.level;
         const name = qualityPaint(it.quality)(it.name);
         return {
-          text: `  ${low ? dim(name) : name}${s.count > 1 ? dim(` x${s.count}`) : ''}${up ? green(`  ▲ +${Math.round(up.delta)}`) : ''}${low ? red(`  L${it.requiredLevel}`) : ''}${from === 'bank' ? dim('  in bank') : ''}`,
+          text: `  ${low ? dim(name) : name}${s.count > 1 ? dim(` x${s.count}`) : ''}${up ? green(`  ▲ +${Math.round(up.delta)}`) : ''}${low ? red(`  L${it.requiredLevel}`) : ''}${from === 'bank' ? dim('  in bank') : ''}${comp ? cyan(`  ${comp.name}`) : ''}`,
           data: { s, it },
-          detail: () => itemLines(a, it, [...compareLines(a, it, worn), '', dim(from === 'bank' ? 'Enter: take it out of the bank and wear it' : 'Enter: wear it')]),
+          detail: () => itemLines(a, it, [...compareLines(a, it, worn), '', dim(from === 'bank' ? 'Enter: take it out of the bank and wear it' : comp ? `Enter: take it from ${comp.name} and wear it` : 'Enter: wear it')]),
           act: () => {
             if (from === 'bank' && !a.result(a.g.bankWithdraw(s.item, 1), '')) return;
-            const r = a.g.equip(s.item, slot);
-            if (a.result(r, r.ok ? `You equip ${it.name}.` : '')) a.pop();
+            if (equipFrom(a, s.item, slot, comp?.id)) a.pop();
           },
         };
       };
@@ -538,6 +621,12 @@ function slotDialog(app, slot) {
         rows.push({ text: '', header: true }, { text: `In the bank (${bank.length})`, header: true });
         if (!bank.length) rows.push({ text: dim('  Nothing in the bank fits either.'), header: true });
         for (const s of bank) rows.push(row(s, 'bank'));
+      }
+      // Unbound pieces a companion carries (a crafter's product, a BoE they looted) can come straight over.
+      const held = ownedCompanions(a.g).flatMap((c) => (c.bags?.stacks ?? []).filter((s) => fits(s) && !stackBoundToHolder(s, ds)).map((s) => ({ s, c })));
+      if (held.length) {
+        rows.push({ text: '', header: true }, { text: `In your companions' bags (${held.length})`, header: true });
+        for (const { s, c } of held) rows.push(row(s, 'companion', c));
       }
       return rows;
     },
@@ -575,6 +664,11 @@ function rotNames(app) {
     item: (id) => app.itemName(id),
     creature: (e) => app.ds.creature(e)?.name,
     object: (e) => app.ds.gameObject?.(e)?.name,
+    seat: (unit) => {
+      if (unit === 'player') return app.g.state.char.name || 'You';
+      const i = allyIndexOfSide(unit);
+      return (i >= 0 ? (app.g.state.squad ?? [])[i]?.name : undefined) ?? unit;
+    },
   };
 }
 
@@ -587,6 +681,7 @@ function rotOwner(app) {
     return {
       name: 'your', comp: null, get: () => g.rotation(), set: (r) => g.setRotation(r), reset: () => g.resetRotation(),
       spells: () => knownUsableSpells(app.ch, g.state.spellbook, app.ds), bag: () => g.state.inventory.stacks,
+      char: () => app.ch, spellbook: () => g.state.spellbook, equipped: () => app.ch.equipped,
       profiles: () => g.rotationProfiles(), add: (o) => g.addRotationProfile(o), rename: (pid, n) => g.renameRotationProfile(pid, n),
       del: (pid) => g.deleteRotationProfile(pid), select: (pid) => g.selectRotationProfile(pid),
     };
@@ -595,6 +690,7 @@ function rotOwner(app) {
   return {
     name: `${comp.name}'s`, comp, get: () => g.companionRotation(comp.id), set: (r) => g.setCompanionRotation(comp.id, r), reset: () => g.resetCompanionRotation(comp.id),
     spells: () => knownUsableSpells(companionCharacter(comp, lvl, app.ds), companionSpellbook(comp, lvl, app.ds), app.ds), bag: () => comp.bags?.stacks ?? [],
+    char: () => companionCharacter(comp, lvl, app.ds), spellbook: () => companionSpellbook(comp, lvl, app.ds), equipped: () => comp.equipped,
     profiles: () => g.companionRotationProfiles(comp.id), add: (o) => g.addCompanionRotationProfile(comp.id, o), rename: (pid, n) => g.renameCompanionRotationProfile(comp.id, pid, n),
     del: (pid) => g.deleteCompanionRotationProfile(comp.id, pid), select: (pid) => g.selectCompanionRotationProfile(comp.id, pid),
   };
@@ -712,7 +808,7 @@ function ruleMenu(app, data) {
   const names = rotNames(app);
   const options = [
     { label: rule.enabled ? 'Turn it off' : green('Turn it on'), detail: [rule.enabled ? 'Auto-play skips a rule that is off.' : 'Auto-play considers this rule again.'], value: 'toggle' },
-    { label: 'Change when it fires', detail: ['Pick a condition: health thresholds, a missing buff or debuff, the enemy casting, more than one enemy, melee or range.', '', dim(`Now: ${conditionsSentence(rule.conditions, names)}`)], value: 'cond' },
+    { label: 'Change when it fires', detail: ['Every condition the game knows: health and power, auras and stacks, casting, crowd control, enemy and ally counts, distances, battleground and raid state. Combine them with and / or.', '', dim(`Now: ${conditionsSentence(rule.conditions, names)}`)], value: 'cond' },
     { label: 'Move up', detail: ['Earlier rules are tried first.'], value: 'up' },
     { label: 'Move down', detail: ['Later rules only fire when everything above them is unusable or gated off.'], value: 'down' },
     { label: 'Add a rule after this one', value: 'add' },
@@ -766,10 +862,20 @@ function addRule(app, phase, afterIndex) {
   const options = known.map((sp) => ({ label: `${sp.name}${sp.rank ? dim(` (Rank ${sp.rank})`) : ''}`, detail: () => spellLines(app, sp), value: { kind: 'spell', spellId: sp.id } }));
   const combatItems = [...new Set(o.bag().map((s) => s.item))].map((e) => app.ds.item(e)).filter((it) => it?.useInCombat);
   for (const it of combatItems) options.push({ label: `Use ${qualityPaint(it.quality)(it.name)}`, detail: () => itemLines(app, it), value: { kind: 'item', itemEntry: it.entry } });
-  app.pick(`Add to ${PHASE_LABEL[phase].split(' (')[0].toLowerCase()}: what to do`, options, (action) => {
+  app.pick(`Add to ${PHASE_LABEL[phase].split(' (')[0].toLowerCase()}: what to do`, options, (picked) => {
     const id = `tui-${Date.now().toString(36)}-${Math.floor(Math.random() * 1e6).toString(36)}`;
+    // A new rule starts with the engine's smart default for what it does: a seal or buff only when it is
+    // missing, a DoT when the enemy lacks it, a form when not in it, an interrupt when the enemy casts, a
+    // potion below a health band. The same gate the recommended list would give it; c changes it.
+    let action = picked, conditions = [];
+    if (picked.kind === 'spell') {
+      const sp = app.ds.spell(picked.spellId);
+      if (sp) conditions = defaultConditionsForSpell(sp, o.char());
+    } else if (picked.kind === 'item') {
+      ({ action, conditions } = defaultItemRule(app, o, picked.itemEntry));
+    }
     editRotation(app, (rot) => {
-      const rule = { id, action, conditions: [], enabled: true };
+      const rule = { id, action, conditions, enabled: true };
       const list = rot.phases[phase] ??= [];
       list.splice(afterIndex == null ? list.length : afterIndex + 1, 0, rule);
     });
@@ -777,39 +883,14 @@ function addRule(app, phase, afterIndex) {
     const view = app.tabs[5].view;
     const at = app.rowsOf(view).findIndex((r) => r.data?.rule?.id === id);
     if (at >= 0) { view.cursor = at; app.ensureVisible(view, app.rowsOf(view)); }
-    app.say(green(`Rule added to ${phase}. Press c to set when it fires.`));
+    const when = conditions.length ? `only when ${conditionsSentence(conditions, rotNames(app))}` : 'with no conditions';
+    app.say(green(`Rule added to ${phase}, ${when}. Enter on it to change when it fires.`));
   });
 }
 
-function editCondition(app, { phase, index, rule }) {
-  const spellRef = rule.action.kind === 'spell' ? rule.action.spellId : undefined;
-  const spellName = spellRef ? app.ds.spell(spellRef)?.name : 'this spell';
-  const presets = [
-    { label: 'Always', value: [] },
-    { label: 'My health is below …%', value: 'hp', prompt: { metric: 'healthPct', subject: 'self', op: '<' } },
-    { label: 'My mana/power is above …%', value: 'pw', prompt: { metric: 'powerPct', subject: 'self', op: '>' } },
-    { label: "The enemy's health is below …%", value: 'ehp', prompt: { metric: 'healthPct', subject: 'target', op: '<' } },
-    { label: "The enemy's health is above …%", value: 'ehp2', prompt: { metric: 'healthPct', subject: 'target', op: '>' } },
-    ...(spellRef ? [
-      { label: `The enemy does not have ${spellName}`, value: [{ subject: 'target', metric: 'debuffPresent', op: '==', value: 0, ref: spellRef }] },
-      { label: `I do not have ${spellName}`, value: [{ subject: 'self', metric: 'buffPresent', op: '==', value: 0, ref: spellRef }] },
-      { label: `${spellName} has under 3 s left on the enemy`, value: [{ subject: 'target', metric: 'debuffRemainingMs', op: '<', value: 3000, ref: spellRef }] },
-    ] : []),
-    { label: 'The enemy is casting', value: [{ subject: 'target', metric: 'castingPresent', op: '==', value: 1 }] },
-    { label: 'More than one living enemy', value: [{ subject: 'self', metric: 'enemyCount', op: '>', value: 1 }] },
-    { label: 'I am in melee range', value: [{ subject: 'self', metric: 'inMelee', op: '==', value: 1 }] },
-    { label: 'I am at range', value: [{ subject: 'self', metric: 'inMelee', op: '==', value: 0 }] },
-  ];
-  const apply = (conds) => editRotation(app, (rot) => { rot.phases[phase][index].conditions = conds; });
-  app.pick(`${spellName}: fire only when…`, presets.map((p) => ({ label: p.label, value: p })), (p) => {
-    if (Array.isArray(p.value)) { apply(p.value); return; }
-    app.prompt('Percent: ', (txt) => {
-      const n = Number(txt);
-      if (!(n >= 0 && n <= 100)) { app.flashMsg('Enter a number from 0 to 100.'); return; }
-      apply([{ ...p.prompt, value: n }]);
-      app.afterAction();
-    });
-  });
+/** Enter on a rule, "Change when it fires": the full condition editor (tuiRotationCond.mjs). */
+function editCondition(app, { phase, index }) {
+  conditionEditor(app, { phase, index, owner: rotOwner(app), names: rotNames(app), mutate: (fn) => editRotation(app, fn) });
 }
 
 function pickSpec(app) {
@@ -1125,8 +1206,10 @@ function buy(app, offer, n) {
 
 export function trainerDialog(app, trainer) {
   const known = () => new Set(app.g.state.spellbook.known);
+  // Weapon masters list every class's weapons; hide the rows the class/race gate would refuse.
+  const fits = (ts) => learnGrantIds(ts.spell, app.ds).every((g) => isSpellFitByClassAndRace(g, app.ch.race, app.ch.cls, app.ds.combatSkillMeta(), Math.max(app.ch.level, ts.reqLevel)));
   const learnable = () => trainer.spells
-    .filter((ts) => ts.reqLevel <= app.ch.level && !known().has(ts.spell))
+    .filter((ts) => ts.reqLevel <= app.ch.level && !known().has(ts.spell) && fits(ts))
     .map((ts) => ({ ts, sp: app.ds.spell(ts.spell) })).filter((x) => x.sp)
     .sort((x, y) => x.ts.reqLevel - y.ts.reqLevel || x.sp.name.localeCompare(y.sp.name));
   return {
@@ -1144,7 +1227,7 @@ export function trainerDialog(app, trainer) {
           act: () => a.result(a.g.learnFromTrainer(trainer.entry, sp.id), `You have learned ${sp.name}${sp.rank ? ` (Rank ${sp.rank})` : ''}.`),
         });
       }
-      const later = trainer.spells.filter((ts) => ts.reqLevel > a.ch.level && !known().has(ts.spell)).map((ts) => ({ ts, sp: a.ds.spell(ts.spell) })).filter((x) => x.sp).sort((x, y) => x.ts.reqLevel - y.ts.reqLevel).slice(0, 12);
+      const later = trainer.spells.filter((ts) => ts.reqLevel > a.ch.level && !known().has(ts.spell) && fits(ts)).map((ts) => ({ ts, sp: a.ds.spell(ts.spell) })).filter((x) => x.sp).sort((x, y) => x.ts.reqLevel - y.ts.reqLevel).slice(0, 12);
       if (later.length) {
         rows.push({ text: '', header: true }, { text: 'Coming up', header: true });
         for (const { sp, ts } of later) rows.push({ text: dim(`${sp.name}${sp.rank ? ` (Rank ${sp.rank})` : ''}  level ${ts.reqLevel}  ${moneyText(ts.cost)}`), header: true });
@@ -1158,11 +1241,13 @@ export function innDialog(app, inn) {
   return {
     id: `inn-${inn.entry}`, title: inn.name, hint: 'Enter: choose', noDetail: true,
     rows(a) {
-      const bound = a.ch.hearthBind?.name === inn.name;
+      const bound = a.ch.hearthBind?.name === inn.name, wares = a.ds.vendor(inn.entry);
       return [
-        { text: `${bold(inn.name)} ${dim('<Innkeeper>')}`, header: true }, { text: '', header: true },
+        { text: `${bold(inn.name)} ${dim('<Innkeeper>')}`, header: true },
+        // Rested xp needs no button: it builds here in game, and at the full offline rate after logging out here.
+        { text: dim(`${a.ch.restedXp ? `You are rested (${a.ch.restedXp} xp).` : 'You are not rested.'}  Staying here builds rest, logging out here builds it faster.`), header: true }, { text: '', header: true },
+        ...(wares ? [{ text: 'Browse wares', act: () => a.push(vendorDialog(a, wares)) }] : []),
         { text: bound ? dim('This inn is already your home.') : 'Make this inn your home', act: () => { if (!bound) a.result(a.g.bindHearth(), `${inn.name} sets your hearthstone to ${a.zone()?.name}.`); } },
-        { text: 'Rest here for a while (60 s)', act: () => { a.idleTick(60, true); a.say(dim(`You rest at the inn.  HP ${a.hpText()}  ${a.pwText()}`)); } },
         { text: dim('Goodbye'), act: () => a.pop() },
       ];
     },

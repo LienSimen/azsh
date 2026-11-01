@@ -10,14 +10,14 @@ export const SUBJECT_LABEL = { self: 'you', target: 'the enemy', pet: 'your pet'
 const ALLY_ROLE_LABEL = { tank: 'tank', healer: 'healer', damage: 'DPS' };
 const COND_OP_LABEL = { '<': 'less than', '<=': 'at most', '>': 'more than', '>=': 'at least', '==': 'equal to', '!=': 'not equal to' };
 const RAID_JOB_LABEL = { 'main-tank': 'Main tank', 'off-tank': 'Off-tank', healer: 'Healer', dps: 'DPS' };
-const SCHOOL_NAMES = ['Physical', 'Holy', 'Fire', 'Nature', 'Frost', 'Shadow', 'Arcane'];
-const TOTEM_ELEMENTS = ['Fire', 'Earth', 'Water', 'Air'];
-const AOE_MODE_NAMES = { 0: 'auto', 1: 'AoE', 2: 'single-target' };
+export const SCHOOL_NAMES = ['Physical', 'Holy', 'Fire', 'Nature', 'Frost', 'Shadow', 'Arcane'];
+export const TOTEM_ELEMENTS = ['Fire', 'Earth', 'Water', 'Air'];
+export const AOE_MODE_NAMES = { 0: 'auto', 1: 'AoE', 2: 'single-target' };
 
 const titleCase = (k) => k.charAt(0) + k.slice(1).toLowerCase().replace(/_/g, ' ');
-const CREATURE_TYPE_NAME = new Map(Object.entries(CREATURE_TYPE).map(([k, v]) => [v, titleCase(k)]));
-const DISPEL_TYPE_NAME = new Map(Object.entries(DISPEL_TYPE).map(([k, v]) => [v, titleCase(k)]));
-const creatureMaskName = (mask) => {
+export const CREATURE_TYPE_NAME = new Map(Object.entries(CREATURE_TYPE).map(([k, v]) => [v, titleCase(k)]));
+export const DISPEL_TYPE_NAME = new Map(Object.entries(DISPEL_TYPE).map(([k, v]) => [v, titleCase(k)]));
+export const creatureMaskName = (mask) => {
   const hit = [...CREATURE_TYPE_NAME].filter(([t]) => (((1 << (t - 1)) & (mask ?? 0)) !== 0));
   return hit.length ? hit.map(([, n]) => n).join(' or ') : 'that creature type';
 };

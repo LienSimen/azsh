@@ -11,10 +11,11 @@ import { cityAccess, bankDialog, auctionDialog, mailDialog } from './tuiCity.mjs
 import { startFight, startAutopilot } from './tuiFight.mjs';
 import { openRun } from './tuiDungeon.mjs';
 import { openLoot } from './tuiLoot.mjs';
-import { fightPaneRule, fightPaneLines } from './tuiFightPanes.mjs';
+import { fightPaneRule, fightPaneLines, cycleFightPane, nextPaneId, fightPane } from './tuiFightPanes.mjs';
 import { MemoryPrefs, FilePrefs } from './prefs.mjs';
 import { settingsDialog, globalSettingsOpts, refreshMs } from './tuiSettings.mjs';
 import { autopilotSettingsDialog } from './tuiAutopilotSettings.mjs';
+import { runStripLine, runHeaderLine, bagsPaneKey } from './tuiAutopilot.mjs';
 import { macrosDialog, runMacro } from './tuiMacros.mjs';
 import { outfitterDialog } from './tuiOutfitter.mjs';
 import { journeyHeader, journeyTick } from './tuiWorld.mjs';
@@ -36,6 +37,8 @@ const POWER_PAINT = { mana: brightBlue, rage: red, energy: yellow, focus: yellow
 /** Digit key → tab index: 1-9 are the first nine, 0 the tenth. */
 const digitTab = (k) => (k === '0' ? 9 : Number(k) - 1);
 const MOVE_KEYS = new Set(['up', 'down', 'j', 'k', 'pageup', 'pagedown', 'home', 'end']);
+/** A view's hint and its labelled keys, as "k: what it does" items. */
+const viewKeyHints = (view) => [...(view?.hint ? [view.hint] : []), ...Object.entries(view?.keys ?? {}).filter(([, v]) => v.hint).map(([k, v]) => `${k === 'space' ? 'Space' : k}: ${v.hint}`)];
 const HELP_LINES = [
   'Moving around',
   '  1-9 0 / Tab / Left Right switch tab             Up Down j k     move the cursor',
@@ -43,17 +46,21 @@ const HELP_LINES = [
   '  PgUp PgDn                page the list or text   Home End        first / last row',
   '  l                        open the full log       :               command line (same verbs as the line game)',
   '  /                        search the wiki: items, spells, quests, NPCs, zones, dungeons (:wiki <words>)',
-  '  s (World tab)            find a thing in the world: who sells an item and where, what drops it, where an',
-  '                           ore or herb grows, a dungeon entrance, an NPC. Enter travels there or opens it.',
+  '  s (World tab)            find a thing in this zone: a vendor, a trainer, who sells an item, what drops it.',
+  '                           a in the search (or S on World) widens it to the whole world. Enter goes or opens.',
   '  z                        sit and rest 30 s       ?               this help',
   '  Ctrl-C / :quit           save and leave          Ctrl-L          repaint a garbled screen',
   '',
   'In the world',
   '  Enter on a creature starts a live fight; f fights it instantly. Enter on a quest, vendor, trainer or',
-  '  exit opens it. a hands the character to the autopilot: it quests and hunts on its own, and every',
-  '  fight plays out live on screen. Esc stops it. A quest it dies on 2 times or cannot finish is skipped',
-  '  for the rest of the session. Quests tab: d (or Do the quest in the quest window) runs the autopilot on',
-  '  that one quest. :autopilot (or A on the Rotation tab) sets how it rests, pulls, fights and quests.',
+  '  exit opens it. a shows what the autopilot will do; Enter hands the character over: it quests and hunts',
+  '  on its own and its panel shows what it is doing, what comes next and what will stop it. Its fights play',
+  '  live inside that panel (w watches one in the full fight view, Esc comes back). Esc stops the run, space',
+  '  pauses it, 1-9 browse the tabs under a run strip, Tab cycles the bottom pane (the Run pane lists every',
+  '  step). At 4x and up the log folds to one line a fight. For a CRT look, turn on your terminal\'s retro',
+  '  effect (Windows Terminal: "experimental.retroTerminalEffect": true on the profile).',
+  '  A quest it dies on 2 times or cannot finish is skipped for the rest of the session. Quests tab: d (or Do',
+  '  the quest in the quest window) runs it on that one quest. :autopilot (or A) sets how it rests, pulls, fights and quests.',
   '  In a capital the World tab lists the Bank, the Auction House and the Mailbox under Services.',
   '  Rogues: P on a creature picks its pocket (Stealth first). A resist starts the fight.',
   '  :honor: your PvP rank, the arena (1v1 to 5v5), Warsong Gulch and Arathi Basin (pick your job, watch it play,',
@@ -124,7 +131,9 @@ export class App {
     this.slot = slot; this.createdAt = createdAt ?? Date.now();
     const awayMs = updatedAt > 0 ? Math.max(0, Date.now() - updatedAt) : 0;
     // Travel pace is a setting (instant by default, like phonecraft); `skipping` lets Arrive now land a trip at any pace.
-    const g = createGame(this.ds, state, { travelPace: () => (this.skipping ? 'instant' : this.prefs.get('travelPace') ?? 'instant'), offlineTimeMs: awayMs, ...globalSettingsOpts(this.prefs) });
+    // wallWorldClock: aura and cooldown stamps on Date.now(), the clock every screen reads. Without it they ride the
+    // fight chain, which runs hours ahead once fights resolve faster than real time (Forbearance showing 8h).
+    const g = createGame(this.ds, state, { travelPace: () => (this.skipping ? 'instant' : this.prefs.get('travelPace') ?? 'instant'), offlineTimeMs: awayMs, wallWorldClock: true, ...globalSettingsOpts(this.prefs) });
     this.g = g;
     if (g.state.char.journey) { if (this.prefs.get('travelPace') === 'instant') this.arriveNow(); else g.journeyTick(); }
     // Real createInfo has no starting weapon (ETL gap KI-003); phonecraft's harness hands one over too.
@@ -268,25 +277,48 @@ export class App {
       if (!this.stack.length) { this.fight?.onOrdersClosed?.(); this.render(); }
       return;
     }
-    if (this.fight) { this.fight.key(k); return; }
+    if (this.fight && !this.inlineFight()) {
+      // The full fight view. Under the autopilot Esc goes back to the run panel; the fight plays on.
+      if (k === 'escape' && this.auto && this.fight.label === 'autopilot') { this.auto.watchFight = false; this.render(); return; }
+      this.fight.key(k); return;
+    }
     if (this.auto) {
-      // The run's own panel shows between fights; a tab key browses the tabs instead (only acting is locked
-      // out while it plays) and w goes back to watching. The next fight always comes back on screen.
-      const auto = this.auto;
-      if (k === 'escape' || k === 'q') { auto.stop(); this.say(yellow('Autopilot stopped.')); this.render(); return; }
+      // The run's panel holds the screen, fights included. A tab key browses the tabs, and a browsed tab works as
+      // it does without a run (Enter acts, its own keys act): the run plays on underneath, under the run strip.
+      // Esc or w on a tab comes back to the run; Esc on the panel stops it; w on a fight opens the full view.
+      const auto = this.auto, f = this.fight;
+      // A window on top (a dialog a tab or the Bags pane opened) takes the keys until it closes.
+      if (this.stack.length && this.top()?.id !== 'log') { if (k === 'escape') this.pop(); else this.viewKey(k); return; }
+      if (auto.browsing) {
+        if (k === 'escape' || k === 'w') { auto.browsing = false; this.stack = []; this.render(); return; }
+        if (k === 'l' && !this.top()?.keys?.l) { this.openLog(); return; }
+        if (/^[0-9]$/.test(k)) { this.switchTab(digitTab(k)); return; }
+        if (k === 'tab' || k === 'right') { this.switchTab((this.tab + 1) % this.tabs.length); return; }
+        if (k === 'shift-tab' || k === 'left') { this.switchTab((this.tab + this.tabs.length - 1) % this.tabs.length); return; }
+        if (k === '?') { this.push(this.helpView()); return; }
+        this.viewKey(k);
+        return;
+      }
+      // The Bags pane at the bottom has its own cursor; Enter there uses the item under it.
+      if (fightPane(this) === 'bags' && (MOVE_KEYS.has(k) || k === 'return') && bagsPaneKey(this, k)) return;
+      if (k === 'escape' || k === 'q') { if (f) f.flee(); else auto.end('you stopped it'); return; }
+      if (k === 'space') { auto.paused = !auto.paused; if (f) f.paused = auto.paused; this.render(); return; }
       if (k === 'l') { this.openLog(); return; }
-      if (k === 'w') { auto.browsing = false; this.stack = []; this.render(); return; }
+      if ((k === 'w' || k === 'return') && f) { auto.watchFight = true; this.render(); return; }
+      if (k === 'a' && f) { auto.watchFight = true; f.key('a'); return; } // play it yourself: needs the ability bar
+      if ((k === '+' || k === '=' || k === '-') && f) { f.key(k); return; } // the fight owns the clock while it runs
       if (k === '+' || k === '=') { this.fightSpeed = Math.min(8, this.fightSpeed * 2); this.render(); return; }
       if (k === '-') { this.fightSpeed = Math.max(0.5, this.fightSpeed / 2); this.render(); return; }
       if (/^[0-9]$/.test(k)) { auto.browsing = true; this.switchTab(digitTab(k)); return; }
-      if (k === 'tab' || k === 'right') { auto.browsing = true; this.switchTab((this.tab + 1) % this.tabs.length); return; }
-      if (k === 'shift-tab' || k === 'left') { auto.browsing = true; this.switchTab((this.tab + this.tabs.length - 1) % this.tabs.length); return; }
-      if (MOVE_KEYS.has(k) && auto.browsing) { this.stack = []; this.viewKey(k); return; }
+      // Watching the run, Tab cycles the bottom pane; the arrows step onto the tabs.
+      if (k === 'tab' || k === 'shift-tab') { cycleFightPane(this, k === 'tab' ? +1 : -1); return; }
+      if (k === 'right') { auto.browsing = true; this.switchTab((this.tab + 1) % this.tabs.length); return; }
+      if (k === 'left') { auto.browsing = true; this.switchTab((this.tab + this.tabs.length - 1) % this.tabs.length); return; }
       return;
     }
     if (!this.g) return this.viewKey(k);
     if (k === ':') { this.prompt(':', (line) => this.runCommand(line)); return; }
-    if (k === '?') { this.push({ id: 'help', title: 'Keys', hint: 'Esc: back', noDetail: true, rows: () => HELP_LINES.map((t) => ({ text: t, header: true })) }); return; }
+    if (k === '?') { this.push(this.helpView()); return; }
     if (k === 'l' && this.top()?.id !== 'log' && !this.top()?.keys?.l) { this.openLog(); return; }
     if (this.isDead() && this.top()?.id !== 'death') { this.push(deathView(this)); return; }
     if (k === 'z' && !this.stack.length) { this.idleTick(30, true); this.say(dim(`You sit and rest for 30 s.  HP ${this.hpText()}  ${this.pwText()}`)); this.afterAction(); return; }
@@ -399,7 +431,7 @@ export class App {
     const [, cmd = '', args = ''] = line.match(/^(\S+)\s*(.*)$/) ?? [];
     const c = cmd.toLowerCase();
     if (c === 'quit' || c === 'exit' || c === 'q') { await this.quit(); return; }
-    if (c === 'auto') { const m = args.match(/^(\d+)?\s*(?:farm\s+(.+))?$/i); startAutopilot(this, Number(m?.[1] ?? 200), m?.[2]); return; }
+    if (c === 'auto') { const m = args.match(/^(\d+)?\s*(?:farm\s+(.+))?$/i); startAutopilot(this, m?.[1] ? Number(m[1]) : Infinity, m?.[2]); return; }
     if (c === 'autoloot') {
       const want = args.trim().toLowerCase();
       if (want === 'on' || want === 'off') this.prefs.set('autoLoot', want === 'on');
@@ -452,7 +484,7 @@ export class App {
   layout() {
     const W = this.term.cols, H = this.term.rows;
     const logH = Math.max(5, Math.min(12, Math.floor(H * 0.3)));
-    const top = 4; // title, bars, tabs, rule
+    const top = this.compactHeader() ? 2 : 4 + (this.showsRunStrip() ? 1 : 0); // title, bars, tabs, (the run strip), rule; a run keeps only XP
     const mainH = H - top - 1 - logH - 1;
     const detailW = W >= 90 ? Math.floor(W * 0.4) : 0;
     const listW = detailW ? W - detailW - 1 : W;
@@ -474,7 +506,7 @@ export class App {
     const L = this.layout();
     const lines = [];
     lines.push(...this.headerLines(L));
-    if (this.fight && !this.stack.length) lines.push(...this.fight.render(L.W, L.mainH));
+    if (this.fight && !this.stack.length && !this.inlineFight()) lines.push(...this.fight.render(L.W, L.mainH));
     else if (this.auto && !this.auto.browsing && !this.stack.length) lines.push(...this.auto.render(L.W, L.mainH));
     else lines.push(...this.mainLines(L));
     while (lines.length < L.top + L.mainH) lines.push('');
@@ -490,6 +522,8 @@ export class App {
     if (!this.g) {
       return [bold(' azsh') + dim('  Azeroth shell. WoW Classic 1.12 via CMaNGOS data.'), '', '', dim('─'.repeat(L.W))];
     }
+    // Watching a run, the name, bars and tabs go: the panel has your frame, and the XP line is what a run is for.
+    if (this.compactHeader()) return [runHeaderLine(this, L.W), dim('─'.repeat(L.W))];
     const ch = this.ch, ds = this.ds;
     const z = this.zone();
     const dead = this.isDead() ? red(bold('  DEAD')) : ch.mountedItem != null ? dim('  mounted') : '';
@@ -497,11 +531,14 @@ export class App {
     const road = journeyHeader(this);
     const right = `${road ? yellow(road) : cyan(z?.name ?? ch.zoneId)}  ${yellow(moneyText(ch.gold) || '0c')} `;
     const l0 = fit(title, L.W - vis(right)) + right;
-    const hpMax = maxHealth(ch, ds), pwMax = maxPower(ch, ds), pt = powerType(ch);
+    // In a fight the bars follow the live session, so the header is the player's frame and no panel needs another.
+    const live = this.fight?.session?.playerView?.() ?? null;
+    const hp = live ? live.hp : ch.health, hpMax = live ? live.maxHp : maxHealth(ch, ds);
+    const pw = live ? live.power : ch.power, pwMax = live ? live.maxPower : maxPower(ch, ds), pt = powerType(ch);
     const xpMax = ds.xpToNext(ch.level);
     const seg = Math.max(8, Math.floor((L.W - 50) / 3));
-    const l1 = ` ${green('HP')} ${bar(ch.health, hpMax, seg, green)} ${fit(`${ch.health}/${hpMax}`, 9)}`
-      + ` ${(POWER_PAINT[pt] ?? cyan)(pt === 'mana' ? 'MP' : pt === 'rage' ? 'RG' : 'EN')} ${bar(ch.power, pwMax, seg, POWER_PAINT[pt] ?? cyan)} ${fit(`${ch.power}/${pwMax}`, 9)}`
+    const l1 = ` ${green('HP')} ${bar(hp, hpMax, seg, hp / Math.max(1, hpMax) < 0.25 ? red : green)} ${fit(`${hp}/${hpMax}`, 9)}`
+      + ` ${(POWER_PAINT[pt] ?? cyan)(pt === 'mana' ? 'MP' : pt === 'rage' ? 'RG' : 'EN')} ${bar(pw, pwMax, seg, POWER_PAINT[pt] ?? cyan)} ${fit(`${pw}/${pwMax}`, 9)}`
       + ` ${magenta('XP')} ${bar(ch.xp, xpMax, seg, magenta)} ${dim(`${pct(ch.xp, xpMax)}%${ch.restedXp ? ' rested' : ''}`)}`;
     // Tabs 1-9 and 0 have a digit. Short labels take over when the full ones do not fit, and inside a
     // dialog the bar shrinks to the current tab so the breadcrumb stays readable.
@@ -514,8 +551,18 @@ export class App {
     let tabs = tabBar(false);
     if (vis(tabs + crumbs) > L.W) tabs = tabBar(true);
     if (vis(tabs + crumbs) > L.W && this.stack.length) { const d = digit(this.tab); tabs = ` ${d ? `${dim(d)} ` : ''}${this.tabs[this.tab]?.label ?? ''}`; }
-    return [l0, l1, cut(tabs + crumbs, L.W), dim('─'.repeat(L.W))];
+    const strip = this.showsRunStrip() ? [runStripLine(this, L.W)] : [];
+    return [l0, l1, cut(tabs + crumbs, L.W), ...strip, dim('─'.repeat(L.W))];
   }
+
+  /** The run strip sits under the tabs whenever a run is alive and neither its panel nor its fight fills the middle. */
+  showsRunStrip() { return !!this.auto && (this.stack.length > 0 || this.auto.browsing) && !(this.fight && !this.stack.length && !this.inlineFight()); }
+
+  /** An autopilot fight draws inside the run panel unless w asked for the full fight view. */
+  inlineFight() { return !!this.fight && this.fight.label === 'autopilot' && !!this.auto && !this.auto.watchFight; }
+
+  /** Watching a run (its panel or its fight on screen): the header is only the XP line. */
+  compactHeader() { return !!this.auto && !this.auto.browsing && !this.stack.length; }
 
   mainLines(L) {
     const view = this.top();
@@ -530,7 +577,8 @@ export class App {
     for (let i = view.scroll; i < Math.min(rows.length, view.scroll + L.mainH); i++) {
       const r = rows[i];
       const sel = i === view.cursor && !r.header;
-      let text = r.header ? (r.text ? cyan(bold(r.text)) : '') : ` ${r.text}`;
+      // A header row is a cyan title; a plain one (a card's line of text) keeps its own paint.
+      let text = r.header ? (!r.text ? '' : r.plain ? r.text : cyan(bold(r.text))) : ` ${r.text}`;
       text = fit(sel ? `${'▶'}${text.slice(1)}` : text, listW - 1);
       listLines.push(sel ? inverse(text) : text);
     }
@@ -566,15 +614,29 @@ export class App {
   hintLine(L) {
     if (this.cmd) return ` ${bold(this.cmd.label)}${this.cmd.text}${inverse(' ')}`;
     if (this.flash && Date.now() < this.flash.until) return ` ${brightYellow(this.flash.text)}`;
-    if (this.fight && !this.stack.length) return ` ${dim(this.fight.hint())}`;
-    if (this.auto && !this.stack.length) return ` ${dim(`autopilot running: it quests, hunts and rests on its own.  Esc: stop   l: log   + -: speed   ${this.auto.browsing ? 'w: watch the run' : '1-9: look at a tab'}`)}`;
+    if (this.fight && !this.stack.length && !this.inlineFight()) return ` ${dim(this.fight.hint())}`;
+    if (this.auto && !this.stack.length && !this.auto.browsing) {
+      const f = this.inlineFight() ? this.fight : null;
+      const pace = f ? f.speed : this.fightSpeed;
+      const bags = fightPane(this) === 'bags' && !this.auto.browsing ? 'Up Down: pick an item   Enter: use it   ' : '';
+      return ` ${dim(`${bags}Esc: stop   space: ${(f ? f.paused : this.auto.paused) ? 'resume' : 'pause'}   + -: pace ${pace}x   l: log   ${this.auto.browsing ? 'w: watch the run' : `${f ? 'w: watch this fight   a: play it yourself   ' : ''}Tab: ${nextPaneId(this)}   1-9: look at a tab`}`)}`;
+    }
+    // The view's own keys fill the line while they fit; the way out and ? always stay. What does not fit is on ?.
     const view = this.top();
-    const hints = [];
-    if (view?.hint) hints.push(view.hint);
-    if (view?.keys) hints.push(...Object.entries(view.keys).filter(([, v]) => v.hint).map(([k, v]) => `${k === 'space' ? 'Space' : k}: ${v.hint}`));
-    if (view?.id !== 'log') hints.push('l: log');
-    hints.push(this.stack.length ? 'Esc: back' : '1-9: tabs', '?: help');
+    const head = viewKeyHints(view);
+    const tail = [...(view?.id !== 'log' ? ['l: log'] : []), this.stack.length ? 'Esc: back' : this.auto ? 'Esc: back to the run   1-9: tabs' : '1-9: tabs'];
+    const room = L.W - 2 - vis([...tail, '?: more keys'].join('   ')) - 3;
+    const shown = [];
+    for (const h of head) { if (vis([...shown, h].join('   ')) > room) break; shown.push(h); }
+    const hints = [...shown, ...tail, shown.length < head.length ? '?: more keys' : '?: help'];
     return ` ${dim(cut(hints.join('   '), L.W - 2))}`;
+  }
+
+  /** The key list: the open window's own keys first, then the global ones. */
+  helpView() {
+    const own = viewKeyHints(this.top());
+    const lines = own.length ? [bold(`This window (${strip(this.top().title ?? this.top().id)})`), ...own.map((h) => `  ${h}`), ''] : [];
+    return { id: 'help', title: 'Keys', hint: 'Esc: back', noDetail: true, rows: () => [...lines, ...HELP_LINES].map((t) => ({ text: t, header: true })) };
   }
 }
 
@@ -582,7 +644,12 @@ export class App {
 
 /** The save-pick screen, then the game. Resolves when the player quits. */
 export async function runTui({ term = new RealTerm(), argv = [] } = {}) {
-  const ds = bootDataStore();
+  term.open();
+  // The tables take a second or two to load: say so, stage by stage, instead of leaving the screen blank.
+  const loading = (stage) => term.draw([bold(' azsh') + dim('  Azeroth shell. WoW Classic 1.12 via CMaNGOS data.'), '', dim(`  Loading ${stage}…`)]);
+  loading('the game');
+  await new Promise((r) => setImmediate(r)); // the first frame leaves before the synchronous load holds the loop
+  const ds = bootDataStore(loading);
   const repo = new FileSaveRepository();
   const app = new App({ term, ds, repo, prefs: new FilePrefs() });
   // Engine diagnostics (console.warn from the combat layer) would print over the frame: while the screen is
@@ -591,7 +658,6 @@ export async function runTui({ term = new RealTerm(), argv = [] } = {}) {
   const quiet = (...a) => { if (process.env.AZSH_DEBUG) app.say(dim(a.map(String).join(' '))); };
   Object.assign(console, { log: quiet, warn: quiet, info: quiet, debug: quiet });
   app.restoreConsole = () => Object.assign(console, saved);
-  term.open();
   app.render();
   const saves = await repo.list();
   const begin = async (save) => {

@@ -12,8 +12,9 @@ import { pullOpts, sessionLogNames } from './squad.mjs';
 import { slotContent, visibleBars } from './tuiBars.mjs';
 import { autoLootOn, openLoot } from './tuiLoot.mjs';
 import { createCombatMacroHost } from './macroHostCombat.ts';
-import { ensureMeter, noteLoot, cycleFightPane, cycleMeterSort, toggleMeterSegment, fightPane } from './tuiFightPanes.mjs';
+import { ensureMeter, noteLoot, cycleFightPane, cycleMeterSort, toggleMeterSegment, fightPane, nextPaneId } from './tuiFightPanes.mjs';
 import { objectiveLines } from './tuiViews.mjs';
+import { runPanelLines, endCard, stopText, stepBody } from './tuiAutopilot.mjs';
 
 export const TICK_MS = 100; // one engine tick per 100 ms of real time, like the web client
 const POWER_PAINT = { mana: brightBlue, rage: red, energy: yellow, focus: yellow };
@@ -43,7 +44,7 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
     auto: true, paused: false, speed: app.fightSpeed ?? 1, pressed: null, pressedTicks: 0, follow: [], focus: null, macros: null, timer: null, pend: null, ended: false,
     frames: newFrameMemory(app), compact: false, squeeze: 0,
     names: sessionLogNames(session, { playerName: app.ch.name, enemyName: b.enemyName, spellName: (id) => app.ds.spell(id)?.name }),
-    hint() { return `${this.plain ? (app.farmEntry === creatureEntry ? 'r: stop repeating   ' : 'r: fight again after   ') : ''}${this.auto ? 'a: manual play' : '1-0: your action bar   a: auto-play'}${session.alliesView().length ? '   t: orders' : ''}   c: cancel a buff${app.g.state.instance ? '   p: pull +1' : ''}   space: ${this.paused ? 'resume' : 'pause'}   + -: speed ${this.speed}x   Tab: ${fightPane(app) === 'log' ? 'meter' : fightPane(app) === 'meter' ? 'threat' : fightPane(app) === 'threat' ? 'loot' : 'log'}   l: log   Esc: ${this.label ? 'run away, stop autopilot' : 'run away'}`; },
+    hint() { return `${this.plain ? (app.farmEntry === creatureEntry ? 'r: stop repeating   ' : 'r: fight again after   ') : ''}${this.auto ? 'a: manual play' : '1-0: your action bar   a: auto-play'}${session.alliesView().length ? '   t: orders' : ''}   c: cancel a buff${app.g.state.instance ? '   p: pull +1' : ''}   space: ${this.paused ? 'resume' : 'pause'}   + -: speed ${this.speed}x   Tab: ${nextPaneId(app)}   l: log   Esc: ${this.label === 'autopilot' ? 'back to the run' : 'run away'}`; },
     schedule() {
       if (this.timer) app.term.clearInterval(this.timer);
       this.timer = app.term.setInterval(() => this.tick(), Math.max(10, TICK_MS / this.speed));
@@ -73,11 +74,14 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       if (session.ended) this.finish();
       app.renderSoon();
     },
+    /** At 4x and up under the autopilot nobody reads the ticks: the log speaks in fights (the Victory line). */
+    folded() { return this.label === 'autopilot' && this.speed >= 4; },
     logEvents(events) {
       app.meter?.ingest(events);
       notePops(this.frames, events);
+      if (this.folded()) return;
       const flush = () => { if (this.pend && this.pend.amount > 0) app.say(line(this.pend.t, this.pend.remake(this.pend.amount))); this.pend = null; };
-      const line = (t, row) => `${dim((t / 1000).toFixed(1).padStart(5) + 's')} ${combatLogPlainText(row)}`;
+      const line = (t, row) => `${dim((t / 1000).toFixed(1).padStart(5) + 's')} ${paintLog(row)}`;
       for (const ev of events) {
         const row = formatCombatLog(ev, this.names);
         if (!row) continue;
@@ -95,11 +99,12 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
     finish() {
       this.ended = true;
       this.stop();
-      if (this.pend) { if (this.pend.amount > 0) app.say(`${dim((this.pend.t / 1000).toFixed(1).padStart(5) + 's')} ${combatLogPlainText(this.pend.remake(this.pend.amount))}`); this.pend = null; }
+      if (this.pend) { if (this.pend.amount > 0) app.say(`${dim((this.pend.t / 1000).toFixed(1).padStart(5) + 's')} ${paintLog(this.pend.remake(this.pend.amount))}`); this.pend = null; }
       // Auto-loot off: the corpse holds its drops and coin for the loot window. The autopilot always takes them.
       const hold = !this.resolve && this.label !== 'autopilot' && !autoLootOn(app);
       const r = this.resolve ? this.resolve(session) : app.g.resolveFight(session, hold ? { holdLoot: true } : undefined);
       app.fight = null;
+      app.lastFight = this; // the meter and threat panes keep reading it between autopilot fights
       app.stack = this.savedStack;
       this.after?.(r);
       const tag = r.outcome === 'win' ? green(bold('Victory')) : r.outcome === 'defeat' ? red(bold('Defeat')) : yellow(bold('Stalemate'));
@@ -233,15 +238,49 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       if (out.length) return out;
       return abs.filter((x) => !x.spell.passive).slice(0, 9).map((ab, i) => ({ key: String(i + 1), spell: ab.spell, label: ab.spell.name, usable: ab.usable, reason: ab.reason, cooldownRemainingMs: ab.cooldownRemainingMs }));
     },
-    render(W, H) {
-      const lines = [];
+    /** The title line (who, how long, who drives) with why the fight is on its right, and the objective line under it. */
+    headLines(W, inline = false) {
       const t = (session.t / 1000).toFixed(1);
-      const mode = this.auto ? green('AUTO') : yellow('MANUAL');
-      let head = ` ${bold(`Fighting ${this.enemyName}`)}   ${dim(`${t}s`)}   ${mode}${this.paused ? red('  PAUSED') : ''}${this.speed !== 1 ? dim(`  ${this.speed}x`) : ''}${this.label ? cyan(`   ${this.label}`) : ''}`;
+      // One badge says who is driving. Under the autopilot the rotation flag only shows when you took it over;
+      // inside the run panel the panel's title already says who drives, so the head keeps to the fight.
+      const run = this.label === 'autopilot' ? app.auto : null;
+      const mode = inline ? (this.auto ? '' : yellow('you play'))
+        : run ? `${cyan(bold('AUTOPILOT'))}${this.speed !== 1 ? cyan(` ${this.speed}x`) : ''}${this.auto ? '' : yellow('  you play')}${dim(`  fight ${run.fights + 1} · step ${run.planner.step}${Number.isFinite(run.planner.steps) ? `/${run.planner.steps}` : ''}`)}`
+        : `${this.auto ? green('AUTO') : yellow('MANUAL')}${this.speed !== 1 ? dim(`  ${this.speed}x`) : ''}${this.label ? cyan(`   ${this.label}`) : ''}`;
+      let head = ` ${bold(`Fighting ${this.enemyName}`)}   ${dim(`${t}s`)}${mode ? `   ${mode}` : ''}${this.paused ? red('  PAUSED') : ''}`;
       // Why this fight, on the right of the title: the quest it serves, with its objective counters on the line below.
       const why = this.why?.();
       if (why?.right && W - vis(head) - 4 >= 12) { const r = cut(why.right, W - vis(head) - 4); head = fit(head, W - vis(r) - 1) + r + ' '; }
       const below = why?.below ? cut(` ${why.below}`, W) : '';
+      return { head, below };
+    },
+    /** The fight drawn inside the autopilot's run panel, so a pull never swaps the screen: the head, the objective
+     *  line, the enemies, then the party one line each, cut to `room` lines. `player` is the live player frame for
+     *  the panel's own slot. w opens the full view (render) with the party frames and the ability bar. */
+    inlineLines(W, room) {
+      const now = session.t;
+      // No head line: the panel's title names the quest and its counts, the enemy frame names the foe. What is
+      // left of the head (the clock, paused, you play) goes on the title's right as `status`.
+      const status = `${dim(`${(now / 1000).toFixed(1)}s`)}${this.auto ? '' : yellow('  you play')}${this.paused ? red('  PAUSED') : ''}`;
+      const enemies = session.enemiesView(), allies = session.alliesView(), pet = session.petView();
+      // `player` is the live frame for the panel's own slot (the run's header has no bars of its own).
+      const player = unitFrame(app, this.frames, session.playerView(), W, now, true, false, {});
+      const foes = (compact) => enemies.flatMap((e) => unitFrame(app, this.frames, e, W, now, false, e === session.enemyView(), { compact }));
+      const nameOfSide = (side) => (side === 'player' ? app.ch.name : [...allies, ...enemies].find((v) => v.side === side)?.name ?? (pet?.side === side ? pet.name : null));
+      const party = [...(pet ? [pet] : []), ...allies].map((v) => {
+        const t = v !== pet && v.hp > 0 ? session.targetOf?.(v.side) : null;
+        return unitFrame(app, this.frames, v, W, now, false, false, { compact: true, party: v !== pet, role: v.groupRole, target: t ? nameOfSide(t) : null })[0];
+      });
+      let fight = [...foes(enemies.length > 1), ...party];
+      if (fight.length > room) {
+        const shown = Math.max(0, room - foes(true).length);
+        fight = [...foes(true), ...party.slice(0, shown), ...(party.length > shown ? [dim(`   +${party.length - shown} more in the party`)] : [])];
+      }
+      return { player, status, fight: fight.slice(0, Math.max(1, room)) };
+    },
+    render(W, H) {
+      const lines = [];
+      const { head, below } = this.headLines(W);
       const pv = session.playerView(), now = session.t;
       const pet = session.petView();
       const allies = session.alliesView();
@@ -301,8 +340,8 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
   };
   session.aiPlayer = true;
   app.fight = ctl;
-  app.stack = [];
-  if (app.auto) app.auto.browsing = false; // an autopilot fight always comes back on screen
+  // An autopilot fight draws inside the run panel (or under the run strip), so whatever you were reading stays up.
+  if (label !== 'autopilot') app.stack = [];
   app.say(cyan(`You attack ${b.enemyName}.`) + (b.packAssist?.length ? yellow(` ${b.packAssist.map((p) => p.name).join(', ')} join${b.packAssist.length === 1 ? 's' : ''} the fight!`) : ''));
   ctl.schedule();
   app.render();
@@ -399,14 +438,28 @@ function partyOrders(app, ctl) {
   });
 }
 
+/** A combat log row with its parts painted, like a classic client's log: you green, friends and pets cyan, foes
+ *  yellow, spells cyan, damage red, healing green. The words between stay plain so the line still reads. */
+function paintLog(row) {
+  return row.segs.map((s) => {
+    const c = s.cls ?? '';
+    if (c.includes('tw-clog-amt')) return c.includes('sch-heal') ? green(s.text) : red(s.text);
+    if (c.includes('tw-clog-u-mine')) return green(s.text);
+    if (c.includes('tw-clog-u-friend') || c.includes('tw-clog-u-pet')) return cyan(s.text);
+    if (c.includes('tw-clog-u-hostile')) return yellow(s.text);
+    if (c.includes('tw-clog-sp')) return cyan(s.text);
+    return s.text;
+  }).join('');
+}
+
 const CAST_W = 30; // the cast/control slot on a frame's second line, so auras never move when a cast starts
 
-/** Per-fight memory that keeps frames steady: which units have used the cast slot, and the order auras
- *  first showed up in, so a refreshed buff keeps its place instead of jumping to the end. */
+/** Per-fight memory that keeps frames steady: the order auras first showed up in, so a refreshed buff keeps
+ *  its place instead of jumping to the end. */
 function newFrameMemory(app) {
-  // The player's own slot and aura order carry across fights, so their frame never reshuffles.
+  // The player's own aura order carries across fights, so their frame never reshuffles.
   app.playerAuraOrder ??= new Map();
-  return { castSlot: new Set(app.playerCastSlot ? ['player'] : []), auraOrder: new Map([['player', app.playerAuraOrder]]), pops: new Map() };
+  return { auraOrder: new Map([['player', app.playerAuraOrder]]), pops: new Map() };
 }
 
 const POP_MS = 1500, POP_W = 18; // a hit or heal stays beside the bars this long (fight time), in a slot this wide
@@ -443,8 +496,16 @@ const ROLE_GLYPH = { tank: cyan('T'), healer: green('H'), damage: red('D') };
 
 /** Two lines: name/level/HP/power, then a fixed cast slot + auras. `now` is the clock `casting` runs on. A party
  *  frame carries its role letter and target; `compact` keeps it to the first line with the cast in it. */
-function unitFrame(app, mem, v, W, now, isPlayer, focused = false, { compact = false, party = false, role, target } = {}) {
+function unitFrame(app, mem, v, W, now, isPlayer, focused = false, { compact = false, party = false, role, target, bars = true } = {}) {
   const dead = v.hp <= 0;
+  // No bars (the header already shows them): one line of name, cast slot, hits landing and auras.
+  if (!bars) {
+    const key = isPlayer ? 'player' : (v.side ?? v.name);
+    const name = `${(dead ? gray : isPlayer ? green : yellow)(bold(v.name))} ${dim(`L${v.level}`)}`;
+    const slot = castSlot(v, now);
+    const auras = auraText(app, mem, v, key);
+    return [cut(` ${fit(name, 20)} ${fit(slot, CAST_W)} ${fit(popText(mem, key, now), POP_W)} ${auras}`, W)];
+  }
   const namePaint = dead ? gray : isPlayer ? green : focused ? red : party ? cyan : yellow;
   const barW = Math.max(10, Math.min(30, Math.floor((W - 48 - POP_W) / 2)));
   const hpBar = bar(v.hp, v.maxHp, barW, dead ? gray : v.hp / v.maxHp < 0.25 ? red : green);
@@ -455,20 +516,30 @@ function unitFrame(app, mem, v, W, now, isPlayer, focused = false, { compact = f
   const key = isPlayer ? 'player' : (v.side ?? v.name);
   const head = ` ${fit(`${tag}${namePaint(bold(v.name))} ${dim(`L${v.level}`)}${focused ? red(' ◀') : ''}`, 26)} ${hpBar} ${fit(`${v.hp}/${v.maxHp}`, 11)}${pwBar} ${fit(popText(mem, key, now), POP_W)}`;
   if (compact) return [cut(`${head}${v.casting && !dead ? `  ${yellow(v.casting.name)}` : after}`, W)];
-  // Cast slot: a cast bar, else crowd control, else stealth. Once a unit has used it the slot stays
-  // reserved (blank when idle), so the auras after it hold still.
-  let slot = '';
+  // The second line is always there, cast slot first (a cast bar, else crowd control, else stealth, blank when
+  // idle) and the auras after it, so gaining a buff or starting a cast never moves this frame or the ones below.
+  const slot = castSlot(v, now);
+  const auras = auraText(app, mem, v, key);
+  return [cut(`${head}${after}`, W), cut(`   ${fit(slot, CAST_W)}  ${auras}`, W)];
+}
+
+/** The cast slot's text: a cast bar, else crowd control, else stealth; empty when idle. */
+function castSlot(v, now) {
   if (v.casting) {
     const total = v.casting.endsAt - v.casting.startedAt;
     const left = Math.max(0, v.casting.endsAt - now);
     const prog = v.casting.channeled ? left / total : 1 - left / total;
-    slot = `${fit(yellow(v.casting.name), 14)} ${bar(prog, 1, 10, yellow)} ${dim(`${(left / 1000).toFixed(1)}s`)}`;
-  } else if (v.controlled) slot = red(v.controlled.control);
-  else if (v.stealthed) slot = dim('stealthed');
-  if (slot) {
-    mem.castSlot.add(key);
-    if (isPlayer) app.playerCastSlot = true; // kept across fights and the autopilot's between-fight frame
+    return `${fit(yellow(v.casting.name), 14)} ${bar(prog, 1, 10, yellow)} ${dim(`${(left / 1000).toFixed(1)}s`)}`;
   }
+  if (v.controlled) return red(v.controlled.control);
+  if (v.stealthed) return dim('stealthed');
+  return '';
+}
+
+const SHORT_BUFF_MS = 60_000; // a frame shows only buffs about to run out; the long ones are on the Character tab
+
+/** Short buffs green then debuffs red, in the order they first showed up, so a refreshed one keeps its place. */
+function auraText(app, mem, v, key) {
   const order = mem.auraOrder.get(key) ?? new Map();
   mem.auraOrder.set(key, order);
   const placed = (list) => {
@@ -476,10 +547,8 @@ function unitFrame(app, mem, v, W, now, isPlayer, focused = false, { compact = f
     return [...list].sort((a, b) => order.get(a.spellId) - order.get(b.spellId));
   };
   const aura = (a, paint) => paint(`${app.ds.spell(a.spellId)?.name ?? a.spellId}${a.stacks > 1 ? ` x${a.stacks}` : ''}${a.remainingMs != null ? dim(` ${auraTime(a.remainingMs)}`) : ''}`);
-  const auras = [...placed(v.buffs).slice(0, 6).map((a) => aura(a, green)), ...placed(v.debuffs).slice(0, 6).map((a) => aura(a, red))].join('  ');
-  const reserve = mem.castSlot.has(key);
-  if (!reserve && !auras) return [cut(`${head}${after}`, W)];
-  return [cut(`${head}${after}`, W), cut(`   ${reserve ? `${fit(slot, CAST_W)}  ` : ''}${auras}`, W)];
+  const short = v.buffs.filter((a) => a.remainingMs != null && a.remainingMs < SHORT_BUFF_MS);
+  return [...placed(short).slice(0, 6).map((a) => aura(a, green)), ...placed(v.debuffs).slice(0, 6).map((a) => aura(a, red))].join('  ');
 }
 
 /** Aura time left at a fixed width: "  9s", " 12s", " 30m". */
@@ -489,7 +558,7 @@ function auraTime(ms) {
 }
 
 /** The player's frame from the character between fights, shaped like the in-fight one so it stays put. */
-function idlePlayerFrame(app, mem, W) {
+export function idlePlayerFrame(app, mem, W) {
   const ch = app.ch, ds = app.ds, now = Date.now();
   const buffs = (ch.activeAuras ?? (ch.activeBuffs ?? []).map((spellId) => ({ spellId })))
     .filter((a) => a.expiresAt == null || a.expiresAt > now)
@@ -506,19 +575,32 @@ const REST_SECONDS_PER_STEP = 10; // a rest step folds this much regen in; the l
 
 /** Watchable autopilot: the planner picks a step every few hundred ms; a fight step runs as a live session
  *  (the same frames and combat log as pressing Enter on a creature) and the planner waits for it to end.
- *  Esc stops the run; in a fight Esc runs away and stops it. `quest` pins the run to that quest (Do Quest). */
-export function startAutopilot(app, steps = 200, farmQuery, quest) {
+ *  Esc stops the run; in a fight Esc runs away and stops it. `quest` pins the run to that quest (Do Quest).
+ *  No step cap unless `steps` asks for one: the Stop after setting ends the run, in real minutes. */
+export function startAutopilot(app, steps = Infinity, farmQuery, quest) {
   if (app.fight || app.auto) return;
   const what = farmQuery ? `farming ${farmQuery}` : quest != null ? `doing ${app.ds.quest(quest)?.title ?? `quest ${quest}`}` : 'questing';
   const ctl = {
-    timer: null, fights: 0, kills: 0, xp: 0, restSteps: 0, status: '', browsing: false, frames: newFrameMemory(app),
+    timer: null, fights: 0, kills: 0, xp: 0, deaths: 0, items: 0, restSteps: 0, status: '', browsing: false, paused: false, frames: newFrameMemory(app),
+    // What the run strip, the run panel, the Run pane and the end card read (tuiAutopilot.mjs).
+    what, steps, farmQuery, quest, startedAt: Date.now(), gold0: app.ch.gold, level0: app.ch.level, ledger: [], turnedIn: [], ended: null,
+    get planner() { return ap; },
+    /** One row in the Run pane per planner step; a rest keeps updating its one row. */
+    note(kind, body, { replace = false } = {}) {
+      const last = this.ledger[this.ledger.length - 1];
+      if (replace && last && last.kind === kind) { last.n = ap.step; last.body = body; return last; }
+      const row = { n: ap.step, kind, body };
+      this.ledger.push(row);
+      if (this.ledger.length > 500) this.ledger.splice(0, this.ledger.length - 500);
+      return row;
+    },
     /** One planner step (the check script calls this by hand). Returns false when the run is over. */
     step() {
-      if (app.fight) return true; // the live fight calls back through onEnd
+      if (app.fight || this.paused) return true; // the live fight calls back through onEnd
       let line;
       try { line = ap.next(); }
       catch (err) { app.say(red(`autopilot error: ${err.message}`)); line = null; }
-      if (line == null) { this.stop(); app.say(`${cyan('Autopilot done.')} ${ap.summary()} ${dim(`${this.fights} fights, ${this.kills} kills, +${this.xp} xp`)}`); app.afterAction(); return false; }
+      if (line == null) { this.end(); return false; }
       if (ap.lastKind === 'wait') {
         // One rest line that keeps updating instead of a column of them.
         this.restSteps++;
@@ -526,48 +608,64 @@ export function startAutopilot(app, steps = 200, farmQuery, quest) {
         const text = `${dim('    resting')} ${dim(`${this.restSteps * REST_SECONDS_PER_STEP} s`)}  HP ${app.hpText()}  ${app.pwText()}`;
         if (this.restSteps > 1 && app.log.length && app.log[app.log.length - 1].includes('resting')) app.log[app.log.length - 1] = text;
         else app.say(text);
+        this.note('wait', `rest ${this.restSteps * REST_SECONDS_PER_STEP} s   ${dim(`HP ${app.hpText()}   ${app.pwText()}`)}`, { replace: true });
       } else {
         this.restSteps = 0;
-        if (line) { app.say(line); this.status = strip(line).trim(); }
+        if (line) {
+          app.say(line);
+          const body = stepBody(line), plain = strip(body).trim();
+          this.status = plain;
+          const kind = /^skipping /.test(plain) ? 'skip' : /^back to life/.test(plain) ? 'dead' : /^autopilot stopped/.test(plain) ? 'stop' : ap.lastKind ?? 'note';
+          this.note(kind, body);
+          if (kind === 'turnin' && /^turned in /.test(plain)) this.turnedIn.push(plain.slice('turned in '.length));
+        }
       }
       // The step line already tells the story; the engine's activity rows for it would repeat it.
       app.lastActivity = app.g.state.activity[0] ?? null;
       app.renderSoon();
       return true;
     },
-    stop() { if (this.timer) app.term.clearInterval(this.timer); this.timer = null; if (app.auto === this) app.auto = null; void app.persist(); app.render(); },
-    /** Between fights: the same top rows as a fight (header, player frame), so fast runs don't flash the menus. */
-    render(W, H) {
-      const speed = app.fightSpeed ?? 1;
-      const lines = [
-        ` ${bold('Autopilot')}   ${dim(what)}   ${dim(`${this.fights} fights  ${this.kills} kills  +${this.xp} xp`)}${speed !== 1 ? dim(`  ${speed}x`) : ''}`,
-        '',
-        ...idlePlayerFrame(app, this.frames, W),
-        '',
-        dim(` ${cut(this.status || 'planning the next step', W - 2)}`),
-      ];
-      return lines.slice(0, H);
+    stop() { if (this.timer) app.term.clearInterval(this.timer); this.timer = null; if (app.auto === this) { app.auto = null; app.lastRun = this; } void app.persist(); app.render(); },
+    /** The run is over (the planner stopped, or `why` says the player did): the log line, then the end card
+     *  once there is something to sum up. */
+    end(why) {
+      this.ended = why ?? null;
+      this.stop();
+      app.say(`${cyan(why ? 'Autopilot stopped.' : 'Autopilot done.')} ${dim(stopText(app, this))}  ${ap.summary()} ${dim(`${this.fights} fights, ${this.kills} kills, +${this.xp} xp`)}`);
+      if (!app.closed && (this.fights > 0 || ap.step > 3)) { app.stack = []; app.push(endCard(app, this)); }
+      app.afterAction();
     },
+    /** Between fights: the run panel (tuiAutopilot.mjs) fills the middle. */
+    render(W, H) { return runPanelLines(app, this, W, H); },
   };
   const liveFight = (step, settle) => {
     const c = app.ds.creature(step.creatureEntry);
+    const name = c?.name ?? String(step.creatureEntry);
     const why = () => fightReason(app, step);
     const reason = why();
-    ctl.status = `${step.forQuest ? 'quest target' : 'hunting'}: ${c?.name ?? step.creatureEntry}${reason && step.forQuest ? `  ${reason.short}` : ''}`;
+    ctl.status = `${step.forQuest ? 'quest target' : 'hunting'}: ${name}${reason && step.forQuest ? `  ${reason.short}` : ''}`;
     app.say(`${dim(String(ap.step).padStart(3) + '.')} ${ctl.status}`);
+    const row = ctl.note('fight', `${fit(name, 24)} ${cyan('fighting')}${reason ? `   ${dim(reason.short)}` : ''}`);
     const f = startFight(app, step.creatureEntry, {
       label: 'autopilot', why,
       onEnd: (r) => {
-        if (!r) { app.say(yellow('Autopilot stopped: you ran.')); ctl.stop(); return; }
+        ctl.watchFight = false; // w watches one fight; the next one draws inside the panel again
+        if (!r) { row.body = `${fit(name, 24)} ${yellow('ran')}`; ctl.end('you ran'); return; }
+        const skippedBefore = ap.skipped.length;
         settle(r);
-        ctl.status = `${r.outcome === 'win' ? 'beat' : r.outcome === 'defeat' ? 'lost to' : 'stalemate with'} ${c?.name ?? step.creatureEntry}`;
+        ctl.status = `${r.outcome === 'win' ? 'beat' : r.outcome === 'defeat' ? 'lost to' : 'stalemate with'} ${name}`;
         ctl.fights++;
-        if (r.outcome === 'win') { ctl.kills += r.killCount ?? 1; ctl.xp += r.xpGained; }
+        if (r.outcome === 'win') { ctl.kills += r.killCount ?? 1; ctl.xp += r.xpGained; ctl.items += r.loot.reduce((n, d) => n + (d.count ?? 1), 0); }
+        if (r.outcome === 'defeat') ctl.deaths++;
+        const outcome = r.outcome === 'win' ? green('won') : r.outcome === 'defeat' ? red('lost') : yellow('stalemate');
+        const loot = r.loot.map((d) => `${app.itemLabel(d.item)}${d.count > 1 ? ` x${d.count}` : ''}`).join(', ');
+        row.body = `${fit(name, 24)} ${outcome}  ${dim(`${(r.result.durationMs / 1000).toFixed(1)} s`)}${r.xpGained ? `   ${yellow(`+${r.xpGained} xp`)}` : ''}${loot ? `   ${loot}` : ''}`;
+        for (const entry of ap.skipped.slice(skippedBefore)) ctl.note('skip', `skipped ${app.ds.quest(entry)?.title ?? `quest ${entry}`}   ${dim(`died ${ap.questDefeats(entry)} times`)}`);
       },
     });
     return f.ok ? f : { ok: false, reason: f.reason };
   };
-  const ap = app.cmds.createAutopilot(`${steps}${farmQuery ? ` farm ${farmQuery}` : ''}`, { liveFight, quest });
+  const ap = app.cmds.createAutopilot(farmQuery ? `farm ${farmQuery}` : '', { liveFight, quest, maxSteps: steps, clock: () => Date.now() - ctl.startedAt });
   if (ap.error) { app.say(red(ap.error)); app.render(); return; }
   app.say(cyan(`Autopilot: ${what}, fights play live. Esc stops it.`));
   app.auto = ctl;

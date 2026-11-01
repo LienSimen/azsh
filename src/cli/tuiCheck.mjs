@@ -8,8 +8,10 @@ import { bootDataStore } from './bootData.mjs';
 import { newGameState } from '../engine/game.ts';
 import { strip } from './text.mjs';
 import { visibleBars } from './tuiBars.mjs';
+import { defaultConditionsForSpell } from './tuiRotationCond.mjs';
 import { addItem, countItem } from '../domain/items/inventory.ts';
 import { moneyText as moneyTextOf } from '../domain/economy/money.ts';
+import { offeredQuests } from '../quests/quests.ts';
 
 const showFrames = process.argv.includes('--frames');
 let failures = 0;
@@ -88,6 +90,8 @@ if (firstQuest > 0) {
   check('Enter on Accept closed the dialog', app.stack.length === 0);
   term.press('2'); show('quest log');
   check('quest log lists it', /1 of 20/.test(frame()));
+  const zoneOffers = offeredQuests(app.ds, app.ch.zoneId, app.ch, app.g.state.questlog).filter((o) => o.canAccept).length;
+  check('quest log also lists what the zone offers', !zoneOffers || (/Available in /.test(frame()) && app.rowsOf(app.top()).filter((r) => !r.header).length > 1));
 }
 
 // Esc closes a window; the log window opens and closes.
@@ -194,12 +198,27 @@ check('command line ran rest', app.log.some((l) => /You rest for 30 s/.test(stri
 
 // Autopilot: steps by hand; its fights are live sessions that we tick to the end.
 home(); term.press('1'); term.press('a');
-check('autopilot started', !!app.auto);
+check('a opens the pre-flight card', app.top()?.id === 'autopilot-preflight' && /Stops\s+.*deaths in a row/.test(strip(frame())));
+show('autopilot pre-flight');
+app.fightSpeed = 8; // at 4x and up the combat log folds to one line a fight
+const ticksBefore = app.log.filter((l) => /^\s*\d+\.\ds /.test(strip(l))).length;
+term.press('return');
+check('Enter on the card starts the autopilot', !!app.auto && app.stack.length === 0);
 const autoCtl = app.auto;
 let steps = 0, liveFights = 0, fightTicks = 0;
 while (app.auto && steps < 60) {
   if (app.fight) {
-    if (!liveFights) { show('autopilot fight'); check('an autopilot fight says what it is for', /^ Fighting .*  (for .+|hunting for xp)\s*$/m.test(strip(frame()))); }
+    if (!liveFights) {
+      show('autopilot fight');
+      check('an autopilot fight says what it is for', /(\d+\/\d+|hunting for xp|questing in)/.test(strip(frame()).split('\n')[2] ?? ''));
+      check('the fight draws inside the run panel, without a head line of its own', app.inlineFight() && app.compactHeader() && / ◀ /.test(strip(frame())) && !/^ Fighting /m.test(strip(frame())));
+      check('a run keeps only the XP line for a header', app.compactHeader() && /^ XP /.test(strip(frame())) && !/1 World/.test(strip(frame())));
+      check('your frame sits in the panel, once', (strip(frame()).match(new RegExp(`^ ${app.ch.name} L\\d+ +[█░#-]`, 'mg')) ?? []).length === 1);
+      term.press('w'); check('w opens the full fight view', !!app.auto.watchFight && !app.inlineFight() && /^ Fighting /m.test(strip(frame())));
+      term.press('escape'); check('Esc comes back to the run panel without running', !!app.fight && !!app.auto && app.inlineFight());
+      term.press('3'); check('a tab can be browsed during an autopilot fight, under the run strip', app.auto.browsing && !!app.fight && /Autopilot.*back to the run/.test(strip(frame()).split('\n')[3] ?? ''));
+      term.press('w'); check('w returns to the panel with the fight still on', !app.auto.browsing && app.inlineFight());
+    }
     liveFights++; fightTicks += finishFight(); continue;
   }
   if (!app.auto.step()) break;
@@ -208,20 +227,56 @@ while (app.auto && steps < 60) {
 show('autopilot');
 if (app.auto) {
   if (app.fight) { liveFights++; fightTicks += finishFight(); }
-  check('between fights the autopilot keeps its own panel', /^\s*Autopilot\s/m.test(strip(frame())) && strip(frame()).includes(app.ch.name));
+  check('between fights the autopilot keeps its own panel', app.compactHeader() && /^ Now\s/m.test(strip(frame())) && strip(frame()).includes(app.ch.name));
   show('autopilot between fights');
+  app.fightPane = 'loot'; app.render();
+  check('between fights the autopilot keeps the fight pane', /Loot this sitting/.test(strip(frame())));
+  term.press('tab'); check('Tab between autopilot fights cycles the pane, not the tabs', app.fightPane === 'run' && !app.auto.browsing);
+  check('the Run pane lists the planner steps with the fights folded', /^ Run\s/m.test(strip(frame())) && autoCtl.ledger.some((r) => r.kind === 'fight' && /won|lost|stalemate/.test(strip(r.body))));
+  show('autopilot run pane');
+  term.press('tab'); check('Tab moves on to the Quests pane', app.fightPane === 'quests');
+  term.press('tab'); term.press('tab'); check('Tab wraps back to the log after Bags', app.fightPane === 'log');
+  check('the run panel says what is now, what is next and how the quest in hand stands', /^ Now\s/m.test(strip(frame())) && /^ Next\s/m.test(strip(frame())) && /(\d+\/\d+|ready to turn in)/.test(strip(frame()).split('\n')[2] ?? '') && !/stops at/.test(strip(frame())));
+  check('the panel is five lines at most between fights', strip(frame()).split('\n').slice(2, 12).filter((l) => l.trim()).length <= 5);
+  app.fightPane = 'quests'; app.render();
+  check('the Quests pane lists the quests the run works on', /^ Quests\s+next: /m.test(strip(frame())) && app.g.state.questlog.quests.some((qs) => qs.status !== 'turnedIn' && strip(frame()).includes(ds.quest(qs.entry).title)));
+  show('autopilot quests pane');
+  app.fightPane = 'bags'; app.render();
+  check('the Bags pane shows the bags with a cursor', /^ Bags\s/m.test(strip(frame())) && /▶ /.test(strip(frame())));
+  const bagCursor = app.bagsPane.cursor; term.press('down');
+  check('Down moves the Bags pane cursor', app.bagsPane.cursor > bagCursor && !!app.auto);
+  const logBefore = app.log.length; term.press('return');
+  check('Enter on a bag row acts while the run plays on', (app.log.length > logBefore || app.stack.length > 0) && !!app.auto);
+  home(); show('autopilot bags pane');
+  app.fightPane = 'log';
+  term.press('space'); const stepBefore = autoCtl.planner.step; autoCtl.step();
+  check('space pauses the run between fights', autoCtl.paused && autoCtl.planner.step === stepBefore && /PAUSED/.test(strip(frame())));
+  term.press('space'); check('space resumes it', !autoCtl.paused);
   term.press('3'); check('tabs can be viewed while the autopilot runs', app.tab === 2 && !!app.auto && /Bags|bag/i.test(strip(frame())));
-  term.press('w'); check('w goes back to watching the run', !app.auto.browsing && /^\s*Autopilot\s/m.test(strip(frame())));
+  check('the run strip sits under the tabs while browsing', /Autopilot.*fights.*back to the run/.test(strip(frame()).split('\n')[3] ?? ''));
+  show('autopilot run strip');
+  // A browsed tab works during the run: Enter acts on the row (here a bag item) instead of jumping back.
+  { const logBefore = app.log.length; app.top().cursor = 1; term.press('return'); check('Enter acts on a row while browsing during the run', !!app.auto && app.auto.browsing && (app.log.length > logBefore || app.stack.length > 0)); home(); }
+  term.press('7'); check('the Talents tab opens during the run', app.tab === 6 && app.auto.browsing);
+  term.press('escape'); check('Esc on a tab comes back to the run instead of stopping it', !!app.auto && !app.auto.browsing);
+  term.press('3');
+  term.press('w'); check('w goes back to watching the run', !app.auto.browsing && app.compactHeader() && /^ Now\s/m.test(strip(frame())));
   term.press('l'); check('log window opens over the autopilot', app.top().id === 'log');
   term.press('escape'); check('Esc closes the log and leaves the autopilot running', app.stack.length === 0 && !!app.auto);
-  term.press('1');
+  term.press('1'); term.press('w'); // back on the panel, where Esc stops the run
 }
 check(`autopilot fought ${liveFights} live fights over ${steps} steps (${fightTicks} ticks)`, liveFights > 0 && app.log.some((l) => /hunting:|quest target:/.test(strip(l))));
 check('autopilot counted its fights', autoCtl.fights === liveFights);
-if (app.auto) { term.press('escape'); check('Esc stops the autopilot', !app.auto); }
+check('at 8x the combat log folds to one line a fight', app.log.filter((l) => /^\s*\d+\.\ds /.test(strip(l))).length === ticksBefore && app.log.some((l) => /^Victory|^Defeat/.test(strip(l))));
+if (app.auto) {
+  term.press('escape'); check('Esc stops the autopilot', !app.auto);
+  check('the end card sums the run up', app.top()?.id === 'autopilot-done' && /Autopilot done/.test(strip(frame())) && /Stopped: you stopped it/.test(strip(frame())));
+  show('autopilot end card');
+  term.press('return'); check('Enter closes the end card', app.stack.length === 0);
+}
 
 // Autopilot fight interrupted by Esc stops the run.
-term.press('a');
+term.press('a'); term.press('return');
 while (app.auto && !app.fight && app.auto.step()) { /* reach a fight */ }
 if (app.fight) { term.press('escape'); check('Esc in an autopilot fight stops the run', !app.fight && !app.auto); }
 else { if (app.auto) app.auto.stop(); check('autopilot reached a fight to interrupt', false); }
@@ -233,6 +288,13 @@ else { if (app.auto) app.auto.stop(); check('autopilot reached a fight to interr
   for (let n = 0; n < 30 && !app.cmds.questBlacklist.size && line != null; n++) line = lost.next();
   check('a quest the autopilot died on is blacklisted', app.cmds.questBlacklist.size > 0 && app.log.some((l) => /skipping .*died 2 times/.test(strip(l))));
   check('dying on a quest did not stop the run', !lost.done);
+}
+
+// The windowed run has no step cap: the Stop after setting ends it, on the run's real clock.
+{
+  const timed = app.cmds.createAutopilot('', { maxSteps: Infinity, clock: () => 25 * 3_600_000, liveFight: () => ({ ok: true }) });
+  timed.next();
+  check('a run stops on the Stop after clock, not a step count', timed.steps === Infinity && timed.stopReason?.reason === 'timeUp');
 }
 
 // Do Quest: d on a quest log row runs the autopilot pinned to that quest, and clears its blacklist entry.
@@ -272,11 +334,38 @@ check('add-rule picker opened', app.top().id === 'pick');
 term.press('return');
 check('rule added to combat', app.g.rotation().phases.combat.length === before + 1);
 check('cursor landed on the new rule', app.rowsOf(app.top())[app.top().cursor]?.data?.rule?.id?.startsWith('tui-'));
+{
+  const added = app.rowsOf(app.top())[app.top().cursor].data.rule;
+  const want = defaultConditionsForSpell(ds.spell(added.action.spellId), app.ch);
+  check('new rule starts with the smart default conditions', JSON.stringify(added.conditions) === JSON.stringify(want));
+}
 term.press('return'); term.press('down'); term.press('return'); // menu → change when it fires
-check('condition picker opened', app.top().id === 'pick' && /fire only when/.test(app.top().title));
-term.press('down'); term.press('return'); term.type('50');
-check('condition applied', JSON.stringify(app.g.rotation().phases.combat).includes('"healthPct"'));
+check('condition editor opened', app.top().id === 'conds');
+show('condition editor');
+app.top().cursor = rowIndex((r, t) => /\+ Add a condition/.test(t)); term.press('return');
+check('metric catalog opened', app.top().id === 'pick' && /What to check/.test(app.top().title));
+app.top().cursor = rowIndex((r, t) => /living enemies/.test(t)); term.press('return');
+check('condition added from the catalog', app.g.rotation().phases.combat.some((r) => r.id.startsWith('tui-') && r.conditions.some((c) => c.metric === 'enemyCount')));
+check('one condition menu opened', app.top().id === 'cond');
+app.top().cursor = rowIndex((r, t) => /^Value:/.test(t)); term.press('return'); term.type('3');
+check('value changed through the prompt', app.g.rotation().phases.combat.some((r) => r.id.startsWith('tui-') && r.conditions.some((c) => c.metric === 'enemyCount' && c.value === 3)));
+show('one condition');
+app.top().cursor = rowIndex((r, t) => /^Check:/.test(t)); term.press('return'); term.press('/'); term.type('ally');
+check('/ searches the catalog', app.top().id === 'pick' && /matching "ally"/.test(app.top().title));
+app.top().cursor = rowIndex((r, t) => /^\s*health %$/.test(t)); term.press('return');
+app.top().cursor = rowIndex((r, t) => /^Who:/.test(t)); term.press('return');
+app.top().cursor = rowIndex((r, t) => /an ally/.test(t)); term.press('return');
+check('an ally subject shows the ally filter', rowIndex((r, t) => /Which ally/.test(t)) >= 0);
+app.top().cursor = rowIndex((r, t) => /Which ally/.test(t)); term.press('return');
+app.top().cursor = rowIndex((r, t) => /a healer/.test(t)); term.press('return');
+check('ally filter stored on the condition', app.g.rotation().phases.combat.find((r) => r.id.startsWith('tui-')).conditions.some((c) => c.subject === 'ally' && c.ally?.role === 'healer'));
+show('ally condition');
+term.press('escape');
+app.top().cursor = rowIndex((r, t) => /Quick presets/.test(t)); term.press('return');
+app.top().cursor = rowIndex((r, t) => /My health is below/.test(t)); term.press('return'); term.type('50');
+check('preset replaced the conditions', JSON.stringify(app.g.rotation().phases.combat.find((r) => r.id.startsWith('tui-')).conditions) === JSON.stringify([{ metric: 'healthPct', subject: 'self', op: '<', value: 50 }]));
 show('rotation edited');
+term.press('escape'); // leave the condition editor
 term.press('return'); term.press('end'); term.press('return'); // menu → delete
 check('rule deleted through the menu', app.g.rotation().phases.combat.length === before);
 
@@ -385,6 +474,24 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   check('auction dialog opened', app.top().id === 'auction');
   const listings = app.g.browseAuctions(Date.now()).length;
   check(`auction house has bot listings (${listings})`, listings > 0);
+  // Categories: Left/Right picks an item class, [ ] a subclass inside it; Left back round to All shows everything.
+  const shown = () => app.rowsOf(app.top()).filter((r) => r.data?.auction).map((r) => app.ds.item(r.data.auction.item));
+  term.press('right'); show('auction category');
+  const inCat = shown(), cls = inCat[0]?.itemClass;
+  check(`Right picks a category (${inCat.length} of ${listings})`, inCat.length > 0 && inCat.length < listings && inCat.every((it) => it.itemClass === cls));
+  const onStrip = () => app.rowsOf(app.top())[app.top().cursor]?.data?.strip;
+  check('the cursor starts on a listing, not a strip', !onStrip());
+  term.press('up');
+  check(`Up from the first listing lands on a strip (${onStrip()})`, !!onStrip());
+  if (onStrip() === 'sub') {
+    term.press('right'); show('auction subcategory');
+    const inSub = shown(), subOf = (it) => it.itemSubclass ?? it.weaponSubclass ?? it.armorSubclass;
+    check(`Right on the subcategory strip picks one (${inSub.length} of ${inCat.length})`, inSub.length > 0 && inSub.length <= inCat.length && inSub.every((it) => it.itemClass === cls && subOf(it) === subOf(inSub[0])));
+    check('the cursor stays on the strip', onStrip() === 'sub');
+    term.press('down');
+    check('Down from the strip goes to the listings', !onStrip() && !!app.rowsOf(app.top())[app.top().cursor]?.data?.auction);
+  } else term.press('down');
+  term.press('left'); check('Left back to All lists every listing', shown().length === listings);
   term.press('s'); term.type('cloth'); show('auction search');
   check('search filters the boards', /"cloth"/.test(strip(frame())));
   term.press('tab'); show('auction sell');
@@ -591,6 +698,25 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   const quickLog = app.log.map(strip);
   const quickAt = quickLog.lastIndexOf(`> fight ${quickEntry}`);
   check(':fight brings the party in Party mode', quickAt >= 0 && quickLog.slice(quickAt + 1).some((l) => squad.some((c) => l.includes(c.name))));
+}
+
+// ---- gear: a BoE a companion carries (a crafter's product) goes on from the Equipment tab, no trade first ----
+{
+  const g = app.g, comp = g.state.squad[0];
+  const cloak = ds.items().find((i) => i.slot === 'back' && i.bonding === 2 && (i.requiredLevel ?? 1) <= app.ch.level && !i.allowClass?.length && i.entry > 100);
+  check('a BoE cloak exists to hand a companion', !!cloak && !!comp);
+  if (cloak && comp) {
+    comp.bags = addItem(comp.bags ?? { stacks: [] }, cloak.entry, 1, 1);
+    home(); app.switchTab(app.tabs.findIndex((t) => t.view.id === 'gear'));
+    app.top().cursor = rowIndex((r) => r.data?.slot === 'back' && !r.data?.upgrade); term.press('return'); show('back slot picker with companion bags');
+    const row = rowIndex((r, t) => t.includes(cloak.name) && t.includes(comp.name));
+    check("the slot picker lists the cloak from the companion's bags", row > 0);
+    if (row > 0) {
+      app.top().cursor = row; term.press('return');
+      const back = app.g.state.char.equipped.back;
+      check("Enter takes the companion's cloak and wears it", (back?.item ?? back) === cloak.entry && countItem(comp.bags, cloak.entry) === 0);
+    }
+  }
 }
 
 // ---- dungeons: the Deadmines as a text run ------------------------------------------------------------------
@@ -1076,6 +1202,8 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   check('a global bar slot takes a bag item', (g.state.globalActionBar?.items ?? []).includes(potion.entry));
   g.state.char.health = Math.max(1, Math.floor(g.state.char.health / 2));
   const potions = countItem(g.state.inventory, potion.entry);
+  // The kobold fight above may have drunk one, and the potion cooldown runs on the wall clock now.
+  g.state.spellCooldowns = {}; g.state.categoryCooldowns = {};
   app.top().cursor = rowIndex((r, t) => /Fire the whole global bar/.test(t)); term.press('return');
   check('firing the global bar drinks the potion', countItem(g.state.inventory, potion.entry) === potions - 1);
   app.top().cursor = rowIndex((r, t) => t.includes(potion.name) && !('b' in (r.data ?? {}))); term.press('return');
@@ -1797,15 +1925,42 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   app12.top().cursor = at((r, t) => /Warsong Gulch/.test(t)); term12.press('return');
   if (showFrames) console.log(`\n=== warsong gulch ===\n${term12.text()}`);
   check('the honor window starts Warsong Gulch', app12.top()?.id === 'bg' && !!g12.state.battleground && /flag/.test(strip(term12.text())));
-  app12.top().cursor = at((r, t) => /Your job/.test(t)); term12.press('return');
+  app12.top().cursor = at((r, t) => /Autopilot:/.test(t)); term12.press('return'); // the orders picker
+  app12.top().cursor = at((r, t) => /Autopilot:/.test(t)); term12.press('return'); // its job option
   app12.top().cursor = at((r, t) => /guard our flag/.test(t)); term12.press('return');
   check('you can change your job', app12.bg.world.units.get(app12.bg.selfId).role === 'defense');
   const bg = app12.bg;
+  check('the gulch is drawn as a strip with you on it', /Horde.*mid.*Alliance/.test(strip(term12.text())) && /@/.test(strip(term12.text())));
+  // Your own seat by place: an order takes you off autopilot, and once the gates open you walk toward mid.
+  const { WSG_GEOMETRY } = await import('../domain/bg/wsg.ts');
+  const me12 = bg.world.units.get(bg.selfId);
+  const toMid = () => Math.hypot(me12.pos.x - WSG_GEOMETRY.mid.x, me12.pos.y - WSG_GEOMETRY.mid.y);
+  const d0 = toMid();
+  term12.press('o');
+  app12.top().cursor = at((r, t) => /Go to mid/.test(t)); term12.press('return');
+  check('an order by place takes your seat off autopilot', me12.human === true && me12.order.kind === 'attack-move');
+  stepBg(app12, bg, 300);
+  check('and you walk there yourself', toMid() < d0 - 50 && me12.order.kind === 'attack-move');
+  // A team call holds your side against the strategy layer for a while, then hands them back.
+  term12.press('t');
+  app12.top().cursor = at((r, t) => /Everyone to mid/.test(t)); term12.press('return');
+  const called = [...bg.commanded.keys()];
+  stepBg(app12, bg, 25); // two strategy cycles
+  const stillOnIt = called.filter((id) => { const u = bg.world.units.get(id); return u.order.kind === 'attack-move' && Math.abs(u.order.to.x - WSG_GEOMETRY.mid.x) < 1; });
+  check('a team call holds your side past the strategy cycle', called.length >= 5 && stillOnIt.length === called.filter((id) => bg.world.alive(bg.world.units.get(id))).length);
+  stepBg(app12, bg, 500);
+  check('and lapses after its time', bg.commanded.size === 0);
+  bg.speed = 8;
+  term12.press('j');
+  app12.top().cursor = at((r, t) => /guard our flag/.test(t)); term12.press('return');
+  check('autopilot takes your seat back', me12.human === false && bg.my == null);
   const marks0 = g12.state.inventory.stacks.length;
   let n = 0;
   while (!bg.world.ended && n < 40000) { stepBg(app12, bg, 200); n += 200; }
   app12.render();
   check('the match plays to an end', bg.world.ended && bg.settled);
+  check('inside its 25 minute clock, with a winner', bg.world.t <= 25 * 60_000 + 10_000 && bg.world.winner != null);
+  check('both sides scored kills and the header counts them', bg.teamKills.alliance > 0 && bg.teamKills.horde > 0 && /kills [0-9]+-[0-9]+/.test(strip(term12.text())));
   check('honor and marks of honor settle', bg.marks > 0 && g12.state.inventory.stacks.length > marks0 && (g12.state.char.honor?.cp ?? 0) > 0);
   check('and you are out of the battleground', !g12.state.battleground);
   app12.top().cursor = at((r, t) => /Leave the battleground/.test(t)); term12.press('return');
@@ -1907,9 +2062,16 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
 // World search: s on the World tab, a vendor item lists who sells it and where, a node its zones, a dungeon its door.
 {
   const txt = () => app.rowsOf(app.top()).map((r) => strip(r.text)).join('|');
-  const search = (q) => { home(); term.press('1'); term.press('s'); for (const ch of q) term.press(ch === ' ' ? 'space' : ch); term.press('return'); };
+  const find = (key, q) => { home(); term.press('1'); term.press(key); for (const ch of q) term.press(ch === ' ' ? 'space' : ch); term.press('return'); };
+  const search = (q) => find('S', q);
+  find('s', 'hogger'); show('zone search');
+  check('s searches the zone you stand in', app.top().id === 'world-search' && /Search Elwynn Forest/.test(strip(frame())) && /Hogger L11.*here/.test(txt()));
+  find('s', 'deadmines');
+  check('the zone search leaves out what is elsewhere', /Nothing by that name in Elwynn Forest/.test(txt()));
+  term.press('a');
+  check('a widens it to the whole world', /Deadmines.*Dungeon.*entrance in Westfall/.test(txt()));
   search('mining pick'); show('world search');
-  check('s opens the world search', app.top().id === 'world-search' && /Mining Pick/.test(txt()));
+  check('S opens the world search', app.top().id === 'world-search' && /Mining Pick/.test(txt()));
   check('an item lists the vendors that sell it and where they stand', /sold by .*<.*>.*(here|Stormwind|Westfall|Loch Modan|Redridge)/.test(txt()));
   search('copper vein'); show('world search node');
   check('a gather node lists the zones it grows in', /Copper Vein.*Mining.*(here|Dun Morogh|Durotar|Mulgore|Westfall|Loch Modan)/.test(txt()));
