@@ -258,9 +258,16 @@ export function travelTo(app, dest) {
   if (!app.result(res)) return;
   app.vendor = null; app.cmds.setVendor(null);
   afterDeparture(app, () => `You travel to ${bold(dest.name)}. ${dim(`${secondsText(pv.totalSeconds * 1000)}${pv.totalCopper ? `, ${moneyText(pv.totalCopper)}` : ''}`)}`);
+  landOnTab(app);
+}
+
+/** After a departure: stay on the Travel tab when the trip started there (you may want to go on), else open World. */
+export function landOnTab(app) {
+  const travel = app.tabs.findIndex((t) => t.view?.id === 'travel');
+  const i = app.tab === travel && !app.stack.length ? travel : 0;
   app.stack = [];
-  app.switchTab(0);
-  app.tabs[0].view.cursor = 0; app.tabs[0].view.scroll = 0;
+  app.switchTab(i);
+  const v = app.tabs[i]?.view; if (v) { v.cursor = 0; v.scroll = 0; }
 }
 
 function questsView(app) {
@@ -861,7 +868,7 @@ function travelView(app) {
     id: 'travel', title: 'Travel', hint: 'Enter: go',
     rows(a) {
       const g = a.g, ds = a.ds, z = a.zone(), ch = a.ch;
-      const rows = [{ text: `You are in ${cyan(z?.name ?? ch.zoneId)}`, header: true }, { text: '', header: true }, { text: 'On foot', header: true }];
+      const rows = [...journeyRows(a), { text: `You are in ${cyan(z?.name ?? ch.zoneId)}`, header: true }, { text: '', header: true }, { text: 'On foot', header: true }];
       for (const id of z?.neighbors ?? []) { const d = ds.zone(id); if (d) rows.push({ text: `${d.name} ${dim(`L${d.levelRange[0]}-${d.levelRange[1]}`)}`, detail: () => travelPreviewLines(a, d), act: () => travelTo(a, d) }); }
       const taxi = g.taxiOptions();
       if (taxi.length) {
@@ -874,12 +881,12 @@ function travelView(app) {
       rows.push({
         text: bind ? `Hearth to ${ds.zone(bind.zone)?.name ?? bind.zone}${bind.name ? dim(` (${bind.name})`) : ''}${cd > 0 ? red(`  ${secondsText(cd)}`) : ''}` : dim('No home set: speak with an innkeeper.'),
         detail: () => [bold('Hearthstone'), bind ? `Bound at ${bind.name ?? ds.zone(bind.zone)?.name}` : 'Not bound', cd > 0 ? red(`Ready in ${secondsText(cd)}`) : green('Ready')],
-        act: () => { const r = g.castHearth(); if (a.result(r)) { a.vendor = null; afterDeparture(a, () => `You hearth to ${a.zone()?.name}.`); a.switchTab(0); } },
+        act: () => { const r = g.castHearth(); if (a.result(r)) { a.vendor = null; afterDeparture(a, () => `You hearth to ${a.zone()?.name}.`); landOnTab(a); } },
       });
       const ports = g.classTravelOptions();
       if (ports.length) {
         rows.push({ text: '', header: true }, { text: 'Teleports', header: true });
-        for (const p of ports) rows.push({ text: `${p.name} → ${ds.zone(p.toZone)?.name ?? p.toZone}${p.reagents.some((r) => r.have < r.count) ? red('  no reagent') : ''}`, act: () => { const r = g.castTeleport(p.spellId); if (a.result(r)) { afterDeparture(a, () => `You teleport to ${a.zone()?.name}.`); a.switchTab(0); } } });
+        for (const p of ports) rows.push({ text: `${p.name} → ${ds.zone(p.toZone)?.name ?? p.toZone}${p.reagents.some((r) => r.have < r.count) ? red('  no reagent') : ''}`, act: () => { const r = g.castTeleport(p.spellId); if (a.result(r)) { afterDeparture(a, () => `You teleport to ${a.zone()?.name}.`); landOnTab(a); } } });
       }
       rows.push(...portalRows(a));
       return rows;

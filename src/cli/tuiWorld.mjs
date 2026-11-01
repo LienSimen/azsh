@@ -56,7 +56,7 @@ export function pickPocketTag(app, creature) {
 
 // ---- journeys ------------------------------------------------------------------------------------------
 // With a real-time travel pace (Settings) a trip takes wall-clock time: the game loop calls journeyTick, the
-// header shows where you are headed, and the World tab opens on this card. Instant pace never gets here.
+// header shows where you are headed, and the World and Travel tabs carry this card. Instant pace never gets here.
 
 const PACES = ['instant', 1, 2, 4];
 export const paceLabel = (p) => (p === 'instant' ? 'instant' : `${p}x real time`);
@@ -86,8 +86,7 @@ export function journeyTick(app) {
   if (!app.g.state.char.journey) {
     app.say(green(`You arrive in ${app.zone()?.name ?? app.ch.zoneId}.`));
     app.journeyWas = null;
-    const world = app.tabs[0]?.view;
-    if (world) { world.cursor = 0; world.scroll = 0; }
+    for (const v of [app.tabs[0]?.view, app.top()]) if (v) { v.cursor = 0; v.scroll = 0; }
   }
 }
 
