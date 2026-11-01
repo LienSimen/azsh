@@ -118,6 +118,7 @@ Saves live in `~/.azsh/saves/`, one JSON file per character. `AZSH_HOME` moves t
 | Front end | new | `src/cli/` — `tui.mjs` (frame, input, dialogs), `tuiViews.mjs` (tabs), `tuiProfessions.mjs` and `tuiCompanions.mjs` (crafting, companions), `tuiFight.mjs` (live fight, autopilot), `repl.mjs` (line game and the shared verb table) |
 | Combat log wording | phonecraft `src/ui/combat/combatLogFormat.ts` | `src/cli/combatLogFormat.ts` |
 | Rotation sentences | phonecraft `src/ui/rotation/rotationEditorSentence.ts` | `src/cli/rotationText.mjs` |
+| Dungeon floor scripts (Baron Run; gauntlets, waves, escorts) | phonecraft `src/ui/live/liveStratUndead.ts`, `liveGauntletEscort.ts` | `src/cli/`, copied by `scripts/sync-phonecraft.mjs`; `tuiFloor.mjs` gives them their context |
 
 Everything the player reads traces to a CMaNGOS row or a 1.12 client string. Nothing here is
 invented; see phonecraft's `AI.md` for the data rules this tree inherits.
@@ -132,5 +133,4 @@ npm run check:all    # all three; add --frames to check:tui to print every scree
 npm run data:pack    # gzip the bake after a data refresh; data:unpack reverses it
 ```
 
-Not yet in the terminal: dungeons and raids (the facade verbs exist, the floor walk was a
-graphical surface), professions and crafting, pets, and sending mail to other characters.
+What is not ported, and why, is the "Not porting" list in `PORT-PLAN.md`.

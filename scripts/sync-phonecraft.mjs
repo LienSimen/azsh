@@ -19,7 +19,7 @@ const SKIP = [
 ];
 // azsh-only files that replace phonecraft UI imports.
 const KEEP = ['world/bakeSlug.ts', 'world/navmeshFloors.ts'];
-// [file, from, to]: azsh edits re-applied after every copy.
+// [file, from, to]: azsh edits re-applied after every copy. `from` in UI_COPIES may be a global RegExp.
 const PATCHES = [
   ['world/dungeonWingRooms.ts', "from '../ui/dungeon/navmeshFloors.ts';", "from './navmeshFloors.ts';"],
   ['world/dungeonWingRooms.ts', "import { bakeSlugForInstance } from '../ui/dungeon/dungeonBakeLoader.ts';",
@@ -51,6 +51,17 @@ const UI_COPIES = [
   // Stratholme's Baron Run, Ysida, Barthilas and Aurius over the continuous floor (tuiFloor.mjs gives it a context).
   ['ui/live/liveStratUndead.ts', 'cli/liveStratUndead.ts', [["import type { LiveDungeonCtx } from './liveDungeonCtx.ts';",
     '// The live controller context, as much of it as this module reads; tuiFloor.mjs builds one.' + String.fromCharCode(10) + '// eslint-disable-next-line @typescript-eslint/no-explicit-any' + String.fromCharCode(10) + 'type LiveDungeonCtx = any;']]],
+  // Gauntlets, waves, escorts, Moira's release, Finkle and Celebras over the same floor. Its bare imports are UI
+  // modules loaded for their side effects; the terminal has no sound and strips the feed's markup.
+  ['ui/live/liveGauntletEscort.ts', 'cli/liveGauntletEscort.ts', [
+    [/^import '[^']+';\n/gm, ''],
+    ["import type { LiveDungeonCtx } from './liveDungeonCtx.ts';",
+      '// The live controller context, as much of it as this module reads; tuiFloor.mjs builds one.' + String.fromCharCode(10) + '// eslint-disable-next-line @typescript-eslint/no-explicit-any' + String.fromCharCode(10) + 'type LiveDungeonCtx = any;'],
+    ["import type { FloorGauntlet, LiveRouteEditNode } from './liveDungeonCtx.ts';", 'type LiveRouteEditNode = unknown;'],
+    ["import { sound } from '../audio/sfx.ts';", 'const sound = { clip: (_name: string): void => {} };'],
+    ["import { esc } from '../core/format.ts';",
+      "const esc = (s: string): string => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');"],
+  ]],
 ];
 
 const walk = (d, b = '') => (existsSync(join(d, b)) ? readdirSync(join(d, b), { withFileTypes: true }) : [])
@@ -90,7 +101,8 @@ for (const [from, to, patches] of UI_COPIES) {
   if (!existsSync(src)) { patchMiss.push(`${from}: missing in phonecraft`); continue; }
   let text = lf(readFileSync(src)).replaceAll("'../../", "'../");
   for (const [a, b] of patches) {
-    if (!text.includes(a)) { patchMiss.push(`${from}: ${a.trim()}`); continue; }
+    const hit = typeof a === 'string' ? text.includes(a) : a.test(text);
+    if (!hit) { patchMiss.push(`${from}: ${String(a).trim()}`); continue; }
     text = text.replace(a, b);
   }
   const dest = join(ROOT, 'src', to);

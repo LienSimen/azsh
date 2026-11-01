@@ -399,7 +399,7 @@ export function runView(app) {
 
 /** Pull one stop. `floor`: the continuous floor's pull (no sequential lock: you walked into it); `onDone(r)`
  *  runs after the fight with its outcome (null when you ran). */
-export function pullStop(app, def, enc, { floor = false, onDone } = {}) {
+export function pullStop(app, def, enc, { floor = false, onDone, onTick } = {}) {
   const run = app.g.state.instance;
   if (!run) return;
   if (isCleared(run, enc.id)) { app.flashMsg(`${enc.name} is already cleared.`); return; }
@@ -407,7 +407,7 @@ export function pullStop(app, def, enc, { floor = false, onDone } = {}) {
   for (const l of prePull(app.g, app.ds, app.cmds.buffPace)) app.say(cyan(l));
   let playerMax = 0, session = null;
   const f = startFight(app, enc.creatureEntry, {
-    label: enc.kind === 'boss' ? 'boss' : undefined,
+    label: enc.kind === 'boss' ? 'boss' : undefined, onTick,
     begin: () => { const b = app.g.beginEncounter(def.id, enc.id, { withSquad: true, ...(floor ? { continuousFloor: true } : {}) }); if (b.ok) { playerMax = b.playerMax; session = b.session; } return b; },
     after: (r) => { recordPull(app, def, enc, r, playerMax, session, app.dungeonDowntime ?? 0); app.dungeonDowntime = 0; },
     onEnd: (r) => {
@@ -457,7 +457,7 @@ function recordPull(app, def, enc, r, playerMax, session, downtimeSec) {
 }
 
 /** Between pulls: eat and drink from the bags to the squad strategy's rest line, then sit (betweenPullRest.ts). */
-function restBetween(app, seconds) {
+export function restBetween(app, seconds) {
   const g = app.g;
   const r = betweenPullConsumeLoop({ char: g.state.char, inventory: g.state.inventory, ds: app.ds, strategy: g.state.squadStrategy, deathFlow: g.state.deathFlow });
   g.state.char = r.char; g.state.inventory = r.inventory;

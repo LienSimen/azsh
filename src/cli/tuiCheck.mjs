@@ -1717,6 +1717,68 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   } else check('Stratholme has a nav mesh to walk', false);
 }
 
+// Events on the floor (2j): Fenrus arms as you come near, running fails it and holds it, his voidwalkers join the
+// fight you are in, the stop clears. Then Willix: an escort quest in the log starts the walk and the party keeps up.
+{
+  const { loadNavMesh, stepFloor } = await import('./tuiFloor.mjs');
+  const { openRun } = await import('./tuiDungeon.mjs');
+  const sfk = ds.instance('shadowfang-keep'), rfk = ds.instance('razorfen-kraul');
+  if (sfk && rfk && loadNavMesh(sfk) && loadNavMesh(rfk)) {
+    const term14 = new HeadlessTerm(110, 34);
+    const app14 = new App({ term: term14, ds, repo });
+    term14.open();
+    app14.startGame(newGameState(ds, human.id, 1, 'Eventtest', 71, 0), 'eventtest', Date.now(), true);
+    const g14 = app14.g;
+    g14.state.char.level = 30;
+    for (const [cls, role] of [[1, 'tank'], [2, 'healer'], [8, 'dps'], [4, 'dps']]) g14.recruitCompanion(cls, role, 'twink');
+    for (const c of g14.state.squad) c.level = 30;
+    g14.regenTick(600, true);
+    const fightOut = () => { let n = 0; while (app14.fight && n++ < 8000) app14.fight.tick(); };
+    const stepUntil = (pred, max = 400) => { for (let i = 0; i < max && !pred(); i++) stepFloor(app14, app14.floor); return pred(); };
+    check('Shadowfang Keep can be entered', g14.enterInstance('shadowfang-keep', Date.now()).ok);
+    app14.stack = []; openRun(app14); term14.press('W');
+    let f = app14.floor, ctx = f.script;
+    const fenrus = sfk.encounters.find((e) => e.id === 'fenrus');
+    const fenrusRow = app14.rowsOf(app14.top()).find((r) => /Fenrus/.test(strip(r.text ?? '')));
+    check('the floor marks Fenrus as an event', !!fenrusRow && /^\s*W /.test(strip(fenrusRow.text)) && fenrusRow.detail().some((l) => /event in 2 waves/.test(strip(l))));
+    Object.assign(f.world.party, { x: fenrus.origin.x + 20, y: fenrus.origin.y, z: fenrus.origin.z });
+    check('coming within 50 yards starts the event and its first wave', stepUntil(() => !!app14.fight) && ctx.gauntlet?.encId === 'fenrus' && app14.log.some((l) => /the event begins/.test(strip(l))));
+    check('the wave fights under its world guid', !!app14.fight.session.sideOfGuid(fenrus.spawnGuids[0]));
+    app14.fight.flee();
+    check('running away fails the event', !ctx.gauntlet && app14.log.some((l) => /The event fails/.test(strip(l))));
+    stepUntil(() => !!ctx.gauntlet, 100);
+    check('and it waits before it arms again', !ctx.gauntlet && !app14.fight);
+    g14.regenTick(600, true);
+    f.runMs += 60_000;
+    check('a minute on, it arms again', stepUntil(() => !!app14.fight) && ctx.gauntlet?.idx === 1);
+    ctx.callGauntletWave(); // the voidwalkers early, while Fenrus still stands
+    const voids = app14.fight?.session.enemiesView().filter((v) => /Voidwalker/.test(v.name)) ?? [];
+    check('a wave called mid-fight joins the fight you are in', voids.length === 4 && ctx.gauntlet.spawned.every((gd) => !!app14.fight.session.sideOfGuid(gd)));
+    fightOut();
+    stepUntil(() => !ctx.gauntlet || !!app14.fight, 50);
+    check('the event ends and the stop is cleared', !ctx.gauntlet && !app14.fight && g14.state.instance.defeated.includes('fenrus') && app14.log.some((l) => /Fenrus the Devourer is done/.test(strip(l))));
+    // Willix the Importer: the quest is in the log, so the escort starts and the party follows him.
+    app14.stack = [];
+    g14.leaveInstance(Date.now());
+    check('Razorfen Kraul can be entered', g14.enterInstance('razorfen-kraul', Date.now()).ok);
+    openRun(app14); term14.press('W');
+    f = app14.floor; ctx = f.script;
+    const willix = f.world.entities.find((e) => e.entry === 4508);
+    check('the floor carries friendly NPCs (Willix)', !!willix && !willix.hostile);
+    Object.assign(f.world.party, { x: willix.x + 2, y: willix.y, z: willix.z });
+    g14.state.questlog.quests.push({ entry: 1144, status: 'active', kills: {}, objects: {}, spells: {}, explored: false });
+    check('an escort quest in the log starts the escort', stepUntil(() => !!ctx.floorEscort, 40) && ctx.floorEscort.status === 'active' && app14.log.some((l) => /Escort started/.test(strip(l))));
+    check('the floor shows whom you escort', app14.rowsOf(app14.top()).some((r) => /Escorting Willix the Importer/.test(strip(r.text ?? ''))));
+    const at = { x: willix.x, y: willix.y };
+    const gap = () => Math.hypot(f.world.party.x - willix.x, f.world.party.y - willix.y);
+    for (let i = 0; i < 1500 && ctx.floorEscort.waypointIndex < 6; i++) { if (app14.fight) fightOut(); else stepFloor(app14, f); }
+    // He walks on while you fight and waits at 50 yards; out of the fight the party catches up.
+    for (let i = 0; i < 600 && gap() > 12; i++) { if (app14.fight) fightOut(); else stepFloor(app14, f); }
+    check('Willix walks his path and the party keeps up', ctx.floorEscort.waypointIndex >= 6 && Math.hypot(willix.x - at.x, willix.y - at.y) > 5 && gap() <= 12);
+    term14.close?.();
+  } else check('Shadowfang Keep and Razorfen Kraul have nav meshes to walk', false);
+}
+
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);

@@ -18,8 +18,9 @@ const POWER_PAINT = { mana: brightBlue, rage: red, energy: yellow, focus: yellow
 /** Start a live fight. Returns `{ ok: true, ctl }` or `{ ok: false, reason }`. `onEnd(outcome)` runs after the
  *  fight resolves (outcome null when the player ran); `label` names who is driving (the autopilot). `begin` replaces
  *  beginFight (a dungeon stop, squad always in) and `after(outcome)` runs right after resolveFight. `resolve(session)`
- *  replaces resolveFight for a fight that pays nothing (a duel); Esc in one forfeits instead of running. */
-export function startFight(app, creatureEntry, { onEnd, label, begin, after, resolve } = {}) {
+ *  replaces resolveFight for a fight that pays nothing (a duel); Esc in one forfeits instead of running. `onTick()` runs
+ *  after every engine tick of a fight still going (the dungeon floor keeps its clock and its waves there). */
+export function startFight(app, creatureEntry, { onEnd, label, begin, after, resolve, onTick } = {}) {
   if (app.fight) return { ok: false, reason: 'Already in a fight.' };
   if (app.isDead()) { app.flashMsg('You are dead.'); return { ok: false, reason: 'You are dead.' }; }
   const opts = begin ? { withSquad: true } : pullOpts(app.g, app.ds, app.cmds.buffPace, creatureEntry, (l) => app.say(cyan(l)));
@@ -30,7 +31,7 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
   const ctl = {
     // A plain fight (Enter on a creature) can repeat: r keeps pulling the same creature after each win.
     plain: !begin && !resolve && !label,
-    after, resolve, session, enemyName: b.enemyName, enemyEntry: b.enemyEntry, onEnd, label, withSquad: !!opts && (app.g.state.squad ?? []).length > 0,
+    after, resolve, onTick, session, enemyName: b.enemyName, enemyEntry: b.enemyEntry, onEnd, label, withSquad: !!opts && (app.g.state.squad ?? []).length > 0,
     // A fight opened from a window (the dungeon run) takes the screen and hands the window back after.
     savedStack: app.stack,
     auto: true, paused: false, speed: app.fightSpeed ?? 1, pressed: null, pressedTicks: 0, follow: [], focus: null, macros: null, timer: null, pend: null, ended: false,
@@ -62,6 +63,7 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       if (action != null) { session.aiPlayer = false; events = session.tick(action); session.aiPlayer = this.auto; }
       else events = session.tick();
       this.logEvents(events);
+      if (!session.ended) this.onTick?.();
       if (session.ended) this.finish();
       app.render();
     },

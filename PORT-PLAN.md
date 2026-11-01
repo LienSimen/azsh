@@ -120,10 +120,21 @@ first; engaging a stop runs it through the live fight view.
       Run runs on phonecraft's `liveStratUndead.ts` (copied by the sync script). The meshes are read from the
       phonecraft checkout (`PHONECRAFT`, `public/maps/bake/*.navmesh.bin`, 42 MB) or `AZSH_NAVMESH_DIR`, not
       packed here; without one `W` says so and the run stays sequential.
-- [ ] **2j Gauntlets, waves and escorts on the floor.** `live/liveGauntletEscort.ts` (1,014 lines: the Ring of
-      Law, UBRS eggs and Rend, Mograine/Whitemane, the Pusillin chase, Zul'Farrak stairs, escorts) reads ~40
-      members of the live controller and drives the combat session itself, so it needs that controller re-hosted
-      first. The sequential route still has these stops as plain pulls.
+- [x] **2j Gauntlets, waves and escorts on the floor.** `live/liveGauntletEscort.ts` (the Ring of Law, UBRS eggs
+      and Rend, Mograine/Whitemane, the Pusillin chase, Zul'Farrak stairs, escorts, Moira, Finkle, Celebras) is
+      copied by the sync script (bare UI imports stripped, no sound) and `tuiFloor.mjs` gives it the ~20 controller
+      members it reads. An event arms within 50 yd (P starts it anywhere); waves join the open fight by
+      `session.injectEnemy` the way Pull +1 builds a member, and the starting bodies are stamped with their guids
+      (`stampUnitGuid`) so Whitemane's health and Moira's release can find them. The floor clock runs inside fights
+      (`startFight`'s new `onTick`). A wipe or running away fails the event and holds it a minute; `z` rests on the
+      floor. Escorts start from the quest log (no accept hook in the terminal) and the party follows the charge
+      (`f`). The floor now carries friendly NPCs (`includeNpcs`), as phonecraft's does. Differences: each pull is
+      its own session, not phonecraft's one endless floor session, so a wave called while a fight from the run
+      window holds the screen waits for that fight to end; the challenge bosses (Doom'rel, Ribbly, Bly) start when
+      you walk to them on purpose, since the floor has no gossip window, so the Pusillin chase's gossip stages are
+      not driven. Floor scripts that live in other phonecraft modules (Thermaplugg's bombs, Alzzin's wall, the
+      Sunken Temple immunities, the Dire Maul ogre suit) are not here. The sequential route still has these stops as
+      plain pulls.
 - [x] **Check.** tuiCheck scenario: enter Ragefire Chasm or Deadmines with a squad, clear two stops,
       use one gate, finish headlessly, assert summary and lockout.
 
