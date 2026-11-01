@@ -118,6 +118,9 @@ export class App {
 
   /** `updatedAt` is when the save was last written: the gap since is offline rest and regen. */
   startGame(state, slot, createdAt, isNew, updatedAt) {
+    // Another terminal already playing this character would trade overwrites with us on every save.
+    const held = this.repo.lock?.(slot) ?? { ok: true };
+    if (!held.ok) { this.say(red(`${state.char.name} is open in another terminal (pid ${held.pid}). Close it there first.`)); return false; }
     this.slot = slot; this.createdAt = createdAt ?? Date.now();
     const awayMs = updatedAt > 0 ? Math.max(0, Date.now() - updatedAt) : 0;
     // Travel pace is a setting (instant by default, like phonecraft); `skipping` lets Arrive now land a trip at any pace.
@@ -177,6 +180,7 @@ export class App {
     clearTimeout(this.paintTimer);
     this.fight?.stop?.(); this.auto?.stop?.();
     await this.persist();
+    if (this.slot != null) this.repo.unlock?.(this.slot);
     this.term.close();
     this.restoreConsole?.();
     if (this.g) console.log(dim(`Saved ${this.g.state.char.name}. Farewell.`));
@@ -592,16 +596,18 @@ export async function runTui({ term = new RealTerm(), argv = [] } = {}) {
   const saves = await repo.list();
   const begin = async (save) => {
     app.stack = [];
-    app.startGame(save.state, save.slot, save.createdAt, false, save.updatedAt);
+    // false: another terminal took this character between the picker's check and now; back to the picker.
+    if (app.startGame(save.state, save.slot, save.createdAt, false, save.updatedAt) === false) return reopenPicker();
     app.render();
   };
+  const reopenPicker = () => savePicker(app, { onPlay: (save) => { void begin(save); }, onNew: createFlow });
   const createFlow = () => characterCreation(app, (state) => {
     app.stack = [];
     app.startGame(state, `${state.char.name.toLowerCase()}-${Date.now().toString(36)}`, Date.now(), true);
     void app.persist();
     app.render();
   });
-  if (saves.length && !argv.includes('--new')) await savePicker(app, { onPlay: (save) => { void begin(save); }, onNew: createFlow });
+  if (saves.length && !argv.includes('--new')) await reopenPicker();
   else createFlow();
   return new Promise((resolve) => { app.onQuit = resolve; });
 }

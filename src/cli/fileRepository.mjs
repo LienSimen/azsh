@@ -1,5 +1,7 @@
 // SaveRepository on disk: one JSON file per slot under the saves dir (default ~/.azsh/saves).
 // Same seam as phonecraft's MemorySaveRepository: migrate() on load, summarize() for list().
+// Two terminals may play two characters at once; a <slot>.lock file (holder's pid) keeps the same character
+// from being opened twice, since each process would otherwise overwrite the other's progress on every save.
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync, unlinkSync, renameSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
@@ -9,10 +11,16 @@ export const DEFAULT_SAVES_DIR = join(process.env.AZSH_HOME ?? join(homedir(), '
 
 const safeSlot = (slot) => String(slot).replace(/[^\w.-]/g, '_');
 
+/** Signal 0 probes without killing: ESRCH means gone, EPERM means alive but not ours (still alive). */
+const pidAlive = (pid) => { try { process.kill(pid, 0); return true; } catch (err) { return err.code === 'EPERM'; } };
+
 export class FileSaveRepository {
   constructor(dir = DEFAULT_SAVES_DIR) {
     this.dir = dir;
+    /** Slots this process holds the lock on; released on unlock() and when the process exits. */
+    this.held = new Set();
     mkdirSync(dir, { recursive: true });
+    process.on('exit', () => { for (const slot of this.held) this.unlock(slot); });
   }
   path(slot) { return join(this.dir, `${safeSlot(slot)}.json`); }
   async load(slot) {
@@ -22,9 +30,46 @@ export class FileSaveRepository {
   }
   async save(save) {
     const p = this.path(save.slot);
-    const tmp = `${p}.tmp`;
+    // The temp name carries the pid so two processes saving different slots never trip over one another.
+    const tmp = `${p}.${process.pid}.tmp`;
     writeFileSync(tmp, JSON.stringify(save));
     renameSync(tmp, p);
+  }
+
+  // ---- locks ------------------------------------------------------------------------------------------
+  // <slot>.lock holds `{ pid, at }`. A lock whose pid is gone (crash, killed window) is stale and taken over.
+
+  lockPath(slot) { return join(this.dir, `${safeSlot(slot)}.lock`); }
+
+  /** Pid of the live process playing this slot, or null when nobody is (a stale lock counts as nobody). */
+  lockedBy(slot) {
+    let info;
+    try { info = JSON.parse(readFileSync(this.lockPath(slot), 'utf8')); } catch { return null; }
+    const pid = Number(info?.pid);
+    if (!pid || pid === process.pid) return null;
+    return pidAlive(pid) ? pid : null;
+  }
+
+  /** Take the slot for this process. `{ ok: true }`, or `{ ok: false, pid }` when another live process has it. */
+  lock(slot) {
+    if (this.held.has(slot)) return { ok: true };
+    const p = this.lockPath(slot);
+    const body = JSON.stringify({ pid: process.pid, at: Date.now() });
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try { writeFileSync(p, body, { flag: 'wx' }); this.held.add(slot); return { ok: true }; }
+      catch (err) { if (err.code !== 'EEXIST') throw err; }
+      const pid = this.lockedBy(slot);
+      if (pid) return { ok: false, pid };
+      try { unlinkSync(p); } catch { /* the other side may have just released it */ }
+    }
+    return { ok: false, pid: this.lockedBy(slot) };
+  }
+
+  /** Release a slot this process holds. Never touches another process's lock. */
+  unlock(slot) {
+    if (!this.held.has(slot)) return;
+    this.held.delete(slot);
+    try { unlinkSync(this.lockPath(slot)); } catch { /* already gone */ }
   }
   async list() {
     const out = [];

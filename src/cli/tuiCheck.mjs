@@ -1704,6 +1704,39 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   await open();
   await choose(/^Keeper/);
   check('Enter on a save still plays it', played?.state?.char?.name === 'Keeper');
+  // Locks: one character per process. A second repo stands in for a second terminal (same pid, so a
+  // hand-written lock with a foreign live pid plays the other side; a dead pid is a stale lock).
+  const { writeFileSync: writeLock, readFileSync: readLock } = await import('node:fs');
+  const other = new FileSaveRepository(join(dir, 'saves'));
+  check('lock() takes a free slot', repo10.lock('keeper').ok === true && existsSync(repo10.lockPath('keeper')));
+  check('a lock we hold reads as free to us', repo10.lockedBy('keeper') === null);
+  check('and as free to a second repo in the same process too', other.lockedBy('keeper') === null); // same pid: a reopen in-process is not a second terminal
+  check('a different slot locks independently', other.lock('elsewhere').ok === true);
+  writeLock(other.lockPath('ghost'), JSON.stringify({ pid: 2_000_000_000, at: 1 })); // no such process
+  check('a stale lock (dead pid) is taken over', other.lock('ghost').ok === true && JSON.parse(readLock(other.lockPath('ghost'), 'utf8')).pid === process.pid);
+  const livePid = process.ppid || process.pid + 1; // the parent shell is alive and is not us
+  const foreign = JSON.stringify({ pid: livePid, at: Date.now() });
+  writeLock(other.lockPath('taken'), foreign);
+  const refused = other.lock('taken');
+  check('a live lock from another process is refused', refused.ok === false && refused.pid === livePid && readLock(other.lockPath('taken'), 'utf8') === foreign);
+  other.unlock('taken');
+  check('unlock() never removes a lock we do not hold', existsSync(other.lockPath('taken')));
+  repo10.unlock('keeper');
+  check('unlock() releases ours', !existsSync(repo10.lockPath('keeper')));
+  // The picker: a character held by another live process is marked and refuses to play or be managed.
+  writeLock(repo10.lockPath('keeper'), foreign);
+  played = null;
+  await open(); show('save picker, keeper open elsewhere');
+  const marked = () => app10.rowsOf(app10.top()).some((r) => /open in another terminal/.test(strip(r.text)));
+  check('the picker marks a character open in another terminal', marked());
+  await choose(/^Keeper.*open in another terminal/); // the imported copy is a Keeper too
+  check('Enter refuses to play it', played === null && app10.log.map(strip).some((l) => /Keeper is open in another terminal/.test(l)));
+  app10.top().cursor = at((r, t) => /^Keeper.*open in another terminal/.test(t)); term10.press('m'); await tick();
+  check('m refuses to manage it', app10.top()?.title === 'Choose a character' && app10.log.map(strip).filter((l) => /Keeper is open in another terminal/.test(l)).length === 2);
+  check('startGame on a held slot backs out', app10.startGame(newGameState(ds, human.id, 1, 'Keeper', 31, 0), 'keeper', Date.now(), true) === false && app10.g == null);
+  writeLock(repo10.lockPath('keeper'), JSON.stringify({ pid: 2_000_000_000, at: 1 }));
+  await open();
+  check('a stale lock does not mark the character', !marked());
   term10.close?.();
   rmSync(dir, { recursive: true, force: true });
   if (exported) rmSync(exported, { force: true });

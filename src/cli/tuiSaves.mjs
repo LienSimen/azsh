@@ -14,8 +14,12 @@ export async function savePicker(app, { onPlay, onNew }) {
   const live = new Set(saves.map((m) => m.slot));
   const orphans = [...new Map(deleted.filter((b) => !live.has(b.slot)).map((b) => [b.slot, b])).values()];
   const reopen = () => { app.stack = []; void savePicker(app, { onPlay, onNew }); };
+  // A character another terminal is playing right now is listed but cannot be opened or managed from here:
+  // two processes on one save would overwrite each other's progress on every action.
+  const busy = (m) => repo.lockedBy?.(m.slot) ?? null;
+  const refuse = (m, pid) => { app.say(red(`${m.name} is open in another terminal (pid ${pid}). Close it there first.`)); reopen(); }; // Enter popped the picker; put it back
   const options = saves.map((m) => ({
-    label: `${bold(m.name)}  ${dim(`L${m.level} ${className(m.cls)}`)}`,
+    label: `${bold(m.name)}  ${dim(`L${m.level} ${className(m.cls)}`)}${busy(m) ? `  ${yellow('open in another terminal')}` : ''}`,
     detail: [bold(m.name), `Level ${m.level} ${className(m.cls)}`, dim(`last played ${when(m.updatedAt)}`), '', dim('Enter: play   m: back up, restore, export, delete')],
     value: { kind: 'play', meta: m },
   }));
@@ -26,10 +30,16 @@ export async function savePicker(app, { onPlay, onNew }) {
     if (v.kind === 'new') return onNew();
     if (v.kind === 'import') return importFlow(app, reopen);
     if (v.kind === 'restore') { await repo.restoreBackup(v.backup.file); app.say(green(`${v.backup.name ?? v.backup.slot} is back.`)); return reopen(); }
+    const pid = busy(v.meta);
+    if (pid) return refuse(v.meta, pid);
     const save = await repo.load(v.meta.slot);
     if (save) onPlay(save);
   }, { hint: 'Enter: play' });
-  view.keys = { m: { hint: 'manage', fn: (a, row) => { if (row?.data?.kind === 'play') manageMenu(a, row.data.meta, reopen); } } };
+  view.keys = { m: { hint: 'manage', fn: (a, row) => {
+    if (row?.data?.kind !== 'play') return;
+    const pid = busy(row.data.meta);
+    if (pid) refuse(row.data.meta, pid); else manageMenu(a, row.data.meta, reopen);
+  } } };
   app.render();
   return view;
 }

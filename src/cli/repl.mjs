@@ -132,6 +132,9 @@ export async function main(argv = []) {
     state = await createCharacter(ds, ask);
     slot = `${state.char.name.toLowerCase()}-${Date.now().toString(36)}`;
   }
+  // Another terminal already playing this character would trade overwrites with us on every save.
+  const held = repo.lock(slot);
+  if (!held.ok) { console.log(red(`${state.char.name} is open in another terminal (pid ${held.pid}). Close it there first.`)); rl.close(); return; }
 
   const g = createGame(ds, state, { travelPace: 'instant' });
   if (g.state.char.journey) g.completeJourneyNow();
@@ -166,6 +169,7 @@ export async function main(argv = []) {
     try { await persist(); } catch (err) { console.log(red(`save failed: ${err.message}`)); }
   }
   await persist();
+  repo.unlock(slot);
   console.log(dim(`Saved ${g.state.char.name}. Farewell.`));
   rl.close();
 }
