@@ -46,7 +46,7 @@ const HELP_LINES = [
   '  s (World tab)            find a thing in the world: who sells an item and where, what drops it, where an',
   '                           ore or herb grows, a dungeon entrance, an NPC. Enter travels there or opens it.',
   '  z                        sit and rest 30 s       ?               this help',
-  '  Ctrl-C / :quit           save and leave',
+  '  Ctrl-C / :quit           save and leave          Ctrl-L          repaint a garbled screen',
   '',
   'In the world',
   '  Enter on a creature starts a live fight; f fights it instantly. Enter on a quest, vendor, trainer or',
