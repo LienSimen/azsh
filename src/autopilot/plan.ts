@@ -46,6 +46,8 @@ import {
   prereqMet,
   dropperNoiseFloorFor,
   compareQuestDroppers,
+  pickQuestDropper,
+  dropperPickSalt,
 } from '../quests/quests.ts';
 import { ownedInventory } from '../domain/items/keyring.ts';
 import { mailboxAsInventory } from '../domain/economy/mail.ts';
@@ -1502,17 +1504,12 @@ function planStepCore(
       });
       if (candidates.length > 0) {
         // Kill objectives first, then a normal dropper over an elite, then closer, then highest drop.
-        const target = candidates.reduce((a, b) => {
-          const aKill = killNeed.has(a.entry);
-          const bKill = killNeed.has(b.entry);
-          if (aKill !== bKill) return aKill ? a : b;
-          const cmp = compareQuestDroppers(
-            { level: a.level, chance: itemChance.get(a.entry) ?? 0, rank: a.rank ?? 0 },
-            { level: b.level, chance: itemChance.get(b.entry) ?? 0, rank: b.rank ?? 0 },
-            state.char.level,
-          );
-          return cmp <= 0 ? a : b;
-        });
+        // One of the near-equal pool, rotated per fight — not the same template every pull.
+        const kills = candidates.filter((h) => killNeed.has(h.entry));
+        const ranked = (kills.length > 0 ? kills : candidates)
+          .map((h) => ({ h, level: h.level, chance: itemChance.get(h.entry) ?? 0, rank: h.rank ?? 0 }))
+          .sort((a, b) => compareQuestDroppers(a, b, state.char.level) || a.h.entry - b.h.entry);
+        const target = pickQuestDropper(ranked, state.char.level, dropperPickSalt(state))!.h;
         questFight = { creatureEntry: target.entry, questEntry: local.entry };
       }
     }

@@ -24,6 +24,8 @@ import {
   lootChanceForItem,
   MIN_QUEST_DROPPER_CHANCE,
   compareQuestDroppers,
+  pickQuestDropper,
+  dropperPickSalt,
   creatureFarmRank,
   dropperNoiseFloorFor,
 } from '../quests/quests.ts';
@@ -104,6 +106,8 @@ export interface BotView {
   level: number;
   gold: number;
   zoneId: string;
+  /** dropperPickSalt(state): rotates bestHuntTarget's pick among near-equal quest mobs per fight. */
+  pickSalt?: number;
   healthPct: number;   // 0..1 of max
   powerPct: number;    // 0..1 of max (rage users report 1 — mana isn't a gate for them)
   /**
@@ -402,6 +406,7 @@ export function buildView(
     level: char.level,
     gold: char.gold,
     zoneId: char.zoneId,
+    pickSalt: dropperPickSalt(state),
     healthPct: hpMax > 0 ? char.health / hpMax : 1,
     powerPct: pMax > 0 ? char.power / pMax : 1,
     // petPower returns null for absent/dead pet → 1, so those never gate resting.
@@ -431,6 +436,8 @@ const TIER_PREFERENCE: Record<string, number> = { yellow: 3, green: 2, orange: 1
  * Pick the best grind target. Quest mobs always win (they advance an objective). Among
  * quest mobs: kill first, then closer to the player (not above-level for a better drop),
  * then highest drop chance. 1% floor still drops Small Crag Boar 0.02% vs Crag Boar ~52%.
+ * The winner is one of the near-equal pool (pickQuestDropper, rotated by view.pickSalt), not
+ * always the comparator's first: that fought the same template every pull of a quest.
  * Otherwise prefer the safest *rewarding* con — yellow over green over orange — and, within
  * a colour, the highest level for max XP.
  */
@@ -447,17 +454,11 @@ export function bestHuntTarget(view: BotView): HuntTarget | null {
       (h) => h.questKill || (h.questDropChance ?? 0) >= dropFloor,
     );
     const pool = usable.length > 0 ? usable : questMobs;
-    return pool.reduce((a, b) => {
-      const aKill = !!a.questKill;
-      const bKill = !!b.questKill;
-      if (aKill !== bKill) return aKill ? a : b;
-      const cmp = compareQuestDroppers(
-        { level: a.level, chance: a.questDropChance ?? 0, rank: a.rank ?? 0 },
-        { level: b.level, chance: b.questDropChance ?? 0, rank: b.rank ?? 0 },
-        view.level,
-      );
-      return cmp <= 0 ? a : b;
-    });
+    const kills = pool.filter((h) => h.questKill);
+    const ranked = (kills.length > 0 ? kills : pool)
+      .map((h) => ({ h, level: h.level, chance: h.questDropChance ?? 0, rank: h.rank ?? 0 }))
+      .sort((a, b) => compareQuestDroppers(a, b, view.level) || a.h.entry - b.h.entry);
+    return pickQuestDropper(ranked, view.level, view.pickSalt ?? 0)?.h ?? null;
   }
   // Pure-farm safety guard: only auto-pick cons the character can reliably win. Yellow (even, ±2)
   // and green (below-con) are winnable; orange (+3/+4) is a likely loss for an unattended rotation

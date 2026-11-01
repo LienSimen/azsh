@@ -534,6 +534,66 @@ export function compareQuestDroppers(
   return a.level - b.level;
 }
 
+/** A dropper counts as "as good" as the best one when its chance is at least this share of it. */
+export const SIMILAR_DROPPER_RATIO = 0.75;
+/** ...and its level is at most this far below the best one's (and never gray to the player). */
+export const SIMILAR_DROPPER_LEVELS_BELOW = 3;
+/** ...and at most this far above the player (a harder mob than the best is never the pool's gain). */
+export const SIMILAR_DROPPER_LEVELS_OVER = 1;
+
+/**
+ * The entries worth pulling interchangeably with the top-ranked one: same elite class, a drop
+ * chance at least SIMILAR_DROPPER_RATIO of its chance, a level no more than SIMILAR_DROPPER_LEVELS_OVER
+ * above the player (or the best, when the whole set is above the player), no more than
+ * SIMILAR_DROPPER_LEVELS_BELOW under the best, and not gray unless the best is. Kill objectives
+ * carry chance 0, so every credited entry in the level band qualifies. `ranked` is ordered by
+ * compareQuestDroppers already, so ranked[0] is the best.
+ */
+export function similarQuestDroppers<T extends { level: number; chance: number; rank?: number }>(
+  ranked: readonly T[],
+  playerLevel: number,
+): T[] {
+  const best = ranked[0];
+  if (!best) return [];
+  const bestElite = (best.rank ?? 0) > 0;
+  const haveLevel = playerLevel > 0;
+  const ceiling = Math.max(best.level, haveLevel ? playerLevel + SIMILAR_DROPPER_LEVELS_OVER : best.level);
+  const floor = best.level - SIMILAR_DROPPER_LEVELS_BELOW;
+  const bestGray = haveLevel && difficultyTier(best.level, playerLevel) === 'gray';
+  return ranked.filter((c) => {
+    if (((c.rank ?? 0) > 0) !== bestElite) return false;
+    if (c.chance < best.chance * SIMILAR_DROPPER_RATIO) return false;
+    if (c.level > ceiling || c.level < floor) return false;
+    return bestGray || !haveLevel || difficultyTier(c.level, playerLevel) !== 'gray';
+  });
+}
+
+/**
+ * One pull among the similar droppers, chosen by `salt` so the same state names the same mob and
+ * the next fight (state.fightCounter moved) can name another. Always picking the comparator's
+ * winner sent every Murloc quest at the Oracle and every collect quest at one template; a pool
+ * of near-equal mobs spreads the kills without touching the ranking the smokes pin.
+ */
+export function pickQuestDropper<T extends { level: number; chance: number; rank?: number }>(
+  ranked: readonly T[],
+  playerLevel: number,
+  salt: number,
+): T | undefined {
+  const pool = similarQuestDroppers(ranked, playerLevel);
+  if (pool.length <= 1) return pool[0] ?? ranked[0];
+  // A short integer mix so consecutive salts do not walk the pool in order.
+  let h = (salt ^ 0x9e3779b9) >>> 0;
+  h = Math.imul(h ^ (h >>> 16), 0x85ebca6b) >>> 0;
+  h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35) >>> 0;
+  h = (h ^ (h >>> 16)) >>> 0;
+  return pool[h % pool.length];
+}
+
+/** The salt pickQuestDropper takes for a save: the fight nonce under the save's seed. */
+export function dropperPickSalt(state: { rngSeed: number; fightCounter: number }): number {
+  return ((state.rngSeed | 0) * 31 + (state.fightCounter | 0)) | 0;
+}
+
 // The best eligible loot chance for an item on this creature, 0 for none. An equal-chance group row
 // scores as one so it beats a near-zero free row. Cite: domain/items/loot.ts.
 export function lootChanceForItem(

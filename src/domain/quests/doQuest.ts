@@ -44,6 +44,8 @@ import { auraIdsForSnapshot, itemGrantsAdCommissionAura, snapshotHasAdCommission
 import {
   lootDropAllowed,
   compareQuestDroppers,
+  pickQuestDropper,
+  dropperPickSalt,
   creatureFarmLevel,
   creatureFarmRank,
   canTakeQuestForCondition,
@@ -935,6 +937,8 @@ function fightStep(
   const skip = opts?.skipCreatures;
   const hunt = huntableCreatures(ds, state.char.zoneId, state.questlog, state.char.race);
   const summoned = new Set(corpseUseSummonedEntries(ds, def));
+  const salt = dropperPickSalt(state);
+  const killable: { entry: number; level: number; chance: number; rank: number }[] = [];
   for (const kt of creatureCreditTargets(def)) {
     if ((qs.kills[String(kt.creatureEntry)] ?? 0) >= kt.count) continue;
     if (skip?.has(kt.creatureEntry)) continue;
@@ -949,7 +953,17 @@ function fightStep(
     // Friendly + noXp: beginFight refuses it as script credit, so proposing it strands the quest.
     if (isScriptCreditOnlyTarget(ds, kt.creatureEntry, state.questlog)) continue;
     // Named kill target is the quest — fight it even when it is not on zone.huntable.
-    if (ds.creature(kt.creatureEntry)) return { kind: 'fight', creatureEntry: kt.creatureEntry };
+    const cr = ds.creature(kt.creatureEntry);
+    if (cr) killable.push({ entry: kt.creatureEntry, level: creatureFarmLevel(cr), chance: 0, rank: creatureFarmRank(cr) });
+  }
+  if (killable.length > 0) {
+    // Several unmet kill objectives: rotate among the near-equal ones that are actually here, so a
+    // multi-template objective does not open on its first-listed entry every pull.
+    const here = new Set(hunt.map((c) => c.entry));
+    const local = killable.filter((k) => here.has(k.entry));
+    if (local.length === 0) return { kind: 'fight', creatureEntry: killable[0].entry };
+    local.sort((a, b) => compareQuestDroppers(a, b, state.char.level) || a.entry - b.entry);
+    return { kind: 'fight', creatureEntry: pickQuestDropper(local, state.char.level, salt)!.entry };
   }
   const farm = corpseUseFightEntries(ds, def, qs, state.inventory);
   if (farm.length) {
@@ -986,7 +1000,8 @@ function fightStep(
   }
   const usable = [...byEntry.values()];
   usable.sort((a, b) => compareQuestDroppers(a, b, state.char.level) || a.entry - b.entry);
-  if (usable[0]) return { kind: 'fight', creatureEntry: usable[0].entry };
+  const dropper = pickQuestDropper(usable, state.char.level, salt);
+  if (dropper) return { kind: 'fight', creatureEntry: dropper.entry };
   if (unmetItems.length === 0) return null;
   // farm[] is one union over every itemTarget, and many named templates are not on zone.huntable.
   // Prefer an entry that drops what we still need; 40 of 1366 farm quests gate it behind a condition.
@@ -1008,7 +1023,8 @@ function fightStep(
     ? farmDrop
     : farmScored.filter((s) => !farmCandidateIsHopeless(ds, def, s.ce, unmetItems, owned, snap));
   farmPool.sort((a, b) => compareQuestDroppers(a, b, state.char.level) || a.ce - b.ce);
-  if (farmPool[0]) return { kind: 'fight', creatureEntry: farmPool[0].ce };
+  const farmPick = pickQuestDropper(farmPool, state.char.level, salt);
+  if (farmPick) return { kind: 'fight', creatureEntry: farmPick.ce };
   for (const it of unmetItems) {
     const fight = pickFightable(ds, state, creatureDroppersForItem(ds, it.item, snap, state.char.level), skip);
     if (fight != null) return { kind: 'fight', creatureEntry: fight };
@@ -1055,13 +1071,14 @@ function dungeonOnlyWork(
 }
 
 // Farm entries for one item, ordered the way fightStep picks: noise floor first, then compareQuestDroppers,
-// so the travel hop names the mob the fight will actually open on.
+// then the salted pick moved to the front, so the travel hop names the mob the fight will actually open on.
 function rankFarmForItem(
   ds: DataStore,
   farm: readonly number[],
   itemId: number,
   snap: ConditionSnapshot,
   playerLevel: number,
+  salt: number,
 ): number[] {
   const scored: { ce: number; chance: number; level: number; rank: number }[] = [];
   const floor = dropperNoiseFloor(ds, itemId, snap);
@@ -1079,7 +1096,8 @@ function rankFarmForItem(
   const drops = scored.filter((s) => s.chance > 0);
   const pool = drops.length > 0 ? drops : scored;
   pool.sort((a, b) => compareQuestDroppers(a, b, playerLevel) || a.ce - b.ce);
-  return pool.map((s) => s.ce);
+  const first = pickQuestDropper(pool, playerLevel, salt);
+  return first ? [first.ce, ...pool.filter((s) => s !== first).map((s) => s.ce)] : [];
 }
 
 function farmTravelStep(
@@ -1108,7 +1126,7 @@ function farmTravelStep(
     if (countItem(ownedOf(state), it.item) >= it.count) continue;
     if (isProvidedItem(def, it.item)) continue;
     const ces = (def.farm ?? []).length
-      ? rankFarmForItem(ds, def.farm ?? [], it.item, snap, state.char.level)
+      ? rankFarmForItem(ds, def.farm ?? [], it.item, snap, state.char.level, dropperPickSalt(state))
       : creatureDroppersForItem(ds, it.item, snap, state.char.level);
     for (const ce of ces) {
       if (opts?.skipCreatures?.has(ce)) continue;

@@ -585,9 +585,12 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   check('a solo pull brings nobody', !!app.fight && app.fight.session.alliesView().length === 0);
   finishFight();
   term.press(':'); term.type('squad party');
-  const quickFrom = app.log.length;
-  term.press(':'); term.type(`fight ${app.rowsOf(app.top())[mobAt].data.creature.entry}`);
-  check(':fight brings the party in Party mode', app.log.slice(quickFrom).some((l) => squad.some((c) => strip(l).includes(c.name))));
+  const quickEntry = app.rowsOf(app.top())[mobAt].data.creature.entry;
+  term.press(':'); term.type(`fight ${quickEntry}`);
+  // The log is capped at 2000 lines (say()), so read from the command's echo, not from a length taken before it.
+  const quickLog = app.log.map(strip);
+  const quickAt = quickLog.lastIndexOf(`> fight ${quickEntry}`);
+  check(':fight brings the party in Party mode', quickAt >= 0 && quickLog.slice(quickAt + 1).some((l) => squad.some((c) => l.includes(c.name))));
 }
 
 // ---- dungeons: the Deadmines as a text run ------------------------------------------------------------------
