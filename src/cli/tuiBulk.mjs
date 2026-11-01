@@ -3,7 +3,7 @@
 // first; Enter switches a row off or on, G runs what is on. Rows a quest still needs or that are still an upgrade
 // start off. p switches between your bags and the whole party's. The runs go through the same engine verbs a
 // single press uses, so a bulk pass never accepts what one-at-a-time would refuse.
-import { bold, dim, yellow, green, red, qualityPaint, plural } from './text.mjs';
+import { bold, dim, yellow, green, red, qualityPaint, plural, itemText } from './text.mjs';
 import { planBulkDisenchant, resolveRosterEnchanters, activeBulkDisenchantRows, bulkDisenchantRowKey } from '../domain/professions/partyDisenchant.ts';
 import { companionsForUpgradeGuard, partyUpgradeEntries, playerEquipOptsFrom } from '../domain/professions/autoDisenchant.ts';
 import { planLearnAllFromBags, activeLearnAllRows } from '../domain/professions/learnAllRecipes.ts';
@@ -62,7 +62,7 @@ export function bulkDisenchantDialog(app, quality = 2, scope = 'player') {
         const isOn = !state.off.has(key);
         out.push({
           text: `${isOn ? green('✓') : dim('·')} ${qualityPaint(it?.quality)(it?.name ?? r.entry)}${r.qty > 1 ? ` x${r.qty}` : ''}  ${dim(`ilvl ${r.itemLevel}`)}${r.ownerName ? dim(`  ${r.ownerName}'s bags`) : ''}${r.warn ? yellow(`  ${r.warn}`) : ''}`,
-          detail: () => [bold(it?.name ?? ''), dim(`Item level ${r.itemLevel}`), '', `Breaks down by ${r.who.name} ${dim(`(Enchanting ${r.who.skill})`)}`, ...(r.warn ? ['', yellow(`${r.warn}: starts switched off.`)] : []), '', dim('Enter: switch on / off')],
+          detail: () => [bold(itemText(it, '')), dim(`Item level ${r.itemLevel}`), '', `Breaks down by ${r.who.name} ${dim(`(Enchanting ${r.who.skill})`)}`, ...(r.warn ? ['', yellow(`${r.warn}: starts switched off.`)] : []), '', dim('Enter: switch on / off')],
           act: () => { if (isOn) state.off.add(key); else state.off.delete(key); },
         });
       }
@@ -93,7 +93,7 @@ function runBulkDisenchant(app, state) {
   }
   if (!done) { app.say(red(firstRefusal || 'Nothing was disenchanted.')); return; }
   app.say(green(`You disenchant ${plural(done, 'item')}.`) + (firstRefusal ? yellow(`  Stopped on one: ${firstRefusal}.`) : ''));
-  for (const [item, n] of mats) app.say(`  ${yellow('You create')} ${app.itemName(item)}${n > 1 ? ` x${n}` : ''}`);
+  for (const [item, n] of mats) app.say(`  ${yellow('You create')} ${app.itemLabel(item)}${n > 1 ? ` x${n}` : ''}`);
   state.bands = planBands(app, state.scope);
 }
 

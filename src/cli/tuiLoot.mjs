@@ -7,6 +7,7 @@ import { itemLines } from './tuiViews.mjs';
 import { moneyText } from '../domain/economy/money.ts';
 import { formatItemName } from '../domain/items/itemDisplayName.ts';
 import { farmNext } from './tuiFight.mjs';
+import { noteLoot } from './tuiFightPanes.mjs';
 
 const KIND_LABEL = { corpse: 'Corpse', chest: 'Chest', object: 'Object', mining: 'Mining', herbalism: 'Herbs', fishing: 'Fishing', skinning: 'Skinning', container: 'Container' };
 
@@ -29,7 +30,8 @@ function toggleAutoLoot(app) {
 export function takeAll(app) {
   const r = app.g.takeAllLoot();
   if (!app.result(r)) return;
-  for (const t of r.taken) app.say(`  ${yellow('You receive')} ${app.itemName(t.item)}${t.count > 1 ? ` x${t.count}` : ''}`);
+  noteLoot(app, r.taken, r.copper);
+  for (const t of r.taken) app.say(`  ${yellow('You receive')} ${app.itemLabel(t.item)}${t.count > 1 ? ` x${t.count}` : ''}`);
   if (r.copper) app.say(`  ${yellow('You loot')} ${moneyText(r.copper)}`);
   if (r.remaining) app.say(red(`  ${r.remaining} left in there: your bags are full.`));
   if (r.emptied && app.top()?.id === 'loot') app.pop();
@@ -69,7 +71,7 @@ export function lootDialog(app) {
         rows.push({
           text: yellow(moneyText(L.copper)),
           detail: () => [bold('Money'), moneyText(L.copper)],
-          act: (a2) => { const r = a2.g.takeLootMoney(); if (a2.result(r)) { a2.say(`  ${yellow('You loot')} ${moneyText(r.copper)}`); if (r.emptied) a2.pop(); } },
+          act: (a2) => { const r = a2.g.takeLootMoney(); if (a2.result(r)) { noteLoot(a2, [], r.copper); a2.say(`  ${yellow('You loot')} ${moneyText(r.copper)}`); if (r.emptied) a2.pop(); } },
         });
       }
       L.rows.forEach((r, i) => {
@@ -79,8 +81,9 @@ export function lootDialog(app) {
           act: (a2) => {
             const res = a2.g.takeLoot(i);
             if (!a2.result(res)) return;
+            noteLoot(a2, [{ item: res.item, count: res.count }]);
             const where = res.mailed ? dim(' (mailed: bags full)') : res.sold ? dim(' (sold)') : res.destroyed ? dim(' (destroyed)') : '';
-            a2.say(`  ${yellow('You receive')} ${a2.itemName(res.item)}${res.count > 1 ? ` x${res.count}` : ''}${where}`);
+            a2.say(`  ${yellow('You receive')} ${a2.itemLabel(res.item)}${res.count > 1 ? ` x${res.count}` : ''}${where}`);
             if (res.emptied) a2.pop();
           },
         });

@@ -56,7 +56,7 @@ export function companionBarsOwner(app, comp) {
 function slotLabel(app, owner, c) {
   if (!c) return dim('empty');
   if (c.kind === 'spell') { const sp = app.ds.spell(c.id); return `${sp?.name ?? c.id}${sp?.rank ? dim(` (Rank ${sp.rank})`) : ''}`; }
-  if (c.kind === 'item') return `${yellow(app.itemName(c.entry))}${owner.items ? dim(`  x${owner.items().filter((s) => s.item === c.entry).reduce((n, s) => n + s.count, 0)}`) : ''}`;
+  if (c.kind === 'item') return `${app.itemLabel(c.entry)}${owner.items ? dim(`  x${owner.items().filter((s) => s.item === c.entry).reduce((n, s) => n + s.count, 0)}`) : ''}`;
   return cyan(`macro ${owner.macros?.().find((m) => m.id === c.id)?.name ?? c.id}`);
 }
 
@@ -117,7 +117,7 @@ function globalBarRows(app) {
   for (let i = 0; i < SLOTS_PER_BAR; i++) {
     const item = bar?.items?.[i], outfit = bar?.outfits?.[i];
     rows.push({
-      text: `  ${fit(dim(String(i + 1)), 4)} ${outfit ? cyan(`outfit ${outfit}`) : item != null ? yellow(app.itemName(item)) : dim('empty')}`,
+      text: `  ${fit(dim(String(i + 1)), 4)} ${outfit ? cyan(`outfit ${outfit}`) : item != null ? app.itemLabel(item) : dim('empty')}`,
       act: () => {
         const opts = [
           ...(item != null || outfit ? [{ label: green('Fire it now'), value: () => { const r = g.fireGlobalActionSlot(i); app.say(dim(`${r.tried} fired.`)); } }] : []),

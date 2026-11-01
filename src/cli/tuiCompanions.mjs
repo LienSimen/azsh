@@ -1,12 +1,13 @@
 // The Companions tab: your party and bench, hiring at an inn, one page per companion (role, gear, bags,
 // professions) and their gathering trips, and the squad mode that decides who fights beside you. A trimmed
 // port of phonecraft's companionsPanel.ts, companionMissionsDesk.ts and squadModePicker.ts.
-import { bold, dim, cyan, yellow, green, red, qualityPaint, fit, plural } from './text.mjs';
+import { bold, dim, cyan, yellow, green, red, qualityPaint, fit, plural, itemText } from './text.mjs';
 import { itemLines } from './tuiViews.mjs';
 import { recipeBook, openSendGoods, companionsOf } from './tuiProfessions.mjs';
 import { SQUAD_MODES, SQUAD_MODE_LABEL, squadModeOf, setSquadMode } from './squad.mjs';
 import { settingsRows, petRows, questRows, teachRow, bagRows, bankRows, shareDialog, vaultDialog, hireSearch, tavernDuel } from './tuiCompanionKit.mjs';
 import { barsDialog, companionBarsOwner } from './tuiBars.mjs';
+import { enchantLines } from './tuiGear.mjs';
 import { moneyText } from '../domain/economy/money.ts';
 import { className, raceName } from '../domain/core/ids.ts';
 import { bagCapacity, EQUIP_SLOTS, SLOT_LABEL, itemSlotTargets } from '../domain/items/equipment.ts';
@@ -181,7 +182,7 @@ function squadModeRow(app) {
 }
 
 function yieldText(app, rows) {
-  return (rows ?? []).map((y) => `${app.itemName(y.item)}${y.count > 1 ? ` x${y.count}` : ''}`).join(', ') || 'nothing';
+  return (rows ?? []).map((y) => `${app.itemLabel(y.item)}${y.count > 1 ? ` x${y.count}` : ''}`).join(', ') || 'nothing';
 }
 
 // ---- hiring -------------------------------------------------------------------------------------------
@@ -221,6 +222,7 @@ function candLines(app, c) {
 
 function hireAs(app, c, role) {
   const r = app.g.hireCandidate(c.bot.id, role);
+  if (r.ok && app.hireResults) app.hireResults = app.hireResults.filter((x) => x.bot.id !== c.bot.id);
   return app.result(r, `${r.name ?? c.bot.name} joins you as ${role}${r.costCopper ? ` for ${moneyText(r.costCopper)}` : ''}${r.benched ? ', on the bench' : ''}.`);
 }
 
@@ -233,7 +235,7 @@ function hireDialog(app, results) {
   return {
     id: results ? 'hire-search' : 'hire', title: results ? 'Search' : 'Hire', hint: 'Enter: look closer',
     keys: {
-      h: { hint: 'hire', fn: (a, row) => { const c = row?.data && findCand(a, row.data); if (c) pickRoleAndHire(a, c, () => a.pop()); } },
+      h: { hint: 'hire', fn: (a, row) => { const c = row?.data && findCand(a, row.data); if (c) pickRoleAndHire(a, c); } },
       '/': { hint: 'search', fn: (a) => hireSearch(a, (found) => { a.hireResults = found; a.push(hireDialog(a, found)); }) },
       D: { hint: 'duel', fn: (a, row) => { if (row?.data) tavernDuel(a, row.data); } },
     },
@@ -276,7 +278,7 @@ function candidateDialog(app, botId) {
           detail: () => [bold(`Hire ${b.name} as ${role}`), '', `Cost: ${hireText(a, c)}   you have ${yellow(moneyText(a.ch.gold) || '0c')}`,
             role === c.specRole ? dim(`They already play ${c.specName}.`) : dim('They respec for the role: talents and rotation rebuild for free.'),
             (a.g.state.squad ?? []).length >= MAX_COMPANIONS ? yellow('Your party is full: they start on the bench.') : '', '', dim('A released hire refunds the price.')],
-          act: () => { if (hireAs(a, c, role)) { a.popTo('hire'); a.pop(); } },
+          act: () => { if (hireAs(a, c, role)) a.pop(); },
         });
       }
 
@@ -313,7 +315,7 @@ export function companionDialog(app, id) {
     keys: {
       x: { hint: 'take off / drop', fn: (a, row) => {
         const d = row?.data;
-        if (d?.slot && d.it) a.result(a.g.unequipCompanionSlot(id, d.slot), `${findComp(a, id)?.name} takes off ${d.it.name}.`);
+        if (d?.slot && d.it) a.result(a.g.unequipCompanionSlot(id, d.slot), `${findComp(a, id)?.name} takes off ${itemText(d.it)}.`);
         else if (d?.line) { const name = a.ds.profession(d.line)?.name ?? d.line; a.confirm(`${findComp(a, id)?.name} drops ${name}, forgetting the skill and its recipes?`, () => a.result(a.g.unlearnCompanionProfession(id, d.line), `Dropped ${name}.`)); }
       } },
     },
@@ -372,7 +374,7 @@ export function companionDialog(app, id) {
         const it = e != null ? ds.item(e) : null;
         rows.push({
           text: `${fit(SLOT_LABEL[slot] ?? slot, 10)} ${it ? qualityPaint(it.quality)(it.name) : dim('—')}`, data: { slot, it },
-          detail: () => (it ? itemLines(a, it, ['', dim('Enter: change   x: take off')]) : [dim(`Nothing in the ${SLOT_LABEL[slot] ?? slot} slot.`), '', dim('Enter: pick something for them to wear')]),
+          detail: () => (it ? itemLines(a, it, [...enchantLines(a, comp, slot), '', dim('Enter: change   x: take off')]) : [dim(`Nothing in the ${SLOT_LABEL[slot] ?? slot} slot.`), '', dim('Enter: pick something for them to wear')]),
           act: () => slotPicker(a, id, slot),
         });
       }
@@ -397,7 +399,7 @@ function giveDialog(app, id) {
     return { label: `${qualityPaint(it?.quality)(it?.name ?? s.item)}${s.count > 1 ? ` x${s.count}` : ''}`, detail: () => itemLines(app, it), value: { s, slot, it } };
   }), ({ slot, it }) => {
     const r = app.g.giveItemToBotStack(id, slot);
-    app.result(r, `You give ${it?.name ?? 'it'}${r.moved > 1 ? ` x${r.moved}` : ''} to ${comp?.name}.`);
+    app.result(r, `You give ${itemText(it, 'it')}${r.moved > 1 ? ` x${r.moved}` : ''} to ${comp?.name}.`);
     app.afterAction();
   });
 }

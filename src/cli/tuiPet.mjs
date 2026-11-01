@@ -1,6 +1,6 @@
 // Your pet (hunter, warlock): the page with command, react, food and abilities; the stable; the pet trainer.
 // Ports phonecraft playChrome.ts's feed modal, render/petBar.ts, panels/stablePanel.ts and the pet trainer rows.
-import { bold, dim, cyan, yellow, green, red } from './text.mjs';
+import { bold, dim, cyan, yellow, green, red, itemText } from './text.mjs';
 import { itemLines, spellLines } from './tuiViews.mjs';
 import { moneyText } from '../domain/economy/money.ts';
 import { LOYALTY_NAMES, petHasHappiness, petKnownSpells, petAutocastOn } from '../domain/pet/pet.ts';
@@ -42,9 +42,9 @@ export function petDialog(app) {
         const cdef = a.ds.creature(pet.creature);
         if (cdef && petHasHappiness(cdef)) {
           const foods = bagFood(a);
-          rows.push(H(''), H(`Food ${pet.autoFeed ? dim(`auto-feeds ${a.itemName(pet.autoFeed)}`) : dim('no auto-feed')}`));
+          rows.push(H(''), H(`Food ${pet.autoFeed ? dim(`auto-feeds ${a.itemLabel(pet.autoFeed)}`) : dim('no auto-feed')}`));
           rows.push({ text: 'Feed it…', detail: () => [bold('Feed'), '', 'Raises its happiness; a happy pet hits harder and grows loyal.'], act: () => { if (!foods.length) { a.flashMsg('No food in your bags.'); return; } a.pick('Feed it what?', foods.map((f) => ({ label: f.name, detail: () => itemLines(a, f), value: f })), (f) => a.result(g.feedPet(f.entry), `${pet.name} eats ${f.name}.`)); } });
-          rows.push({ text: 'Auto-feed…', detail: () => [bold('Auto-feed'), '', 'Between fights it eats this whenever its happiness has room for it.'], act: () => a.pick('Auto-feed with', [{ label: dim('Nothing'), value: null }, ...foods.map((f) => ({ label: f.name, value: f.entry }))], (e) => a.result(g.setPetAutoFeed(e), e ? `${pet.name} eats ${a.itemName(e)} on its own.` : 'Auto-feed off.')) });
+          rows.push({ text: 'Auto-feed…', detail: () => [bold('Auto-feed'), '', 'Between fights it eats this whenever its happiness has room for it.'], act: () => a.pick('Auto-feed with', [{ label: dim('Nothing'), value: null }, ...foods.map((f) => ({ label: itemText(f), value: f.entry }))], (e) => a.result(g.setPetAutoFeed(e), e ? `${pet.name} eats ${a.itemLabel(e)} on its own.` : 'Auto-feed off.')) });
         }
         if (cdef && pet.health > 0) {
           rows.push(H(''), H(`Abilities ${dim('Enter: autocast on or off')}`));

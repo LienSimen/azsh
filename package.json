@@ -1,12 +1,18 @@
 {
-  "name": "azsh",
+  "name": "azeroth-shell",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
-  "description": "Azeroth shell. A WoW Classic 1.12 text RPG for the terminal, built on CMaNGOS data. Terminal fork of phonecraft.",
+  "description": "Azeroth shell. A WoW Classic 1.12 text RPG for the terminal, built on CMaNGOS data.",
+  "keywords": ["wow", "classic", "rpg", "terminal", "game", "tui", "cmangos"],
   "bin": {
+    "azeroth-shell": "bin/azsh.mjs",
     "azsh": "bin/azsh.mjs"
   },
+  "files": [
+    "bin/",
+    "src/",
+    "docs/"
+  ],
   "engines": {
     "node": ">=22.18"
   },
@@ -15,6 +21,7 @@
     "check": "node --import ./src/cli/register.mjs src/cli/bootCheck.mjs",
     "data:pack": "node scripts/pack-data.mjs",
     "data:unpack": "node scripts/pack-data.mjs --unpack",
+    "build:exe": "node scripts/build-exe.mjs",
     "check:tui": "node --import ./src/cli/register.mjs src/cli/tuiCheck.mjs",
     "check:pipe": "node scripts/tui-pipe-check.mjs",
     "check:all": "npm run check && npm run check:tui && npm run check:pipe"

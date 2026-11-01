@@ -45,7 +45,11 @@ const finishFight = () => { let n = 0; while (app.fight && n < 3000) { app.fight
 
 show('world');
 check('header shows the character', frame().includes('Tuitest') && frame().includes('Elwynn Forest'));
-check('world lists creatures', /Kobold/.test(frame()));
+check('world lists creatures', rowIndex((r, s) => r.data?.creature && /Kobold/.test(s)) >= 0);
+{
+  const rs = app.rowsOf(app.top()).filter((r) => r.header).map((r) => strip(r.text));
+  check('world lists quests last, after creatures', rs.indexOf('Quests') > rs.findIndex((s) => s.startsWith('Creatures')));
+}
 
 // Tabs 2..9 and 0 all render without throwing; Left/Right and Esc move between them.
 for (const k of ['2', '3', '4', '5', '6', '7', '8', '9', '0']) { term.press(k); show(`tab ${k}`); }
@@ -54,6 +58,10 @@ check('talents tab renders', (term.press('7'), /Talents unlock|point/.test(frame
 check('0 opens the tenth tab', (term.press('0'), app.tab === 9));
 const lastTab = app.tabs.length - 1;
 check('character tab renders', (app.switchTab(lastTab), /Attributes/.test(frame())));
+{
+  const charRows = app.rowsOf(app.top()).map((r) => strip(r.text)).join('|');
+  check('the character tab lists weapon skills with Defense and the hand in use', /Weapon skills\|\s+Defense\s+\d+\/\d+\|/.test(charRows) && /\d+\/\d+( \+\d+)? +main hand/.test(charRows));
+}
 term.press('right'); check('Right wraps to the first tab', app.tab === 0);
 term.press('left'); check('Left wraps to the last tab', app.tab === lastTab);
 term.press('escape'); check('Esc on a tab returns to World', app.tab === 0);
@@ -102,7 +110,11 @@ if (vendorRow > 0) {
     check('a sale lands on the Buyback tab', /Buyback/.test(frame()) && strip(frame()).includes(ds.item(sold.item).name));
     app.top().cursor = rowIndex((r, t) => t.includes(ds.item(sold.item).name)); term.press('return');
     check('Enter buys it back', countItem(app.g.state.inventory, sold.item) === had && !(app.buyback ?? []).length);
-    term.press('tab'); check('Tab reaches the companions mode', /Companions/.test(strip(frame())));
+    term.press('shift-tab');
+    const doomed = app.g.state.inventory.stacks.find((s) => s.item === sold.item);
+    app.top().cursor = rowIndex((r) => r.data === doomed); term.press('d'); term.press('return');
+    check('d destroys a stack from the Selling tab', countItem(app.g.state.inventory, sold.item) === had - doomed.count && app.top().id.startsWith('vendor-'));
+    term.press('tab'); term.press('tab'); check('Tab reaches the companions mode', /Companions/.test(strip(frame())));
   }
   term.press('escape');
   check('Esc closes the vendor', app.stack.length === 0);
@@ -122,10 +134,36 @@ const barName = app.fight?.abilityBar()[0]?.spell.name;
 const hasBar = () => barName && frame().split('\n').some((l) => /^\s*1\s/.test(strip(l)) && strip(l).includes(barName));
 check('auto-play hides the ability bar', !hasBar());
 let ticks = 0;
-while (app.fight && ticks < 3000) { app.fight.tick(); ticks++; if (ticks === 15) show('fight mid'); }
+let paneFrames = null;
+while (app.fight && ticks < 3000) {
+  app.fight.tick(); ticks++;
+  if (ticks === 15) show('fight mid');
+  // The bottom pane: Tab walks log → meter → threat → loot → log, each drawn without throwing, mid-fight.
+  if (ticks === 40 && app.fight) {
+    paneFrames = {};
+    for (const id of ['meter', 'threat', 'loot', 'log']) { term.press('tab'); paneFrames[id] = { pane: app.fightPane, text: strip(frame()) }; show(`fight ${id} pane`); }
+    term.press('tab'); term.press('shift-tab');
+    // The meter's views: s walks all seven, f flips to the whole sitting and back.
+    app.fightPane = 'meter';
+    paneFrames.views = [];
+    for (let i = 0; i < 7; i++) { term.press('s'); paneFrames.views.push(strip(frame())); show(`meter view ${i + 1}`); }
+    term.press('f'); paneFrames.sitting = strip(frame()); show('meter whole sitting'); term.press('f');
+    app.fightPane = 'log';
+  }
+}
 check(`fight resolved in ${ticks} ticks`, !app.fight && ticks < 3000);
 check('combat log has rows', app.log.some((l) => /hits|misses|crits|dies|Victory|Defeat/.test(strip(l))));
+if (paneFrames) {
+  check('Tab cycles the fight pane', paneFrames.meter.pane === 'meter' && paneFrames.threat.pane === 'threat' && paneFrames.loot.pane === 'loot' && paneFrames.log.pane === 'log');
+  check('meter pane names the player', /Damage done/.test(paneFrames.meter.text) && /Tuitest/.test(paneFrames.meter.text));
+  check('meter s walks every view back to damage', ['DPS', 'Healing done', 'Damage taken', 'Deaths', 'Interrupts', 'Dispels', 'Damage done'].every((t, i) => paneFrames.views[i]?.includes(t)));
+  check('meter f shows the whole sitting', /this sitting/.test(paneFrames.sitting) && app.meterSegment === 'fight');
+  check('threat pane shows the enemy', /Threat on /.test(paneFrames.threat.text) && /aggro|Nobody has threat/.test(paneFrames.threat.text));
+  check('loot pane renders', /Loot this sitting/.test(paneFrames.loot.text));
+  check('Shift-Tab goes back to the log', app.fightPane === 'log');
+} else check('fight lasted long enough to try the panes', false);
 show('after fight');
+check('loot tally fills from a win', !!app.lootTally && (app.lootTally.rows.length > 0 || app.lootTally.copper > 0) || app.log.every((l) => !/You receive/.test(strip(l))));
 
 // Manual press path: start another fight, press ability 1, keep ticking.
 app.top().cursor = mobRow; term.press('return');
@@ -160,7 +198,10 @@ check('autopilot started', !!app.auto);
 const autoCtl = app.auto;
 let steps = 0, liveFights = 0, fightTicks = 0;
 while (app.auto && steps < 60) {
-  if (app.fight) { liveFights++; fightTicks += finishFight(); continue; }
+  if (app.fight) {
+    if (!liveFights) { show('autopilot fight'); check('an autopilot fight says what it is for', /^ Fighting .*  (for .+|hunting for xp)\s*$/m.test(strip(frame()))); }
+    liveFights++; fightTicks += finishFight(); continue;
+  }
   if (!app.auto.step()) break;
   steps++;
 }
@@ -190,7 +231,7 @@ else { if (app.auto) app.auto.stop(); check('autopilot reached a fight to interr
   const lost = app.cmds.createAutopilot('30', { liveFight: (step, settle) => { settle({ outcome: 'defeat' }); return { ok: true }; } });
   let line = '';
   for (let n = 0; n < 30 && !app.cmds.questBlacklist.size && line != null; n++) line = lost.next();
-  check('a quest the autopilot died on is blacklisted', app.cmds.questBlacklist.size > 0 && app.log.some((l) => /skipping .*died 3 times/.test(strip(l))));
+  check('a quest the autopilot died on is blacklisted', app.cmds.questBlacklist.size > 0 && app.log.some((l) => /skipping .*died 2 times/.test(strip(l))));
   check('dying on a quest did not stop the run', !lost.done);
 }
 
@@ -264,6 +305,34 @@ home();
   check('u on the gear tab runs the helper', app.tab === 3);
 }
 
+// Bags: an armor kit asks which slot it goes on, the picker greys refused slots with the reason, and Enter
+// applies it; ammo loads from the bags; a plain material opens the item menu instead of "Cannot be consumed".
+home();
+{
+  const kit = ds.items().find((i) => i.name === 'Light Armor Kit');
+  const arrow = ds.items().find((i) => i.name === 'Rough Arrow');
+  const cloth = ds.items().find((i) => i.name === 'Linen Cloth');
+  for (const it of [kit, arrow, cloth]) if (it) app.g.state.inventory = addItem(app.g.state.inventory, it.entry, 1, 1);
+  const { useStack } = await import('./tuiBags.mjs');
+  const slotOf = (it) => app.g.state.inventory.stacks.findIndex((s) => s.item === it?.entry);
+  term.press('3');
+  useStack(app, slotOf(kit)); show('armor kit picker');
+  check('an armor kit opens the slot picker', app.top()?.id === 'pick' && /Apply Light Armor Kit/.test(strip(app.top().title)));
+  const rows = app.rowsOf(app.top()).map((r) => strip(r.text));
+  check('the picker lists an eligible slot and greys a refused one with its reason', rows.some((t) => /^Legs:/.test(t)) && rows.some((t) => /Main Hand:.*only goes on armor/.test(t)));
+  const refused = rowIndex((r, t) => /Main Hand:/.test(t));
+  app.top().cursor = refused; term.press('return');
+  check('Enter on a refused slot keeps the picker open', app.top()?.id === 'pick');
+  const legsBefore = JSON.stringify(app.g.state.char.equipped.legs);
+  app.top().cursor = rowIndex((r, t) => /^Legs:/.test(t)); term.press('return');
+  check('Enter on an eligible slot applies the kit and closes the picker', app.stack.length === 0 && JSON.stringify(app.g.state.char.equipped.legs) !== legsBefore && slotOf(kit) < 0);
+  useStack(app, slotOf(arrow));
+  check('Enter on ammo in the bags loads it', app.g.state.char.ammoItem === arrow?.entry);
+  useStack(app, slotOf(cloth)); show('item menu from cloth');
+  check('Enter on cloth opens the item menu', app.top()?.id === 'pick' && /Linen Cloth/.test(strip(app.top().title ?? '')));
+  home();
+}
+
 // Bags: Enter on a bag equips it into a bag slot; the Gear tab's Bag slot picker lists bags too.
 home();
 {
@@ -287,7 +356,7 @@ home();
 
 // City services: not offered in Elwynn; a capital lists the bank, the auction house and the mailbox.
 home(); term.press('1');
-check('no bank or auction house in the start zone', !/Services/.test(strip(frame())));
+check('no bank or auction house in the start zone', rowIndex((r, s) => /^(Bank|Auction House)\b/.test(s)) < 0);
 term.press('3'); term.press('b');
 check('b in Bags outside a bank town only flashes', app.stack.length === 0);
 {
@@ -395,7 +464,8 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
     check('Enter opens the candidate page', app.top().id.startsWith('cand-'));
     check('the candidate page lists professions and stats', app.rowsOf(app.top()).some((r) => r.header && strip(r.text) === 'Professions') && rowIndex((r, t) => /^Health \d+/.test(t)) >= 0);
     app.top().cursor = rowIndex((r, t) => /^Hire as/.test(t)); term.press('return'); show('after hire');
-    check('hiring returns to the Companions tab', app.stack.length === 0);
+    check('hiring returns to the hire list, not the tab', app.top()?.id === 'hire');
+    term.press('escape'); check('Esc closes the hire list', app.stack.length === 0);
     const comp = (g.state.squad ?? [])[0];
     check('a companion joined the party', !!comp);
     if (comp) {
@@ -1784,6 +1854,29 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
     check('Willix walks his path and the party keeps up', ctx.floorEscort.waypointIndex >= 6 && Math.hypot(willix.x - at.x, willix.y - at.y) > 5 && gap() <= 12);
     term14.close?.();
   } else check('Shadowfang Keep and Razorfen Kraul have nav meshes to walk', false);
+}
+
+// World search: s on the World tab, a vendor item lists who sells it and where, a node its zones, a dungeon its door.
+{
+  const txt = () => app.rowsOf(app.top()).map((r) => strip(r.text)).join('|');
+  const search = (q) => { home(); term.press('1'); term.press('s'); for (const ch of q) term.press(ch === ' ' ? 'space' : ch); term.press('return'); };
+  search('mining pick'); show('world search');
+  check('s opens the world search', app.top().id === 'world-search' && /Mining Pick/.test(txt()));
+  check('an item lists the vendors that sell it and where they stand', /sold by .*<.*>.*(here|Stormwind|Westfall|Loch Modan|Redridge)/.test(txt()));
+  search('copper vein'); show('world search node');
+  check('a gather node lists the zones it grows in', /Copper Vein.*Mining.*(here|Dun Morogh|Durotar|Mulgore|Westfall|Loch Modan)/.test(txt()));
+  search('deadmines');
+  check('a dungeon shows its entrance', /Deadmines.*Dungeon.*entrance in Westfall/.test(txt()));
+  search('hoger');
+  check('a typo still finds the creature (fuzzy)', /Hogger L11.*here/.test(txt()));
+  search('westfall');
+  app.top().cursor = rowIndex((r, t) => /^Westfall/.test(t)); term.press('return');
+  check('Enter on a zone elsewhere asks before travelling', app.top().id === 'pick' && /Travel to Westfall/.test(strip(frame())));
+  term.press('escape');
+  search('elwynn');
+  app.top().cursor = rowIndex((r, t) => /^Elwynn Forest/.test(t)); term.press('return');
+  check('Enter on the zone you stand in just says so', app.top().id === 'world-search' && /already here/.test(app.flash?.text ?? ''));
+  home();
 }
 
 // Help overlay and escape.

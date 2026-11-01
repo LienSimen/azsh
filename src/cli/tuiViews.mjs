@@ -7,7 +7,9 @@ import { className } from '../domain/core/ids.ts';
 import { moneyText } from '../domain/economy/money.ts';
 import { maxHealth, maxPower } from '../domain/character/character.ts';
 import { effectiveStats, effectiveArmor, attackPower, powerType } from '../domain/character/characterStats.ts';
-import { critChanceDisplay, dodgeChanceDisplay, hitChance } from '../domain/character/characterRatings.ts';
+import { critChanceDisplay, dodgeChanceDisplay, hitChance, weaponSkillIdForHand, skillBonusFor } from '../domain/character/characterRatings.ts';
+import { COMBAT_SKILL, isLevelRangeCombatSkill, combatSkillDisplayName } from '../domain/character/combatSkills.ts';
+import { skillMaxForLevel } from '../engine/combat/mitigation.ts';
 import { knownUsableSpells } from '../domain/character/characterSpells.ts';
 import { bagCapacity, EQUIP_SLOTS, BAG_SLOTS, SLOT_LABEL, itemSlotTargets, DUAL_WIELD_SPELL_ID } from '../domain/items/equipment.ts';
 import { equippedEntry } from '../domain/items/itemInstance.ts';
@@ -26,8 +28,9 @@ import { barsDialog, playerBarsOwner } from './tuiBars.mjs';
 import { petWorldRows, petDialog, hasPetClass } from './tuiPet.mjs';
 import { portalRows } from './tuiDungeon.mjs';
 import { bulkDisenchantDialog, learnAllDialog } from './tuiBulk.mjs';
-import { gearExtraRows, durabilityText, repairOne, slotRepairLines } from './tuiGear.mjs';
+import { gearExtraRows, durabilityText, repairOne, slotRepairLines, enchantLines } from './tuiGear.mjs';
 import { outfitterDialog } from './tuiOutfitter.mjs';
+import { castWithPicker } from './tuiEnchantTarget.mjs';
 import { settingsDialog } from './tuiSettings.mjs';
 import { macrosDialog } from './tuiMacros.mjs';
 import { pickPocket, pickPocketTag, journeyRows, afterDeparture, ridingRows, objectRows, meetingStoneQueueRows, outdoorPvpRows } from './tuiWorld.mjs';
@@ -36,6 +39,7 @@ import { simLabDialog } from './tuiSimLab.mjs';
 import { autopilotSettingsDialog } from './tuiAutopilotSettings.mjs';
 import { reputationDialog } from './tuiRep.mjs';
 import { honorDialog, honorRankLine } from './tuiHonor.mjs';
+import { openWorldSearch } from './tuiSearch.mjs';
 import { useStack, itemMenu, useAll, splitStack, moveStack, destroyStack, sortBags, keyringRows, primaryVerb } from './tuiBags.mjs';
 
 const STAT_LABEL = { str: 'Strength', agi: 'Agility', sta: 'Stamina', int: 'Intellect', spi: 'Spirit' };
@@ -85,7 +89,7 @@ export function spellLines(app, sp, extra = []) {
   if (sp.cooldownMs) bits.push(`${secondsText(sp.cooldownMs)} cooldown`);
   if (sp.rangeMax) bits.push(`${sp.rangeMax} yd range`);
   out.push(dim(bits.join('   ')));
-  if (sp.reagents?.length) out.push(dim('Reagents: ' + sp.reagents.map((r) => `${app.itemName(r.item)}${r.count > 1 ? ` x${r.count}` : ''}`).join(', ')));
+  if (sp.reagents?.length) out.push(dim('Reagents: ' + sp.reagents.map((r) => `${app.itemLabel(r.item)}${r.count > 1 ? ` x${r.count}` : ''}`).join(', ')));
   if (sp.description) out.push(...wrapLines(yellow(sp.description), 60));
   const cd = app.g.spellCooldownRemaining(sp.id);
   if (cd > 0) out.push(red(`Cooldown: ${secondsText(cd)} left`));
@@ -140,8 +144,8 @@ export function rewardLines(app, q) {
   const out = [];
   if (q.rewXP) out.push(`${q.rewXP} experience`);
   if (q.rewMoney) out.push(yellow(moneyText(q.rewMoney)));
-  for (const it of q.rewItems) out.push(`${qualityPaint(app.ds.item(it.item)?.quality)(app.itemName(it.item))}${it.count > 1 ? ` x${it.count}` : ''}`);
-  if (q.rewChoiceItems?.length) out.push('Choose one of: ' + q.rewChoiceItems.map((it) => qualityPaint(app.ds.item(it.item)?.quality)(app.itemName(it.item))).join(', '));
+  for (const it of q.rewItems) out.push(`${app.itemLabel(it.item)}${it.count > 1 ? ` x${it.count}` : ''}`);
+  if (q.rewChoiceItems?.length) out.push('Choose one of: ' + q.rewChoiceItems.map((it) => app.itemLabel(it.item)).join(', '));
   for (const s of q.rewSpells ?? []) out.push(`Learn ${app.spellName(s)}`);
   return out;
 }
@@ -168,6 +172,7 @@ function worldView(app) {
   return {
     id: 'world', title: 'World', hint: 'Enter: open / fight',
     keys: {
+      s: { hint: 'search', fn: (a) => openWorldSearch(a) },
       f: { hint: 'quick fight', fn: (a, row) => { if (row?.data?.creature) a.cmds.commands.fight(String(row.data.creature.entry)); } },
       t: { fn: (a, row) => { const c = row?.data?.creature; if (!c) return; if (a.ch.cls !== 3) { a.flashMsg('Only hunters tame beasts.'); return; } a.result(a.g.tamePet(c.entry), `You tame ${c.name}.`); } },
       P: { fn: (a, row) => { if (row?.data?.creature) pickPocket(a, row.data.creature); } },
@@ -177,17 +182,6 @@ function worldView(app) {
       const ds = a.ds, g = a.g, z = a.zone(), ch = a.ch;
       if (!z) return [{ text: 'You are nowhere.', header: true }];
       const rows = [...journeyRows(a), ...meetingStoneQueueRows(a), { text: `${z.name}  ${dim(`levels ${z.levelRange[0]}-${z.levelRange[1]}${z.faction ? `, ${z.faction}` : ''}`)}`, header: true }];
-      const have = new Map(g.state.questlog.quests.map((qs) => [qs.entry, qs]));
-      const offered = offeredQuests(ds, z.id, ch, g.state.questlog).filter((o) => !have.has(o.quest.entry) && (o.canAccept || o.quest.minLevel <= ch.level + 5));
-      const ready = g.state.questlog.quests.filter((qs) => qs.status === 'complete').map((qs) => ({ qs, q: ds.quest(qs.entry) })).filter((x) => x.q);
-      if (offered.length || ready.length) {
-        rows.push({ text: '', header: true }, { text: 'Quests', header: true });
-        for (const { q, qs } of ready) rows.push({ text: `${green('?')} ${q.title} ${dim(`L${q.questLevel}`)}  ${green('turn in')}`, detail: () => questLines(a, q, qs), act: () => a.push(questDialog(a, q, 'log')) });
-        for (const o of offered) {
-          const q = o.quest;
-          rows.push({ text: `${o.canAccept ? yellow('!') : dim('·')} ${o.canAccept ? q.title : dim(q.title)} ${dim(`L${q.questLevel}`)}${!o.canAccept && q.minLevel > ch.level ? dim(`  at level ${q.minLevel}`) : ''}`, detail: () => questLines(a, q), act: () => a.push(questDialog(a, q, 'offer')) });
-        }
-      }
       const people = [];
       for (const t of z.trainers ?? []) if (t.cls === ch.cls) { const d = ds.trainer(t.entry); if (d) people.push({ text: `${d.name} ${dim(`<${className(t.cls)} Trainer>`)}`, detail: () => [bold(d.name), `${className(t.cls)} trainer`, '', dim('Enter: see what you can learn')], act: () => a.push(trainerDialog(a, d)) }); }
       for (const v of z.vendors ?? []) { const d = ds.vendor(v); if (d) people.push({ text: `${d.name} ${dim(`<${d.subname ?? 'Vendor'}>`)}${d.canRepair ? dim('  repairs') : ''}`, detail: () => [bold(d.name), d.subname ?? 'Vendor', d.canRepair ? 'Repairs armor and weapons' : '', '', dim('Enter: browse wares')], act: () => a.push(vendorDialog(a, d)) }); }
@@ -229,8 +223,20 @@ function worldView(app) {
           rows.push({ text: `${conPaint(ch.level, m.level)(m.name)} ${dim(`L${m.level}`)}${wanted ? yellow('  !') : ''}${ch.cls === 4 ? pickPocketTag(a, m) : ''}`, data: { creature: m }, detail: () => creatureLines(a, m), act: () => startFight(a, m.entry) });
         }
       }
-      // The same offer list the autopilot reads: chain, class, race and exclusive-group gates applied;
-      // `canAccept` false means visible but level- or reputation-locked (shown grey, like a silver !).
+      // Last, since the Quests tab is the main place for these: the same offer list the autopilot reads (chain,
+      // class, race and exclusive-group gates applied); `canAccept` false means visible but level- or
+      // reputation-locked (shown grey, like a silver !).
+      const have = new Map(g.state.questlog.quests.map((qs) => [qs.entry, qs]));
+      const offered = offeredQuests(ds, z.id, ch, g.state.questlog).filter((o) => !have.has(o.quest.entry) && (o.canAccept || o.quest.minLevel <= ch.level + 5));
+      const ready = g.state.questlog.quests.filter((qs) => qs.status === 'complete').map((qs) => ({ qs, q: ds.quest(qs.entry) })).filter((x) => x.q);
+      if (offered.length || ready.length) {
+        rows.push({ text: '', header: true }, { text: 'Quests', header: true });
+        for (const { q, qs } of ready) rows.push({ text: `${green('?')} ${q.title} ${dim(`L${q.questLevel}`)}  ${green('turn in')}`, detail: () => questLines(a, q, qs), act: () => a.push(questDialog(a, q, 'log')) });
+        for (const o of offered) {
+          const q = o.quest;
+          rows.push({ text: `${o.canAccept ? yellow('!') : dim('·')} ${o.canAccept ? q.title : dim(q.title)} ${dim(`L${q.questLevel}`)}${!o.canAccept && q.minLevel > ch.level ? dim(`  at level ${q.minLevel}`) : ''}`, detail: () => questLines(a, q), act: () => a.push(questDialog(a, q, 'offer')) });
+        }
+      }
       return rows;
     },
   };
@@ -350,7 +356,7 @@ function turnIn(app, q) {
     const bits = [];
     if (res.xp) bits.push(`+${res.xp} xp`);
     if (res.money) bits.push(`+${moneyText(res.money)}`);
-    for (const it of res.items) bits.push(app.itemName(it.item) + (it.count > 1 ? ` x${it.count}` : ''));
+    for (const it of res.items) bits.push(app.itemLabel(it.item) + (it.count > 1 ? ` x${it.count}` : ''));
     for (const s of res.spells ?? []) bits.push(`learned ${s.name ?? ''}`.trim());
     if (bits.length) app.say('  ' + bits.join(', '));
     for (const lv of res.leveledTo) { app.say(bold(green(`You have reached level ${lv}!`))); app.flashMsg(`Level ${lv}!`); }
@@ -362,7 +368,7 @@ function turnIn(app, q) {
   };
   if (q.rewChoiceItems?.length) {
     app.pick('Choose your reward', q.rewChoiceItems.map((it, i) => ({
-      label: `${qualityPaint(app.ds.item(it.item)?.quality)(app.itemName(it.item))}${it.count > 1 ? ` x${it.count}` : ''}`,
+      label: `${app.itemLabel(it.item)}${it.count > 1 ? ` x${it.count}` : ''}`,
       detail: () => itemLines(app, app.ds.item(it.item)),
       value: i,
     })), finish);
@@ -402,7 +408,7 @@ function bagsView(app) {
         rows.push({
           text: `${name}${s.count > 1 ? ` x${s.count}` : ''}${tag}${ups.has(s.item) ? green('  ▲') : ''}`, data: s,
           detail: () => itemLines(a, it, [
-            '', dim(`${verb ? `Enter: ${verb.toLowerCase()}   ` : ''}m: more${s.count > 1 ? '   /: split' : ''}   [ ]: move   d: destroy`),
+            '', dim(`Enter: ${verb ? verb.toLowerCase() : 'more'}   m: more${s.count > 1 ? '   /: split' : ''}   [ ]: move   d: destroy`),
             ...(a.vendor ? [dim(`s: sell to ${a.vendor.name}`)] : []),
           ]),
           act: () => useStack(a, i),
@@ -477,7 +483,7 @@ function gearView(app) {
         const dur = it ? durabilityText(a, slot) : '';
         rows.push({
           text: `${fit(SLOT_LABEL[slot], 10)} ${it ? qualityPaint(it.quality)(it.name) : dim('—')}${up ? green('  ▲') : ''}${dur ? `  ${dur}` : ''}`, data: { slot, it },
-          detail: () => (it ? itemLines(a, it, ['', ...(dur ? [`Durability ${dur}`] : []), dim('Enter: change   x: take off'), ...slotRepairLines(a, slot)]) : [dim(`Nothing in the ${SLOT_LABEL[slot]} slot.`), '', dim('Enter: pick something to wear')]),
+          detail: () => (it ? itemLines(a, it, [...enchantLines(a, a.ch, slot), '', ...(dur ? [`Durability ${dur}`] : []), dim('Enter: change   x: take off'), ...slotRepairLines(a, slot)]) : [dim(`Nothing in the ${SLOT_LABEL[slot]} slot.`), '', dim('Enter: pick something to wear')]),
           act: () => a.push(slotDialog(a, slot)),
         });
       }
@@ -545,7 +551,7 @@ function spellsView(app) {
         return {
           text: `${sp.name}${sp.rank ? dim(` (Rank ${sp.rank})`) : ''}${sp.cost ? dim(`  ${sp.cost} ${sp.powerType}`) : ''}${cd > 0 ? red(`  ${secondsText(cd)}`) : ''}`,
           detail: () => spellLines(a, sp),
-          act: () => a.result(a.g.castOutOfCombat(sp.id), `You cast ${sp.name}.`),
+          act: () => castWithPicker(a, sp.id),
         };
       })];
     },
@@ -883,6 +889,31 @@ function travelView(app) {
 
 // ---- character -----------------------------------------------------------------------------------
 
+const HAND_LABEL = { mainhand: 'main hand', offhand: 'off hand', ranged: 'ranged' };
+
+/** Weapon and Defense skills: the level-range lines the attack table reads (swords 43, defense 95), each as
+ *  trained/cap with any +skill bonus and the hand that swings it. A save from before combat skills (no map) is
+ *  fully trained, so it lists only what is in hand, at the cap. A line still training in hand shows yellow. */
+function weaponSkillRows(a, L) {
+  const ch = a.ch, ds = a.ds, meta = ds.combatSkillMeta(), sb = a.g.state.spellbook;
+  const inHand = new Map();
+  for (const hand of ['mainhand', 'offhand', 'ranged']) { const id = weaponSkillIdForHand(ch, ds, hand); if (id) inHand.set(id, [...(inHand.get(id) ?? []), HAND_LABEL[hand]]); }
+  const cap = skillMaxForLevel(ch.level);
+  const lines = ch.combatSkills
+    ? Object.entries(ch.combatSkills).map(([k, v]) => ({ id: Number(k), current: v?.current ?? 0, max: v?.max ?? 0 })).filter((x) => x.max > 0 && isLevelRangeCombatSkill(x.id, meta))
+    : [...new Set([COMBAT_SKILL.DEFENSE, ...inHand.keys()])].map((id) => ({ id, current: cap, max: cap }));
+  const name = (id) => combatSkillDisplayName(id, meta);
+  lines.sort((x, y) => (x.id === COMBAT_SKILL.DEFENSE ? -1 : y.id === COMBAT_SKILL.DEFENSE ? 1 : name(x.id).localeCompare(name(y.id))));
+  const rows = [L(cyan('Weapon skills'))];
+  for (const x of lines) {
+    const bonus = skillBonusFor(ch, ds, x.id, sb);
+    const hands = inHand.get(x.id);
+    const value = x.current < x.max && hands ? yellow(`${x.current}/${x.max}`) : `${x.current}/${x.max}`;
+    rows.push(L(`  ${fit(name(x.id), 17)} ${value}${bonus ? dim(` +${bonus}`) : ''}${hands ? dim(`  ${hands.join(', ')}`) : ''}`));
+  }
+  return rows;
+}
+
 function charView(app) {
   return {
     id: 'char', title: 'Character', hint: '', noDetail: true,
@@ -908,6 +939,7 @@ function charView(app) {
         L(`  Dodge      ${(dodgeChanceDisplay(ch, ds) * 100).toFixed(2)}%`),
         L(''),
       ];
+      rows.push(...weaponSkillRows(a, L), L(''));
       const skills = Object.entries(ch.skills ?? {});
       if (skills.length) rows.push(L(cyan('Professions')), ...skills.map(([k, v]) => L(`  ${ds.profession(k)?.name ?? k} ${typeof v === 'object' ? `${v.current ?? v.value ?? 0}/${v.max ?? '?'}` : v}`)), L(''));
       // Buffs you hold. Enter cancels one, the way a right-click on the buff frame does.
@@ -950,7 +982,7 @@ export function sellStack(app, slot) {
   const s = app.g.state.inventory.stacks[slot];
   if (!s) return;
   const r = app.g.sellItemStack(slot, s.count);
-  if (app.result(r, r.ok ? `Sold ${app.itemName(s.item)}${r.qty > 1 ? ` x${r.qty}` : ''} for ${moneyText(r.earned)}.` : '')) noteSale(app, s.item, r.qty, r.earned);
+  if (app.result(r, r.ok ? `Sold ${app.itemLabel(s.item)}${r.qty > 1 ? ` x${r.qty}` : ''} for ${moneyText(r.earned)}.` : '')) noteSale(app, s.item, r.qty, r.earned);
 }
 
 /** Sell every junk-filter match, each onto the buyback list. */
@@ -967,13 +999,13 @@ function buyBackAt(app, i) {
   if (!e) return;
   if (e.owner) {
     const r = app.g.buyBackCompanionStack(e.owner, e.entry, e.qty, e.refundCopper);
-    if (app.result(r, r.ok ? `${app.itemName(e.entry)} goes back to ${e.ownerName}.` : '')) app.buyback = list.filter((_, j) => j !== i);
+    if (app.result(r, r.ok ? `${app.itemLabel(e.entry)} goes back to ${e.ownerName}.` : '')) app.buyback = list.filter((_, j) => j !== i);
     return;
   }
   const r = buyBackDomain(app.g.state.char, app.g.state.inventory, list, i, app.ds.item(e.entry)?.stackable, bagCapacity(app.ch, app.ds));
   if (!r.ok) { app.say(red(r.reason ?? 'Cannot buy that back.')); return; }
   app.g.state.char = r.char; app.g.state.inventory = r.inventory; app.buyback = r.buyback;
-  app.say(green(`You buy back ${app.itemName(e.entry)}${e.qty > 1 ? ` x${e.qty}` : ''} for ${moneyText(e.refundCopper)}.`));
+  app.say(green(`You buy back ${app.itemLabel(e.entry)}${e.qty > 1 ? ` x${e.qty}` : ''} for ${moneyText(e.refundCopper)}.`));
 }
 
 export function vendorDialog(app, vendor) {
@@ -983,13 +1015,21 @@ export function vendorDialog(app, vendor) {
   const view = {
     id: `vendor-${vendor.entry}`, title: vendor.name, hint: hints.buy,
     keys: {
-      B: { hint: 'buy many', fn: (a, row) => { if (mode === 'buy' && row?.data) a.prompt(`How many ${a.itemName(row.data.itemEntry)}? `, (t) => { const n = Number(t); if (n > 0) buy(a, row.data, n); a.afterAction(); }); } },
+      B: { hint: 'buy many', fn: (a, row) => { if (mode === 'buy' && row?.data) a.prompt(`How many ${a.itemLabel(row.data.itemEntry)}? `, (t) => { const n = Number(t); if (n > 0) buy(a, row.data, n); a.afterAction(); }); } },
       j: { hint: 'sell junk', fn: (a, row) => {
         if (mode !== 'party') { sellJunk(a); return; }
         const comp = row?.data?.comp;
         if (!comp) return;
         const r = a.g.sellCompanionJunk(comp.id);
         if (a.result(r, r.ok ? `Sold ${plural(r.count, 'junk item')} of ${comp.name}'s for ${moneyText(r.earned)}.` : '')) for (const x of r.sold) noteSale(a, x.entry, x.qty, x.refundCopper, comp);
+      } },
+      d: { hint: 'destroy', fn: (a, row) => {
+        if (mode === 'sell' && row?.data) { const i = a.g.state.inventory.stacks.indexOf(row.data); if (i >= 0) destroyStack(a, i); return; }
+        const comp = mode === 'party' ? row?.data?.comp : null;
+        const slot = comp ? (comp.bags?.stacks ?? []).indexOf(row.data.s) : -1;
+        if (slot < 0) return;
+        const name = a.itemLabel(row.data.s.item);
+        a.confirm(`Destroy ${name} from ${comp.name}'s bags?`, () => a.result(a.g.discardCompanionBagStack(comp.id, slot), `Destroyed ${name}.`));
       } },
       ...(vendor.canRepair ? { r: { hint: 'repair', fn: (a) => { const r = a.g.repairAll(vendor.entry); a.result(r, r.ok ? (r.spent ? `Repaired for ${moneyText(r.spent)}.` : 'Nothing needs repair.') : ''); } } } : {}),
     },
@@ -1032,7 +1072,7 @@ export function vendorDialog(app, vendor) {
           const total = (it?.sellPrice ?? 0) * s.count;
           rows.push({
             text: `${qualityPaint(it?.quality)(it?.name ?? s.item)}${s.count > 1 ? ` x${s.count}` : ''}  ${total ? yellow(moneyText(total)) : dim('no value')}`, data: s,
-            detail: () => itemLines(a, it, ['', dim('Enter: sell the stack (you can buy it back on the Buyback tab)')]),
+            detail: () => itemLines(a, it, ['', dim('Enter: sell the stack (you can buy it back on the Buyback tab)   d: destroy')]),
             act: () => sellStack(a, slot),
           });
         });
@@ -1059,7 +1099,7 @@ export function vendorDialog(app, vendor) {
             const it = a.ds.item(s.item);
             rows.push({
               text: `  ${qualityPaint(it?.quality)(it?.name ?? s.item)}${s.count > 1 ? ` x${s.count}` : ''}  ${it?.sellPrice ? yellow(moneyText(it.sellPrice * s.count)) : dim('no value')}`, data: { comp, s },
-              detail: () => itemLines(a, it, ['', dim(`Enter: sell it out of ${comp.name}'s bags   j: sell their junk`)]),
+              detail: () => itemLines(a, it, ['', dim(`Enter: sell it out of ${comp.name}'s bags   j: sell their junk   d: destroy`)]),
               act: () => { const r = a.g.sellCompanionItemStack(comp.id, slot); if (a.result(r, r.ok ? `Sold ${comp.name}'s ${it?.name}${r.qty > 1 ? ` x${r.qty}` : ''} for ${moneyText(r.earned)}.` : '')) noteSale(a, s.item, r.qty, r.earned, comp); },
             });
           });
@@ -1073,7 +1113,7 @@ export function vendorDialog(app, vendor) {
 
 function buy(app, offer, n) {
   const r = app.g.buyItem(app.vendor.entry, offer.itemEntry, n);
-  app.result(r, r.ok ? `Bought ${app.itemName(offer.itemEntry)}${n > 1 ? ` x${n}` : ''} for ${moneyText(r.spent)}.` : '');
+  app.result(r, r.ok ? `Bought ${app.itemLabel(offer.itemEntry)}${n > 1 ? ` x${n}` : ''} for ${moneyText(r.spent)}.` : '');
 }
 
 export function trainerDialog(app, trainer) {

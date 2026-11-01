@@ -3,9 +3,10 @@
 // stops, gates, chests and NPCs; Enter on an unlocked stop fights it live with the squad. Ports phonecraft
 // instanceView.ts (the entry card), liveDungeonHeadless.ts (pulls, gates, rest, Finish instantly) and the
 // floor's object clicks (liveObjectLoot.ts) onto the sequential route.
-import { bold, dim, cyan, yellow, green, red, gray, qualityPaint, fit, plural, secondsText, wrapLines } from './text.mjs';
+import { bold, dim, cyan, yellow, green, red, gray, qualityPaint, fit, plural, secondsText, wrapLines, itemText } from './text.mjs';
 import { openFloor } from './tuiFloor.mjs';
 import { startFight } from './tuiFight.mjs';
+import { noteLoot } from './tuiFightPanes.mjs';
 import { prePull } from './squad.mjs';
 import { questDialog } from './tuiViews.mjs';
 import { nextDoQuestStep } from '../domain/quests/doQuest.ts';
@@ -144,7 +145,7 @@ function supplyRows(app) {
   if (plan.mage || !plan.rows.length) return rows;
   for (const r of plan.rows) {
     const rung = r.ladder[r.rung];
-    rows.push(H(`  ${fit(r.memberName, 12)} ${fit(r.kind, 6)} ${dim(`has ${r.have}, short ${r.short}`)}  ${rung?.item?.name ?? '?'} x${r.units}  ${yellow(moneyText(r.cost))}`));
+    rows.push(H(`  ${fit(r.memberName, 12)} ${fit(r.kind, 6)} ${dim(`has ${r.have}, short ${r.short}`)}  ${itemText(rung?.item, '?')} x${r.units}  ${yellow(moneyText(r.cost))}`));
   }
   const buys = supplyBuys(plan.rows, app.ch.gold, true);
   rows.push({
@@ -277,7 +278,8 @@ function openChest(app, pin) {
   if (!app.result(r)) return false;
   const took = app.g.takeAllLoot();
   app.say(`You open ${pin.name}.${r.loot.length ? '' : ' It is empty.'}`);
-  for (const d of took.ok ? took.taken : []) app.say(`  ${yellow('You receive')} ${qualityPaint(app.ds.item(d.item)?.quality)(app.itemName(d.item))}${d.count > 1 ? ` x${d.count}` : ''}`);
+  if (took.ok) noteLoot(app, took.taken, took.copper);
+  for (const d of took.ok ? took.taken : []) app.say(`  ${yellow('You receive')} ${app.itemLabel(d.item)}${d.count > 1 ? ` x${d.count}` : ''}`);
   if (took.ok && took.copper) app.say(`  ${yellow('You receive')} ${moneyText(took.copper)}`);
   if (took.ok && took.remaining) app.say(red(`  ${plural(took.remaining, 'item')} did not fit in your bags.`));
   return true;
@@ -287,7 +289,7 @@ function objectRow(app, def, o) {
   const ds = app.ds;
   if (o.kind === 'gate') {
     const p = o.pin;
-    const need = p.requiredItem != null ? app.itemName(p.requiredItem) : null;
+    const need = p.requiredItem != null ? app.itemLabel(p.requiredItem) : null;
     const state = p.state === 'used' ? green('  open') : p.state === 'needsItem' ? red(`  needs ${need}`) : yellow('  use it');
     return {
       text: `${dim('◇')} ${p.name}${state}`,
@@ -301,7 +303,7 @@ function objectRow(app, def, o) {
   }
   if (o.kind === 'chest') {
     const p = o.pin;
-    const need = p.requiredItem != null ? app.itemName(p.requiredItem) : null;
+    const need = p.requiredItem != null ? app.itemLabel(p.requiredItem) : null;
     return {
       text: `${dim('▣')} ${p.state === 'looted' ? gray(p.name) : p.name}${p.state === 'looted' ? dim('  empty') : p.state === 'needsItem' ? red(`  locked, needs ${need}`) : ''}`,
       detail: () => [bold(p.name), p.state === 'looted' ? 'You have emptied it.' : need ? `Opens with ${need}.` : 'It can be opened.', '', dim('Enter: open it')],
@@ -518,7 +520,7 @@ export function finishInstantly(app) {
       if (isComplete(def, inst)) break;
       if (openKeyedGates(app, def)) continue;
       const stuck = instanceObjectPins(def, inst, { hasItem: hasOwned(app) }).find((p) => p.state === 'needsItem');
-      stopReason = stuck ? `${stuck.name} needs ${app.itemName(stuck.requiredItem)}${(app.g.state.inventory.stacks.length >= bagCapacityOf(app)) ? ' (your bags are full)' : ''}.` : 'No unlocked stop left: a door or a key is missing.';
+      stopReason = stuck ? `${stuck.name} needs ${app.itemLabel(stuck.requiredItem)}${(app.g.state.inventory.stacks.length >= bagCapacityOf(app)) ? ' (your bags are full)' : ''}.` : 'No unlocked stop left: a door or a key is missing.';
       break;
     }
     const r0 = betweenPullConsumeLoop({ char: g.state.char, inventory: g.state.inventory, ds, strategy: g.state.squadStrategy, deathFlow: g.state.deathFlow });
@@ -533,7 +535,8 @@ export function finishInstantly(app) {
     const r = g.resolveFight(b.session);
     recordPull(app, def, enc, r, b.playerMax, b.session, r0.seconds);
     app.say(`${r.outcome === 'win' ? green('✓') : red('✗')} ${enc.name}  ${dim(`${(r.result.durationMs / 1000).toFixed(1)} s${r.xpGained ? `  +${r.xpGained} xp` : ''}`)}`);
-    for (const d of r.loot) app.say(`    ${yellow('You receive')} ${app.itemName(d.item)}${d.count > 1 ? ` x${d.count}` : ''}`);
+    noteLoot(app, r.loot, r.goldGained);
+    for (const d of r.loot) app.say(`    ${yellow('You receive')} ${app.itemLabel(d.item)}${d.count > 1 ? ` x${d.count}` : ''}`);
     // runFullDungeon's rule: a pull that wipes or times out is tried again, WIPE_RETRY_PER_PULL times, WIPE_CAP_PER_RUN wipes a run.
     if (r.outcome !== 'win') {
       const n = (tries.get(enc.id) ?? 0) + 1;
@@ -582,7 +585,7 @@ export function summaryView(app, s) {
       }
       if (s.totalLoot?.length) {
         rows.push(H(''), H('Loot'));
-        for (const l of s.totalLoot) rows.push(H(`  ${qualityPaint(a.ds.item(l.item)?.quality)(a.itemName(l.item))}${l.count > 1 ? ` x${l.count}` : ''}`));
+        for (const l of s.totalLoot) rows.push(H(`  ${a.itemLabel(l.item)}${l.count > 1 ? ` x${l.count}` : ''}`));
       }
       if (s.keyMoments?.length) rows.push(H(''), H('Moments'), ...s.keyMoments.map((k) => H(`  ${k}`)));
       rows.push(H(''), H('Pulls'));

@@ -103,9 +103,9 @@ function outfitSlotsDialog(app, owner, id) {
         const ref = o.items[slot];
         const wornEntry = w?.equipped?.[slot];
         const wornId = typeof wornEntry === 'object' && wornEntry ? wornEntry.item : wornEntry;
-        const name = ref ? (ref.entry === 0 ? dim('empty') : a.itemName(ref.entry)) : dim('not in the set');
+        const name = ref ? (ref.entry === 0 ? dim('empty') : a.itemLabel(ref.entry)) : dim('not in the set');
         rows.push({
-          text: `${ref ? green('✓') : dim('·')} ${fit(SLOT_LABEL[slot] ?? slot, 10)} ${name}${!ref && wornId ? cyan(`  worn: ${a.itemName(wornId)}`) : ''}`,
+          text: `${ref ? green('✓') : dim('·')} ${fit(SLOT_LABEL[slot] ?? slot, 10)} ${name}${!ref && wornId ? cyan(`  worn: ${a.itemLabel(wornId)}`) : ''}`,
           act: (a2) => a2.result(a2.g.setOutfitSlot(owner, id, slot, !ref)),
         });
       }

@@ -1,13 +1,16 @@
 # azsh
 
-Azeroth shell. A WoW Classic 1.12 text RPG that runs in the terminal, built on the same
-CMaNGOS Classic data and the same headless engine as [phonecraft](../phonecraft). No graphics,
-no browser, no build step.
+Azeroth shell. A WoW Classic 1.12 text RPG that runs in the terminal, built on
+CMaNGOS Classic data. The engine comes from another project of mine that is not released; this is its
+terminal front end. No graphics, no browser, no build step.
 
 ```
-npm install -g .     # or: node bin/azsh.mjs
-azsh                 # pick a character or roll one
+npx azeroth-shell             # run it straight from npm
+npm install -g azeroth-shell  # or install it once, then:
+azeroth-shell                 # pick a character or roll one (azsh for short)
 ```
+
+From a checkout: `npm install -g .` or `node bin/azsh.mjs`.
 
 Needs Node 22.18 or newer (it strips TypeScript types natively). No dependencies. The tree is
 about 29 MB: 15 MB of gzipped game data and 13 MB of engine source.
@@ -111,17 +114,17 @@ Saves live in `~/.azsh/saves/`, one JSON file per character. `AZSH_HOME` moves t
 
 ## Where it comes from
 
-| Layer | Source | In this tree |
-| --- | --- | --- |
-| Engine, rules, world, quests, autopilot | phonecraft `src/engine`, `src/domain`, `src/world`, `src/quests`, `src/progression`, `src/autopilot` | copied as-is |
-| Data | phonecraft `src/data` (CMaNGOS world DB + DBC bake) | every table gzipped on disk (`src/cli/gzLoader.mjs` serves static imports), audio tables dropped |
-| Front end | new | `src/cli/` — `tui.mjs` (frame, input, dialogs), `tuiViews.mjs` (tabs), `tuiProfessions.mjs` and `tuiCompanions.mjs` (crafting, companions), `tuiFight.mjs` (live fight, autopilot), `repl.mjs` (line game and the shared verb table) |
-| Combat log wording | phonecraft `src/ui/combat/combatLogFormat.ts` | `src/cli/combatLogFormat.ts` |
-| Rotation sentences | phonecraft `src/ui/rotation/rotationEditorSentence.ts` | `src/cli/rotationText.mjs` |
-| Dungeon floor scripts (Baron Run; gauntlets, waves, escorts) | phonecraft `src/ui/live/liveStratUndead.ts`, `liveGauntletEscort.ts` | `src/cli/`, copied by `scripts/sync-phonecraft.mjs`; `tuiFloor.mjs` gives them their context |
+The engine, rules, world, quests, autopilot and data are taken as-is from a larger, unreleased project
+of mine that runs the same game with a graphical front end. The data is the CMaNGOS Classic world
+database plus a DBC bake, every table gzipped on disk (`src/cli/gzLoader.mjs` serves the static
+imports). What is new here is the terminal front end in `src/cli/`: `tui.mjs` (frame, input, dialogs),
+`tuiViews.mjs` (tabs), `tuiProfessions.mjs` and `tuiCompanions.mjs` (crafting, companions),
+`tuiFight.mjs` (live fight, autopilot) and `repl.mjs` (line game and the shared verb table). A few
+small UI modules (combat log wording, rotation sentences, dungeon floor scripts) are ported from the
+same project.
 
 Everything the player reads traces to a CMaNGOS row or a 1.12 client string. Nothing here is
-invented; see phonecraft's `AI.md` for the data rules this tree inherits.
+invented.
 
 ## Checks
 

@@ -9,6 +9,7 @@ import { stdin, stdout } from 'node:process';
 import { fit } from './text.mjs';
 
 const ESC = '\x1b[';
+const MIN_COLS = 60, MIN_ROWS = 20;
 
 const CSI_FINAL = { A: 'up', B: 'down', C: 'right', D: 'left', H: 'home', F: 'end', Z: 'shift-tab', P: 'f1', Q: 'f2', R: 'f3', S: 'f4' };
 const CSI_TILDE = { 1: 'home', 2: 'insert', 3: 'delete', 4: 'end', 5: 'pageup', 6: 'pagedown', 7: 'home', 8: 'end', 11: 'f1', 12: 'f2', 13: 'f3', 14: 'f4', 15: 'f5', 17: 'f6', 18: 'f7', 19: 'f8', 20: 'f9', 21: 'f10', 23: 'f11', 24: 'f12' };
@@ -64,39 +65,56 @@ export class RealTerm {
     this.isTTY = stdout.isTTY === true && stdin.isTTY === true;
     this.last = [];
   }
-  get cols() { return Math.max(60, stdout.columns || 100); }
-  get rows() { return Math.max(20, stdout.rows || 32); }
+  /** Layout size: never below the minimum the screens are laid out for (see `tooSmall`). */
+  get cols() { return Math.max(MIN_COLS, stdout.columns || 100); }
+  get rows() { return Math.max(MIN_ROWS, stdout.rows || 32); }
+  get tooSmall() { return (stdout.columns || 100) < MIN_COLS || (stdout.rows || 32) < MIN_ROWS; }
   open() {
     if (stdin.isTTY) stdin.setRawMode(true);
     stdin.setEncoding('utf8');
     stdin.resume();
-    stdout.write(`${ESC}?1049h${ESC}?25l${ESC}H${ESC}2J`);
-    this._data = (chunk) => { for (const k of decodeKeys(chunk)) this.onKey(k); };
-    this._resize = () => { this.last = []; this.onResize(); };
+    // Autowrap off: a line a terminal measures wider than we do (an ambiguous-width glyph) is clipped
+    // instead of wrapping and scrolling the whole frame out of step with `last`.
+    stdout.write(`${ESC}?1049h${ESC}?25l${ESC}?7l${ESC}H${ESC}2J`);
+    // Ctrl-L forgets what is on screen and repaints everything, to recover from a terminal that moved it.
+    this._data = (chunk) => { for (const k of decodeKeys(chunk)) { if (k === 'ctrl-l') this.refresh(); else this.onKey(k); } };
+    this._resize = () => this.refresh();
     stdin.on('data', this._data);
     stdout.on('resize', this._resize);
   }
   close() {
     stdin.off('data', this._data);
     stdout.off('resize', this._resize);
-    stdout.write(`${ESC}?25h${ESC}?1049l`);
+    stdout.write(`${ESC}0m${ESC}?7h${ESC}?25h${ESC}?1049l`);
     if (stdin.isTTY) stdin.setRawMode(false);
     stdin.pause();
   }
-  /** Paint a whole frame. Lines are fitted to the width; unchanged lines are skipped. The last column stays
-   *  blank so a terminal without deferred wrap never scrolls the frame when the bottom row is painted. */
+  refresh() { this.last = []; this.onResize(); }
+  /** Paint a whole frame. Lines are fitted to the width; unchanged lines are skipped, unless most of the frame
+   *  changed (a new screen), which repaints it all so a stale row cannot outlive a screen change. The last
+   *  column stays blank so a terminal without deferred wrap never scrolls when the bottom row is painted. */
   draw(lines) {
+    if (this.tooSmall) { this.drawTooSmall(); return; }
     const w = this.cols - 1, h = this.rows;
-    let out = '';
     const next = [];
-    for (let i = 0; i < h; i++) {
-      const line = fit(lines[i] ?? '', w);
-      next.push(line);
-      if (this.last[i] === line) continue;
-      out += `${ESC}${i + 1};1H${line}`;
-    }
+    for (let i = 0; i < h; i++) next.push(fit(lines[i] ?? '', w));
+    const changed = next.filter((line, i) => this.last[i] !== line).length;
+    const full = !this.last.length || changed * 2 > h;
+    // Every row is padded to the width, so only a frame with nothing known on screen needs a clear first.
+    let out = this.last.length ? '' : `${ESC}0m${ESC}H${ESC}2J`;
+    next.forEach((line, i) => { if (full || this.last[i] !== line) out += `${ESC}${i + 1};1H${ESC}0m${line}`; });
     this.last = next;
     if (out) stdout.write(out);
+  }
+  /** The screens need MIN_COLS x MIN_ROWS; a smaller terminal gets a notice instead of a frame drawn off its edge. */
+  drawTooSmall() {
+    const c = stdout.columns || 100, r = stdout.rows || 32;
+    const msg = [`Terminal is ${c}x${r}.`, `azsh needs at least ${MIN_COLS}x${MIN_ROWS}.`, 'Make the window larger.'];
+    const top = Math.max(0, Math.floor((r - msg.length) / 2));
+    let out = `${ESC}0m${ESC}H${ESC}2J`;
+    msg.forEach((m, i) => { if (top + i < r) out += `${ESC}${top + i + 1};${Math.max(1, Math.floor((c - m.length) / 2) + 1)}H${m.slice(0, c)}`; });
+    this.last = [];
+    stdout.write(out);
   }
   /** Delay helper for real-time loops. */
   setInterval(fn, ms) { return setInterval(fn, ms); }

@@ -93,7 +93,7 @@ export function settingsDialog(app) {
       const lists = [['keepEntries', 'Always keep'], ['sellEntries', 'Always sell'], ['destroyEntries', 'Always destroy']];
       for (const [key, label] of lists) {
         const n = jf[key].length;
-        rows.push({ text: `${label.padEnd(26)}${n ? `${n} item${n === 1 ? '' : 's'}` : dim('none')}`, detail: () => [bold(label), '', ...(n ? jf[key].map((e) => a.itemName(e)) : [dim('Empty. m on a bag item adds to it.')]), '', dim('Enter: edit')], act: (a2) => a2.push(junkListDialog(a2, key, label)) });
+        rows.push({ text: `${label.padEnd(26)}${n ? `${n} item${n === 1 ? '' : 's'}` : dim('none')}`, detail: () => [bold(label), '', ...(n ? jf[key].map((e) => a.itemLabel(e)) : [dim('Empty. m on a bag item adds to it.')]), '', dim('Enter: edit')], act: (a2) => a2.push(junkListDialog(a2, key, label)) });
       }
       rows.push({ text: green('Clear out junk now'), detail: () => [bold('Clear out junk now'), '', 'Sells (when a vendor is open or the rule allows) and destroys what the rules say, once.'], act: (a2) => { const r = g.runAutoJunk(); if (r.sold || r.destroyed) a2.say(green(`Junk: ${r.sold} sold${r.earned ? ` for ${moneyText(r.earned)}` : ''}, ${r.destroyed} destroyed.`)); else a2.flashMsg('Nothing in your bags is junk by these rules.'); } });
 
@@ -127,7 +127,7 @@ function junkListDialog(app, key, label) {
     empty: 'Empty. m on a bag item adds to it.',
     rows(a) {
       const { cfg, set } = junkLayer(a.g);
-      return cfg[key].map((e) => ({ text: a.itemName(e), act: () => set({ [key]: cfg[key].filter((x) => x !== e) }) }));
+      return cfg[key].map((e) => ({ text: a.itemLabel(e), act: () => set({ [key]: cfg[key].filter((x) => x !== e) }) }));
     },
   };
 }
@@ -135,7 +135,7 @@ function junkListDialog(app, key, label) {
 /** Bag item menu entries: put an item on one of the junk lists (or take it off). */
 export function junkListOptions(app, entry) {
   const { cfg, set } = junkLayer(app.g);
-  const name = app.itemName(entry);
+  const name = app.itemLabel(entry);
   return [['keepEntries', 'Always keep'], ['sellEntries', 'Always sell'], ['destroyEntries', 'Always destroy']].map(([key, label]) => {
     const on = cfg[key].includes(entry);
     return {

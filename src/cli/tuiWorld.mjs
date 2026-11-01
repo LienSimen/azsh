@@ -160,7 +160,7 @@ export const isMountItem = (it) => it != null && (it.mountSpell != null || it.mo
 /** Enter on a mount in the bags: get on, or off when it is the one you ride. */
 export function toggleMount(app, entry) {
   if (app.ch.mountedItem === entry) { app.result(app.g.dismount(), 'You dismount.'); return; }
-  app.result(app.g.useMount(entry), `You mount ${app.itemName(entry)}.`);
+  app.result(app.g.useMount(entry), `You mount ${app.itemLabel(entry)}.`);
 }
 
 // ---- world objects ---------------------------------------------------------------------------------
@@ -245,7 +245,7 @@ function interact(app, go) {
   if (r.mailboxOpen) { app.push(mailDialog(app)); return; }
   if (r.boarded) { afterDeparture(app, () => `You ride to ${app.zone()?.name}.`); return; }
   if (r.pageId > 0) { app.push(bookDialog(app, go.name, r.pageId)); return; }
-  if (r.keyUsed) app.say(dim(`The ${app.itemName(r.keyUsed)} turns.`));
+  if (r.keyUsed) app.say(dim(`The ${app.itemLabel(r.keyUsed)} turns.`));
   if (app.g.pendingLoot()) {
     app.say(green(`You ${verb} ${go.name}.`) + (r.workedBy ? dim(`  ${r.workedBy} works it.`) : '') + (r.skillUp ? cyan(`  Skill ${r.skillUp}.`) : ''));
     if (autoLootOn(app)) takeAll(app);

@@ -11,6 +11,7 @@ import { cityAccess, bankDialog, auctionDialog, mailDialog } from './tuiCity.mjs
 import { startFight, startAutopilot } from './tuiFight.mjs';
 import { openRun } from './tuiDungeon.mjs';
 import { openLoot } from './tuiLoot.mjs';
+import { fightPaneRule, fightPaneLines } from './tuiFightPanes.mjs';
 import { MemoryPrefs, FilePrefs } from './prefs.mjs';
 import { settingsDialog, globalSettingsOpts } from './tuiSettings.mjs';
 import { autopilotSettingsDialog } from './tuiAutopilotSettings.mjs';
@@ -22,7 +23,7 @@ import { honorDialog, weeklyHonorPass } from './tuiHonor.mjs';
 import { devCommand } from './tuiDev.mjs';
 import { savePicker } from './tuiSaves.mjs';
 import { wikiDialog } from './tuiWiki.mjs';
-import { bold, dim, cyan, yellow, green, red, inverse, fit, vis, cut, bar, pct, wrapLines, brightYellow, magenta, brightBlue, strip } from './text.mjs';
+import { bold, dim, cyan, yellow, green, red, inverse, fit, vis, cut, bar, pct, wrapLines, brightYellow, magenta, brightBlue, strip, qualityPaint } from './text.mjs';
 import { createGame, newGameState, newGameStateFromWorldBot, pickRandomWorldBot } from '../engine/game.ts';
 import { toSave } from '../persistence/saveShape.ts';
 import { className, raceName } from '../domain/core/ids.ts';
@@ -42,13 +43,15 @@ const HELP_LINES = [
   '  PgUp PgDn                page the list or text   Home End        first / last row',
   '  l                        open the full log       :               command line (same verbs as the line game)',
   '  /                        search the wiki: items, spells, quests, NPCs, zones, dungeons (:wiki <words>)',
+  '  s (World tab)            find a thing in the world: who sells an item and where, what drops it, where an',
+  '                           ore or herb grows, a dungeon entrance, an NPC. Enter travels there or opens it.',
   '  z                        sit and rest 30 s       ?               this help',
-  '  Ctrl-C / :quit           save and leave',
+  '  Ctrl-C / :quit           save and leave          Ctrl-L          repaint a garbled screen',
   '',
   'In the world',
   '  Enter on a creature starts a live fight; f fights it instantly. Enter on a quest, vendor, trainer or',
   '  exit opens it. a hands the character to the autopilot: it quests and hunts on its own, and every',
-  '  fight plays out live on screen. Esc stops it. A quest it dies on 3 times or cannot finish is skipped',
+  '  fight plays out live on screen. Esc stops it. A quest it dies on 2 times or cannot finish is skipped',
   '  for the rest of the session. Quests tab: d (or Do the quest in the quest window) runs the autopilot on',
   '  that one quest. :autopilot (or A on the Rotation tab) sets how it rests, pulls, fights and quests.',
   '  In a capital the World tab lists the Bank, the Auction House and the Mailbox under Services.',
@@ -101,6 +104,7 @@ export class App {
     this.flash = null;
     this.vendor = null;
     this.fight = null; this.auto = null; this.fightSpeed = 1;
+    this.fightPane = 'log'; this.meterSort = 'damage'; this.meter = null; this.lootTally = null; // the fight's bottom pane
     this.cmd = null;
     this.closed = false;
     this.timers = [];
@@ -185,6 +189,8 @@ export class App {
   hpText() { return `${this.ch.health}/${maxHealth(this.ch, this.ds)}`; }
   pwText() { return `${this.ch.power}/${maxPower(this.ch, this.ds)}`; }
   itemName(entry) { return this.ds.item(entry)?.name ?? `item ${entry}`; }
+  /** The item's name painted in its quality colour; for anything the player reads, not for sorting. */
+  itemLabel(entry) { return qualityPaint(this.ds.item(entry)?.quality)(this.itemName(entry)); }
   spellName(id) { const s = this.ds.spell(id); return s ? `${s.name}${s.rank ? ` (Rank ${s.rank})` : ''}` : `spell ${id}`; }
   /** Report an ActionResult: ok text in green, refusal in red. Returns ok. */
   result(res, okText) {
@@ -457,8 +463,9 @@ export class App {
     else lines.push(...this.mainLines(L));
     while (lines.length < L.top + L.mainH) lines.push('');
     lines.length = L.top + L.mainH;
-    lines.push(dim('─'.repeat(L.W)));
-    lines.push(...this.logLines(L));
+    // In a fight the rule carries the pane tabs (Tab: log, meter, threat, loot) and the pane draws below it.
+    lines.push(fightPaneRule(this, L));
+    lines.push(...fightPaneLines(this, L));
     lines.push(this.hintLine(L));
     this.term.draw(lines);
   }
