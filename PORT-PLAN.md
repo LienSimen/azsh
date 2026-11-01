@@ -186,7 +186,12 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
       `discardKeyringStack`, `openContainerItem`, `consumeItemAll`, `wrapItem`, `unwrapItem`,
       `learnSpellFromItem`, `learnProfessionRankFromItem`.
 - [x] S  Bulk: bulk disenchant and bulk learn. Ref `panels/bagBulkPanel.ts`, `app/appInteractBulkBags.ts`.
-- [x] S  Ammo: `setAmmo`, `clearAmmo` on the Gear tab for ranged users.
+- [x] S  Ammo: `setAmmo`, `clearAmmo` on the Gear tab for ranged users. Enter on ammo in the bags loads it too.
+- [x] S  "Apply to…" picker (`tuiEnchantTarget.mjs`): an armor kit, scope, arcanum, poison, stone, oil or a shaman
+      weapon imbue that comes back `needsTarget` opens a slot picker built only from the engine's `slots`, refused
+      slots greyed with their reason; a permanent kit offers companions' gear too. Behind bags, macros, the
+      spellbook and a companion's bag. The Gear tab and a companion's gear show the enchant and a coat's time left.
+      Ref `panels/enchantTargetPicker.ts`, `core/itemTooltipEnchant.ts`.
 - [x] S  Auto consumables: `setAutoConsumable`, `clearAutoConsumable`.
 - [x] M  Outfitter (gear sets): `ensureOutfitter`, `createOutfit`, `rename/deleteOutfit`,
       `rebuildOutfit`, `selectOutfit`, `wearOutfit`, `unwearOutfit`, `setOutfitSlot`,
@@ -208,6 +213,10 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
       (`macros/macroHostWorld.ts`, `macroHostCombat.ts`) over `domain/macro`. Terminal editor is a
       text field; templates from `macros/macroTemplates.ts`.
 - [x] S  Cancel an aura (`cancelAura`, `canCancelAuraNow`) from the Character tab and the fight view.
+- [x] M  Fight panes: Tab cycles the bottom pane of a live fight between the log, a DPSMate damage meter
+      (`domain/bots/dpsMate.ts`, s sorts by damage, healing or DPS), the threat table (`enemyThreatList`,
+      `enemyThreatVictim`, aggro holder marked) and the loot taken this sitting. `tuiFightPanes.mjs`.
+      Ref `live/liveMeter.ts`, `combat/threatView.ts`. Not yet: the meter's run segment, log filter tabs.
 - [x] S  Pick pocket on World for rogues: `castOutOfCombat(spell, { targetCreature })`, on resist
       start the fight with `{ withSquad, noAoe }`.
 

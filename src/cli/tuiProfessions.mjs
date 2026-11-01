@@ -3,7 +3,7 @@
 // Send goods. Ported from phonecraft's professionsPanel.ts and the vendorPanel.ts send-goods overlay.
 // A craft buys short vendor reagents (vials, thread, flux) from your purse on the way: the buy-in phonecraft
 // shows as a coin chip on Create. Views only read; every change is a Game facade call.
-import { bold, dim, cyan, yellow, green, red, gray, orange, qualityPaint, fit, plural, secondsText, wrapLines } from './text.mjs';
+import { bold, dim, cyan, yellow, green, red, gray, orange, qualityPaint, fit, plural, secondsText, wrapLines, itemText } from './text.mjs';
 import { itemLines } from './tuiViews.mjs';
 import { missionDialog, companionDialog } from './tuiCompanions.mjs';
 import { moneyText, coinsText } from '../domain/economy/money.ts';
@@ -88,7 +88,7 @@ function upPct(cr, line, curve) {
 }
 function diffOf(cr, line, curve) { const sk = cr.char.skills[line]; return sk ? actionColor(sk.current, curve) : 'locked'; }
 
-function buyList(app, buys) { return buys.map((b) => `${app.itemName(b.item)} x${b.units}`).join(', '); }
+function buyList(app, buys) { return buys.map((b) => `${app.itemLabel(b.item)} x${b.units}`).join(', '); }
 
 // canCraft with the vendor buy-in folded in: ok with a cost when only vendor goods are short, and `max` is
 // how many one "make all" would run (bags plus purse). Same fold as phonecraft's craftCheck.
@@ -102,7 +102,7 @@ function craftCheck(app, cr, r, env) {
   if (chk.reason !== 'Missing reagents') return { ok: false, reason: chk.reason, cost: 0, buys: [], max: 0 };
   const b = vendorBuyInReady(app.ds, app.ch, r.reagents, cr.inv);
   if (!b.ok) {
-    const reason = b.blocked.length ? `Missing ${b.blocked.map((i) => app.itemName(i)).join(', ')}` : `Need ${moneyText(b.cost)} for ${buyList(app, b.buys)}`;
+    const reason = b.blocked.length ? `Missing ${b.blocked.map((i) => app.itemLabel(i)).join(', ')}` : `Need ${moneyText(b.cost)} for ${buyList(app, b.buys)}`;
     return { ok: false, short: true, reason, cost: b.cost, buys: b.buys, max: 0 };
   }
   const again = canCraft(cr.char, applyVendorBuys(app.ds, cr.inv, b.buys), r, env.focus, null, env.tools);
@@ -142,7 +142,7 @@ function craftMany(app, cr, r, want, all = false) {
   app.lastActivity = act[0] ?? null;
   if (!made) { app.say(red(reason ?? 'Cannot make that.')); return; }
   const prod = app.ds.item(r.product.item);
-  app.say(green(`${cr.id ? `${cr.name} creates` : 'You create'} ${prod?.name ?? r.name}${units > 1 ? ` x${units}` : ''}.`)
+  app.say(green(`${cr.id ? `${cr.name} creates` : 'You create'} ${itemText(prod, r.name)}${units > 1 ? ` x${units}` : ''}.`)
     + (spent ? yellow(`  Vendor reagents ${moneyText(spent)}.`) : '')
     + (made < n && reason ? dim(`  Stopped after ${made}: ${reason}`) : ''));
   if (skill != null) app.say(cyan(`${whose(cr)} ${app.ds.profession(r.skill)?.name ?? r.skill} skill is now ${skill}.`));
@@ -178,7 +178,7 @@ function wearers(app, products) {
 function wearerLines(app, prodEntry, who) {
   if (!who?.length) return [];
   return ['', cyan('Upgrade for'), ...who.map((w) => {
-    const worn = w.currentEntry != null ? app.itemName(w.currentEntry) : null;
+    const worn = w.currentEntry != null ? app.itemLabel(w.currentEntry) : null;
     return `  ${w.name}${w.scale === 'spec' ? green(` +${Math.round(w.delta)}`) : ''} ${dim(`${SLOT_LABEL[w.slot] ?? w.slot}, ${worn ? `over ${worn}` : 'empty slot'}`)}`;
   })];
 }
@@ -193,11 +193,11 @@ function reagentLines(app, reagents, tools, inv) {
     const vendor = !ok && it && unlimitedVendorFor(app.ds, rg.item, app.ch.race) != null;
     const lot = Math.max(1, it?.buyCount ?? 1);
     const cost = vendor ? Math.ceil((rg.count - have) / lot) * it.buyPrice : 0;
-    out.push(`  ${(ok ? green : vendor ? yellow : red)(`${have}/${rg.count}`)} ${qualityPaint(it?.quality)(app.itemName(rg.item))}${vendor ? dim(`  vendor ${moneyText(cost)}`) : ''}`);
+    out.push(`  ${(ok ? green : vendor ? yellow : red)(`${have}/${rg.count}`)} ${app.itemLabel(rg.item)}${vendor ? dim(`  vendor ${moneyText(cost)}`) : ''}`);
   }
   for (const t of tools ?? []) {
     const ok = countItem(inv, t) > 0 || sharedTools(app).has(t);
-    out.push(`  ${ok ? green('✓') : red('✗')} ${app.itemName(t)} ${dim('(tool, kept)')}`);
+    out.push(`  ${ok ? green('✓') : red('✗')} ${app.itemLabel(t)} ${dim('(tool, kept)')}`);
   }
   return out;
 }
@@ -338,13 +338,13 @@ export function worldGatherRows(app) {
 
 function nodeLines(app, n, st) {
   const out = [bold(n.name), dim(`${app.ds.profession(n.skill)?.name ?? n.skill}, skill ${n.orange} (${n.yellow}/${n.green}/${n.gray})`), ''];
-  for (const y of n.yield) out.push(`  ${qualityPaint(app.ds.item(y.item)?.quality)(app.itemName(y.item))} ${dim(`${y.minCount === y.maxCount ? y.minCount : `${y.minCount}-${y.maxCount}`}, ${y.chance}%`)}`);
+  for (const y of n.yield) out.push(`  ${app.itemLabel(y.item)} ${dim(`${y.minCount === y.maxCount ? y.minCount : `${y.minCount}-${y.maxCount}`}, ${y.chance}%`)}`);
   out.push('', st.ok ? green('Enter: gather') : red(st.reason ?? 'Not now'));
   return out;
 }
 
 function gatherText(app, r) {
-  const got = (r.yielded ?? []).map((d) => `${app.itemName(d.item)}${d.count > 1 ? ` x${d.count}` : ''}`).join(', ');
+  const got = (r.yielded ?? []).map((d) => `${app.itemLabel(d.item)}${d.count > 1 ? ` x${d.count}` : ''}`).join(', ');
   return green(`${r.workedBy ? `${r.workedBy} gathers` : 'You gather'}: ${got || 'nothing'}.`) + (r.skillUp ? cyan(`  Skill ${r.skillUp}.`) : '');
 }
 
@@ -358,7 +358,7 @@ function enchantCheck(app, cr, e, env) {
   if (e.reagents.every((rg) => countItem(cr.inv, rg.item) >= rg.count)) return { ok: true, cost: 0, buys: [] };
   const b = vendorBuyInReady(app.ds, app.ch, e.reagents, cr.inv);
   if (b.ok) return { ok: true, cost: b.cost, buys: b.buys };
-  return { ok: false, short: true, reason: b.blocked.length ? `Missing ${b.blocked.map((i) => app.itemName(i)).join(', ')}` : `Need ${moneyText(b.cost)}`, cost: b.cost, buys: b.buys };
+  return { ok: false, short: true, reason: b.blocked.length ? `Missing ${b.blocked.map((i) => app.itemLabel(i)).join(', ')}` : `Need ${moneyText(b.cost)}`, cost: b.cost, buys: b.buys };
 }
 
 /** Whose worn piece can take this enchant: you and the party, one option per matching slot. */
@@ -432,11 +432,11 @@ function enchantBench(app, crafterId) {
           const can = rule && sk.current >= rule.reqSkill;
           rows.push({
             text: `${qualityPaint(it.quality)(it.name)}${s.count > 1 ? ` x${s.count}` : ''}  ${rule ? (can ? dim(`skill ${rule.reqSkill}`) : red(`needs ${rule.reqSkill}`)) : red('cannot')}`,
-            detail: () => itemLines(a, it, ['', ...(rule ? [cyan('Breaks into'), ...rule.yield.map((y) => `  ${a.itemName(y.item)} ${dim(`${y.minCount}-${y.maxCount}, ${y.chance}%`)}`)] : []), '', dim('Enter: disenchant (the item is destroyed)')]),
+            detail: () => itemLines(a, it, ['', ...(rule ? [cyan('Breaks into'), ...rule.yield.map((y) => `  ${a.itemLabel(y.item)} ${dim(`${y.minCount}-${y.maxCount}, ${y.chance}%`)}`)] : []), '', dim('Enter: disenchant (the item is destroyed)')]),
             act: () => a.confirm(`Disenchant ${it.name}?`, () => {
               const r = a.g.disenchantStack(slot);
               a.lastActivity = a.g.state.activity[0] ?? null; // the engine's own line says the same
-              if (a.result(r)) a.say(green(`${r.worker && r.worker !== a.ch.name ? `${r.worker} disenchants` : 'You disenchant'} ${it.name}: ${(r.yielded ?? []).map((d) => `${a.itemName(d.item)}${d.count > 1 ? ` x${d.count}` : ''}`).join(', ') || 'nothing'}.`) + (r.skillUp ? cyan(`  Skill ${r.skillUp}.`) : ''));
+              if (a.result(r)) a.say(green(`${r.worker && r.worker !== a.ch.name ? `${r.worker} disenchants` : 'You disenchant'} ${itemText(it)}: ${(r.yielded ?? []).map((d) => `${a.itemLabel(d.item)}${d.count > 1 ? ` x${d.count}` : ''}`).join(', ') || 'nothing'}.`) + (r.skillUp ? cyan(`  Skill ${r.skillUp}.`) : ''));
             }),
           });
         }
@@ -673,7 +673,7 @@ function sendGoodsDialog(app, modal) {
           const key = sendGoodsUpgradeKey(u), off = blockedGear.has(key), it = a.ds.item(u.entry);
           rows.push({
             text: `${off ? dim('· skip') : green('✓')} ${fit(u.companionName, 10)} ${qualityPaint(it?.quality)(it?.name ?? u.entry)} ${dim(SLOT_LABEL[u.targetSlot] ?? u.targetSlot)} ${green(`+${Math.round(u.delta)}`)}${u.benched ? dim('  bench') : ''}`,
-            detail: () => itemLines(a, it, ['', dim(`${u.currentEntry != null ? `replaces ${a.itemName(u.currentEntry)}` : 'empty slot'}, from ${FROM_LABEL[u.from] ?? u.from}`)]),
+            detail: () => itemLines(a, it, ['', dim(`${u.currentEntry != null ? `replaces ${a.itemLabel(u.currentEntry)}` : 'empty slot'}, from ${FROM_LABEL[u.from] ?? u.from}`)]),
             act: () => toggle(blockedGear, key),
           });
         }

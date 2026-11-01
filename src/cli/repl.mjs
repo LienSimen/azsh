@@ -14,6 +14,9 @@ import { knownUsableSpells } from '../domain/character/characterSpells.ts';
 import { bagCapacity } from '../domain/items/equipment.ts';
 import { addItem } from '../domain/items/inventory.ts';
 import { planStep, noteQuestDefeat } from '../autopilot/plan.ts';
+
+// Deaths on one quest before world questing gives up on it and moves to the next.
+const QUEST_SKIP_DEFEATS = 2;
 import { pullOpts, squadLogNames, squadModeOf, setSquadMode, SQUAD_MODE_LABEL, SQUAD_MODE_WORDS, COMPANION_HINT_LINES } from './squad.mjs';
 
 const useColor = stdout.isTTY && !process.env.NO_COLOR;
@@ -600,10 +603,11 @@ export function createCommands({ g, ds, out, persist, slot, arrive, skipJourney 
       return yellow(`skipping ${nm(entry)}: ${why}`);
     };
     // A fight's outcome feeds the planner's defeat streak and recovery latch (phonecraft autopilotController).
-    // A quest is dropped once it has cost maxConsecutiveDefeats deaths (default 3) this run.
+    // A quest is dropped once it has cost QUEST_SKIP_DEFEATS deaths this run (fewer than the run-wide
+    // maxConsecutiveDefeats stop, so one hopeless quest is abandoned before it ends the whole run).
     const settle = (r, step) => {
       if (r.outcome === 'defeat') {
-        if (skipping && step.questEntry != null && noteQuestDefeat(prog, step.questEntry, cfg.maxConsecutiveDefeats)) {
+        if (skipping && step.questEntry != null && noteQuestDefeat(prog, step.questEntry, QUEST_SKIP_DEFEATS)) {
           out(`${dim(String(i).padStart(3) + '.')} ${blacklist(step.questEntry, `died ${prog.questDefeats.get(step.questEntry)} times, last to ${ds.creature(step.creatureEntry)?.name ?? step.creatureEntry}`)}`);
         } else if (!skipping || step.questEntry == null) { prog.consecutiveDefeats++; prog.recovering = true; }
       } else if (r.outcome === 'win') { prog.consecutiveDefeats = 0; prog.recovering = false; }

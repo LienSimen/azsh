@@ -69,7 +69,7 @@ function pageLines(app, kind, id) {
     case 'recipe': {
       const r = ds.recipe(id);
       if (!r) return [`recipe ${id}`];
-      return [bold(r.name), dim(`${ds.profession(r.skill)?.name ?? r.skill} ${r.orange}`), '', ...r.reagents.map((g) => `  ${g.count} ${app.itemName(g.item)}`)];
+      return [bold(r.name), dim(`${ds.profession(r.skill)?.name ?? r.skill} ${r.orange}`), '', ...r.reagents.map((g) => `  ${g.count} ${app.itemLabel(g.item)}`)];
     }
     case 'zone': { const z = ds.zone(id); return z ? [bold(z.name), dim(`levels ${z.levelRange[0]}-${z.levelRange[1]}${z.faction ? `, ${z.faction}` : ''}`)] : [String(id)]; }
     case 'dungeon': { const d = ds.instance(id); return d ? [bold(d.name), dim(`levels ${d.levelRange[0]}-${d.levelRange[1]}, from ${d.minLevel}${d.maxPlayers ? `, ${d.maxPlayers} players` : ''}`), ...(d.description ? ['', ...wrapLines(d.description, 60)] : [])] : [String(id)]; }
@@ -102,7 +102,7 @@ function pageLinks(app, kind, id) {
         if (k === 'object' || k === 'fishing') return ds.gameObject(s.ref) ? link(app, 'object', s.ref, `${ds.gameObject(s.ref).name}${pct}${count}`) : H(`  ${s.zone ?? s.ref}${pct}`);
         if (k === 'quest-reward' || k === 'starts-quest' || k === 'quest-objective') return link(app, 'quest', s.ref, `${ds.quest(s.ref)?.title ?? s.ref}${s.choice ? dim('  (a choice)') : ''}`);
         if (k === 'crafted') return link(app, 'recipe', s.ref, ds.recipe(s.ref)?.name ?? String(s.ref));
-        if (k === 'container' || k === 'disenchant') return link(app, 'item', s.ref, `${app.itemName(s.ref)}${pct}${count}`);
+        if (k === 'container' || k === 'disenchant') return link(app, 'item', s.ref, `${app.itemLabel(s.ref)}${pct}${count}`);
         if (k === 'spell') return link(app, 'spell', s.ref, ds.spell(s.ref)?.name ?? String(s.ref));
         if (k === 'gather') return H(`  ${ds.gatherNode?.(s.ref)?.name ?? `node ${s.ref}`}${s.zone ? dim(`  ${ds.zone(s.zone)?.name ?? s.zone}`) : ''}${pct}`);
         return H(`  ${s.ref}${pct}`);
@@ -116,7 +116,7 @@ function pageLinks(app, kind, id) {
   } else if (kind === 'spell') {
     const s = src.spellSources(id);
     section('Taught by', s.trainers.map((e) => link(app, 'npc', e, ds.creature(e)?.name ?? ds.trainer(e)?.name ?? String(e))));
-    section('From the item', s.items.map((e) => link(app, 'item', e, app.itemName(e))));
+    section('From the item', s.items.map((e) => link(app, 'item', e, app.itemLabel(e))));
     section('From the talent', s.talents.map((t) => link(app, 'talent', t, ds.talent(t)?.name ?? String(t))));
     section('Reward from', s.quests.map((q) => link(app, 'quest', q, ds.quest(q)?.title ?? String(q))));
   } else if (kind === 'npc') {
@@ -124,13 +124,13 @@ function pageLinks(app, kind, id) {
     section('Starts', q.starts.map((e) => link(app, 'quest', e, ds.quest(e)?.title ?? String(e))));
     section('Ends', q.ends.map((e) => link(app, 'quest', e, ds.quest(e)?.title ?? String(e))));
     const v = ds.vendor(id);
-    if (v) section('Sells', v.items.slice(0, 60).map((e) => link(app, 'item', e, app.itemName(e))));
+    if (v) section('Sells', v.items.slice(0, 60).map((e) => link(app, 'item', e, app.itemLabel(e))));
   } else if (kind === 'quest') {
     const q = ds.quest(id);
     if (q) {
       section('Kill', q.killTargets.map((k) => link(app, 'npc', k.creatureEntry, `${ds.creature(k.creatureEntry)?.name ?? k.creatureEntry} x${k.count}`)));
-      section('Bring', (q.itemTargets ?? []).map((k) => link(app, 'item', k.item, `${app.itemName(k.item)} x${k.count}`)));
-      section('Rewards', [...q.rewItems, ...(q.rewChoiceItems ?? [])].map((r) => link(app, 'item', r.item, `${app.itemName(r.item)}${r.count > 1 ? ` x${r.count}` : ''}`)));
+      section('Bring', (q.itemTargets ?? []).map((k) => link(app, 'item', k.item, `${app.itemLabel(k.item)} x${k.count}`)));
+      section('Rewards', [...q.rewItems, ...(q.rewChoiceItems ?? [])].map((r) => link(app, 'item', r.item, `${app.itemLabel(r.item)}${r.count > 1 ? ` x${r.count}` : ''}`)));
       section('Teaches', (q.rewSpells ?? []).map((sp) => link(app, 'spell', sp, ds.spell(sp)?.name ?? String(sp))));
       section('Reputation', (q.rewRep ?? []).filter((r) => r.value).map((r) => link(app, 'faction', r.faction, `${ds.faction(r.faction)?.name ?? r.faction} ${r.value > 0 ? '+' : ''}${r.value}`)));
       const chain = [q.prevQuest && ['Comes after', q.prevQuest], q.nextQuest && ['Leads to', q.nextQuest]].filter(Boolean);
@@ -140,8 +140,8 @@ function pageLinks(app, kind, id) {
   } else if (kind === 'recipe') {
     const r = ds.recipe(id);
     if (r) {
-      section('Makes', [link(app, 'item', r.product.item, `${app.itemName(r.product.item)}${r.product.count > 1 ? ` x${r.product.count}` : ''}`)]);
-      section('Reagents', r.reagents.map((g) => link(app, 'item', g.item, `${app.itemName(g.item)} x${g.count}`)));
+      section('Makes', [link(app, 'item', r.product.item, `${app.itemLabel(r.product.item)}${r.product.count > 1 ? ` x${r.product.count}` : ''}`)]);
+      section('Reagents', r.reagents.map((g) => link(app, 'item', g.item, `${app.itemLabel(g.item)} x${g.count}`)));
     }
   } else if (kind === 'zone') {
     const z = ds.zone(id);
@@ -161,7 +161,7 @@ function pageLinks(app, kind, id) {
     const o = ds.gameObject(id);
     if (o) {
       const loot = o.lootId ? ds.lootTable(o.lootId) : [];
-      section('Holds', loot.slice(0, 40).map((l) => link(app, 'item', l.item, `${app.itemName(l.item)}${l.chance != null ? dim(`  ${Math.abs(l.chance)}%`) : ''}`)));
+      section('Holds', loot.slice(0, 40).map((l) => link(app, 'item', l.item, `${app.itemLabel(l.item)}${l.chance != null ? dim(`  ${Math.abs(l.chance)}%`) : ''}`)));
       section('Starts', (o.questsStarted ?? []).map((q) => link(app, 'quest', q, ds.quest(q)?.title ?? String(q))));
       section('Ends', (o.questsEnded ?? []).map((q) => link(app, 'quest', q, ds.quest(q)?.title ?? String(q))));
     }

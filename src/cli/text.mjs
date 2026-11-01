@@ -3,7 +3,9 @@
 import { className, raceName } from '../domain/core/ids.ts';
 
 export const useColor = !process.env.NO_COLOR;
-const sgr = (code) => (s) => (useColor ? `\x1b[${code}m${s}\x1b[0m` : String(s));
+// A reset inside the painted text (a coloured item name in a green sentence) re-opens this paint,
+// so the rest of the sentence keeps its colour.
+const sgr = (code) => (s) => (useColor ? `\x1b[${code}m${String(s).replace(/\x1b\[0m/g, `\x1b[0m\x1b[${code}m`)}\x1b[0m` : String(s));
 export const dim = sgr(2), bold = sgr(1), inverse = sgr(7), underline = sgr(4);
 export const red = sgr(31), green = sgr(32), yellow = sgr(33), blue = sgr(34), magenta = sgr(35), cyan = sgr(36), white = sgr(37), gray = sgr(90);
 export const brightRed = sgr(91), brightGreen = sgr(92), brightYellow = sgr(93), brightBlue = sgr(94), brightMagenta = sgr(95), brightCyan = sgr(96);
@@ -12,9 +14,14 @@ export const bgBlue = sgr(44), bgGray = sgr(100), bgRed = sgr(41);
 export const orange = sgr('38;5;208');
 
 export const QUALITY = ['poor', 'common', 'uncommon', 'rare', 'epic', 'legendary', 'artifact'];
-const QUALITY_PAINT = [gray, white, green, brightBlue, brightMagenta, brightYellow, brightYellow];
+// The client's item quality colours (24-bit): grey poor, white common, green uncommon, blue rare,
+// purple epic, orange legendary, light gold artifact.
+const rgb = (r, g, b) => sgr(`38;2;${r};${g};${b}`);
+const QUALITY_PAINT = [rgb(157, 157, 157), rgb(255, 255, 255), rgb(30, 255, 0), rgb(0, 112, 221), rgb(163, 53, 238), rgb(255, 128, 0), rgb(230, 204, 128)];
 /** An item name in its 1.12 quality colour. */
 export function qualityPaint(quality) { return QUALITY_PAINT[quality ?? 1] ?? white; }
+/** An item record's name in its quality colour; `fallback` when the record is missing. */
+export function itemText(it, fallback = 'item') { return qualityPaint(it?.quality)(it?.name ?? fallback); }
 
 const GENDER_TOKEN = /\$[Gg]\s*([^:]*):([^;]*);/g;
 /** $N name, $C class, $R race, $B break, $G male:female; (SharedDefines.h:26). Same codes as phonecraft questText. */
@@ -38,7 +45,15 @@ export function wrapLines(text, width) {
     }
     out.push(line);
   }
-  return out;
+  // A paint still open at a break is closed there and re-opened on the next line, so a wrapped dim
+  // sentence neither bleeds into the screen row below nor loses its colour after the break.
+  if (!useColor) return out;
+  let open = '';
+  return out.map((l) => {
+    const line = open + l;
+    for (const m of l.match(SGR_RE) ?? []) open = m === '\x1b[0m' || m === '\x1b[m' ? '' : open + m;
+    return open ? `${line}\x1b[0m` : line;
+  });
 }
 
 /** Match `q` against a list: a number is an id, otherwise exact name, then prefix, then substring. */

@@ -3,6 +3,7 @@
 // (tuiFight.mjs), so both go through the same planner (domain/macro) and the same calls a key press makes.
 import { bold, dim, yellow, green, red, cyan } from './text.mjs';
 import { createWorldMacroHost } from './macroHostWorld.ts';
+import { castWithPicker, useItemWithPicker } from './tuiEnchantTarget.mjs';
 import { filterMacroTemplates, macroTemplateNest, macroTemplateCompat, uniqueMacroName, MACROS_PER_SCOPE, macroScopeOf, parseMacroBody, describeMacroLineText } from '../domain/macro/index.ts';
 
 const H = (text) => ({ text, header: true });
@@ -16,9 +17,10 @@ export function worldMacroHost(app) {
   host = createWorldMacroHost({
     game: app.g, ds: app.ds, now: () => Date.now(),
     mods: () => ({ shift: false, ctrl: false, alt: false }),
-    castSpell: (id) => app.result(app.g.castOutOfCombat(id), `You cast ${app.ds.spell(id)?.name ?? id}.`),
-    useItem: (entry) => { const r = app.g.consumeItem(entry); return app.result(r, r.ok ? `You use ${app.itemName(entry)}.` : ''); },
-    equipItem: (entry, offhand) => app.result(app.g.equip(entry, offhand ? 'offhand' : undefined), `You equip ${app.itemName(entry)}.`),
+    // A weapon imbue or an armor kit may open the slot picker; the step counts as taken while it is open.
+    castSpell: (id) => castWithPicker(app, id) !== false,
+    useItem: (entry) => useItemWithPicker(app, entry, () => green(`You use ${app.itemLabel(entry)}.`)) !== false,
+    equipItem: (entry, offhand) => app.result(app.g.equip(entry, offhand ? 'offhand' : undefined), `You equip ${app.itemLabel(entry)}.`),
     notify: (m) => app.say(yellow(m)),
   });
   app.macroWorldHost.set(app.g, host);
@@ -36,8 +38,8 @@ function planLines(app, def) {
   const out = [];
   for (const st of plan.steps) {
     if (st.kind === 'cast') out.push(green(`casts ${app.ds.spell(st.spellId)?.name ?? st.spellId}`));
-    else if (st.kind === 'use') out.push(green(`uses ${app.itemName(st.entry)}`));
-    else if (st.kind === 'equip') out.push(green(`equips ${app.itemName(st.entry)}${st.offhand ? ' in the off hand' : ''}`));
+    else if (st.kind === 'use') out.push(green(`uses ${app.itemLabel(st.entry)}`));
+    else if (st.kind === 'equip') out.push(green(`equips ${app.itemLabel(st.entry)}${st.offhand ? ' in the off hand' : ''}`));
     else out.push(dim(`/${st.kind}${st.name ? ` ${st.name}` : ''}`));
   }
   for (const r of plan.refusals) out.push(red(r));

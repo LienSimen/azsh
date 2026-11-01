@@ -1,8 +1,9 @@
 // The rest of a companion's page and the party-wide companion dialogs: spec, talent link, AoE, off-heal and xp
 // lock; their pet; their quests; their bags and bank; the tavern duel; consumable sharing, the party vault
 // and the hire search. Ports of phonecraft companionsPanel.ts, companionKitPanel.ts and consumableSharePanel.ts.
-import { bold, dim, cyan, yellow, green, red, qualityPaint, fit, plural } from './text.mjs';
+import { bold, dim, cyan, yellow, green, red, qualityPaint, fit, plural, itemText } from './text.mjs';
 import { itemLines, noteSale } from './tuiViews.mjs';
+import { companionUseWithPicker } from './tuiEnchantTarget.mjs';
 import { startFight } from './tuiFight.mjs';
 import { moneyText } from '../domain/economy/money.ts';
 import { className } from '../domain/core/ids.ts';
@@ -117,13 +118,13 @@ export function questRows(app, comp) {
   const rows = [H(''), H(`Their quests ${dim(`${log.length} in the log`)}`)];
   for (const o of offers) {
     rows.push({
-      text: o.kind === 'turn-in' ? `${green('?')} Hand in ${o.title}` : `${yellow('!')} Take ${o.title}${o.itemEntry ? dim(`  from ${app.itemName(o.itemEntry)}`) : ''}`,
+      text: o.kind === 'turn-in' ? `${green('?')} Hand in ${o.title}` : `${yellow('!')} Take ${o.title}${o.itemEntry ? dim(`  from ${app.itemLabel(o.itemEntry)}`) : ''}`,
       detail: () => [bold(o.title), o.kind === 'turn-in' ? 'Ready to hand in: rewards go to them, the money to you.' : 'They can take this one here.'],
       act: () => {
         if (o.kind === 'accept') { app.result(g.acceptCompanionQuest(id, o.quest), `${comp.name} takes ${o.title}.`); return; }
         const q = ds.quest(o.quest);
         const finish = (choice) => { const r = g.turnInCompanionQuest(id, o.quest, choice); app.result(r, r.ok ? `${comp.name} hands in ${o.title}${r.xp ? `: +${r.xp} xp` : ''}${r.money ? `, ${moneyText(r.money)} to you` : ''}.` : ''); };
-        if (q?.rewChoiceItems?.length > 1) app.pick(`${comp.name}: choose a reward`, q.rewChoiceItems.map((it, i) => ({ label: app.itemName(it.item), detail: () => itemLines(app, ds.item(it.item)), value: i })), finish);
+        if (q?.rewChoiceItems?.length > 1) app.pick(`${comp.name}: choose a reward`, q.rewChoiceItems.map((it, i) => ({ label: app.itemLabel(it.item), detail: () => itemLines(app, ds.item(it.item)), value: i })), finish);
         else finish(0);
       },
     });
@@ -161,16 +162,16 @@ export function bagRows(app, comp, cap) {
   if (!bags.length) rows.push(H(dim('  Empty.')));
   bags.forEach((s, slot) => {
     const it = ds.item(s.item);
-    const name = `${it?.name ?? 'it'}${s.count > 1 ? ` x${s.count}` : ''}`;
+    const name = `${itemText(it, 'it')}${s.count > 1 ? ` x${s.count}` : ''}`;
     rows.push({
       text: `${qualityPaint(it?.quality)(it?.name ?? s.item)}${s.count > 1 ? ` x${s.count}` : ''}`,
       detail: () => itemLines(app, it, ['', dim('Enter: take it   u: use on them   s: sell   e: disenchant   m: to another companion   b: their bank   d: destroy')]),
       act: () => { const r = g.takeItemFromBotStack(id, slot); app.result(r, `You take ${it?.name ?? 'it'}${r.moved > 1 ? ` x${r.moved}` : ''} from ${comp.name}.`); },
       keys: {
-        u: (a) => { const r = g.useCompanionItem(id, s.item); a.result(r, r.ok ? `${comp.name} uses ${it?.name}.` : ''); },
+        u: (a) => companionUseWithPicker(a, comp, s.item),
         d: (a) => a.confirm(`Destroy ${name} from ${comp.name}'s bags?`, () => a.result(g.discardCompanionBagStack(id, slot), `Destroyed ${name}.`)),
         s: (a) => { if (!a.vendor) { a.flashMsg('Open a vendor first.'); return; } const r = g.sellCompanionItemStack(id, slot); if (a.result(r, r.ok ? `Sold ${name} for ${moneyText(r.earned)}.` : '')) noteSale(a, s.item, r.qty, r.earned, comp); },
-        e: (a) => { const r = g.disenchantCompanionBagStack(id, slot); a.result(r, r.ok ? `It breaks into ${r.yielded.map((y) => `${a.itemName(y.item)}${y.count > 1 ? ` x${y.count}` : ''}`).join(', ')}.` : ''); },
+        e: (a) => { const r = g.disenchantCompanionBagStack(id, slot); a.result(r, r.ok ? `It breaks into ${r.yielded.map((y) => `${a.itemLabel(y.item)}${y.count > 1 ? ` x${y.count}` : ''}`).join(', ')}.` : ''); },
         b: (a) => a.result(g.companionBankDepositStack(id, slot), `${name} goes into ${comp.name}'s bank.`),
         m: (a) => {
           const others = allOwned(g).filter((c) => c.id !== id);
@@ -225,8 +226,8 @@ export function shareDialog(app) {
       for (const e of plan) {
         const given = e.rows.reduce((n, r) => n + r.count, 0);
         rows.push({
-          text: `${fit(a.itemName(e.entry), 28)} ${dim(`x${e.have}`)}  ${given ? green(`${given} out`) : dim('nobody')}  ${dim(`keep ${e.kept}  ${ruleText(st.rules?.[e.key])}`)}`, data: e,
-          detail: () => [bold(a.itemName(e.entry)), dim(SHARE_CATEGORY_LABEL[e.category] ?? e.category), '', ...e.rows.map((r) => `  ${r.companionName} ${r.count}  ${dim(r.why)}`), ...(e.blocked.length ? ['', ...e.blocked.map((b) => red(`  ${b}`))] : []), '', dim('Enter: hand this one over   r: rule')],
+          text: `${fit(a.itemLabel(e.entry), 28)} ${dim(`x${e.have}`)}  ${given ? green(`${given} out`) : dim('nobody')}  ${dim(`keep ${e.kept}  ${ruleText(st.rules?.[e.key])}`)}`, data: e,
+          detail: () => [bold(a.itemLabel(e.entry)), dim(SHARE_CATEGORY_LABEL[e.category] ?? e.category), '', ...e.rows.map((r) => `  ${r.companionName} ${r.count}  ${dim(r.why)}`), ...(e.blocked.length ? ['', ...e.blocked.map((b) => red(`  ${b}`))] : []), '', dim('Enter: hand this one over   r: rule')],
           act: () => { const r = a.g.applySquadConsumablePlan(e.entry); a.result(r, r.ok ? `${plural(r.moved, 'item')} handed out.` : ''); },
         });
       }
@@ -245,7 +246,7 @@ function pickShareRule(app, e) {
     ...members.map((m) => ({ label: `All to ${m.name}`, value: { kind: 'one', companionId: m.id } })),
     { label: 'Keep it', value: { kind: 'keep' } },
   ];
-  app.pick(`${app.itemName(e.entry)}: who gets it?`, opts, (rule) => app.result(app.g.setConsumableShareRule(e.key, rule)));
+  app.pick(`${app.itemLabel(e.entry)}: who gets it?`, opts, (rule) => app.result(app.g.setConsumableShareRule(e.key, rule)));
 }
 
 function pickShareCats(app) {
@@ -270,7 +271,7 @@ export function vaultDialog(app) {
         rows.push({
           text: `${qualityPaint(it?.quality)(it?.name ?? entry)} ${dim(`x${t.count}  ${[...t.who].join(', ')}`)}`,
           detail: () => itemLines(a, it, ['', dim('Enter: take every one of them into your bags (soulbound stays)')]),
-          act: () => { const r = a.g.takeFromPartyStorage(entry); a.result(r, r.ok ? `You take ${r.moved} ${it?.name}.${r.bound ? ` ${r.bound} are soulbound and stay.` : ''}${r.full ? ' Your bags are full.' : ''}` : ''); },
+          act: () => { const r = a.g.takeFromPartyStorage(entry); a.result(r, r.ok ? `You take ${r.moved} ${itemText(it)}.${r.bound ? ` ${r.bound} are soulbound and stay.` : ''}${r.full ? ' Your bags are full.' : ''}` : ''); },
         });
       }
       return rows;

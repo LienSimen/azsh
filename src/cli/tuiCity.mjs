@@ -1,7 +1,7 @@
 // City services: the bank, the auction house and the mailbox. Same view shape as tuiViews.mjs; every
 // change is a Game facade call. Where they open follows phonecraft's CITY_PANEL rule: the auction
 // house in the six capitals, the bank there plus the goblin and Crossroads banker towns.
-import { bold, dim, cyan, yellow, green, red, qualityPaint, fit, secondsText, plural } from './text.mjs';
+import { bold, dim, cyan, yellow, green, red, qualityPaint, fit, secondsText, plural, itemText } from './text.mjs';
 import { itemLines } from './tuiViews.mjs';
 import { moneyText } from '../domain/economy/money.ts';
 import { bagCapacity } from '../domain/items/equipment.ts';
@@ -62,20 +62,20 @@ export function bankDialog(app, startMode = 'deposit') {
   const view = {
     id: 'bank', title: 'Bank', hint: hint(),
     keys: {
-      n: { hint: 'move some', fn: (a, row) => { if (!row?.data) return; a.prompt(`How many ${a.itemName(row.data.s.item)} (1-${row.data.s.count})? `, (t) => { const n = Number(t); if (n > 0) move(a, row.data.index, Math.min(n, row.data.s.count)); a.afterAction(); }); } },
+      n: { hint: 'move some', fn: (a, row) => { if (!row?.data) return; a.prompt(`How many ${a.itemLabel(row.data.s.item)} (1-${row.data.s.count})? `, (t) => { const n = Number(t); if (n > 0) move(a, row.data.index, Math.min(n, row.data.s.count)); a.afterAction(); }); } },
       '+': { hint: 'buy bag slot', fn: (a) => {
         const cost = nextBankBagSlotCost(a.g.state.bankBags);
         if (cost == null) { a.flashMsg('You already own every bank bag slot.'); return; }
         a.confirm(`Buy a bank bag slot for ${moneyText(cost)}?`, () => a.result(a.g.buyBankBagSlot(), `Bought a bank bag slot for ${moneyText(cost)}.`));
       } },
-      D: { hint: 'deposit all of it', fn: (a, row) => { if (mode !== 'deposit' || !row?.data?.s) return; const e = row.data.s.item; const r = a.g.bankDeposit(e, countItem(a.g.state.inventory, e)); a.result(r, r.ok ? `Deposited every ${a.itemName(e)} (${r.moved}).` : ''); } },
+      D: { hint: 'deposit all of it', fn: (a, row) => { if (mode !== 'deposit' || !row?.data?.s) return; const e = row.data.s.item; const r = a.g.bankDeposit(e, countItem(a.g.state.inventory, e)); a.result(r, r.ok ? `Deposited every ${a.itemLabel(e)} (${r.moved}).` : ''); } },
       B: { hint: 'slot a bag', fn: (a, row) => {
         if (mode !== 'deposit' || !row?.data) { a.flashMsg('Pick a bag in your bags (deposit side) first.'); return; }
         const it = a.ds.item(row.data.s.item);
         if (it?.slot !== 'bag') { a.flashMsg('That is not a bag.'); return; }
         const free = a.g.state.bankBags.findIndex((b) => b == null);
         if (free < 0) { a.flashMsg('No empty bank bag slot. + buys one.'); return; }
-        a.result(a.g.equipBankBag(it.entry ?? row.data.s.item, free), `${it.name} now holds bank space.`);
+        a.result(a.g.equipBankBag(it.entry ?? row.data.s.item, free), `${itemText(it)} now holds bank space.`);
       } },
     },
     onKey(a, k) { if (k === 'tab') { mode = mode === 'deposit' ? 'withdraw' : 'deposit'; view.cursor = 0; view.scroll = 0; view.hint = hint(); return true; } return false; },
@@ -91,7 +91,7 @@ export function bankDialog(app, startMode = 'deposit') {
       st.bankBags.forEach((b, slot) => {
         if (b == null) { rows.push({ text: dim(`  Bank bag ${slot + 1}: empty   (B on a bag in your bags fills it)`), header: true }); return; }
         const bag = ds.item(typeof b === 'object' ? b.item ?? b.entry : b);
-        rows.push({ text: `  Bank bag ${slot + 1}: ${bag?.name ?? b}${bag?.bagSlots ? dim(`  ${bag.bagSlots} slots`) : ''}   ${dim('Enter: take it out')}`, data: { bankBag: slot }, act: (a2) => a2.result(a2.g.unequipBankBag(slot), `${bag?.name ?? 'The bag'} is back in your bags.`) });
+        rows.push({ text: `  Bank bag ${slot + 1}: ${itemText(bag, String(b))}${bag?.bagSlots ? dim(`  ${bag.bagSlots} slots`) : ''}   ${dim('Enter: take it out')}`, data: { bankBag: slot }, act: (a2) => a2.result(a2.g.unequipBankBag(slot), `${itemText(bag, 'The bag')} is back in your bags.`) });
       });
       rows.push(
         { text: `${mode === 'deposit' ? bold('Your bags → bank') : dim('Your bags → bank')}   ${mode === 'withdraw' ? bold('Bank → your bags') : dim('Bank → your bags')}`, header: true },
@@ -130,10 +130,10 @@ export function auctionDialog(app) {
       b: { hint: 'bid', fn: (a, row) => {
         if (mode !== 'browse' || !row?.data?.auction) return;
         const au = row.data.auction, min = minNextBid(au);
-        a.prompt(`Bid on ${a.itemName(au.item)} (at least ${moneyText(min)}): `, (t) => {
+        a.prompt(`Bid on ${a.itemLabel(au.item)} (at least ${moneyText(min)}): `, (t) => {
           const amount = parseMoney(t);
           if (amount == null) { a.say(red('Say a price like 2g 50s or 250.')); a.render(); return; }
-          a.result(a.g.bidAuction(au.id, amount, Date.now()), `You bid ${moneyText(amount)} on ${a.itemName(au.item)}.`);
+          a.result(a.g.bidAuction(au.id, amount, Date.now()), `You bid ${moneyText(amount)} on ${a.itemLabel(au.item)}.`);
           a.afterAction();
         }, moneyText(min));
       } },
@@ -167,7 +167,7 @@ export function auctionDialog(app) {
             text: `${can ? name : dim(name)}  ${yellow(moneyText(au.buyoutCopper))}${au.quantity > 1 ? dim(` (${moneyText(unit(au))} each)`) : ''}  ${dim('bid')} ${moneyText(au.bidCopper)}${au.highBidder === a.ch.name ? green('  yours') : ''}  ${timeLeft(au, now)}${it?.requiredLevel > a.ch.level ? red(`  L${it.requiredLevel}`) : ''}`,
             data: { auction: au },
             detail: () => itemLines(a, it, ['', `Buyout: ${yellow(moneyText(au.buyoutCopper))}`, `Current bid: ${moneyText(au.bidCopper)}${au.highBidder ? dim(` (${au.highBidder === a.ch.name ? 'you' : au.highBidder})`) : dim(' (no bids)')}`, `Next bid: ${moneyText(minNextBid(au))}`, dim(`Seller: ${au.seller}`), '', dim('Enter: buy out   b: bid')]),
-            act: () => a.confirm(`Buy ${it?.name ?? au.item}${au.quantity > 1 ? ` x${au.quantity}` : ''} for ${moneyText(au.buyoutCopper)}?`, () => a.result(a.g.buyoutAuction(au.id), `Bought ${it?.name}${au.quantity > 1 ? ` x${au.quantity}` : ''} for ${moneyText(au.buyoutCopper)}.`)),
+            act: () => a.confirm(`Buy ${itemText(it, String(au.item))}${au.quantity > 1 ? ` x${au.quantity}` : ''} for ${moneyText(au.buyoutCopper)}?`, () => a.result(a.g.buyoutAuction(au.id), `Bought ${itemText(it)}${au.quantity > 1 ? ` x${au.quantity}` : ''} for ${moneyText(au.buyoutCopper)}.`)),
           });
         }
       } else if (mode === 'sell') {
@@ -196,7 +196,7 @@ export function auctionDialog(app) {
             text: `${qualityPaint(it?.quality)(it?.name ?? au.item)}${au.quantity > 1 ? ` x${au.quantity}` : ''}  ${dim('bid')} ${moneyText(au.bidCopper)}${au.highBidder ? green(' (bid placed)') : ''}  ${dim('buyout')} ${yellow(moneyText(au.buyoutCopper))}  ${timeLeft(au, now)}`,
             data: { auction: au },
             detail: () => itemLines(a, it, ['', `Buyout: ${yellow(moneyText(au.buyoutCopper))}`, `Bid: ${moneyText(au.bidCopper)}${au.highBidder ? ` by ${au.highBidder}` : ''}`, '', dim('Enter: cancel the listing (the deposit is lost)')]),
-            act: () => a.confirm(`Cancel the ${it?.name} listing?`, () => a.result(a.g.cancelAuction(au.id), `Listing cancelled. ${it?.name} is back in your bags.`)),
+            act: () => a.confirm(`Cancel the ${itemText(it)} listing?`, () => a.result(a.g.cancelAuction(au.id), `Listing cancelled. ${itemText(it)} is back in your bags.`)),
           });
         }
         rows.push({ text: '', header: true }, { text: `Your bids (${bids.length})`, header: true });
@@ -221,13 +221,13 @@ function sellFlow(app, s, it) {
     });
     app.pick('How long should it run?', opts, (dur) => {
       const r = app.g.listAuction(s.item, qty, bid, buyout, dur, Date.now());
-      app.result(r, r.ok ? `Listed ${it?.name}${qty > 1 ? ` x${qty}` : ''}: bid ${moneyText(bid)}, buyout ${moneyText(buyout)}.` : '');
+      app.result(r, r.ok ? `Listed ${itemText(it)}${qty > 1 ? ` x${qty}` : ''}: bid ${moneyText(bid)}, buyout ${moneyText(buyout)}.` : '');
       app.afterAction();
     });
   };
   const askPrices = (qty) => {
     const vendor = (it?.sellPrice ?? 0) * qty;
-    app.prompt(`Starting bid for ${it?.name}${qty > 1 ? ` x${qty}` : ''} (e.g. 2g 50s): `, (t1) => {
+    app.prompt(`Starting bid for ${itemText(it)}${qty > 1 ? ` x${qty}` : ''} (e.g. 2g 50s): `, (t1) => {
       const bid = parseMoney(t1);
       if (bid == null || bid < 1) { app.say(red('Say a price like 2g 50s or 250.')); app.render(); return; }
       app.prompt(`Buyout (at least ${moneyText(bid)}): `, (t2) => {
@@ -237,17 +237,32 @@ function sellFlow(app, s, it) {
       }, moneyText(Math.max(bid, Math.round(bid * 1.5))));
     }, vendor ? moneyText(Math.max(1, vendor * 2)) : '');
   };
-  if (s.count > 1) app.prompt(`How many ${it?.name} (1-${s.count})? `, (t) => { const n = Math.min(s.count, Number(t)); if (n > 0) askPrices(n); else app.render(); }, String(s.count));
+  if (s.count > 1) app.prompt(`How many ${itemText(it)} (1-${s.count})? `, (t) => { const n = Math.min(s.count, Number(t)); if (n > 0) askPrices(n); else app.render(); }, String(s.count));
   else askPrices(1);
 }
 
 // ---- mailbox ------------------------------------------------------------------------------------
 
+// Postal's Open All: every letter's money and items, and each letter it empties is thrown away. COD letters wait.
+function takeAllMail(a) {
+  const before = a.g.listMail(Date.now()).length;
+  const r = a.g.collectMail();
+  if (!r.ok) { a.result(r, ''); return; }
+  const left = a.g.listMail(Date.now());
+  const cleared = before - left.length;
+  const cod = left.filter((m) => m.cod > 0).length;
+  const msg = r.abortedFull ? red('Your bags filled up before the mail was empty.')
+    : cleared || r.moved ? `${cleared ? `Emptied ${plural(cleared, 'letter')}.` : `Collected ${r.moved} from the mail.`}${cod ? dim(`  ${plural(cod, 'COD letter')} left: Enter pays and takes.`) : ''}`
+      : 'Nothing to collect.';
+  a.result(r, msg);
+}
+
 export function mailDialog(app) {
+  const takeAll = { hint: 'take all', fn: takeAllMail };
   return {
-    id: 'mail', title: 'Mailbox', hint: 'Enter: take what is in it',
+    id: 'mail', title: 'Mailbox', hint: 'Enter: take it and bin the letter',
     keys: {
-      A: { hint: 'take all', fn: (a) => { const r = a.g.collectMail(); a.result(r, r.ok ? (r.abortedFull ? red('Your bags filled up before the mail was empty.') : r.moved ? `Collected ${r.moved} from the mail.` : 'Nothing to collect.') : ''); } },
+      a: takeAll, A: { fn: takeAllMail },
       d: { hint: 'delete', fn: (a, row) => { if (row?.data?.mail) a.confirm(`Delete "${row.data.mail.subject}"?`, () => a.result(a.g.deleteMail(row.data.mail.id), 'Mail deleted.')); } },
       r: { hint: 'return', fn: (a, row) => { if (row?.data?.mail) a.confirm(`Send "${row.data.mail.subject}" back to ${row.data.mail.sender}?`, () => { void returnToSender(a, row.data.mail); }); } },
       s: { hint: 'send', fn: (a) => a.push(composeDialog(a)) },
@@ -255,10 +270,10 @@ export function mailDialog(app) {
     rows(a) {
       const now = Date.now();
       const mail = a.g.listMail(now);
-      const rows = [{ text: `${bold('Mailbox')}  ${dim(plural(mail.length, 'letter'))}   ${yellow(moneyText(a.ch.gold) || '0c')}${mail.length ? dim('   A: take everything') : ''}`, header: true }, { text: '', header: true }];
+      const rows = [{ text: `${bold('Mailbox')}  ${dim(plural(mail.length, 'letter'))}   ${yellow(moneyText(a.ch.gold) || '0c')}${mail.length ? dim('   a: take everything') : ''}`, header: true }, { text: '', header: true }];
       if (!mail.length) rows.push({ text: dim('No mail.'), header: true });
       for (const m of mail) {
-        const atts = m.attachments.map((x) => `${qualityPaint(a.ds.item(x.entry)?.quality)(a.itemName(x.entry))}${x.quantity > 1 ? ` x${x.quantity}` : ''}`);
+        const atts = m.attachments.map((x) => `${a.itemLabel(x.entry)}${x.quantity > 1 ? ` x${x.quantity}` : ''}`);
         const bits = [...(m.money ? [yellow(moneyText(m.money))] : []), ...atts];
         const read = (m.checked ?? 0) & 1;
         rows.push({
@@ -286,9 +301,14 @@ function takeMail(app, m) {
     // Taking a COD item pays the sender: their payment letter goes to their mailbox.
     if (r.remittance) void deliverNamedMail(app, r.remittance.to, r.remittance.mail);
     took++;
-    app.say(green(`You take ${app.itemName(att.entry)}${att.quantity > 1 ? ` x${att.quantity}` : ''}.`));
+    app.say(green(`You take ${app.itemLabel(att.entry)}${att.quantity > 1 ? ` x${att.quantity}` : ''}.`));
   }
-  if (!took) app.flashMsg('Nothing to take from this letter. d deletes it.');
+  // A letter with nothing left in it is thrown away, as Postal does; a COD or full-bag letter stays.
+  const cur = app.g.listMail(Date.now()).find((x) => x.id === m.id);
+  if (cur && !cur.money && !cur.attachments.length && !cur.cod) {
+    const r = app.g.deleteMail(m.id);
+    if (r.ok && !took) app.say(dim(`Threw away "${m.subject}".`));
+  }
 }
 
 // ---- mail between your own characters -------------------------------------------------------------

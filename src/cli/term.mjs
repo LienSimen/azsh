@@ -93,7 +93,7 @@ export class RealTerm {
       const line = fit(lines[i] ?? '', w);
       next.push(line);
       if (this.last[i] === line) continue;
-      out += `${ESC}${i + 1};1H${line}`;
+      out += `${ESC}${i + 1};1H${ESC}0m${line}`;
     }
     this.last = next;
     if (out) stdout.write(out);

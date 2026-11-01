@@ -2,8 +2,9 @@
 // session (Game.beginFight) ticked every 100 ms, drawn as unit frames with a cast slot and auras. Auto-play
 // runs the character's rotation; a number key presses an ability over it for one GCD. The numbered ability
 // bar only shows in manual play, where you need it.
-import { bold, dim, cyan, yellow, green, red, gray, inverse, fit, vis, cut, bar, strip, brightBlue } from './text.mjs';
+import { bold, dim, cyan, yellow, green, red, gray, inverse, fit, vis, cut, bar, strip, brightBlue, itemText } from './text.mjs';
 import { formatCombatLog, combatLogPlainText, POWER_MERGE_MS } from './combatLogFormat.ts';
+import { impliedDest } from './combatLogFilter.ts';
 import { moneyText } from '../domain/economy/money.ts';
 import { maxHealth, maxPower } from '../domain/character/character.ts';
 import { powerType } from '../domain/character/characterStats.ts';
@@ -11,6 +12,8 @@ import { pullOpts, sessionLogNames } from './squad.mjs';
 import { slotContent, visibleBars } from './tuiBars.mjs';
 import { autoLootOn, openLoot } from './tuiLoot.mjs';
 import { createCombatMacroHost } from './macroHostCombat.ts';
+import { ensureMeter, noteLoot, cycleFightPane, cycleMeterSort, toggleMeterSegment, fightPane } from './tuiFightPanes.mjs';
+import { objectiveLines } from './tuiViews.mjs';
 
 export const TICK_MS = 100; // one engine tick per 100 ms of real time, like the web client
 const POWER_PAINT = { mana: brightBlue, rage: red, energy: yellow, focus: yellow };
@@ -19,25 +22,28 @@ const POWER_PAINT = { mana: brightBlue, rage: red, energy: yellow, focus: yellow
  *  fight resolves (outcome null when the player ran); `label` names who is driving (the autopilot). `begin` replaces
  *  beginFight (a dungeon stop, squad always in) and `after(outcome)` runs right after resolveFight. `resolve(session)`
  *  replaces resolveFight for a fight that pays nothing (a duel); Esc in one forfeits instead of running. `onTick()` runs
- *  after every engine tick of a fight still going (the dungeon floor keeps its clock and its waves there). */
-export function startFight(app, creatureEntry, { onEnd, label, begin, after, resolve, onTick } = {}) {
+ *  after every engine tick of a fight still going (the dungeon floor keeps its clock and its waves there).
+ *  `why()` says what the fight is for (see fightReason); without it the header names the quest log entry the
+ *  creature counts toward, if any. */
+export function startFight(app, creatureEntry, { onEnd, label, begin, after, resolve, onTick, why } = {}) {
   if (app.fight) return { ok: false, reason: 'Already in a fight.' };
   if (app.isDead()) { app.flashMsg('You are dead.'); return { ok: false, reason: 'You are dead.' }; }
   const opts = begin ? { withSquad: true } : pullOpts(app.g, app.ds, app.cmds.buffPace, creatureEntry, (l) => app.say(cyan(l)));
   const b = begin ? begin() : app.g.beginFight(creatureEntry, opts);
   if (!app.result(b)) { app.render(); return { ok: false, reason: b.reason || 'Cannot fight that.' }; }
   const session = b.session;
+  ensureMeter(app).beginFight(); // the meter's "this fight" segment starts here; "run" totals keep adding up
   const squadXp = new Map((app.g.state.squad ?? []).map((c) => [c.id, c.xp ?? 0]));
   const ctl = {
     // A plain fight (Enter on a creature) can repeat: r keeps pulling the same creature after each win.
     plain: !begin && !resolve && !label,
-    after, resolve, onTick, session, enemyName: b.enemyName, enemyEntry: b.enemyEntry, onEnd, label, withSquad: !!opts && (app.g.state.squad ?? []).length > 0,
+    after, resolve, onTick, session, enemyName: b.enemyName, enemyEntry: b.enemyEntry, onEnd, label, why: why ?? (() => fightReason(app, { creatureEntry, forQuest: true })), withSquad: !!opts && (app.g.state.squad ?? []).length > 0,
     // A fight opened from a window (the dungeon run) takes the screen and hands the window back after.
     savedStack: app.stack,
     auto: true, paused: false, speed: app.fightSpeed ?? 1, pressed: null, pressedTicks: 0, follow: [], focus: null, macros: null, timer: null, pend: null, ended: false,
-    frames: newFrameMemory(app), compact: false,
+    frames: newFrameMemory(app), compact: false, squeeze: 0,
     names: sessionLogNames(session, { playerName: app.ch.name, enemyName: b.enemyName, spellName: (id) => app.ds.spell(id)?.name }),
-    hint() { return `${this.plain ? (app.farmEntry === creatureEntry ? 'r: stop repeating   ' : 'r: fight again after   ') : ''}${this.auto ? 'a: manual play' : '1-0: your action bar   a: auto-play'}${session.alliesView().length ? '   t: orders' : ''}   c: cancel a buff${app.g.state.instance ? '   p: pull +1' : ''}   space: ${this.paused ? 'resume' : 'pause'}   + -: speed ${this.speed}x   l: log   Esc: ${this.label ? 'run away, stop autopilot' : 'run away'}`; },
+    hint() { return `${this.plain ? (app.farmEntry === creatureEntry ? 'r: stop repeating   ' : 'r: fight again after   ') : ''}${this.auto ? 'a: manual play' : '1-0: your action bar   a: auto-play'}${session.alliesView().length ? '   t: orders' : ''}   c: cancel a buff${app.g.state.instance ? '   p: pull +1' : ''}   space: ${this.paused ? 'resume' : 'pause'}   + -: speed ${this.speed}x   Tab: ${fightPane(app) === 'log' ? 'meter' : fightPane(app) === 'meter' ? 'threat' : fightPane(app) === 'threat' ? 'loot' : 'log'}   l: log   Esc: ${this.label ? 'run away, stop autopilot' : 'run away'}`; },
     schedule() {
       if (this.timer) app.term.clearInterval(this.timer);
       this.timer = app.term.setInterval(() => this.tick(), Math.max(10, TICK_MS / this.speed));
@@ -68,6 +74,8 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       app.render();
     },
     logEvents(events) {
+      app.meter?.ingest(events);
+      notePops(this.frames, events);
       const flush = () => { if (this.pend && this.pend.amount > 0) app.say(line(this.pend.t, this.pend.remake(this.pend.amount))); this.pend = null; };
       const line = (t, row) => `${dim((t / 1000).toFixed(1).padStart(5) + 's')} ${combatLogPlainText(row)}`;
       for (const ev of events) {
@@ -99,7 +107,7 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       if (r.xpGained) bits.push(`+${r.xpGained} xp`);
       if (r.goldGained && !hold) bits.push(`+${moneyText(r.goldGained)}`);
       app.say(`${tag} against ${this.enemyName}  ${dim(bits.join('  '))}`);
-      if (!hold) for (const d of r.loot) app.say(`  ${yellow('You receive')} ${app.itemName(d.item)}${d.count > 1 ? ` x${d.count}` : ''}`);
+      if (!hold) { noteLoot(app, r.loot, r.goldGained); for (const d of r.loot) app.say(`  ${yellow('You receive')} ${app.itemLabel(d.item)}${d.count > 1 ? ` x${d.count}` : ''}`); }
       const gained = (app.g.state.squad ?? []).filter((c) => (c.xp ?? 0) !== squadXp.get(c.id)).map((c) => `${c.name} ${(c.xp ?? 0) > (squadXp.get(c.id) ?? 0) ? `+${(c.xp ?? 0) - (squadXp.get(c.id) ?? 0)} xp` : 'levels up'}`);
       if (gained.length) app.say(dim(`  Companions: ${gained.join(', ')}`));
       for (const lv of r.leveledTo) { app.say(bold(green(`  You have reached level ${lv}!`))); app.flashMsg(`Level ${lv}!`); }
@@ -136,6 +144,10 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       if (k === 'pageup') { app.logScroll = Math.min(app.log.length, app.logScroll + 5); app.render(); return; }
       if (k === 'pagedown') { app.logScroll = Math.max(0, app.logScroll - 5); app.render(); return; }
       if (k === 'l') { app.openLog(); return; }
+      if (k === 'tab') { cycleFightPane(app, +1); return; }
+      if (k === 'shift-tab') { cycleFightPane(app, -1); return; }
+      if (k === 's' && fightPane(app) === 'meter') { cycleMeterSort(app); return; }
+      if (k === 'f' && fightPane(app) === 'meter') { toggleMeterSegment(app); return; }
       if (k === 't') { partyOrders(app, this); return; }
       if (k === 'c') { cancelBuff(app, this); return; }
       if (k === 'r' && this.plain) {
@@ -212,7 +224,7 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
           if (sp) out.push({ key, spell: sp, label: sp.name, usable: !!ab?.usable, reason: ab ? ab.reason : 'not known in this fight', cooldownRemainingMs: ab?.cooldownRemainingMs ?? 0 });
         } else if (c.kind === 'item') {
           const it = session.items().find((x) => x.item.entry === c.entry);
-          out.push({ key, item: c.entry, label: `${app.itemName(c.entry)}${it ? ` x${it.count}` : ''}`, usable: !!it?.usable, reason: it ? it.reason : 'none left', cooldownRemainingMs: 0 });
+          out.push({ key, item: c.entry, label: `${app.itemLabel(c.entry)}${it ? ` x${it.count}` : ''}`, usable: !!it?.usable, reason: it ? it.reason : 'none left', cooldownRemainingMs: 0 });
         } else {
           const info = this.macroHost().info(c.id);
           out.push({ key, macro: c.id, label: info?.name ?? app.g.macroById(c.id)?.name ?? c.id, usable: info?.usable !== false, reason: info?.reason, cooldownRemainingMs: info?.cooldownRemainingMs ?? 0 });
@@ -225,10 +237,12 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       const lines = [];
       const t = (session.t / 1000).toFixed(1);
       const mode = this.auto ? green('AUTO') : yellow('MANUAL');
-      lines.push(` ${bold(`Fighting ${this.enemyName}`)}   ${dim(`${t}s`)}   ${mode}${this.paused ? red('  PAUSED') : ''}${this.speed !== 1 ? dim(`  ${this.speed}x`) : ''}${this.label ? cyan(`   ${this.label}`) : ''}`);
-      lines.push('');
+      let head = ` ${bold(`Fighting ${this.enemyName}`)}   ${dim(`${t}s`)}   ${mode}${this.paused ? red('  PAUSED') : ''}${this.speed !== 1 ? dim(`  ${this.speed}x`) : ''}${this.label ? cyan(`   ${this.label}`) : ''}`;
+      // Why this fight, on the right of the title: the quest it serves, with its objective counters on the line below.
+      const why = this.why?.();
+      if (why?.right && W - vis(head) - 4 >= 12) { const r = cut(why.right, W - vis(head) - 4); head = fit(head, W - vis(r) - 1) + r + ' '; }
+      const below = why?.below ? cut(` ${why.below}`, W) : '';
       const pv = session.playerView(), now = session.t;
-      lines.push(...unitFrame(app, this.frames, pv, W, now, true));
       const pet = session.petView();
       const allies = session.alliesView();
       const enemies = session.enemiesView();
@@ -237,16 +251,36 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       const need = 3 + 2 * (1 + (pet ? 1 : 0) + allies.length + enemies.length) + (this.auto ? 0 : 3);
       if (need > H) this.compact = true;
       const nameOfSide = (side) => (side === 'player' ? app.ch.name : [...allies, ...enemies].find((v) => v.side === side)?.name ?? (pet?.side === side ? pet.name : null));
-      if (pet) lines.push(...unitFrame(app, this.frames, pet, W, now, false, false, { compact: this.compact }));
+      const party = [];
+      if (pet) party.push(...unitFrame(app, this.frames, pet, W, now, false, false, { compact: this.compact }));
       for (const ally of allies) {
         const t = ally.hp > 0 ? session.targetOf?.(ally.side) : null;
-        lines.push(...unitFrame(app, this.frames, ally, W, now, false, false, { compact: this.compact, party: true, role: ally.groupRole, target: t ? nameOfSide(t) : null }));
+        party.push(...unitFrame(app, this.frames, ally, W, now, false, false, { compact: this.compact, party: true, role: ally.groupRole, target: t ? nameOfSide(t) : null }));
       }
-      lines.push('');
-      for (const e of enemies) lines.push(...unitFrame(app, this.frames, e, W, now, false, e === session.enemyView()));
-      if (this.auto) return lines.slice(0, H);
-      lines.push('');
-      // Ability bar (manual play only): numbered, dim when unusable, cooldown shown.
+      const foes = (compact) => enemies.flatMap((e) => unitFrame(app, this.frames, e, W, now, false, e === session.enemyView(), { compact }));
+      const tail = this.auto ? [] : ['', ...this.abilityRows(W)];
+      // The enemies are what the fight is about, so they never fall off the bottom of a short pane: the
+      // quest line, the spacer, the foes' aura lines and the player's go first (sticky, like `compact`),
+      // then the party is cut to what is left with a count of who is hidden.
+      const me = (compact) => unitFrame(app, this.frames, pv, W, now, true, false, { compact });
+      const fits = () => 1 + (this.squeeze < 1 ? 1 : 0) + me(this.squeeze >= 3).length + party.length + (this.squeeze < 2 ? 1 : 0) + foes(this.squeeze >= 2).length + tail.length <= H;
+      while (this.squeeze < 3 && !fits()) this.squeeze++;
+      lines.push(head);
+      if (this.squeeze < 1) lines.push(below);
+      lines.push(...me(this.squeeze >= 3));
+      const foeLines = foes(this.squeeze >= 2);
+      const room = H - lines.length - (this.squeeze < 2 ? 1 : 0) - foeLines.length - tail.length;
+      if (party.length > room) {
+        const shown = Math.max(0, room - 1);
+        lines.push(...party.slice(0, shown), dim(`   +${party.length - shown} more in the party`));
+      } else lines.push(...party);
+      if (this.squeeze < 2) lines.push('');
+      lines.push(...foeLines, ...tail);
+      return lines.slice(0, H);
+    },
+    /** Ability bar (manual play only): numbered, dim when unusable, cooldown shown. */
+    abilityRows(W) {
+      const lines = [];
       const abs = this.abilityBar();
       let row = ' ';
       for (let i = 0; i < abs.length; i++) {
@@ -258,11 +292,11 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
         row += `${cell}   `;
       }
       const items = session.items().filter((x) => x.usable);
-      if (items.length) row += `${inverse(' 0 ')} ${items[0].item.name ?? 'item'} x${items[0].count}`;
+      if (items.length) row += `${inverse(' 0 ')} ${itemText(items[0].item)} x${items[0].count}`;
       lines.push(row);
       const unusable = abs.filter((a) => !a.usable && a.reason && a.cooldownRemainingMs <= 0).slice(0, 3);
       if (unusable.length) lines.push(dim(`   ${unusable.map((a) => `${a.label}: ${a.reason}`).join('   ')}`));
-      return lines.slice(0, H);
+      return lines;
     },
   };
   session.aiPlayer = true;
@@ -273,6 +307,34 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
   ctl.schedule();
   app.render();
   return { ok: true, ctl };
+}
+
+/** What a fight against `step.creatureEntry` is for, read live from the quest log each frame. `right` goes on the
+ *  header's right (the quest title and this creature's count, or "hunting for xp"), `below` on the line under it
+ *  (every objective of that quest with its count, this creature's first), `short` is the one-line form for the log
+ *  and the autopilot's status. Null when the creature counts toward nothing and the fight was not for xp. */
+export function fightReason(app, step) {
+  const ds = app.ds, log = app.g.state.questlog.quests;
+  const feeds = (q) => !!q?.killTargets.some((k) => k.creatureEntry === step.creatureEntry);
+  let entry = step.questEntry;
+  if (entry == null && step.forQuest) entry = log.find((qs) => qs.status === 'active' && feeds(ds.quest(qs.entry)))?.entry;
+  const q = entry != null ? ds.quest(entry) : null;
+  if (!q) {
+    if (step.questEntry != null || step.forQuest) return null;
+    const ch = app.ch, need = ds.xpToNext(ch.level) - ch.xp;
+    return { right: dim('hunting for xp'), below: dim(`${need} xp to level ${ch.level + 1}`), short: 'hunting for xp' };
+  }
+  const qs = log.find((x) => x.entry === entry && x.status !== 'turnedIn');
+  const objs = objectiveLines(app, q, qs);
+  const mine = q.killTargets.findIndex((k) => k.creatureEntry === step.creatureEntry);
+  const first = mine >= 0 ? objs[mine] : null;
+  const rest = objs.filter((_, i) => i !== mine);
+  const count = (o) => o.slice(o.lastIndexOf(': ') + 2);
+  return {
+    right: `${dim('for')} ${cyan(q.title)}${first ? `  ${count(first)}` : ''}`,
+    below: [first, ...rest.map(dim)].filter(Boolean).join(dim('   ·   ')),
+    short: `for ${q.title}${first ? ` (${strip(count(first))})` : ''}`,
+  };
 }
 
 /** c in a fight: drop one of your own buffs (the ones the engine lets go). The fight waits while you pick. */
@@ -344,7 +406,37 @@ const CAST_W = 30; // the cast/control slot on a frame's second line, so auras n
 function newFrameMemory(app) {
   // The player's own slot and aura order carry across fights, so their frame never reshuffles.
   app.playerAuraOrder ??= new Map();
-  return { castSlot: new Set(app.playerCastSlot ? ['player'] : []), auraOrder: new Map([['player', app.playerAuraOrder]]) };
+  return { castSlot: new Set(app.playerCastSlot ? ['player'] : []), auraOrder: new Map([['player', app.playerAuraOrder]]), pops: new Map() };
+}
+
+const POP_MS = 1500, POP_W = 18; // a hit or heal stays beside the bars this long (fight time), in a slot this wide
+const MISS_WORD = { miss: 'Miss', dodge: 'Dodge', parry: 'Parry', immune: 'Immune', deflect: 'Deflect', block: 'Block' };
+
+/** Damage and healing landing on each unit, newest first, for the numbers that pop up beside its bars. */
+function notePops(mem, events) {
+  for (const ev of events) {
+    let side, text;
+    if (ev.kind === 'melee' || ev.kind === 'spell_hit' || ev.kind === 'dot_tick') {
+      side = ev.target ?? impliedDest(ev.actor);
+      if (ev.amount > 0) text = ev.result === 'crit' ? bold(red(`-${ev.amount}!`)) : red(`-${ev.amount}`);
+      else if (MISS_WORD[ev.result]) text = gray(MISS_WORD[ev.result]);
+    } else if (ev.kind === 'heal' && ev.amount > 0) {
+      side = ev.actor;
+      text = ev.crit ? bold(green(`+${ev.amount}!`)) : green(`+${ev.amount}`);
+    }
+    if (!text) continue;
+    mem.pops.set(side, [{ t: ev.t, text }, ...(mem.pops.get(side) ?? [])].slice(0, 4));
+  }
+}
+
+/** The pops still up on one unit at `now`, as many as fit the slot; the older half of their life is dim. */
+function popText(mem, key, now) {
+  let out = '';
+  for (const p of mem.pops?.get(key) ?? []) {
+    if (now - p.t >= POP_MS || vis(out) + (out ? 1 : 0) + vis(p.text) > POP_W) break;
+    out += (out ? ' ' : '') + (now - p.t > POP_MS / 2 ? dim(p.text) : p.text);
+  }
+  return out;
 }
 
 const ROLE_GLYPH = { tank: cyan('T'), healer: green('H'), damage: red('D') };
@@ -354,13 +446,14 @@ const ROLE_GLYPH = { tank: cyan('T'), healer: green('H'), damage: red('D') };
 function unitFrame(app, mem, v, W, now, isPlayer, focused = false, { compact = false, party = false, role, target } = {}) {
   const dead = v.hp <= 0;
   const namePaint = dead ? gray : isPlayer ? green : focused ? red : party ? cyan : yellow;
-  const barW = Math.max(10, Math.min(30, Math.floor((W - 48) / 2)));
+  const barW = Math.max(10, Math.min(30, Math.floor((W - 48 - POP_W) / 2)));
   const hpBar = bar(v.hp, v.maxHp, barW, dead ? gray : v.hp / v.maxHp < 0.25 ? red : green);
   const pp = POWER_PAINT[v.powerType] ?? cyan;
-  const pwBar = v.maxPower > 0 ? ` ${bar(v.power, v.maxPower, Math.floor(barW / 2), pp)} ${fit(`${v.power}`, 4)}` : '';
+  const pwBar = v.maxPower > 0 ? ` ${bar(v.power, v.maxPower, Math.floor(barW / 2), pp)} ${fit(`${v.power}`, 4)}` : ' '.repeat(Math.floor(barW / 2) + 6);
   const tag = party ? `${ROLE_GLYPH[role] ?? dim('·')} ` : '';
   const after = dead ? gray('  dead') : target ? dim(`  → ${target}`) : '';
-  const head = ` ${fit(`${tag}${namePaint(bold(v.name))} ${dim(`L${v.level}`)}${focused ? red(' ◀') : ''}`, 26)} ${hpBar} ${fit(`${v.hp}/${v.maxHp}`, 11)}${pwBar}`;
+  const key = isPlayer ? 'player' : (v.side ?? v.name);
+  const head = ` ${fit(`${tag}${namePaint(bold(v.name))} ${dim(`L${v.level}`)}${focused ? red(' ◀') : ''}`, 26)} ${hpBar} ${fit(`${v.hp}/${v.maxHp}`, 11)}${pwBar} ${fit(popText(mem, key, now), POP_W)}`;
   if (compact) return [cut(`${head}${v.casting && !dead ? `  ${yellow(v.casting.name)}` : after}`, W)];
   // Cast slot: a cast bar, else crowd control, else stealth. Once a unit has used it the slot stays
   // reserved (blank when idle), so the auras after it hold still.
@@ -372,7 +465,6 @@ function unitFrame(app, mem, v, W, now, isPlayer, focused = false, { compact = f
     slot = `${fit(yellow(v.casting.name), 14)} ${bar(prog, 1, 10, yellow)} ${dim(`${(left / 1000).toFixed(1)}s`)}`;
   } else if (v.controlled) slot = red(v.controlled.control);
   else if (v.stealthed) slot = dim('stealthed');
-  const key = isPlayer ? 'player' : (v.side ?? v.name);
   if (slot) {
     mem.castSlot.add(key);
     if (isPlayer) app.playerCastSlot = true; // kept across fights and the autopilot's between-fight frame
@@ -459,10 +551,12 @@ export function startAutopilot(app, steps = 200, farmQuery, quest) {
   };
   const liveFight = (step, settle) => {
     const c = app.ds.creature(step.creatureEntry);
-    ctl.status = `${step.forQuest ? 'quest target' : 'hunting'}: ${c?.name ?? step.creatureEntry}`;
+    const why = () => fightReason(app, step);
+    const reason = why();
+    ctl.status = `${step.forQuest ? 'quest target' : 'hunting'}: ${c?.name ?? step.creatureEntry}${reason && step.forQuest ? `  ${reason.short}` : ''}`;
     app.say(`${dim(String(ap.step).padStart(3) + '.')} ${ctl.status}`);
     const f = startFight(app, step.creatureEntry, {
-      label: 'autopilot',
+      label: 'autopilot', why,
       onEnd: (r) => {
         if (!r) { app.say(yellow('Autopilot stopped: you ran.')); ctl.stop(); return; }
         settle(r);
