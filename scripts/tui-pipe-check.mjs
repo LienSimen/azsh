@@ -7,7 +7,9 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const home = mkdtempSync(join(tmpdir(), 'azsh-pipe-'));
-const child = spawn(process.execPath, ['bin/azsh.mjs', '--tui', '--new'], {
+// AZSH_EXE=dist/azsh.exe runs the same checks against the standalone build.
+const [cmd, ...pre] = process.env.AZSH_EXE ? [process.env.AZSH_EXE] : [process.execPath, 'bin/azsh.mjs'];
+const child = spawn(cmd, [...pre, '--tui', '--new'], {
   env: { ...process.env, AZSH_HOME: home, NO_COLOR: '1' }, stdio: ['pipe', 'pipe', 'pipe'],
 });
 let out = '', err = '', exited = null;
