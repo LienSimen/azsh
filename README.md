@@ -5,9 +5,9 @@ CMaNGOS Classic data and the same headless engine as [phonecraft](../phonecraft)
 no browser, no build step.
 
 ```
-npx azsh             # run it straight from npm
-npm install -g azsh  # or install it once, then:
-azsh                 # pick a character or roll one
+npx azeroth-shell             # run it straight from npm
+npm install -g azeroth-shell  # or install it once, then:
+azsh                          # pick a character or roll one
 ```
 
 From a checkout: `npm install -g .` or `node bin/azsh.mjs`.
