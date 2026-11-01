@@ -308,11 +308,17 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
 - [x] S  `:dev` verbs: `devGrantItem`, `devCompleteQuest`, `devLearnRecipe`, `devLearnProfession`,
       random world-bot character (`newGameStateFromWorldBot`, `pickRandomWorldBot`).
 
+- [x] M  Sprites: phonecraft's creature renders and paperdoll bake drawn as truecolour half-block cells.
+      `scripts/bake-model-art.mjs` packs the reachable creatures and the sixteen bodies
+      (`src/data/model-art.bin.gz`); `scripts/bake-gear-art.py` packs every skin, face, hair and item
+      appearance over one palette (`src/data/gear-art.bin.gz`). `modelArt.mjs` draws, `paperdoll.mjs`
+      stacks a character's layers in paperdollSprite.ts's order. The foe stands beside the fight frames
+      (and on the run panel), you in your gear on the other side from 130 columns; the creature detail,
+      the Character tab, the character picker, creation and a companion's line show the sprites too.
+
 ### Not porting
 
-Audio, map tiles and viewports, canvas floor walk and camera, the geared paperdoll (the creature
-sprites do port: `scripts/bake-model-art.mjs` bakes phonecraft's renders into half-block art for the
-fight screen and the creature detail; a player's body and gear would need the 58k overlays), tactical overlay,
+Audio, map tiles and viewports, canvas floor walk and camera, tactical overlay,
 path and route editors, nav debug, onboarding tutorial, bug reporter, and everything under `src/net`
 (social hub, online party, guild, trade window, server mail and auction). Those are either graphics
 or a multiplayer server the terminal does not talk to.

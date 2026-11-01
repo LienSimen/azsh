@@ -13,7 +13,8 @@ azeroth-shell                 # pick a character or roll one (azsh for short)
 From a checkout: `npm install -g .` or `node bin/azsh.mjs`.
 
 Needs Node 22.18 or newer (it strips TypeScript types natively). No dependencies. The tree is
-about 32 MB: 15 MB of gzipped game data, 3 MB of creature art and 13 MB of engine source.
+about 41 MB: 15 MB of gzipped game data, 12 MB of model art (creatures, and every item on every
+body) and 13 MB of engine source.
 
 ## Playing
 
@@ -23,9 +24,10 @@ off the top; every screen redraws in place. The colours are plain ANSI, so your 
 sets the palette; for a CRT look turn on the terminal's own retro effect (Windows Terminal:
 `"experimental.retroTerminalEffect": true` on the profile; cool-retro-term elsewhere). At 90 columns
 or wider the creature you face is drawn beside the fight frames and under its detail on the World
-tab, and your own character stands on the Character tab and at character creation, as truecolour
-half-block art baked from the game's models; a terminal without 24-bit colour shows it in the
-nearest colours it has.
+tab; your own character, in the gear you wear, stands on the Character tab, on the character picker,
+at creation and (from 130 columns) on the other side of the fight, and a companion's page shows
+them the same way. It is truecolour half-block art baked from the game's models; a terminal without
+24-bit colour shows it in the nearest colours it has.
 
 | Key | Does |
 | --- | --- |
@@ -142,6 +144,7 @@ npm run check:all    # all three; add --frames to check:tui to print every scree
 npm run check:perf   # timings, not pass/fail: module import, boot stages, heap, a repaint on every tab, a fight tick by tick
 npm run data:pack    # gzip the bake after a data refresh; data:unpack reverses it
 npm run art:bake     # rebuild src/data/model-art.bin.gz from phonecraft's creature renders (needs ffmpeg)
+npm run art:gear     # rebuild src/data/gear-art.bin.gz from phonecraft's paperdoll bake (needs Python with Pillow)
 ```
 
 What is not ported, and why, is the "Not porting" list in `PORT-PLAN.md`.

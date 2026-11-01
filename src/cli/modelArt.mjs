@@ -1,13 +1,21 @@
-// Creature art for the windowed game: the sprites scripts/bake-model-art.mjs packed into
-// src/data/model-art.bin.gz, drawn as truecolour half-block cells (▀ with the top pixel in the foreground
-// and the bottom one in the background), two pixels a row. A sprite is scaled to the room it gets, so
-// the same pack serves a 12-column corner and a 32-column pane. Transparent pixels stay bare spaces,
-// so the art sits on whatever the screen paints behind it. No pack, or NO_COLOR: no art, never an error.
+// Model art for the windowed game, drawn as truecolour half-block cells (▀ with the top pixel in the
+// foreground and the bottom one in the background), two pixels a row. Two packs:
+//   src/data/model-art.bin.gz  (scripts/bake-model-art.mjs)  creature sprites by display id, a palette each
+//   src/data/gear-art.bin.br   (scripts/bake-gear-art.py)    the sixteen player bodies with their skins, faces,
+//                                                            hair and every item appearance, one shared palette
+// A creature is one sprite; a character is a skin with its layers stacked on it (paperdoll.mjs decides the
+// layers). Either is scaled to the room it gets, so the same pack serves a 12-column corner and a 32-column
+// pane. Transparent pixels stay bare spaces, so the art sits on whatever the screen paints behind it. No
+// pack, or NO_COLOR: no art, never an error.
 import { readFileSync } from 'node:fs';
-import { gunzipSync } from 'node:zlib';
+import { gunzipSync, brotliDecompressSync } from 'node:zlib';
 import { useColor } from './text.mjs';
 
 const PACK_URL = new URL('../data/model-art.bin.gz', import.meta.url);
+const GEAR_URL = new URL('../data/gear-art.bin.br', import.meta.url); // brotli: a fifth smaller than gzip for a hundred thousand tiny images
+
+// ---- the creature pack ------------------------------------------------------------------------------
+
 let index = null; // displayId -> byte offset of the sprite header in `pack`
 let pack = null;
 
@@ -40,9 +48,121 @@ export function spriteOf(displayId) {
 /** Is there art for this display id? Cheap once the pack is loaded. */
 export const hasArt = (displayId) => useColor && load().has(displayId);
 
-// Area-average the sprite into gw x gh samples: colour from the palette, coverage from the transparent count.
-function sample(sp, gw, gh) {
-  const { w, h, pal, idx } = sp;
+/** A sprite as an image: `rgb` per pixel and an `on` mask (1 where the pixel is drawn). */
+function spriteImage(sp) {
+  const n = sp.w * sp.h, rgb = new Uint8Array(n * 3), on = new Uint8Array(n);
+  for (let i = 0; i < n; i++) {
+    const p = sp.idx[i];
+    if (!p) continue;
+    on[i] = 1;
+    rgb[i * 3] = sp.pal[(p - 1) * 3]; rgb[i * 3 + 1] = sp.pal[(p - 1) * 3 + 1]; rgb[i * 3 + 2] = sp.pal[(p - 1) * 3 + 2];
+  }
+  return { w: sp.w, h: sp.h, rgb, on };
+}
+
+// ---- the gear pack ------------------------------------------------------------------------------------
+
+let gear = null; // { buf, pal, bodies: slug -> { canvas, skins: skin -> offset, overlays: key -> { off, x, y, w, h } }, items: entry -> key }
+
+function loadGear() {
+  if (gear) return gear;
+  gear = { buf: null, pal: null, bodies: new Map(), items: new Map() };
+  try {
+    const buf = brotliDecompressSync(readFileSync(GEAR_URL)); // about 170 ms once, on the first character drawn
+    if (buf.toString('ascii', 0, 6) !== 'AZGEAR' || buf[6] !== 1) return gear;
+    let off = 7;
+    const palLen = buf[off++];
+    const pal = buf.subarray(off, off + palLen * 3); off += palLen * 3;
+    const bodyCount = buf[off++];
+    const bodies = new Map();
+    for (let b = 0; b < bodyCount; b++) {
+      const slugLen = buf[off++];
+      const slug = buf.toString('ascii', off, off + slugLen); off += slugLen;
+      const canvas = buf[off++];
+      const body = { canvas, skins: new Map(), overlays: new Map() };
+      const skinCount = buf[off++];
+      for (let i = 0; i < skinCount; i++) { body.skins.set(buf[off], off + 1); off += 1 + canvas * canvas; }
+      const ovCount = buf.readUInt16LE(off); off += 2;
+      for (let i = 0; i < ovCount; i++) {
+        const keyLen = buf[off++];
+        const key = buf.toString('ascii', off, off + keyLen); off += keyLen;
+        const x = buf[off], y = buf[off + 1], w = buf[off + 2], h = buf[off + 3]; off += 4;
+        body.overlays.set(key, { off, x, y, w, h });
+        off += w * h;
+      }
+      bodies.set(slug, body);
+    }
+    const items = new Map();
+    const itemCount = buf.readUInt16LE(off); off += 2;
+    for (let i = 0; i < itemCount; i++) {
+      const entry = buf.readUInt32LE(off); off += 4;
+      const keyLen = buf[off++];
+      items.set(entry, buf.toString('ascii', off, off + keyLen)); off += keyLen;
+    }
+    gear = { buf, pal, bodies, items };
+  } catch { /* no gear pack: characters draw as bare bodies from the creature pack, or not at all */ }
+  return gear;
+}
+
+/** The gear pack's body for a slug ("human-male"): `{ canvas, skins, overlays }`, or null. */
+export const gearBody = (slug) => (useColor ? loadGear().bodies.get(slug) ?? null : null);
+/** The overlay key ("5-29958": InventoryType-appearance) an item entry draws as, or null. */
+export const gearKeyOfItem = (entry) => loadGear().items.get(entry) ?? null;
+
+/**
+ * A character composed on the gear pack: the body's `skin` with `layers` ({ key, z, mirrored }) stacked
+ * in z order, then cropped and drawn like a creature. A mirrored layer flips about the frame's centre (a
+ * main-hand weapon drawn in the off hand). Null without the pack, the body or room.
+ */
+export function compositeArt(slug, skin, layers, maxCols, maxRows) {
+  if (!useColor || maxCols < 2 || maxRows < 3) return null;
+  const g = loadGear(), body = g.bodies.get(slug);
+  if (!body || !g.buf) return null;
+  const skinOff = body.skins.get(skin) ?? body.skins.get(0);
+  if (skinOff == null) return null;
+  const key = `${slug}|${skin}|${layers.map((l) => (l.mirrored ? `~${l.key}` : l.key)).join(',')}|${maxCols}x${maxRows}`;
+  const hit = cache.get(key);
+  if (hit) return hit;
+  const c = body.canvas, n = c * c, rgb = new Uint8Array(n * 3), on = new Uint8Array(n), pal = g.pal, buf = g.buf;
+  const paint = (k, p) => { on[k] = 1; rgb[k * 3] = pal[(p - 1) * 3]; rgb[k * 3 + 1] = pal[(p - 1) * 3 + 1]; rgb[k * 3 + 2] = pal[(p - 1) * 3 + 2]; };
+  for (let k = 0; k < n; k++) { const p = buf[skinOff + k]; if (p) paint(k, p); }
+  for (const l of [...layers].sort((a, b) => a.z - b.z)) {
+    const ov = body.overlays.get(l.key);
+    if (!ov) continue;
+    const x0 = l.mirrored ? c - (ov.x + ov.w) : ov.x;
+    for (let y = 0; y < ov.h; y++) for (let x = 0; x < ov.w; x++) {
+      const p = buf[ov.off + y * ov.w + x];
+      if (!p) continue;
+      const cx = x0 + (l.mirrored ? ov.w - 1 - x : x), cy = ov.y + y;
+      if (cx < 0 || cx >= c || cy >= c) continue;
+      paint(cy * c + cx, p);
+    }
+  }
+  const lines = renderImage(crop({ w: c, h: c, rgb, on }), maxCols, maxRows);
+  return remember(key, lines);
+}
+
+// ---- drawing ------------------------------------------------------------------------------------------
+
+/** The image cut to its drawn pixels (the whole image when nothing is drawn). */
+function crop(img) {
+  const { w, h, rgb, on } = img;
+  let x0 = w, y0 = h, x1 = -1, y1 = -1;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    if (on[y * w + x]) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  }
+  if (x1 < 0) return img;
+  const cw = x1 - x0 + 1, ch = y1 - y0 + 1, crgb = new Uint8Array(cw * ch * 3), con = new Uint8Array(cw * ch);
+  for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) {
+    const s = (y + y0) * w + x + x0, d = y * cw + x;
+    con[d] = on[s]; crgb[d * 3] = rgb[s * 3]; crgb[d * 3 + 1] = rgb[s * 3 + 1]; crgb[d * 3 + 2] = rgb[s * 3 + 2];
+  }
+  return { w: cw, h: ch, rgb: crgb, on: con };
+}
+
+// Area-average the image into gw x gh samples: colour from the drawn pixels, coverage from their share.
+function sample(img, gw, gh) {
+  const { w, h, rgb, on } = img;
   const cw = w / gw, ch = h / gh;
   const out = new Float32Array(gw * gh * 4);
   for (let gy = 0; gy < gh; gy++) for (let gx = 0; gx < gw; gx++) {
@@ -50,10 +170,10 @@ function sample(sp, gw, gh) {
     const sy0 = Math.floor(gy * ch), sy1 = Math.max(sy0 + 1, Math.floor((gy + 1) * ch));
     let r = 0, g = 0, b = 0, a = 0, n = 0;
     for (let y = sy0; y < sy1 && y < h; y++) for (let x = sx0; x < sx1 && x < w; x++) {
-      const p = idx[y * w + x];
+      const k = y * w + x;
       n++;
-      if (!p) continue;
-      r += pal[(p - 1) * 3]; g += pal[(p - 1) * 3 + 1]; b += pal[(p - 1) * 3 + 2]; a++;
+      if (!on[k]) continue;
+      r += rgb[k * 3]; g += rgb[k * 3 + 1]; b += rgb[k * 3 + 2]; a++;
     }
     const k = (gy * gw + gx) * 4;
     if (a) { out[k] = r / a; out[k + 1] = g / a; out[k + 2] = b / a; }
@@ -66,23 +186,11 @@ const fg = (s, k) => `\x1b[38;2;${s[k] | 0};${s[k + 1] | 0};${s[k + 2] | 0}m`;
 const bg = (s, k) => `\x1b[48;2;${s[k] | 0};${s[k + 1] | 0};${s[k + 2] | 0}m`;
 const RESET = '\x1b[0m';
 
-const cache = new Map();
-const CACHE_MAX = 96;
-
-/**
- * The sprite as lines of half-block cells that fit in `maxCols` x `maxRows` (keeping its proportions), each
- * line exactly as wide as the art, or null when there is no art, no colour, or no room (under 3 rows).
- */
-export function creatureArt(displayId, maxCols, maxRows) {
-  if (!useColor || maxCols < 2 || maxRows < 3) return null;
-  const sp = spriteOf(displayId);
-  if (!sp) return null;
-  const scale = Math.min(1, maxCols / sp.w, (maxRows * 2) / sp.h);
-  const gw = Math.max(1, Math.round(sp.w * scale)), gh = Math.max(2, Math.round(sp.h * scale) + 1) & ~1;
-  const key = `${displayId}:${gw}x${gh}`;
-  const hit = cache.get(key);
-  if (hit) return hit;
-  const s = sample(sp, gw, gh);
+/** The image as half-block lines that fit `maxCols` x `maxRows` keeping its proportions; each line as wide as the art. */
+function renderImage(img, maxCols, maxRows) {
+  const scale = Math.min(1, maxCols / img.w, (maxRows * 2) / img.h);
+  const gw = Math.max(1, Math.round(img.w * scale)), gh = Math.max(2, Math.round(img.h * scale) + 1) & ~1;
+  const s = sample(img, gw, gh);
   const lines = [];
   for (let y = 0; y < gh; y += 2) {
     let line = '';
@@ -96,10 +204,28 @@ export function creatureArt(displayId, maxCols, maxRows) {
     }
     lines.push(line);
   }
+  return lines;
+}
+
+const cache = new Map();
+const CACHE_MAX = 96;
+function remember(key, lines) {
   if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value);
   cache.set(key, lines);
   return lines;
 }
 
-/** Width in cells of art lines from creatureArt (every line is the same width). */
+/**
+ * A creature's sprite as lines of half-block cells that fit in `maxCols` x `maxRows` (keeping its
+ * proportions), or null when there is no art, no colour, or no room (under 3 rows).
+ */
+export function creatureArt(displayId, maxCols, maxRows) {
+  if (!useColor || maxCols < 2 || maxRows < 3) return null;
+  const sp = spriteOf(displayId);
+  if (!sp) return null;
+  const key = `${displayId}|${maxCols}x${maxRows}`;
+  return cache.get(key) ?? remember(key, renderImage(spriteImage(sp), maxCols, maxRows));
+}
+
+/** Width in cells of art lines (every line is the same width). */
 export const artWidth = (lines) => (lines?.length ? lines[0].replace(/\x1b\[[0-9;]*m/g, '').length : 0);

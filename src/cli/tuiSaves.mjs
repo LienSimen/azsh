@@ -3,6 +3,7 @@
 // beside them in backups/. A delete or a restore always leaves a backup of what it replaced.
 import { bold, dim, green, red, yellow, cyan } from './text.mjs';
 import { className } from '../domain/core/ids.ts';
+import { paperdollArt } from './paperdoll.mjs';
 
 const when = (ms) => new Date(ms).toLocaleString();
 
@@ -18,9 +19,17 @@ export async function savePicker(app, { onPlay, onNew }) {
   // two processes on one save would overwrite each other's progress on every action.
   const busy = (m) => repo.lockedBy?.(m.slot) ?? null;
   const refuse = (m, pid) => { app.say(red(`${m.name} is open in another terminal (pid ${pid}). Close it there first.`)); reopen(); }; // Enter popped the picker; put it back
+  // Each hero stands in their gear under their line: the saves are read once here for the character they hold.
+  const chars = new Map();
+  for (const m of saves) { try { chars.set(m.slot, (await repo.load(m.slot))?.state?.char ?? null); } catch { /* unreadable: no sprite */ } }
   const options = saves.map((m) => ({
     label: `${bold(m.name)}  ${dim(`L${m.level} ${className(m.cls)}`)}${busy(m) ? `  ${yellow('open in another terminal')}` : ''}`,
-    detail: [bold(m.name), `Level ${m.level} ${className(m.cls)}`, dim(`last played ${when(m.updatedAt)}`), '', dim('Enter: play   m: back up, restore, export, delete')],
+    detail: () => {
+      const text = [bold(m.name), `Level ${m.level} ${className(m.cls)}`, dim(`last played ${when(m.updatedAt)}`), '', dim('Enter: play   m: back up, restore, export, delete')];
+      const ch = chars.get(m.slot), L = app.layout();
+      const art = ch ? paperdollArt(ch, L.detailW - 2, L.mainH - text.length - 1) : null;
+      return art ? [...text, '', ...art] : text;
+    },
     value: { kind: 'play', meta: m },
   }));
   options.push({ label: green('New character'), value: { kind: 'new' } });

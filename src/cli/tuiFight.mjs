@@ -13,7 +13,7 @@ import { slotContent, visibleBars } from './tuiBars.mjs';
 import { autoLootOn, openLoot } from './tuiLoot.mjs';
 import { createCombatMacroHost } from './macroHostCombat.ts';
 import { ensureMeter, noteLoot, cycleFightPane, cycleMeterSort, toggleMeterSegment, fightPane, nextPaneId } from './tuiFightPanes.mjs';
-import { objectiveLines } from './tuiViews.mjs';
+import { objectiveLines, playerArt } from './tuiViews.mjs';
 import { runPanelLines, endCard, stopText, stepBody } from './tuiAutopilot.mjs';
 import { creatureArt, artWidth } from './modelArt.mjs';
 
@@ -279,10 +279,10 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       }
       return { player, status, fight: fight.slice(0, Math.max(1, room)) };
     },
-    /** The frames, with the foe you face drawn down the right when the screen is wide enough (foeArt). */
+    /** The frames between the sprites: the foe you face down the right, you in your gear down the left (fightArt). */
     render(W, H) {
-      const art = foeArt(app, this, W, H);
-      return art ? besideArt(this.renderFrames(W - artWidth(art) - 2, H), art, W, H) : this.renderFrames(W, H);
+      const { me, foe, innerW } = fightArt(app, this, W, H);
+      return flankArt(this.renderFrames(innerW, H), me, foe, W, H);
     },
     renderFrames(W, H) {
       const lines = [];
@@ -529,24 +529,32 @@ function unitFrame(app, mem, v, W, now, isPlayer, focused = false, { compact = f
   return [cut(`${head}${after}`, W), cut(`   ${fit(slot, CAST_W)}  ${auras}`, W)];
 }
 
+/** Columns an art column gets in a pane W wide: none under 90 columns, up to 28. */
+const artCols = (W) => (W >= 90 ? Math.min(28, Math.floor(W * 0.22)) : 0);
+
 /**
- * The sprite of the foe a fight controller faces, sized for a pane W x H (modelArt.mjs): at 90 columns or
- * wider it gets up to 28 columns down the right; null when the pane is narrow or the creature has no art.
- * The full fight view and the autopilot's run panel both draw it, so a run shows the same foe either way.
+ * The sprites round a fight pane W x H: the foe a controller faces down the right from 90 columns, you in
+ * your gear (playerArt) down the left from 130; `innerW` is what the frames keep. The full fight view and
+ * the autopilot's run panel both use it, so a run shows the same scene either way.
  */
-export function foeArt(app, ctl, W, H) {
-  const artW = W >= 90 ? Math.min(28, Math.floor(W * 0.28)) : 0;
+export function fightArt(app, ctl, W, H) {
+  const cols = artCols(W);
   const entry = ctl.session?.enemyView()?.creatureEntry ?? ctl.enemyEntry;
-  return artW && entry != null ? creatureArt(app.ds.creature(entry)?.displayId, artW, H) : null;
+  const foe = cols && entry != null ? creatureArt(app.ds.creature(entry)?.displayId, cols, H) : null;
+  const me = cols && W >= 130 ? playerArt(app, cols, H)?.lines ?? null : null;
+  const innerW = W - (foe ? artWidth(foe) + 2 : 0) - (me ? artWidth(me) + 2 : 0);
+  return { me, foe, innerW };
 }
 
-/** `lines` (drawn W - art - 2 wide) with `art` down the right, centred on the pane's height; every line W wide. */
-export function besideArt(lines, art, W, H) {
-  const aw = artWidth(art);
+/** `lines` (drawn to the width the art leaves) between `left` and `right` art, each centred on the pane's height; every line W wide. */
+export function flankArt(lines, left, right, W, H) {
+  if (!left && !right) return lines;
+  const lw = artWidth(left), rw = artWidth(right);
+  const innerW = W - (left ? lw + 2 : 0) - (right ? rw + 2 : 0);
   const out = lines.slice(0, H);
   while (out.length < H) out.push('');
-  const top = Math.max(0, Math.floor((H - art.length) / 2));
-  return out.map((l, i) => `${fit(l, W - aw - 2)}  ${art[i - top] ?? ''}`);
+  const lt = Math.max(0, Math.floor((H - (left?.length ?? 0)) / 2)), rt = Math.max(0, Math.floor((H - (right?.length ?? 0)) / 2));
+  return out.map((l, i) => `${left ? `${fit(left[i - lt] ?? '', lw)}  ` : ''}${fit(l, innerW)}${right ? `  ${right[i - rt] ?? ''}` : ''}`);
 }
 
 /** The cast slot's text: a cast bar, else crowd control, else stealth; empty when idle. */

@@ -43,6 +43,7 @@ import { simLabDialog } from './tuiSimLab.mjs';
 import { autopilotSettingsDialog } from './tuiAutopilotSettings.mjs';
 import { preflightCard } from './tuiAutopilot.mjs';
 import { creatureArt } from './modelArt.mjs';
+import { paperdollArt } from './paperdoll.mjs';
 import { reputationDialog } from './tuiRep.mjs';
 import { honorDialog, honorRankLine } from './tuiHonor.mjs';
 import { openWorldSearch } from './tuiSearch.mjs';
@@ -1009,14 +1010,17 @@ function weaponSkillRows(a, L) {
 }
 
 /**
- * Your character as a sprite for a pane (modelArt.mjs): the form or costume you wear when the pack has it,
- * else your race and gender's body. `label` names the form when that is what shows; null without art.
+ * Your character as a sprite for a pane: the form or costume you wear when the creature pack has it, else
+ * you in your gear (paperdoll.mjs), else your bare race and gender body. `label` names the form when that
+ * is what shows; null without art.
  */
 export function playerArt(app, maxCols, maxRows) {
   const ch = app.ch;
   const worn = wornDisplay(ch, app.ds, Date.now());
   const wornArt = worn?.displayId ? creatureArt(worn.displayId, maxCols, maxRows) : null;
   if (wornArt) return { lines: wornArt, label: worn.label };
+  const geared = paperdollArt(ch, maxCols, maxRows);
+  if (geared) return { lines: geared, label: null };
   const own = creatureArt(nativeDisplayId(ch.race, ch.gender), maxCols, maxRows);
   return own ? { lines: own, label: null } : null;
 }

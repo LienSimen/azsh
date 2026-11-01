@@ -10,6 +10,7 @@ import { barsDialog, companionBarsOwner } from './tuiBars.mjs';
 import { enchantLines } from './tuiGear.mjs';
 import { moneyText } from '../domain/economy/money.ts';
 import { className, raceName } from '../domain/core/ids.ts';
+import { paperdollArt } from './paperdoll.mjs';
 import { bagCapacity, EQUIP_SLOTS, SLOT_LABEL, itemSlotTargets } from '../domain/items/equipment.ts';
 import { equippedEntry } from '../domain/items/itemInstance.ts';
 import { companionCharacter, companionLevel, hireSkillMap, MAX_COMPANIONS, SQUAD_ROLES } from '../domain/bots/squad.ts';
@@ -134,7 +135,11 @@ export function companionsView(app) {
       const rows = [H(`Party ${squad.length}/${MAX_COMPANIONS}   ${dim(`trip energy ${energy}/${MAX_COMPANION_ENERGY}`)}   ${yellow(moneyText(a.ch.gold) || '0c')}`), squadModeRow(a)];
       const row = (c) => ({
         text: `${fit(c.name, 12)} ${fit(dim(`L${companionLevel(c, a.ch.level)} ${className(c.cls)}`), 12)} ${fit(roleText(c.role), 6)} ${c.mission ? yellow('away ') : ''}${profTags(compProfLines(a, c))}`,
-        detail: () => [...compLines(a, c), '', dim('Enter: open their page')],
+        detail: () => {
+          const text = [...compLines(a, c), '', dim('Enter: open their page')];
+          const L = a.layout(), art = paperdollArt(c, L.detailW - 2, L.mainH - text.length - 1); // them in their gear
+          return art ? [...text, '', ...art] : text;
+        },
         act: () => a.push(companionDialog(a, c.id)),
       });
       if (!squad.length && !bench.length) rows.push(H(''), H(dim('  You travel alone. Innkeepers hire out companions: they fight beside you, carry and craft.')));

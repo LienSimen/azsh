@@ -11,6 +11,7 @@ import { visibleBars } from './tuiBars.mjs';
 import { defaultConditionsForSpell } from './tuiRotationCond.mjs';
 import { creatureArt, hasArt } from './modelArt.mjs';
 import { nativeDisplayId } from '../domain/character/displayForm.ts';
+import { paperdollLayers, paperdollArt } from './paperdoll.mjs';
 import { addItem, countItem } from '../domain/items/inventory.ts';
 import { moneyText as moneyTextOf } from '../domain/economy/money.ts';
 import { offeredQuests } from '../quests/quests.ts';
@@ -63,6 +64,11 @@ check('0 opens the tenth tab', (term.press('0'), app.tab === 9));
 const lastTab = app.tabs.length - 1;
 check('character tab renders', (app.switchTab(lastTab), /Attributes/.test(frame())));
 check('the character tab draws your body', !hasArt(nativeDisplayId(app.ch.race, app.ch.gender)) || /[▀▄]/.test(frame()));
+{
+  // Starting gear is a shirt, pants, boots and a weapon or two: at least three of them have an appearance overlay.
+  const p = paperdollLayers(app.ch);
+  check('your starting gear stacks on your body', !p || (p.layers.filter((l) => /^\d/.test(l.key)).length >= 3 && !!paperdollArt(app.ch, 20, 12)));
+}
 {
   const charRows = app.rowsOf(app.top()).map((r) => strip(r.text)).join('|');
   check('the character tab lists weapon skills with Defense and the hand in use', /Weapon skills\|\s+Defense\s+\d+\/\d+\|/.test(charRows) && /\d+\/\d+( \+\d+)? +main hand/.test(charRows));
