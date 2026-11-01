@@ -12,7 +12,14 @@ import { paceLabel, nextPace } from './tuiWorld.mjs';
 const H = (text) => ({ text, header: true });
 const QUALITY_NAME = ['Poor', 'Common', 'Uncommon', 'Rare', 'Epic'];
 const DE_STEPS = [null, 2, 3, 4]; // off, then the ceiling
+const REFRESH_STEPS = [50, 100, 250, 500, 1000]; // ms between screen repaints while the game runs on its own
 const onOff = (v) => (v ? green('on') : dim('off'));
+
+/** How often a running game loop repaints the screen, from the prefs file (100 ms, every engine tick, by default). */
+export function refreshMs(prefs) {
+  const ms = prefs.get('refreshMs');
+  return REFRESH_STEPS.includes(ms) ? ms : 100;
+}
 const box = (v) => (v ? green('✓') : dim('·'));
 
 /** The `createGame` options that back the every-character layers (and account macros) with the prefs file. */
@@ -49,6 +56,14 @@ export function settingsDialog(app) {
       const g = a.g;
       const rows = [{ text: `Autopilot settings  ${dim('resting, pulls, fighting, questing   (:autopilot)')}`, act: (a2) => a2.push(autopilotSettingsDialog(a2)) }, H(''), H(bold('Loot'))];
       rows.push({ text: `Auto-loot                 ${onOff(autoLootOn(a))}`, detail: () => [bold('Auto-loot'), '', 'On: a corpse\'s drops and coin go straight into your bags.', 'Off: the loot window opens and you take what you want.'], act: (a2) => a2.prefs.set('autoLoot', !autoLootOn(a2)) });
+
+      const ms = refreshMs(a.prefs);
+      rows.push(H(''), H(bold('Screen')));
+      rows.push({
+        text: `Screen refresh            ${ms === 100 ? dim('100 ms') : cyan(`${ms} ms`)}`,
+        detail: () => [bold('Screen refresh'), '', 'How often fights, the autopilot, dungeon walks and battlegrounds repaint the screen.', 'The game itself still ticks every 100 ms; this only changes how often you see it.', 'Slower is calmer and lighter on a slow terminal or a remote session; 50 ms is smoother at high speed.', 'Key presses always repaint at once.'],
+        act: (a2) => a2.prefs.set('refreshMs', REFRESH_STEPS[(REFRESH_STEPS.indexOf(ms) + 1) % REFRESH_STEPS.length]),
+      });
 
       const pace = a.prefs.get('travelPace') ?? 'instant';
       rows.push(H(''), H(bold('Travel')));

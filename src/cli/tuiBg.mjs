@@ -95,7 +95,7 @@ export function startBattleground(app, bgId) {
   app.say(yellow(`You enter ${def.name} for the ${TEAM[team]}. ${run.teamSize}v${run.teamSize}.`) + dim('  The gates open in 10 seconds.'));
   const view = bgView(app, bg);
   app.push(view);
-  bg.timer = app.term.setInterval(() => { if (!bg.paused) { stepBg(app, bg, STEPS_PER_TICK * bg.speed); app.render(); } }, 100);
+  bg.timer = app.term.setInterval(() => { if (!bg.paused) { stepBg(app, bg, STEPS_PER_TICK * bg.speed); app.renderSoon(); } }, 100);
   return bg;
 }
 

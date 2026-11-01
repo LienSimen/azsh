@@ -453,7 +453,7 @@ function floorView(app, f) {
     f.timer = a.term.setInterval(() => {
       if (a.top()?.id !== 'floor' || a.fight) return;
       for (let i = 0; i < f.speed; i++) if (stepFloor(a, f)) break;
-      a.render();
+      a.renderSoon();
     }, TICK_MS);
   };
   const view = {

@@ -1275,6 +1275,17 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   home(); term.press(':'); for (const ch of 'settings') term.press(ch); term.press('return');
   pickRow(/^Travel pace/);
   check('Settings sets a real-time travel pace', app.prefs.get('travelPace') === 1);
+  pickRow(/^Screen refresh/);
+  check('Settings steps the screen refresh up from 100 ms', app.prefs.get('refreshMs') === 250);
+  // On a real terminal a game loop's repaint waits out the refresh; a key's render paints at once and drops it.
+  term.isTTY = true;
+  app.render(); const painted = term.frames;
+  app.renderSoon(); app.renderSoon();
+  check('renderSoon holds a repaint inside the refresh window', term.frames === painted && app.paintTimer != null);
+  app.render();
+  check('render paints and cancels the held repaint', term.frames === painted + 1 && app.paintTimer == null);
+  term.isTTY = false;
+  app.prefs.set('refreshMs', 100);
   home();
   const here = g.state.char.zoneId;
   const dest = (ds.zone(here)?.neighbors ?? []).map((id) => ds.zone(id)).find((z) => z && g.previewTravel(z.id).ok);

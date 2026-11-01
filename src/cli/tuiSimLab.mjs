@@ -26,7 +26,7 @@ export function simLabDialog(app, owner) {
     s.timer = a.term.setInterval(() => {
       s.run.step(STEP_MS);
       if (s.run.done) { stop(); a.say(green(`Dummy parse done: ${nf(s.report.dps.avg)} DPS.`)); }
-      a.render();
+      a.renderSoon();
     }, 50);
   };
   const view = {

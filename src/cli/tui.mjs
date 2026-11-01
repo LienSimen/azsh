@@ -13,7 +13,7 @@ import { openRun } from './tuiDungeon.mjs';
 import { openLoot } from './tuiLoot.mjs';
 import { fightPaneRule, fightPaneLines } from './tuiFightPanes.mjs';
 import { MemoryPrefs, FilePrefs } from './prefs.mjs';
-import { settingsDialog, globalSettingsOpts } from './tuiSettings.mjs';
+import { settingsDialog, globalSettingsOpts, refreshMs } from './tuiSettings.mjs';
 import { autopilotSettingsDialog } from './tuiAutopilotSettings.mjs';
 import { macrosDialog, runMacro } from './tuiMacros.mjs';
 import { outfitterDialog } from './tuiOutfitter.mjs';
@@ -108,6 +108,7 @@ export class App {
     this.cmd = null;
     this.closed = false;
     this.timers = [];
+    this.lastPaint = 0; this.paintTimer = null; // renderSoon holds timer-driven repaints to the Screen refresh setting
     this.lastActivity = null;
     term.onKey = (k) => { try { this.onKey(k); } catch (err) { this.say(red(`Error: ${err.message}`)); if (process.env.AZSH_DEBUG) this.say(dim(String(err.stack).split('\n').slice(1, 4).join(' '))); this.render(); } };
     term.onResize = () => this.render();
@@ -173,6 +174,7 @@ export class App {
     if (this.closed) return;
     this.closed = true;
     for (const t of this.timers) this.term.clearInterval(t);
+    clearTimeout(this.paintTimer);
     this.fight?.stop?.(); this.auto?.stop?.();
     await this.persist();
     this.term.close();
@@ -453,8 +455,18 @@ export class App {
     return { W, H, logH, top, mainH, listW, detailW };
   }
 
+  /** A repaint from a game loop (a fight tick, the autopilot, a dungeon walk). The game keeps ticking every
+   *  100 ms; the screen catches up at most once per Screen refresh, and the last change is always painted. */
+  renderSoon() {
+    if (!this.term.isTTY) { this.render(); return; }
+    const wait = this.lastPaint + refreshMs(this.prefs) - Date.now();
+    if (wait <= 0) this.render();
+    else if (!this.paintTimer) this.paintTimer = setTimeout(() => { this.paintTimer = null; this.render(); }, wait);
+  }
+
   render() {
     if (this.closed) return;
+    clearTimeout(this.paintTimer); this.paintTimer = null; this.lastPaint = Date.now();
     const L = this.layout();
     const lines = [];
     lines.push(...this.headerLines(L));

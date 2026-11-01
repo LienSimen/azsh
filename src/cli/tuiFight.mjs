@@ -71,7 +71,7 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       this.logEvents(events);
       if (!session.ended) this.onTick?.();
       if (session.ended) this.finish();
-      app.render();
+      app.renderSoon();
     },
     logEvents(events) {
       app.meter?.ingest(events);
@@ -532,7 +532,7 @@ export function startAutopilot(app, steps = 200, farmQuery, quest) {
       }
       // The step line already tells the story; the engine's activity rows for it would repeat it.
       app.lastActivity = app.g.state.activity[0] ?? null;
-      app.render();
+      app.renderSoon();
       return true;
     },
     stop() { if (this.timer) app.term.clearInterval(this.timer); this.timer = null; if (app.auto === this) app.auto = null; void app.persist(); app.render(); },
