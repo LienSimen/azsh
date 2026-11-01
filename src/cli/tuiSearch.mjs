@@ -1,4 +1,5 @@
-// World search (s on the World tab): "where do I find X?" Type a name and every place that answers is a
+// World search (s on the World tab): "where do I find X?" It starts on the zone you stand in (its vendors,
+// trainers, wares, nodes, creatures); a in the window widens it to the whole world. Every place that answers is a
 // row: the vendors that sell an item and the zone each stands in, the creatures that drop it, the node that
 // yields it, who crafts it; an NPC by name and where it is; a dungeon and its entrance; a gather node and the
 // zones it grows in; a zone, a quest, an object. Enter acts on the place: open it when you are already there
@@ -61,6 +62,51 @@ function searchPool(ds) {
   // A vein or herb is also a gameobject row in the wiki; the node row (skill, yield, zones) is the one to show.
   const nodeNames = new Set(pi.nodeRows.map((r) => r.lower));
   return [...ix.all.filter((r) => WORLD_KINDS.has(r.kind) && !(r.kind === 'object' && nodeNames.has(r.lower))), ...pi.nodeRows];
+}
+
+const zoneCache = new WeakMap();
+
+/**
+ * What one zone holds: the search pool cut to its NPCs, nodes, objects, dungeon doors and quest givers,
+ * plus every item its vendors sell, its nodes yield and its creatures and objects drop, each with the
+ * sources here (`items`: item entry → sources, the itemSources shape). Keyed on the wiki index so a
+ * rebuilt index (catalogs arriving) rebuilds this too.
+ */
+export function zoneSearchIndex(ds, zoneId) {
+  const ix = wikiIndex(ds);
+  let byZone = zoneCache.get(ix);
+  if (!byZone) zoneCache.set(ix, (byZone = new Map()));
+  const hit = byZone.get(zoneId);
+  if (hit) return hit;
+  const z = ds.zone(zoneId), pi = placeIndex(ds);
+  const nodeNames = new Set(pi.nodeRows.map((r) => r.lower));
+  const items = new Map();
+  const add = (item, src) => {
+    const list = items.get(item);
+    if (!list) { items.set(item, [src]); return; }
+    const same = list.find((s) => s.kind === src.kind && s.ref === src.ref);
+    if (!same) list.push(src);
+    else if ((src.chance ?? 0) > (same.chance ?? 0)) Object.assign(same, src);
+  };
+  const loot = (key, holder) => { for (const row of ds.lootTable(key)) add(row.item, { ...holder, chance: Math.abs(row.chance), ...(row.chance < 0 || row.questRequired ? { questOnly: true } : {}) }); };
+  for (const e of z?.vendors ?? []) for (const item of ds.vendor(e)?.items ?? []) add(item, { kind: 'vendor', ref: e });
+  for (const id of z?.nodes ?? []) for (const y of ds.gatherNode(id)?.yield ?? []) add(y.item, { kind: 'gather', ref: id, zone: zoneId, chance: y.chance });
+  for (const e of z?.huntable ?? []) { const c = ds.creature(e); if (c?.lootId) loot(c.lootId, { kind: 'drop', ref: e }); }
+  for (const ge of z?.objects ?? []) { const go = ds.gameObject(ge); if (go?.lootId && !nodeNames.has(go.name.toLowerCase())) loot(`go:${go.lootId}`, { kind: 'object', ref: ge }); }
+  const isHere = (r) => {
+    switch (r.kind) {
+      case 'item': return items.has(r.id);
+      case 'npc': return (pi.npcZones.get(r.id) ?? []).includes(zoneId);
+      case 'node': return r.zones.includes(zoneId);
+      case 'object': return (pi.objectZones.get(r.id) ?? []).includes(zoneId);
+      case 'dungeon': return ds.instance(r.id)?.portalZone === zoneId;
+      case 'quest': return (ds.quest(r.id)?.starterZones ?? []).includes(zoneId);
+      default: return false;
+    }
+  };
+  const built = { pool: searchPool(ds).filter(isHere), items };
+  byZone.set(zoneId, built);
+  return built;
 }
 
 /**
@@ -155,10 +201,10 @@ function npcRow(app, entry, { indent = '', note = '' } = {}) {
   const where = dungeon ? `${cyan(dungeon.name)}${dungeon.portalZone ? dim(`, entrance in ${zoneName(app, dungeon.portalZone)}`) : ''}` : zonesLabel(app, zones);
   const paint = hostile && c ? conPaint(ch.level, c.level) : (s) => s;
   const here = () => {
+    if (inn) { const i = (app.zone()?.innkeepers ?? []).find((x) => x.entry === entry); if (i) { app.push(innDialog(app, i)); return; } }
     if (v) { app.push(vendorDialog(app, v)); return; }
     if (pt) { app.push(profTrainerDialog(app, pt)); return; }
     if (tr) { app.push(trainerDialog(app, tr)); return; }
-    if (inn) { const i = (app.zone()?.innkeepers ?? []).find((x) => x.entry === entry); if (i) app.push(innDialog(app, i)); return; }
     if (hostile && app.zone()?.huntable.includes(entry)) { startFight(app, entry); return; }
     app.flashMsg(`${name} is around here somewhere.`);
   };
@@ -232,7 +278,7 @@ function questRow(app, q, { indent = '', note = '' } = {}) {
   const zones = q.starterZones ?? [];
   const qs = app.g.state.questlog.quests.find((s) => s.entry === q.entry);
   return {
-    text: `${indent}${yellow('!')} ${q.title} ${dim(`Quest L${q.questLevel}`)}${note}  ${dim('from')} ${q.starterName || '?'}${zones.length ? `, ${zonesLabel(app, zones)}` : ''}`,
+    text: `${indent}${yellow('!')} ${conPaint(app.ch.level, q.questLevel)(q.title)} ${dim(`Quest L${q.questLevel}`)}${note}  ${dim('from')} ${q.starterName || '?'}${zones.length ? `, ${zonesLabel(app, zones)}` : ''}`,
     detail: () => [...questLines(app, q, qs), '', cyan('Starts in'), ...(zones.length ? zones.map((z) => `  ${zoneName(app, z)}`) : [dim('  unknown')]), '', travelHint(app, zones)],
     act: () => goToOne(app, zones, `Where ${q.title} starts`, () => app.push(questDialog(app, q, qs ? 'log' : 'offer'))),
   };
@@ -249,12 +295,12 @@ function recipeRow(app, r, { indent = '', note = '' } = {}) {
   };
 }
 
-/** An item hit: the item line, then every place that gives it, best first. */
-function itemRows(app, entry) {
+/** An item hit: the item line, then every place that gives it, best first. `only` limits it to those sources (a zone search). */
+function itemRows(app, entry, only) {
   const ds = app.ds, it = ds.item(entry);
   if (!it) return [];
   const rows = [{ text: `${qualityPaint(it.quality)(bold(it.name))} ${dim(`Item${it.typeName ? `  ${it.typeName}` : ''}${it.itemLevel ? `  ilvl ${it.itemLevel}` : ''}`)}`, detail: () => [...itemLines(app, it), '', dim('Enter: the wiki page, every source')], act: () => app.push(wikiPage(app, 'item', entry)) }];
-  const { sources, more } = wikiSourceIndexSync(ds).itemSources(entry);
+  const { sources, more } = only ? { sources: only, more: 0 } : wikiSourceIndexSync(ds).itemSources(entry);
   const here = app.ch.zoneId;
   const pi = placeIndex(ds);
   const nodeNames = new Set(pi.nodeRows.map((r) => r.lower));
@@ -312,11 +358,11 @@ function itemRows(app, entry) {
   return rows;
 }
 
-/** The rows for one search hit. */
-function hitRows(app, r) {
+/** The rows for one search hit. `zoneItems` (a zone search) keeps an item to its sources in that zone. */
+function hitRows(app, r, zoneItems) {
   const ds = app.ds;
   switch (r.kind) {
-    case 'item': return itemRows(app, r.id);
+    case 'item': return itemRows(app, r.id, zoneItems?.get(r.id));
     case 'npc': return [npcRow(app, r.id)];
     case 'zone': { const z = ds.zone(r.id); return z ? [zoneRow(app, z)] : []; }
     case 'dungeon': { const d = ds.instance(r.id); return d ? [dungeonRow(app, d)] : []; }
@@ -330,24 +376,31 @@ function hitRows(app, r) {
 
 // ---- the dialog ----------------------------------------------------------------------------------------------
 
-/** The search window. `query` starts it filled in. */
-export function worldSearchDialog(app, query = '') {
-  const s = { query };
+/** The search window. `query` starts it filled in; `all` searches the whole world instead of the zone you stand in. */
+export function worldSearchDialog(app, query = '', all = false) {
+  const s = { query, all };
+  const top = () => { view.cursor = 0; view.scroll = 0; };
   const view = {
-    id: 'world-search', title: 'Search the world', hint: 'Enter: go there / open',
+    id: 'world-search', title: 'Search', hint: 'Enter: go there / open',
     keys: {
-      s: { hint: 'search', fn: (a) => a.prompt('Find in the world: ', (t) => { s.query = t; view.cursor = 0; view.scroll = 0; a.render(); }, s.query) },
+      s: { hint: 'search', fn: (a) => a.prompt(s.all ? 'Find in the world: ' : `Find in ${zoneName(a, a.ch.zoneId)}: `, (t) => { s.query = t; top(); a.render(); }, s.query) },
+      a: { hint: 'this zone / all', fn: (a) => { s.all = !s.all; top(); a.flashMsg(s.all ? 'Searching the whole world.' : `Searching ${zoneName(a, a.ch.zoneId)} only.`); } },
       w: { hint: 'wiki', fn: (a, row) => { if (row?.data?.entry) a.push(wikiPage(a, 'npc', row.data.entry)); else a.flashMsg('Open the wiki with /.'); } },
     },
     rows(a) {
-      const rows = [H(s.query ? `Find: ${yellow(s.query)}` : dim('Press s and type a name: an item, a vendor, a creature, a dungeon, an ore or herb, a zone...')), H('')];
+      const zone = zoneName(a, a.ch.zoneId);
+      view.title = s.all ? 'Search the world' : `Search ${zone}`;
+      const scope = s.all ? dim('   (whole world, a: this zone only)') : dim(`   (in ${zone}, a: search everywhere)`);
+      const rows = [H(s.query ? `Find: ${yellow(s.query)}${scope}` : dim(`Press s and type a name: ${s.all ? 'an item, a vendor, a creature, a dungeon, an ore or herb, a zone...' : `a vendor, a trainer, an item sold or dropped in ${zone}...`}`)), H('')];
       if (!s.query.trim()) {
-        rows.push(H(dim('  "mining pick" lists who sells one and where they stand; "copper vein" the zones it is mined in;')), H(dim('  "deadmines" the entrance; "hogger" where he prowls. Enter travels there, or opens it when you are there.')));
+        if (s.all) rows.push(H(dim('  "mining pick" lists who sells one and where they stand; "copper vein" the zones it is mined in;')), H(dim('  "deadmines" the entrance; "hogger" where he prowls. Enter travels there, or opens it when you are there.')));
+        else rows.push(H(dim(`  Only what is in ${zone}: its people, its wares, its nodes and creatures. Enter opens it.`)), H(dim('  a searches the whole world instead.')));
         return rows;
       }
-      const hits = worldSearch(searchPool(a.ds), wikiTokens(s.query));
-      if (!hits.length) { rows.push(H(dim('  Nothing by that name. The wiki (/) searches spells and talents too.'))); return rows; }
-      for (const r of hits.slice(0, MAX_HITS)) rows.push(...hitRows(a, r));
+      const zi = s.all ? null : zoneSearchIndex(a.ds, a.ch.zoneId);
+      const hits = worldSearch(zi ? zi.pool : searchPool(a.ds), wikiTokens(s.query));
+      if (!hits.length) { rows.push(H(dim(s.all ? '  Nothing by that name. The wiki (/) searches spells and talents too.' : `  Nothing by that name in ${zone}. Press a to search the whole world.`))); return rows; }
+      for (const r of hits.slice(0, MAX_HITS)) rows.push(...hitRows(a, r, zi?.items));
       if (hits.length > MAX_HITS) rows.push(H(''), H(dim(`  ${hits.length - MAX_HITS} more matches. Narrow the search.`)));
       return rows;
     },
@@ -355,9 +408,9 @@ export function worldSearchDialog(app, query = '') {
   return view;
 }
 
-/** s on the World tab: open the search and start typing. */
-export function openWorldSearch(app, query = '') {
-  const v = worldSearchDialog(app, query);
+/** s on the World tab: open the search on the zone you stand in and start typing (`all`: the whole world). */
+export function openWorldSearch(app, query = '', all = false) {
+  const v = worldSearchDialog(app, query, all);
   app.push(v);
   if (!query) v.keys.s.fn(app);
 }

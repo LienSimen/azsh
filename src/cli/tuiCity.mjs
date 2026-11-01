@@ -1,7 +1,7 @@
 // City services: the bank, the auction house and the mailbox. Same view shape as tuiViews.mjs; every
 // change is a Game facade call. Where they open follows phonecraft's CITY_PANEL rule: the auction
 // house in the six capitals, the bank there plus the goblin and Crossroads banker towns.
-import { bold, dim, cyan, yellow, green, red, qualityPaint, fit, secondsText, plural, itemText } from './text.mjs';
+import { bold, dim, cyan, yellow, green, red, inverse, vis, useColor, qualityPaint, fit, secondsText, plural, itemText } from './text.mjs';
 import { itemLines } from './tuiViews.mjs';
 import { moneyText } from '../domain/economy/money.ts';
 import { bagCapacity } from '../domain/items/equipment.ts';
@@ -116,17 +116,100 @@ export function bankDialog(app, startMode = 'deposit') {
 
 // ---- auction house ------------------------------------------------------------------------------
 
+// Browse categories: ItemClass.dbc in AuctionFrame.lua order, as phonecraft's auctionModel.ts. Subclass names are
+// ItemSubClass.dbc; the TBC-era consumable and trade goods subclasses the item table carries get their names too.
+const AH_CLASSES = [
+  [2, 'Weapons'], [4, 'Armor'], [1, 'Container'], [0, 'Consumable'], [7, 'Trade Goods'],
+  [6, 'Projectile'], [11, 'Quiver'], [9, 'Recipe'], [5, 'Reagent'], [15, 'Miscellaneous'],
+];
+const AH_SUBCLASSES = {
+  0: ['Consumable', 'Potion', 'Elixir', 'Flask', 'Scroll', 'Food & Drink', 'Item Enhancement', 'Bandage', 'Other'],
+  1: ['Bag', 'Soul Bag', 'Herb Bag', 'Enchanting Bag', 'Engineering Bag'],
+  2: { 0: 'One-Handed Axes', 1: 'Two-Handed Axes', 2: 'Bows', 3: 'Guns', 4: 'One-Handed Maces', 5: 'Two-Handed Maces', 6: 'Polearms', 7: 'One-Handed Swords', 8: 'Two-Handed Swords', 10: 'Staves', 13: 'Fist Weapons', 14: 'Miscellaneous', 15: 'Daggers', 16: 'Thrown', 17: 'Spears', 18: 'Crossbows', 19: 'Wands', 20: 'Fishing Poles' },
+  4: { 0: 'Miscellaneous', 1: 'Cloth', 2: 'Leather', 3: 'Mail', 4: 'Plate', 6: 'Shields', 7: 'Librams', 8: 'Idols', 9: 'Totems' },
+  5: ['Reagent'],
+  6: { 2: 'Arrows', 3: 'Bullets' },
+  7: ['Trade Goods', 'Parts', 'Explosives', 'Devices', 'Jewelcrafting', 'Cloth', 'Leather', 'Metal & Stone', 'Meat', 'Herbs', 'Elemental', 'Other', 'Enchanting'],
+  9: ['Books', 'Leatherworking', 'Tailoring', 'Engineering', 'Blacksmithing', 'Cooking', 'Alchemy', 'First Aid', 'Enchanting', 'Fishing'],
+  11: { 2: 'Quivers', 3: 'Ammo Pouches' },
+  15: ['Junk'],
+};
+
+/** [category, subcategory] of an item: a browse class (15 catches the rest) and a subclass name. */
+function ahCategory(it) {
+  const cls = AH_CLASSES.some(([c]) => c === it?.itemClass) ? it.itemClass : 15;
+  const sub = it?.itemSubclass ?? it?.weaponSubclass ?? it?.armorSubclass ?? 0;
+  return [cls, AH_SUBCLASSES[cls]?.[sub] ?? 'Other'];
+}
+
+/**
+ * One line of tabs, the picked one inverse; when it does not fit it scrolls to keep the pick in view. A strip
+ * under the cursor is drawn inverse whole, so there the pick is bracketed instead.
+ */
+function tabStrip(labels, at, width, focused = false) {
+  const cells = labels.map((l, i) => (i === at ? (useColor && !focused ? inverse(` ${l} `) : focused ? bold(`[${l}]`) : `[${l}]`) : ` ${l} `));
+  let from = 0, to = cells.length;
+  const len = () => cells.slice(from, to).reduce((n, c) => n + vis(c), 0) + (from > 0 ? 2 : 0) + (to < cells.length ? 2 : 0);
+  while (len() > width && to - from > 1) { if (at - from > to - 1 - at) from++; else to--; }
+  return `${from > 0 ? dim('‹ ') : ''}${cells.slice(from, to).join('')}${to < cells.length ? dim(' ›') : ''}`;
+}
+
 export function auctionDialog(app) {
   app.g.refillAuctions(Date.now());
   let mode = 'browse';
   let filter = '';
+  let cat = 'all', sub = 'all';
   const MODES = ['browse', 'sell', 'mine'];
-  const hint = () => ({ browse: 'Enter: buyout   Tab: sell', sell: 'Enter: list for sale   Tab: my auctions', mine: 'Enter: cancel listing   Tab: browse' })[mode];
+  // The category and subcategory strips are cursor rows: Up from the listings lands on them, Left Right turns them.
+  let lastRows = [];
+  const stripAt = () => lastRows[view.cursor]?.data?.strip;
+  const hint = () => {
+    if (mode === 'browse') {
+      const s = stripAt(), hasSub = lastRows.some((r) => r.data?.strip === 'sub');
+      if (s === 'cat') return `Left Right: category   Down: ${hasSub ? 'subcategory' : 'listings'}   Tab: sell`;
+      if (s === 'sub') return 'Left Right: subcategory   Up: category   Down: listings   Tab: sell';
+      return `Enter: buyout   Left Right: category   Up to the tabs: ${hasSub ? 'subcategory' : 'category'}   Tab: sell`;
+    }
+    return { sell: 'Enter: list for sale   Tab: my auctions', mine: 'Enter: cancel listing   Tab: browse' }[mode];
+  };
   const unit = (x) => Math.round(x.buyoutCopper / x.quantity);
+  // Back to the top of the list; in browse the cursor goes to the first listing, past the strips.
+  let toList = true;
+  const top = () => { toList = true; view.scroll = 0; };
+  // The listings the search leaves, the categories they fall in (the picked one stays even when it empties)
+  // and the subcategories of the picked category, each with its count.
+  const browse = (a, now) => {
+    let all = a.g.browseAuctions(now).map((au) => { const it = a.ds.item(au.item); return { au, it, c: ahCategory(it) }; });
+    if (filter) all = all.filter((x) => (x.it?.name ?? '').toLowerCase().includes(filter));
+    const count = (pred) => all.filter(pred).length;
+    const cats = [{ key: 'all', label: 'All', n: all.length }];
+    for (const [c, label] of AH_CLASSES) { const n = count((x) => x.c[0] === c); if (n || c === cat) cats.push({ key: c, label, n }); }
+    const inCat = cat === 'all' ? all : all.filter((x) => x.c[0] === cat);
+    const subs = [{ key: 'all', label: 'All', n: inCat.length }];
+    for (const x of inCat) { const s = subs.find((y) => y.key === x.c[1]); if (s) s.n++; else subs.push({ key: x.c[1], label: x.c[1], n: 1 }); }
+    if (sub !== 'all' && !subs.some((s) => s.key === sub)) subs.push({ key: sub, label: sub, n: 0 });
+    const order = Object.values(AH_SUBCLASSES[cat] ?? {}), rank = (s) => (s.key === 'all' ? -1 : order.includes(s.key) ? order.indexOf(s.key) : order.length);
+    subs.sort((x, y) => rank(x) - rank(y));
+    const list = sub === 'all' ? inCat : inCat.filter((x) => x.c[1] === sub);
+    return { cats, subs, list };
+  };
+  // Turn a strip; on a strip the cursor stays put so it can keep turning, from a listing it goes back to the top.
+  const step = (a, which, d) => {
+    const b = browse(a, Date.now());
+    const opts = which === 'cat' ? b.cats : b.subs;
+    if (opts.length < 2) return;
+    const i = opts.findIndex((o) => o.key === (which === 'cat' ? cat : sub));
+    const next = opts[(i + d + opts.length) % opts.length].key;
+    if (which === 'cat') { cat = next; sub = 'all'; } else sub = next;
+    if (stripAt()) view.scroll = 0; else top();
+  };
   const view = {
-    id: 'auction', title: 'Auction House', hint: hint(),
+    id: 'auction', title: 'Auction House',
+    get hint() { return hint(); },
     keys: {
-      s: { hint: 'search', fn: (a) => { if (mode !== 'browse') return; a.prompt('Search: ', (t) => { filter = t.trim().toLowerCase(); view.cursor = 0; view.scroll = 0; a.render(); }, filter); } },
+      s: { hint: 'search', fn: (a) => { if (mode !== 'browse') return; a.prompt('Search: ', (t) => { filter = t.trim().toLowerCase(); top(); a.render(); }, filter); } },
+      '[': { fn: (a) => { if (mode === 'browse') step(a, 'sub', -1); } },
+      ']': { fn: (a) => { if (mode === 'browse') step(a, 'sub', +1); } },
       b: { hint: 'bid', fn: (a, row) => {
         if (mode !== 'browse' || !row?.data?.auction) return;
         const au = row.data.auction, min = minNextBid(au);
@@ -140,25 +223,39 @@ export function auctionDialog(app) {
       m: { hint: 'mailbox', fn: (a) => a.push(mailDialog(a)) },
     },
     onKey(a, k) {
-      if (k !== 'tab') return false;
-      mode = MODES[(MODES.indexOf(mode) + 1) % MODES.length];
+      if (mode === 'browse' && (k === 'left' || k === 'right')) { step(a, stripAt() ?? 'cat', k === 'right' ? +1 : -1); return true; }
+      if (k !== 'tab' && k !== 'shift-tab') return false;
+      mode = MODES[(MODES.indexOf(mode) + (k === 'tab' ? 1 : MODES.length - 1)) % MODES.length];
       if (mode === 'browse') a.g.refillAuctions(Date.now());
-      view.cursor = 0; view.scroll = 0; view.hint = hint();
+      top();
       return true;
     },
     rows(a) {
       const now = Date.now(), ds = a.ds;
       const unread = a.g.unreadMailCount(now);
+      const L = a.layout(), width = (L.detailW ? L.listW : L.W) - 2;
+      const modeLabels = MODES.map((m) => ({ browse: 'Browse', sell: 'Sell', mine: 'My auctions' }[m]));
       const rows = [
-        { text: `${bold('Auction House')}   ${MODES.map((m) => (m === mode ? bold : dim)({ browse: 'Browse', sell: 'Sell', mine: 'My auctions' }[m])).join(dim(' | '))}   ${yellow(moneyText(a.ch.gold) || '0c')}${unread ? yellow(`   ${unread} new mail`) : ''}`, header: true },
-        { text: '', header: true },
+        { text: `${bold('Auction House')}  ${tabStrip(modeLabels, MODES.indexOf(mode), 40)}  ${yellow(moneyText(a.ch.gold) || '0c')}${unread ? yellow(`   ${unread} new mail`) : ''}`, header: true },
       ];
       if (mode === 'browse') {
-        let list = a.g.browseAuctions(now);
-        if (filter) list = list.filter((x) => (ds.item(x.item)?.name ?? '').toLowerCase().includes(filter));
+        const b = browse(a, now);
+        const strip = (which, opts, key, label) => {
+          const focused = !toList && view.cursor === rows.length;
+          rows.push({
+            text: tabStrip(opts.map((o) => `${o.label} ${o.n}`), opts.findIndex((o) => o.key === key), width - 1, focused), data: { strip: which },
+            detail: () => [bold(label), '', dim('Left Right: pick one'), dim(`Down${which === 'cat' && rows.some((r) => r.data?.strip === 'sub') ? ': subcategories' : ' or Enter: the listings'}`)],
+            act: (a2) => a2.moveCursor(view, a2.rowsOf(view), +1),
+          });
+        };
+        strip('cat', b.cats, cat, 'Category');
+        if (cat !== 'all' && b.subs.length > 2) strip('sub', b.subs, sub, 'Subcategory');
+        rows.push({ text: '', header: true });
+        const list = b.list.map((x) => x.au);
         list.sort((x, y) => (ds.item(x.item)?.name ?? '').localeCompare(ds.item(y.item)?.name ?? '') || unit(x) - unit(y));
-        rows.push({ text: `${filter ? `"${filter}": ` : ''}${plural(list.length, 'listing')}${filter ? dim('   s: change search') : dim('   s: search by name')}`, header: true });
-        if (!list.length) rows.push({ text: dim('Nothing on the boards right now.'), header: true });
+        const where = cat === 'all' ? '' : `${b.cats.find((c) => c.key === cat)?.label}${sub === 'all' ? '' : ` › ${sub}`}: `;
+        rows.push({ text: `${where}${filter ? `"${filter}": ` : ''}${plural(list.length, 'listing')}${filter ? dim('   s: change search') : dim('   s: search by name')}`, header: true });
+        if (!list.length) rows.push({ text: dim(filter || cat !== 'all' ? 'Nothing listed here.' : 'Nothing on the boards right now.'), header: true });
         for (const au of list) {
           const it = ds.item(au.item);
           const can = au.buyoutCopper <= a.ch.gold;
@@ -171,6 +268,7 @@ export function auctionDialog(app) {
           });
         }
       } else if (mode === 'sell') {
+        rows.push({ text: '', header: true });
         const st = a.g.state.inventory.stacks;
         rows.push({ text: dim('Pick something from your bags to put up for auction.'), header: true });
         if (!st.length) rows.push({ text: dim('Your bags are empty.'), header: true });
@@ -185,6 +283,7 @@ export function auctionDialog(app) {
           });
         }
       } else {
+        rows.push({ text: '', header: true });
         const own = a.g.ownAuctions(), bids = a.g.myBidAuctions();
         const mail = a.g.listMail(now);
         rows.push({ text: `Mailbox: ${mail.length ? `${plural(mail.length, 'letter')} waiting` : 'empty'}${dim('  (sales and refunds arrive here)')}`, act: () => a.push(mailDialog(a)), data: {} });
@@ -206,6 +305,12 @@ export function auctionDialog(app) {
           rows.push({ text: `  ${qualityPaint(it?.quality)(it?.name ?? au.item)}${au.quantity > 1 ? ` x${au.quantity}` : ''}  ${dim('your bid')} ${moneyText(au.bidCopper)}  ${timeLeft(au, now)}`, header: true });
         }
       }
+      if (toList) {
+        toList = false;
+        const first = mode === 'browse' ? rows.findIndex((r) => r.data?.auction) : -1;
+        view.cursor = first >= 0 ? first : 0;
+      }
+      lastRows = rows;
       return rows;
     },
   };
