@@ -13,6 +13,8 @@ if (wantRepl) {
   const { main } = await import('../src/cli/repl.mjs');
   await main(argv.filter((a) => a !== '--repl' && a !== '--tui'));
 } else {
+  // Loading the engine takes a moment (longer on the first run, which fills the stripped-JS cache); say so.
+  process.stdout.write('azsh: loading...\n');
   const { runTui } = await import('../src/cli/tui.mjs');
   await runTui({ argv });
   process.exit(0); // the save is written before the screen closes; a piped stdin would otherwise hold the loop open
