@@ -5,9 +5,12 @@ CMaNGOS Classic data and the same headless engine as [phonecraft](../phonecraft)
 no browser, no build step.
 
 ```
-npm install -g .     # or: node bin/azsh.mjs
+npx azsh             # run it straight from npm
+npm install -g azsh  # or install it once, then:
 azsh                 # pick a character or roll one
 ```
+
+From a checkout: `npm install -g .` or `node bin/azsh.mjs`.
 
 Needs Node 22.18 or newer (it strips TypeScript types natively). No dependencies. The tree is
 about 29 MB: 15 MB of gzipped game data and 13 MB of engine source.

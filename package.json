@@ -1,12 +1,17 @@
 {
   "name": "azsh",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "Azeroth shell. A WoW Classic 1.12 text RPG for the terminal, built on CMaNGOS data. Terminal fork of phonecraft.",
+  "keywords": ["wow", "classic", "rpg", "terminal", "game", "tui", "cmangos"],
   "bin": {
     "azsh": "bin/azsh.mjs"
   },
+  "files": [
+    "bin/",
+    "src/",
+    "docs/"
+  ],
   "engines": {
     "node": ">=22.18"
   },
