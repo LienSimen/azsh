@@ -270,10 +270,26 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
       driver in `src/ui/bg/bgScreen.ts` over `domain/bg/*` (`BgWorld`, `BgMatch`, `wsg`, `ab`). The
       map is graphical; the objective state and fights are not. Text form: objectives list, your
       assignment, engage.
-      Done as a watched match on the Honor window: phonecraft's world, rules, roster and strategy layer, with
-      BgMatch's attrition resolver doing the fighting (flat damage and healing per body) instead of
-      bgScreen.ts's whole-match combat session. You pick your seat's job; honor, kills and marks settle as
-      bgScreen.ts does. A fought version needs that session re-hosted (the 2,200-line part).
+      Done on the Honor window over phonecraft's world, rules, roster and strategy layer, with BgMatch's
+      attrition resolver doing the fighting (flat damage and healing per body) instead of bgScreen.ts's
+      whole-match combat session. Warsong draws as a strip map (flags, graveyards, buffs, both sides under
+      fair vision, fights and carriers named by place); you drive your own seat by place (`o`: our flag
+      room, mid, a buff, the flag itself, follow or attack someone) or hand it to an autopilot job (`j`),
+      and call your side (`t`: all on their carrier, turtle, push, escort me) through `playerCommanded`,
+      a call lapsing after 45 s or on death. The clock drops to 1x when a flag changes hands. Honor,
+      kills and marks settle as bgScreen.ts does. The match runs 25 minutes (the 2.3 clock; vanilla had
+      none and a double turtle ran for hours) and a tied clock goes to kills; the header counts both
+      sides' kills and every kill on the field is said. The unattended flow (engine, in phonecraft:
+      `match.ts`, `strategies.ts`, `wsg.ts`): the resolver focuses one target a side, sticks to it,
+      heals only with the seats the roster made healers, and scales its rates to the field's hp pool;
+      the runner is the sturdiest non-healer, waits for its escorts and takes a lane along the field's
+      edge past mid; a mid body engages what it can reach and finishes the fight it is in; a double
+      carry sends the field after their carrier; respawns come on the 30 s wave; a contested flag goes
+      to the nearest hand (roster order used to decide it, and the first-added team won every match).
+      `scripts/wsg-probe.mjs` plays a headless match and prints the field per minute. Still open: your
+      class and gear do not weigh in the attrition resolver (a per-unit damage weight, the dummy sim
+      for your own seat), and Arathi has no map strip yet (its five bases fit a 3×3 grid). A fought
+      version needs the session re-hosted (the 2,200-line part).
 - [x] M  Alterac Valley: `enterInstance(avInstanceIdFor(team), now, { asRaid: true })`; it is a raid
       run and rides on Phase 2. On the Honor window; it plays as a plain raid run. Phonecraft's valley
       layer on top (`domain/bg/avInstanceScore.ts`, the node and mine captures its live controller drives)

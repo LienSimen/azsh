@@ -75,6 +75,8 @@ export interface BgUnit {
   order: BgOrder;
   /** Combat spec — only needed when a shard is folded into a real createSession. */
   spec?: CombatantSpec;
+  /** Does this seat heal? The attrition resolver reads it; absent, it falls back to the class. */
+  heals?: boolean;
   /** Movement speed, yards/second. */
   speedYd: number;
   /** Set while this unit carries an enemy flag (the aura id, 23333 / 23335). */

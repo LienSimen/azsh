@@ -178,27 +178,19 @@ export function installWsg(world: BgWorld): WsgEvent[] {
 
       if (obj.state !== 'base' && obj.state !== 'ground') continue;
 
-      // Someone standing on it either takes it (enemy) or returns it (owner, dropped only).
-      for (const u of w.units.values()) {
-        if (!w.alive(u)) continue;
-        if (detHypot(u.pos.x - obj.pos.x, u.pos.y - obj.pos.y) > WS_FLAG_INTERACT_YD) continue;
-
-        if (u.team === team) {
-          // Your own flag: on the ground → return it. At base → nothing.
-          if (obj.state === 'ground') {
-            returnFlag(team, u);
-            break;
-          }
-          continue;
-        }
-        // Enemy flag: pick it up. One flag per unit.
-        if (u.carryingFlag) continue;
-        obj.state = 'carried';
-        obj.carrier = u.id;
-        u.carryingFlag = flagSpellCarriedBy(u.team);
-        log({ t: w.t, kind: 'pickup', team: u.team, unit: u.id });
-        break;
+      // Someone standing on it either takes it (enemy) or returns it (owner, dropped only). With
+      // both sides on a dropped flag the nearest hand wins; the first body in roster order used to,
+      // so the team added to the world first won every contested flag and every match.
+      const u = flagToucher(w, obj, team);
+      if (!u) continue;
+      if (u.team === team) {
+        returnFlag(team, u);
+        continue;
       }
+      obj.state = 'carried';
+      obj.carrier = u.id;
+      u.carryingFlag = flagSpellCarriedBy(u.team);
+      log({ t: w.t, kind: 'pickup', team: u.team, unit: u.id });
     }
 
     // A carrier standing on its OWN flag, with that flag at base, scores.
@@ -255,6 +247,29 @@ export function installWsg(world: BgWorld): WsgEvent[] {
   };
 
   return events;
+}
+
+// The body that gets a flag everyone within reach wants. The owner's side can only return a dropped
+// flag; the other side's runner is preferred over its escorts at the base, since a pickup by the
+// escort sent the runner home empty-handed. Exact ties (bodies stacked on one point) alternate by
+// tick, so neither side is favoured by roster order.
+function flagToucher(w: BgWorld, obj: { pos: BgPos; state: string }, owner: BgTeam): BgUnit | null {
+  let best: BgUnit | null = null;
+  let bd = Infinity;
+  let bestRunner = false;
+  const odd = Math.floor(w.t / Math.max(1, w.tickMs)) % 2 === 1;
+  for (const u of w.units.values()) {
+    if (!w.alive(u)) continue;
+    const own = u.team === owner;
+    if (own ? obj.state !== 'ground' : !!u.carryingFlag) continue;
+    const d = detHypot(u.pos.x - obj.pos.x, u.pos.y - obj.pos.y);
+    if (d > WS_FLAG_INTERACT_YD) continue;
+    const runner = !own && u.role === 'flag-carrier';
+    if (!best || (runner && !bestRunner) || (runner === bestRunner && (d < bd || (d === bd && odd)))) {
+      best = u; bd = d; bestRunner = runner;
+    }
+  }
+  return best;
 }
 
 /** Where a dead unit of `team` comes back. Cite: world_safe_locs 771 / 772. */
