@@ -3,7 +3,8 @@
 import { bold, dim, cyan, yellow, green, red, gray, magenta, brightBlue, brightYellow, qualityPaint, QUALITY, questText, wrapLines, fit, secondsText, plural } from './text.mjs';
 import { ruleSentence, conditionsSentence, condSentence, PHASE_LABEL } from './rotationText.mjs';
 import { startFight, startAutopilot } from './tuiFight.mjs';
-import { className } from '../domain/core/ids.ts';
+import { className, raceName } from '../domain/core/ids.ts';
+import { nativeDisplayId, wornDisplay } from '../domain/character/displayForm.ts';
 import { moneyText } from '../domain/economy/money.ts';
 import { maxHealth, maxPower } from '../domain/character/character.ts';
 import { effectiveStats, effectiveArmor, attackPower, powerType } from '../domain/character/characterStats.ts';
@@ -1007,9 +1008,29 @@ function weaponSkillRows(a, L) {
   return rows;
 }
 
+/**
+ * Your character as a sprite for a pane (modelArt.mjs): the form or costume you wear when the pack has it,
+ * else your race and gender's body. `label` names the form when that is what shows; null without art.
+ */
+export function playerArt(app, maxCols, maxRows) {
+  const ch = app.ch;
+  const worn = wornDisplay(ch, app.ds, Date.now());
+  const wornArt = worn?.displayId ? creatureArt(worn.displayId, maxCols, maxRows) : null;
+  if (wornArt) return { lines: wornArt, label: worn.label };
+  const own = creatureArt(nativeDisplayId(ch.race, ch.gender), maxCols, maxRows);
+  return own ? { lines: own, label: null } : null;
+}
+
 function charView(app) {
   return {
-    id: 'char', title: 'Character', hint: '', noDetail: true,
+    id: 'char', title: 'Character', hint: '',
+    /** The detail pane holds your character: the body of your race and gender, or the form you are in. */
+    detail(a) {
+      const L = a.layout(), ch = a.ch;
+      const art = playerArt(a, L.detailW - 2, L.mainH - 2);
+      if (!art) return [];
+      return [`${bold(ch.name)}  ${dim(`${raceName(ch.race)} ${className(ch.cls)}${art.label ? `, ${art.label}` : ''}`)}`, '', ...art.lines];
+    },
     rows(a) {
       const ch = a.ch, ds = a.ds;
       const st = effectiveStats(ch, ds);

@@ -10,6 +10,7 @@ import { strip } from './text.mjs';
 import { visibleBars } from './tuiBars.mjs';
 import { defaultConditionsForSpell } from './tuiRotationCond.mjs';
 import { creatureArt, hasArt } from './modelArt.mjs';
+import { nativeDisplayId } from '../domain/character/displayForm.ts';
 import { addItem, countItem } from '../domain/items/inventory.ts';
 import { moneyText as moneyTextOf } from '../domain/economy/money.ts';
 import { offeredQuests } from '../quests/quests.ts';
@@ -61,6 +62,7 @@ check('talents tab renders', (term.press('7'), /Talents unlock|point/.test(frame
 check('0 opens the tenth tab', (term.press('0'), app.tab === 9));
 const lastTab = app.tabs.length - 1;
 check('character tab renders', (app.switchTab(lastTab), /Attributes/.test(frame())));
+check('the character tab draws your body', !hasArt(nativeDisplayId(app.ch.race, app.ch.gender)) || /[▀▄]/.test(frame()));
 {
   const charRows = app.rowsOf(app.top()).map((r) => strip(r.text)).join('|');
   check('the character tab lists weapon skills with Defense and the hand in use', /Weapon skills\|\s+Defense\s+\d+\/\d+\|/.test(charRows) && /\d+\/\d+( \+\d+)? +main hand/.test(charRows));
@@ -218,6 +220,7 @@ while (app.auto && steps < 60) {
     if (!liveFights) {
       show('autopilot fight');
       check('an autopilot fight says what it is for', /(\d+\/\d+|hunting for xp|questing in)/.test(strip(frame()).split('\n')[2] ?? ''));
+      check('the run panel shows the foe beside the fight', !hasArt(ds.creature(app.fight.enemyEntry)?.displayId) || /[▀▄]/.test(frame()));
       check('the fight draws inside the run panel, without a head line of its own', app.inlineFight() && app.compactHeader() && / ◀ /.test(strip(frame())) && !/^ Fighting /m.test(strip(frame())));
       check('a run keeps only the XP line for a header', app.compactHeader() && /^ XP /.test(strip(frame())) && !/1 World/.test(strip(frame())));
       check('your frame sits in the panel, once', (strip(frame()).match(new RegExp(`^ ${app.ch.name} L\\d+ +[█░#-]`, 'mg')) ?? []).length === 1);

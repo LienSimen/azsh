@@ -279,16 +279,10 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       }
       return { player, status, fight: fight.slice(0, Math.max(1, room)) };
     },
-    /** The frames, with the foe you face drawn down the right when the screen is wide enough (modelArt.mjs). */
+    /** The frames, with the foe you face drawn down the right when the screen is wide enough (foeArt). */
     render(W, H) {
-      const artW = W >= 90 ? Math.min(28, Math.floor(W * 0.28)) : 0;
-      const entry = session.enemyView()?.creatureEntry ?? this.enemyEntry;
-      const art = artW && entry != null ? creatureArt(app.ds.creature(entry)?.displayId, artW, H) : null;
-      if (!art) return this.renderFrames(W, H);
-      const aw = artWidth(art), lines = this.renderFrames(W - aw - 2, H);
-      while (lines.length < H) lines.push('');
-      const top = Math.max(0, Math.floor((H - art.length) / 2));
-      return lines.map((l, i) => `${fit(l, W - aw - 2)}  ${art[i - top] ?? ''}`);
+      const art = foeArt(app, this, W, H);
+      return art ? besideArt(this.renderFrames(W - artWidth(art) - 2, H), art, W, H) : this.renderFrames(W, H);
     },
     renderFrames(W, H) {
       const lines = [];
@@ -533,6 +527,26 @@ function unitFrame(app, mem, v, W, now, isPlayer, focused = false, { compact = f
   const slot = castSlot(v, now);
   const auras = auraText(app, mem, v, key);
   return [cut(`${head}${after}`, W), cut(`   ${fit(slot, CAST_W)}  ${auras}`, W)];
+}
+
+/**
+ * The sprite of the foe a fight controller faces, sized for a pane W x H (modelArt.mjs): at 90 columns or
+ * wider it gets up to 28 columns down the right; null when the pane is narrow or the creature has no art.
+ * The full fight view and the autopilot's run panel both draw it, so a run shows the same foe either way.
+ */
+export function foeArt(app, ctl, W, H) {
+  const artW = W >= 90 ? Math.min(28, Math.floor(W * 0.28)) : 0;
+  const entry = ctl.session?.enemyView()?.creatureEntry ?? ctl.enemyEntry;
+  return artW && entry != null ? creatureArt(app.ds.creature(entry)?.displayId, artW, H) : null;
+}
+
+/** `lines` (drawn W - art - 2 wide) with `art` down the right, centred on the pane's height; every line W wide. */
+export function besideArt(lines, art, W, H) {
+  const aw = artWidth(art);
+  const out = lines.slice(0, H);
+  while (out.length < H) out.push('');
+  const top = Math.max(0, Math.floor((H - art.length) / 2));
+  return out.map((l, i) => `${fit(l, W - aw - 2)}  ${art[i - top] ?? ''}`);
 }
 
 /** The cast slot's text: a cast bar, else crowd control, else stealth; empty when idle. */

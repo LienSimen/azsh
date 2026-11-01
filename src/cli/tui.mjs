@@ -28,6 +28,8 @@ import { bold, dim, cyan, yellow, green, red, inverse, fit, vis, cut, bar, pct, 
 import { createGame, newGameState, newGameStateFromWorldBot, pickRandomWorldBot } from '../engine/game.ts';
 import { toSave } from '../persistence/saveShape.ts';
 import { className, raceName } from '../domain/core/ids.ts';
+import { nativeDisplayId } from '../domain/character/displayForm.ts';
+import { creatureArt } from './modelArt.mjs';
 import { moneyText, coinsText } from '../domain/economy/money.ts';
 import { maxHealth, maxPower } from '../domain/character/character.ts';
 import { powerType } from '../domain/character/characterStats.ts';
@@ -683,9 +685,15 @@ export function characterCreation(app, done) {
   const races = ds.races();
   // A random world bot: a whole character at its own level, geared, with its name (phonecraft's dev roll).
   const randomBot = { label: `${dim('Random character')}  ${dim('a world bot at its own level')}`, value: 'random' };
+  // The body of the race (and later the gender) under the cursor, under the text, as large as the pane allows.
+  const withBody = (text, raceId, gender) => {
+    const L = app.layout();
+    const art = creatureArt(nativeDisplayId(raceId, gender), L.detailW - 2, L.mainH - text.length - 1);
+    return art ? [...text, '', ...art] : text;
+  };
   app.pick('Choose a race', [...races.map((r) => ({
     label: `${r.name.padEnd(10)} ${dim(r.faction)}`,
-    detail: [bold(r.name), r.faction, `Starts in ${ds.zone(r.startZone)?.name ?? r.startZone}`, '', dim('Classes: ') + r.classes.filter((c) => ds.createInfo(r.id, c)).map(className).join(', ')],
+    detail: () => withBody([bold(r.name), r.faction, `Starts in ${ds.zone(r.startZone)?.name ?? r.startZone}`, '', dim('Classes: ') + r.classes.filter((c) => ds.createInfo(r.id, c)).map(className).join(', ')], r.id, 0),
     value: r,
   })), randomBot], (race) => {
     if (race === 'random') {
@@ -696,7 +704,8 @@ export function characterCreation(app, done) {
     }
     const classes = race.classes.filter((c) => ds.createInfo(race.id, c));
     app.pick(`${race.name}: choose a class`, classes.map((c) => ({ label: className(c), value: c })), (cls) => {
-      app.pick('Gender', [{ label: 'Male', value: 0 }, { label: 'Female', value: 1 }], (gender) => {
+      const genders = [{ label: 'Male', value: 0 }, { label: 'Female', value: 1 }].map((g) => ({ ...g, detail: () => withBody([bold(`${g.label} ${race.name}`)], race.id, g.value) }));
+      app.pick('Gender', genders, (gender) => {
         const askName = () => app.prompt('Name (2-12 letters): ', (raw) => {
           const name = raw.trim();
           if (!/^[A-Za-z]{2,12}$/.test(name)) { app.flashMsg('Letters only, 2 to 12 of them.'); askName(); return; }

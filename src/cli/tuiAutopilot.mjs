@@ -3,7 +3,8 @@
 // pane at the bottom (one row per planner step) and the end card. The run itself is the controller in
 // tuiFight.mjs (startAutopilot); the planner is repl.mjs createAutopilot. Everything here only reads.
 import { bold, dim, cyan, yellow, green, red, magenta, inverse, fit, vis, cut, bar, strip, pct, secondsText, wrapLines } from './text.mjs';
-import { idlePlayerFrame, startAutopilot } from './tuiFight.mjs';
+import { idlePlayerFrame, startAutopilot, foeArt, besideArt } from './tuiFight.mjs';
+import { artWidth } from './modelArt.mjs';
 import { objectiveLines, questDialog } from './tuiViews.mjs';
 import { autopilotSettingsDialog } from './tuiAutopilotSettings.mjs';
 import { squadModeOf } from './squad.mjs';
@@ -87,13 +88,18 @@ export function runPanelLines(app, ctl, W, height) {
   // Steps, clock, pace and the stop limits are not progress: the pre-flight card and the Run pane have them.
   // A fight on takes the Now/Next slot with the foes and the party, and its clock sits on the title's right.
   // Your frame stays on the same rows either way. No "Autopilot" label: the screen's shape says so.
-  const fight = app.fight?.label === 'autopilot' && !ctl.watchFight ? app.fight.inlineLines(W, Math.max(2, height - 3)) : null;
+  // The foe's sprite takes a column down the right while a fight is on (foeArt), the panel keeping the rest.
+  const live = app.fight?.label === 'autopilot' && !ctl.watchFight ? app.fight : null;
+  const art = live ? foeArt(app, live, W, height) : null;
+  const innerW = art ? W - artWidth(art) - 2 : W;
+  const fight = live ? live.inlineLines(innerW, Math.max(2, height - 3)) : null;
   const quest = questProgress(app, ctl);
   const right = fight ? `${fight.status} ` : ctl.paused ? `${red('PAUSED')} ` : '';
-  const l0 = fit(` ${quest || dim(runWhat(app, ctl))}`, W - vis(right)) + right;
-  const frame = fight ? fight.player : idlePlayerFrame(app, ctl.frames, W);
+  const l0 = fit(` ${quest || dim(runWhat(app, ctl))}`, innerW - vis(right)) + right;
+  const frame = fight ? fight.player : idlePlayerFrame(app, ctl.frames, innerW);
   const middle = fight ? fight.fight : [nowLine(app, ctl, cfg), nextLine(app, ctl)];
-  return [l0, ...frame, ...middle].slice(0, height).map((l) => cut(l, W));
+  const lines = [l0, ...frame, ...middle].slice(0, height).map((l) => cut(l, innerW));
+  return art ? besideArt(lines, art, W, height) : lines;
 }
 
 /** The one-line XP header a run keeps in place of the name, bars and tabs. */

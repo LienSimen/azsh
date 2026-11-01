@@ -2,10 +2,13 @@
 // <displayId>.webp, 128 px, alpha) become one gzipped pack of small indexed-colour images that modelArt.mjs
 // draws as half-block cells. Dev only; needs ffmpeg on PATH to decode the webp.
 //
-//   node scripts/bake-model-art.mjs [--src D:/projects/phonecraft/public/portraits/creature] [--all]
+//   node scripts/bake-model-art.mjs [--src D:/projects/phonecraft/public/portraits/creature]
+//                                   [--bodies D:/projects/phonecraft/datadump/paperdoll-renders/base] [--all]
 //
 // Default: every display id a huntable, dungeon, quest or raid creature uses. --all bakes every display id
-// in the creature table. Each sprite is cropped to its opaque box and area-sampled to at most 28x56 px.
+// in the creature table. The sixteen player bodies (phonecraft's paperdoll bases, 512 px) go in under their
+// native CreatureDisplayInfo ids (displayForm.ts NATIVE_DISPLAY), so a character draws like any creature.
+// Each sprite is cropped to its opaque box and area-sampled to at most 28x56 px.
 //
 // Pack: "AZART" u8 version u32 count, then per sprite u32 displayId u8 w u8 h u8 palLen, palLen*3 palette
 // bytes, w*h palette indices (0 = transparent, n = palette[n-1]).
@@ -21,7 +24,14 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
 const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; };
 const SRC = opt('--src', 'D:/projects/phonecraft/public/portraits/creature');
+const BODIES = opt('--bodies', 'D:/projects/phonecraft/datadump/paperdoll-renders/base');
 const OUT = join(ROOT, 'src/data/model-art.bin.gz');
+// Native display id -> paperdoll base body (race-gender). Cite: displayForm.ts NATIVE_DISPLAY, gender 0 = male.
+const PLAYER_BODIES = {
+  49: 'human-male', 50: 'human-female', 51: 'orc-male', 52: 'orc-female', 53: 'dwarf-male', 54: 'dwarf-female',
+  55: 'nightelf-male', 56: 'nightelf-female', 57: 'undead-male', 58: 'undead-female', 59: 'tauren-male', 60: 'tauren-female',
+  1563: 'gnome-male', 1564: 'gnome-female', 1478: 'troll-male', 1479: 'troll-female',
+};
 // 28 px is as wide as any pane draws a sprite; 127 colours a sprite keeps the pack near 3 MB.
 const MAX_W = 28, MAX_H = 56, MAX_COLORS = 127, PARALLEL = 8;
 
@@ -114,8 +124,7 @@ function quantize({ gw, gh, rgb, on }) {
   return { pal, idx };
 }
 
-async function bake(id) {
-  const file = join(SRC, `${id}.webp`);
+async function bake(id, file) {
   if (!existsSync(file)) return null;
   const img = await decode(file);
   const box = bbox(img);
@@ -130,15 +139,18 @@ async function bake(id) {
   return Buffer.concat([head, Buffer.from(pal), Buffer.from(idx)]);
 }
 
-const ids = [...wantedDisplayIds()].sort((a, b) => a - b);
+// One job per display id; a player body wins over a creature render with the same id.
+const jobs = new Map();
+for (const id of wantedDisplayIds()) jobs.set(id, join(SRC, `${id}.webp`));
+for (const [id, slug] of Object.entries(PLAYER_BODIES)) jobs.set(+id, join(BODIES, `${slug}.png`));
 const parts = [];
 let missing = 0, done = 0;
-const queue = ids.slice();
+const queue = [...jobs.entries()];
 await Promise.all(Array.from({ length: PARALLEL }, async () => {
-  for (let id = queue.shift(); id != null; id = queue.shift()) {
-    const buf = await bake(id);
+  for (let job = queue.shift(); job; job = queue.shift()) {
+    const buf = await bake(job[0], job[1]);
     if (buf) parts.push(buf); else missing++;
-    if (++done % 500 === 0) console.error(`${done}/${ids.length}`);
+    if (++done % 500 === 0) console.error(`${done}/${jobs.size}`);
   }
 }));
 parts.sort((a, b) => a.readUInt32LE(0) - b.readUInt32LE(0));

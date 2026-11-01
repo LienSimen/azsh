@@ -22,9 +22,10 @@ cursor-driven list with a detail pane beside it, and a scrolling log underneath.
 off the top; every screen redraws in place. The colours are plain ANSI, so your terminal's theme
 sets the palette; for a CRT look turn on the terminal's own retro effect (Windows Terminal:
 `"experimental.retroTerminalEffect": true` on the profile; cool-retro-term elsewhere). At 90 columns
-or wider the creature you face is drawn beside the fight frames, and under its detail on the World
-tab, as truecolour half-block art baked from the game's models; a terminal without 24-bit colour
-shows it in the nearest colours it has.
+or wider the creature you face is drawn beside the fight frames and under its detail on the World
+tab, and your own character stands on the Character tab and at character creation, as truecolour
+half-block art baked from the game's models; a terminal without 24-bit colour shows it in the
+nearest colours it has.
 
 | Key | Does |
 | --- | --- |
