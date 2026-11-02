@@ -48,7 +48,7 @@ import { emptyInventory } from '../../domain/items/inventory.ts';
 import { trimSoulShards } from '../../domain/bots/soulShardCap.ts';
 import { companionLevel } from '../../domain/bots/squad.ts';
 import { syncCompanionProfessionTools } from './companionTraining.ts';
-import { petHasHappiness, reconcilePetPartyAuras } from '../../domain/pet/pet.ts';
+import { petHasHappiness, reconcilePetPartyAuras, tpSpentOnKnown } from '../../domain/pet/pet.ts';
 import { playerbotJunkItem } from '../../domain/bots/playerbotItemEligibility.ts';
 import type { EquippedMap } from '../../domain/character/character.ts';
 import { createAliveDeathFlow, isPlayerAlive } from '../../domain/run/death.ts';
@@ -321,6 +321,26 @@ export function applyLoadReconcile(ds: DataStore, state: GameState, opts?: impor
         const s = ds.spell(id);
         return !!s && !s.passive && !rep.includes(id);
       });
+    }
+  }
+
+  // A pet tamed before the bake dropped its rank-1 filler was charged training points for rank 1 of
+  // every family chain on top of its real kit, and may still queue those ranks to teach. Refund the
+  // difference once and keep the queue to the real kit. Cite: Pet.cpp:1955-1998 InitPetCreateSpells.
+  {
+    for (const p of [state.char.pet, state.char.storedPet, ...(state.char.stablePets ?? [])]) {
+      if (!p || p.innateKit) continue;
+      const cdef = ds.creature(p.creature);
+      if (!cdef || !petHasHappiness(cdef)) continue;
+      const kit = cdef.petDefaultSpells ?? [];
+      const filler = (cdef.petSpells ?? []).filter((id) => {
+        const s = ds.spell(id);
+        return !!s && !s.passive && (s.rank | 0) <= 1;
+      });
+      const refund = tpSpentOnKnown([...kit, ...filler], ds) - tpSpentOnKnown(kit, ds);
+      if (refund > 0 && p.trainingPoints != null) p.trainingPoints += refund;
+      if (p.teachSpells) p.teachSpells = p.teachSpells.filter((id) => kit.includes(id));
+      p.innateKit = [...kit];
     }
   }
 

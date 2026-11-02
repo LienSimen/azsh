@@ -3,7 +3,7 @@
 
 import {
   newPet, petHasHappiness, petTaughtIds, petRepertoireHas,
-  feedPetHappinessGain, petDiet, isPetFood, tpForSpell, hasTpForSpell,
+  feedPetHappinessGain, petDiet, isPetFood, tpForSpell, hasTpForSpell, petUntrainCost, untrainPetState,
   LOYALTY_REBELLIOUS, FEED_PET_DURATION_S,
   autoFeedThreshold, AUTO_FEED_TARGET, HAPPINESS_MAX,
   applyPetPartyAuras, stripPetPartyAuras, petPartyAuraSpellIds, reconcilePetPartyAuras,
@@ -156,6 +156,8 @@ export function createPetsModule(ctx: GameCtx, extras: PetsExtras): Pick<
   | 'setPetAutoFeed'
   | 'buyPetSpell'
   | 'teachPetSpell'
+  | 'untrainPet'
+  | 'untrainPetCost'
   | 'togglePetAutocast'
   | 'setPetCommand'
   | 'setPetReact'
@@ -317,6 +319,36 @@ export function createPetsModule(ctx: GameCtx, extras: PetsExtras): Pick<
       };
       log(`${pet.name} learned ${sp.name}${sp.rank ? ` (Rank ${sp.rank})` : ''}${needTp ? ` for ${needTp} TP` : ''}.`);
       return { ok: true };
+    },
+
+    untrainPetCost(nowMs) {
+      const pet = state.char.pet;
+      const cdef = pet ? ds.creature(pet.creature) : undefined;
+      if (!pet || !cdef || !petHasHappiness(cdef)) return null;
+      return petUntrainCost(pet, nowMs ?? Date.now());
+    },
+
+    untrainPet(trainerEntry, nowMs) {
+      const trainer = ds.trainer(trainerEntry);
+      if (!trainer || !(trainer.subname ?? '').toLowerCase().includes('pet trainer')) {
+        return { ok: false, reason: 'That is not a pet trainer' };
+      }
+      if (!canInteractWithCreature(ds, state.char.race, trainerEntry)) {
+        return { ok: false, reason: 'They refuse to deal with you.' };
+      }
+      const pet = state.char.pet;
+      if (!pet) return { ok: false, reason: 'You have no pet' };
+      if (pet.health <= 0) return { ok: false, reason: 'Your pet is dead' };
+      const cdef = ds.creature(pet.creature);
+      if (!cdef || !petHasHappiness(cdef)) return { ok: false, reason: 'Only a hunter pet can be untrained' };
+      if (!petTaughtIds(state.char, cdef).length) return { ok: false, reason: `${pet.name} has nothing to forget` };
+      const now = nowMs ?? Date.now();
+      const cost = petUntrainCost(pet, now);
+      if (state.char.gold < cost) return { ok: false, reason: 'Not enough money' };
+      state.char.gold -= cost;
+      state.char.pet = { ...untrainPetState(pet, cdef, state.char.level, ds), resetTalentsCost: cost, resetTalentsTime: now };
+      log(`${pet.name} forgets its training for ${moneyMarked(cost)} - ${state.char.pet.trainingPoints} training points to spend again.`);
+      return { ok: true, spent: cost };
     },
 
     togglePetAutocast(spellId) {

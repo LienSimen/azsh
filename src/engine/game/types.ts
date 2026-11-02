@@ -768,6 +768,10 @@ export interface Game {
   // Beast Training (spell 5149): teach the CURRENT pet a rank from the repertoire, spending ITS training
   // points (chain-aware). Cite: Pet.cpp GetTPForSpell/learnSpell.
   teachPetSpell(spellId: number): ActionResult;
+  // Untrain the current hunter pet at a pet trainer: forget every taught ability, training points back
+  // to level × (loyalty − 1), for the escalating fee petUntrainCost reads. Cite: HandlePetUnlearnOpcode.
+  untrainPet(trainerEntry: number, nowMs?: number): ActionResult<{ spent: number }>;
+  untrainPetCost(nowMs?: number): number | null;
   // Toggle autocast for a pet ability (right-click on the pet bar). Rank-agnostic by name chain; disabled
   // abilities stay learned but leave the combat kit (buildPet).
   togglePetAutocast(spellId: number): ActionResult<{ enabled: boolean }>;

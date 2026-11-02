@@ -248,7 +248,18 @@ export function createChaseArm(deps: ChaseDeps): {
     if (isEnemySide(f.side)) {
       // The GRADE is the full contact ring while the PARK is half of it, which is the split the C++
       // makes — and it retires the knife edge where one ULP of step error triggered a full-HP evade.
-      const reach = Math.max(pairContact, longestOffenseRangeYd(f) + EVADE_REACH_EPS_YD);
+      let reach = Math.max(pairContact, longestOffenseRangeYd(f) + EVADE_REACH_EPS_YD);
+      // With no ranged kit the park below stops at the short offense, so grade against it too. A
+      // Razormane Scout's Shoot 6660 infers instant_nuke: it parked at 24 yd, shot, and reset every 5 s.
+      // Scheduled spells only, so a kit row the mob never casts still lets it evade.
+      if (dist > reach) {
+        const castable = castableKitIds(f, ctx.spellOf);
+        for (const s of shortOffenseList(f)) {
+          if (castable && !castable.has(s.id | 0)) continue;
+          if (!spellTargetTypeAllowed(s, tgt.creatureType ?? 0) || focusImmunityBlocksSpell(s, tgt, 1)) continue;
+          reach = Math.max(reach, (s.rangeMax ?? 0) + EVADE_REACH_EPS_YD);
+        }
+      }
       const prev = unreachableFrom.get(f.side);
       const victimMoved = !!prev && (
         to.z != null && prev.victimZ != null

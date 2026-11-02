@@ -667,6 +667,36 @@ export function grantPetLevelTrainingPoints(
   return { ...pet, trainingPoints: (pet.trainingPoints ?? 0) + gain };
 }
 
+const PET_UNTRAIN_DAY_MS = 24 * 60 * 60 * 1000;
+
+// Next pet-untrain fee in copper, Pet::resetTalentsCost: 10s, then 50s, then 1g, then +1g to a 10g
+// cap; a day since the last untrain drops it back to 10s. Cite: Pet.cpp resetTalentsCost.
+export function petUntrainCost(pet: PetState, nowMs: number): number {
+  const prev = pet.resetTalentsCost ?? 0;
+  const days = Math.floor((nowMs - (pet.resetTalentsTime ?? 0)) / PET_UNTRAIN_DAY_MS);
+  if (prev < 1000 || days > 0) return 1000;
+  if (prev < 5000) return 5000;
+  if (prev < 10000) return 10000;
+  return Math.min(100000, prev + 10000);
+}
+
+// HandlePetUnlearnOpcode: every taught ability goes and TP resets to level × (loyalty − 1). The innate
+// kit is the creature's here (petKnownSpells reads petDefaultSpells), so it stays and keeps its tame
+// charge, where CMaNGOS unlearns it too. Cite: PetHandler.cpp HandlePetUnlearnOpcode; Pet.cpp SetTP.
+export function untrainPetState(pet: PetState, cdef: CreatureDef, petLevel: number, ds: DataStore): PetState {
+  const innate = pet.innateKit ?? cdef.petDefaultSpells ?? [];
+  const loyalty = pet.loyalty ?? LOYALTY_REBELLIOUS;
+  const { autocastOff, ...rest } = pet;
+  const keptOff = (autocastOff ?? []).filter((id) => innate.some((k) => ds.spell(k)?.name === ds.spell(id)?.name));
+  return {
+    ...rest,
+    ...(keptOff.length ? { autocastOff: keptOff } : {}),
+    loyalty,
+    taughtSpells: [],
+    trainingPoints: petLevel * (loyalty - 1) - tpSpentOnKnown(innate, ds),
+  };
+}
+
 // Abilities the active pet can cast: the innate kit plus taught ranks, intersected with the
 // creature's petSpells, highest LEVEL-ELIGIBLE rank per name. Generic-line passives are excluded.
 export function petKnownSpells(char: Character, cdef: CreatureDef, ds: DataStore): SpellDef[] {
@@ -863,6 +893,7 @@ export function newPet(creature: number, ds: DataStore, char: Character): PetSta
     // Training repertoire are taught per-pet for TP (game.teachPetSpell).
     taughtSpells: [],
     teachSpells,
+    innateKit: [...innate],
   };
 }
 

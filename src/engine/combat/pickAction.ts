@@ -2074,12 +2074,19 @@ export function installPickAction(ctx: CombatContext, deps: installPickActionDep
       return auraCovered(targetSubj.debuffs, id);
     };
 
+    // A living foe that still holds this unit on its threat list means the fight is on, whatever the
+    // 5 s combat timer says. A Razormane Scout that stopped shooting let the timer lapse on the shaman
+    // it held, and an "out of combat" rotation re-armed its opener and waited for ever on an out-of-
+    // range Flame Shock. Session time stands in for combat time: the opener is long over.
+    const flagged = fighterIsInCombat(f, t);
+    const held = !flagged && hostiles.some((e) => !dead(e) && threatOf(e)?.hasThreat(f.side) === true);
+
     return {
       self: selfSubj,
       target: targetSubj,
       pet: petSubj,
-      inCombat: fighterIsInCombat(f, t),
-      combatTimeMs: fighterCombatTimeMs(f, t),
+      inCombat: flagged || held,
+      combatTimeMs: held ? t : fighterCombatTimeMs(f, t),
       sessionMs: t,
       enemyCount: hostiles.length,
       ...(enemyDists ? { enemyDists } : {}),

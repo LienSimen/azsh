@@ -195,6 +195,9 @@ export interface PetState {
   loyaltyPoints?: number;
   /** Unspent training points for pet-trainer abilities. */
   trainingPoints?: number;
+  // Pet untrain fee ladder: the last fee paid (copper) and when (epoch ms). Pet::m_resetTalentsCost/Time.
+  resetTalentsCost?: number;
+  resetTalentsTime?: number;
   /** Owner XP remaining before the next loyalty level-up is allowed (SetRequiredXpForNextLoyaltyLevel). */
   loyaltyXpRequired?: number;
   // Ability ids the player right-click-disabled on the pet bar, rank-agnostic by name chain.
@@ -206,6 +209,9 @@ export interface PetState {
   // Hunter pets: innate ability ids the OWNER can still learn from this pet, each cast rolling 10%
   // to enter the Beast Training repertoire. Mirrors Pet::m_teachspells.
   teachSpells?: number[];
+  // Hunter pets: the innate kit its tame charged training points for (InitPetCreateSpells). Absent on
+  // a pet tamed while the bake still handed every beast rank 1 of each family chain.
+  innateKit?: number[];
   // Pet bar command: 'follow' (default) or 'stay'. 'attack' is a one-shot order and is never stored. Cite:
   // Unit.h:819-824 CommandStates; PetActionBarFrame.lua PET_FOLLOW/PET_WAIT.
   command?: 'follow' | 'stay';
