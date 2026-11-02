@@ -6,8 +6,22 @@ if (major < 22 || (major === 22 && minor < 18)) {
   console.error(`azsh needs Node 22.18 or newer (found ${process.versions.node}).`);
   process.exit(1);
 }
-await import('../src/cli/register.mjs');
 const argv = process.argv.slice(2);
+if (argv.includes('--art')) {
+  // Fetch the full-size art up front instead of waiting for the in-game offer; says what and from where first.
+  const { hdManifest, missingHdBytes, downloadHdArt, downloadDir } = await import('../src/cli/hdArt.mjs');
+  const m = hdManifest(), bytes = missingHdBytes();
+  if (!m) { console.error('This build has no art manifest.'); process.exit(1); }
+  if (!bytes) { console.log(`The full-size art is all here (${downloadDir()}).`); process.exit(0); }
+  console.log(`Fetching ${Math.round(bytes / 1e6)} MB of full-size art (${m.files.length} files, sha256-checked)\n  from ${m.base}\n  into ${downloadDir()}`);
+  const res = await downloadHdArt((done, total) => {
+    if (process.stdout.isTTY) process.stdout.write(`\r  ${Math.round(done / 1e6)} of ${Math.round(total / 1e6)} MB`);
+  });
+  if (process.stdout.isTTY) process.stdout.write('\n');
+  console.log(res.ok ? 'Done. A sixel terminal now draws creatures, characters and icons in real pixels.' : `Stopped: ${res.reason}`);
+  process.exit(res.ok ? 0 : 1);
+}
+await import('../src/cli/register.mjs');
 const wantRepl = argv.includes('--repl') || (!argv.includes('--tui') && (!process.stdin.isTTY || !process.stdout.isTTY));
 if (wantRepl) {
   const { main } = await import('../src/cli/repl.mjs');

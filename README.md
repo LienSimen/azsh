@@ -23,10 +23,18 @@ front end. No graphics, no browser, no build step.
 ## Install
 
 ```sh
-npx azeroth-shell             # run it straight from npm
+npx azeroth-shell                  # run it straight from npm
 npm install -g azeroth-shell  # or install it once, then:
-azeroth-shell                 # pick a character or roll one (azsh for short)
+azeroth-shell                         # or just azsh
+azeroth-shell --art                 # optional: fetch the full-size art (73 MB) now instead of when asked
 ```
+
+The package is the whole game. The one extra download is the full-size art, which only terminals
+that draw sixel images use. It never comes down on its own: on such a terminal azsh asks first,
+showing the size and the folder, or you fetch it with `--art` (that also works through
+`npx azeroth-shell --art`). It comes from this repo's `art-1` GitHub release, and every file is
+checked against the sha256 in `src/data/hd-art.json` before it is used. You don't need to know
+beforehand whether your terminal draws sixel, because azsh checks that itself.
 
 From a checkout: `npm install -g .` or `node bin/azsh.mjs`.
 
@@ -300,8 +308,20 @@ companion's page shows them the same way. It is truecolour half-block art baked 
 models; a terminal without 24-bit colour shows it in the nearest colours it has.
 
 A terminal that draws sixel images (Windows Terminal 1.22+, WezTerm, foot, iTerm2; VS Code with
-`terminal.integrated.enableImages`) gets every creature, every character in their gear and every
+`terminal.integrated.enableImages`) can draw every creature, every character in their gear and every
 icon in real pixels instead. azsh asks the terminal at start.
+
+The full-size art for that is not in the npm package: it is about 73 MB, too much to ship to every
+terminal that cannot draw it. When azsh finds a sixel terminal without it, it offers to download it
+from the project's GitHub release into `~/.azsh/art/`. Each file is checked against a sha256 the
+package carries. Answer "Not now" and it asks again next run; "Never ask" stops the prompt. `azsh --art` fetches it
+from the shell without starting the game. Until the
+art is there, the half-block art stays.
+
+| Command | Does |
+| --- | --- |
+| `:art` | say whether this terminal draws sixel and whether the full-size art is here |
+| `:art download` | fetch the full-size art now (progress on the hint row, the screen redraws when done) |
 
 ![The same hero on the create screen: half-block art on the left, sixel on the right](media/art-compare.png)
 
@@ -309,6 +329,7 @@ icon in real pixels instead. azsh asks the terminal at start.
 | --- | --- |
 | `AZSH_SIXEL=0` | keep the half-block art |
 | `AZSH_SIXEL=1` | turn sixel on for a terminal that does not say |
+| `AZSH_ART_DIR` | read the full-size art from (and download it to) this folder instead |
 | `AZSH_HOME` | move the save folder (default `~/.azsh`) |
 
 ## Line mode and saves
