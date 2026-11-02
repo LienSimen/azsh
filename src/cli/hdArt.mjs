@@ -1,5 +1,5 @@
 // The full-size art sixel draws (sixel.mjs, modelArt.mjs): creature sprites, icons and one gear file per body,
-// about 72 MB, too much to ship to every terminal that cannot draw it. The package carries only the manifest
+// about 179 MB, too much to ship to every terminal that cannot draw it. The package carries only the manifest
 // (src/data/hd-art.json: the release tag, and each file's name, size and sha256); the files are assets of that
 // GitHub release, fetched on request into ~/.azsh/art/<tag>/ and checked against the manifest.
 //

@@ -30,6 +30,8 @@
     "src/",
     "!src/data/*-hd.bin.br",
     "!src/data/gear-art-hd/",
+    "!src/data/*.only.bin.br",
+    "!src/data/gear-art-hd.only/",
     "docs/"
   ],
   "engines": {
@@ -41,9 +43,10 @@
     "check": "node --import ./src/cli/register.mjs src/cli/bootCheck.mjs",
     "data:pack": "node scripts/pack-data.mjs",
     "data:unpack": "node scripts/pack-data.mjs --unpack",
-    "art:bake": "node scripts/bake-model-art.mjs",
+    "art:bake": "node scripts/bake-model-art.mjs && node scripts/bake-model-art.mjs --worn",
     "art:gear": "python scripts/bake-gear-art.py",
     "art:icons": "node scripts/bake-icon-art.mjs",
+    "art:map": "node scripts/bake-world-map.mjs && node scripts/bake-world-map.mjs --sixel",
     "art:hd": "node scripts/bake-model-art.mjs --hd && node scripts/bake-icon-art.mjs --hd && python scripts/bake-gear-art.py --hd",
     "art:publish": "node scripts/publish-hd-art.mjs",
     "build:exe": "node scripts/build-exe.mjs",

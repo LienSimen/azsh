@@ -5,3 +5,6 @@ dist/
 src/data/*-hd.bin.br
 src/data/gear-art-hd/
 media/rec/
+src/data/*.only.bin.br
+src/data/gear-art-hd.only/
+__pycache__/

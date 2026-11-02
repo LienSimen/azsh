@@ -8,7 +8,7 @@
 import { readFileSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import { useColor, vis, wrapLines } from './text.mjs';
-import { sixelIconCells } from './sixel.mjs';
+import { sixelIconCells, sixelOn } from './sixel.mjs';
 
 const PACK_URL = new URL('../data/icon-art.bin.gz', import.meta.url);
 const SIZES = [8, 6, 4];
@@ -92,6 +92,16 @@ export function iconCells(name, cols = 4, tone = '', holes = []) {
  */
 export function iconArt(name, cols = 4, tone = '') {
   return iconCells(name, cols, tone)?.map((row) => row.join('')) ?? null;
+}
+
+/**
+ * A one-line icon two cells wide and a space, to lead a line of text in a list (what someone wears, a
+ * quest's rewards). Only where the terminal draws sixel: as half-block cells it would be a smudge of colour,
+ * so there it is ''. A name with no art keeps the column with blanks.
+ */
+export function miniIcon(name) {
+  if (!sixelOn()) return '';
+  return `${iconArt(name, 2)?.[0] ?? '  '} `;
 }
 
 /** A blank the size of an icon, for rows in a list that mixes icons and none. */

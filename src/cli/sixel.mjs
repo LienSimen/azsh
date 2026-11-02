@@ -9,8 +9,9 @@
 //
 // The pixels come from model-art-hd.bin.br (scripts/bake-model-art.mjs --hd): the same sprites as the
 // half-block pack at the renders' own size, up to 128 px wide; icons from icon-art-hd.bin.br. Neither ships in
-// the package: hdArt.mjs finds them (downloaded, or a checkout's bake). No pack, no sprite, or no sixel: null,
-// and the caller draws the half-block art. AZSH_SIXEL=0 turns it off, AZSH_SIXEL=1 on without asking.
+// the package: hdArt.mjs finds them (downloaded, or a checkout's bake). model-art-worn.bin.br does ship: the
+// forms and costumes a player wears, read for any sprite the hd pack lacks. No pack, no sprite, or no sixel:
+// null, and the caller draws the half-block art. AZSH_SIXEL=0 turns it off, AZSH_SIXEL=1 on without asking.
 import { readFileSync } from 'node:fs';
 import { brotliDecompressSync } from 'node:zlib';
 import { useColor } from './text.mjs';
@@ -36,35 +37,46 @@ export function noteDeviceAttributes(params) {
 export function noteCellSize(h, w) {
   if (h > 0 && w > 0) { cellH = h; cellW = w; }
 }
+/** The cell in pixels, { w, h }: what a caller fitting its own picture to a pane sizes by. */
+export const cellSize = () => ({ w: cellW, h: cellH });
 
 // ---- the source images ------------------------------------------------------------------------------
 
-let index = null; // displayId -> byte offset of the sprite in `pack` (the half-block pack's layout, AZART v1)
-let pack = null;
+const WORN_URL = new URL('../data/model-art-worn.bin.br', import.meta.url);
+let index = null; // displayId -> { pack, off }: the sprite's bytes (the half-block pack's layout, AZART v1)
+
+/** Index one pack's sprites; an id already indexed keeps the pack it came from. */
+function indexPack(file) {
+  try {
+    const pack = brotliDecompressSync(readFileSync(file));
+    if (pack.toString('ascii', 0, 5) !== 'AZART' || pack[5] !== 1) return;
+    const count = pack.readUInt32LE(6);
+    let off = 10;
+    for (let i = 0; i < count && off + 7 <= pack.length; i++) {
+      const id = pack.readUInt32LE(off);
+      if (!index.has(id)) index.set(id, { pack, off });
+      off += 7 + pack[off + 6] * 3 + pack[off + 4] * pack[off + 5];
+    }
+  } catch { /* no pack: its sprites draw half-block */ }
+}
 
 function load() {
   if (index) return index;
   index = new Map();
-  try {
-    pack = brotliDecompressSync(readFileSync(hdArtPath('model-art-hd.bin.br')));
-    if (pack.toString('ascii', 0, 5) !== 'AZART' || pack[5] !== 1) return index;
-    const count = pack.readUInt32LE(6);
-    let off = 10;
-    for (let i = 0; i < count && off + 7 <= pack.length; i++) {
-      index.set(pack.readUInt32LE(off), off);
-      off += 7 + pack[off + 6] * 3 + pack[off + 4] * pack[off + 5];
-    }
-  } catch { pack = null; }
+  const hd = hdArtPath('model-art-hd.bin.br');
+  if (hd) indexPack(hd);
+  indexPack(WORN_URL);
   return index;
 }
 
 /** Forget the packs (and what was missing) so the next draw reads them again: after a download. */
-export function forgetSixelPacks() { index = pack = iconIndex = iconPack = null; images.clear(); byKey.clear(); }
+export function forgetSixelPacks() { index = iconIndex = iconPack = null; images.clear(); byKey.clear(); }
 
 /** The sprite for a display id as { w, h, rgba } (already cropped to its opaque box), or null. */
 function sourceOf(displayId) {
-  const off = load().get(displayId);
-  if (off == null) return null;
+  const at = load().get(displayId);
+  if (!at) return null;
+  const { pack, off } = at;
   const w = pack[off + 4], h = pack[off + 5], palLen = pack[off + 6], pal = off + 7, idx = pal + palLen * 3;
   const rgba = new Uint8Array(w * h * 4);
   for (let i = 0; i < w * h; i++) {

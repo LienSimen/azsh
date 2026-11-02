@@ -175,18 +175,21 @@ const gearHd = new Map(); // slug -> { buf, pal, canvas, skins, overlays } or nu
 export function forgetHdArt() { forgetSixelPacks(); gearHd.clear(); cache.clear(); }
 
 /** A body's hd file (scripts/bake-gear-art.py --hd): its palette, then the body section the small pack has
- *  for it. Read the first time the body is drawn; about 11 MB each once unpacked. */
+ *  for it. Version 1 (a release's 128 px bodies) holds the canvas and each x y w h in a byte, version 2 (256 px,
+ *  past a byte) in a u16. Read the first time the body is drawn. */
 function gearBodyHd(slug) {
   if (gearHd.has(slug)) return gearHd.get(slug);
   let body = null;
   try {
     const buf = brotliDecompressSync(readFileSync(hdArtPath(`gear-art-hd/${slug}.bin.br`)));
-    if (buf.toString('ascii', 0, 7) === 'AZGEARB' && buf[7] === 1) {
+    const version = buf[7];
+    if (buf.toString('ascii', 0, 7) === 'AZGEARB' && (version === 1 || version === 2)) {
       let off = 8;
+      const n = version === 2 ? 2 : 1, num = (o) => (n === 2 ? buf.readUInt16LE(o) : buf[o]);
       const palLen = buf[off++];
       const pal = buf.subarray(off, off + palLen * 3); off += palLen * 3;
       off += 1 + buf[off]; // the slug again
-      const canvas = buf[off++];
+      const canvas = num(off); off += n;
       body = { buf, pal, canvas, skins: new Map(), overlays: new Map() };
       const skinCount = buf[off++];
       for (let i = 0; i < skinCount; i++) { body.skins.set(buf[off], off + 1); off += 1 + canvas * canvas; }
@@ -194,7 +197,7 @@ function gearBodyHd(slug) {
       for (let i = 0; i < ovCount; i++) {
         const keyLen = buf[off++];
         const key = buf.toString('ascii', off, off + keyLen); off += keyLen;
-        const x = buf[off], y = buf[off + 1], w = buf[off + 2], h = buf[off + 3]; off += 4;
+        const x = num(off), y = num(off + n), w = num(off + 2 * n), h = num(off + 3 * n); off += 4 * n;
         body.overlays.set(key, { off, x, y, w, h });
         off += w * h;
       }

@@ -3,7 +3,7 @@
 // draws as half-block cells. Dev only; needs ffmpeg on PATH to decode the webp.
 //
 //   node scripts/bake-model-art.mjs [--src D:/projects/phonecraft/public/portraits/creature]
-//                                   [--bodies D:/projects/phonecraft/datadump/paperdoll-renders/base] [--all] [--hd]
+//                                   [--bodies D:/projects/phonecraft/datadump/paperdoll-renders/base] [--all] [--hd] [--worn]
 //
 // Default: every display id a huntable, dungeon, quest or raid creature uses, and every person a zone lists
 // (trainers, vendors, innkeepers, flight masters, riding instructors). --all bakes every display id
@@ -13,6 +13,10 @@
 //
 // --hd bakes the same sprites at their full size (at most 128x254 px, 255 colours each) into
 // src/data/model-art-hd.bin.br, brotli: the pack sixel.mjs draws as real pixels where the terminal can.
+//
+// --worn bakes only the models a player can wear (wornDisplayIds), full size like --hd, into
+// src/data/model-art-worn.bin.br. It ships in the package, so a form or costume draws sharp under sixel
+// even when the downloaded hd pack (pinned to a release) predates it; sixel.mjs reads it where that one has no sprite.
 //
 // Pack: "AZART" u8 version u32 count, then per sprite u32 displayId u8 w u8 h u8 palLen, palLen*3 palette
 // bytes, w*h palette indices (0 = transparent, n = palette[n-1]).
@@ -29,8 +33,9 @@ const args = process.argv.slice(2);
 const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; };
 const SRC = opt('--src', 'D:/projects/phonecraft/public/portraits/creature');
 const BODIES = opt('--bodies', 'D:/projects/phonecraft/datadump/paperdoll-renders/base');
-const HD = args.includes('--hd');
-const OUT = join(ROOT, HD ? 'src/data/model-art-hd.bin.br' : 'src/data/model-art.bin.gz');
+const WORN = args.includes('--worn');
+const HD = WORN || args.includes('--hd');
+const OUT = join(ROOT, WORN ? 'src/data/model-art-worn.bin.br' : HD ? 'src/data/model-art-hd.bin.br' : 'src/data/model-art.bin.gz');
 // Native display id -> paperdoll base body (race-gender). Cite: displayForm.ts NATIVE_DISPLAY, gender 0 = male.
 const PLAYER_BODIES = {
   49: 'human-male', 50: 'human-female', 51: 'orc-male', 52: 'orc-female', 53: 'dwarf-male', 54: 'dwarf-female',
@@ -64,6 +69,25 @@ function wantedDisplayIds() {
   const ids = new Set();
   for (const e of entries) { const c = byEntry.get(e); if (c?.displayId) ids.add(c.displayId); }
   console.error(`${entries.size} creature entries reachable, ${ids.size} display ids`);
+  return ids;
+}
+
+// Every model the player's sprite can turn into (displayForm.ts wornDisplay): each shapeshift form for both
+// factions, the Orb of Deception's opposite-faction bodies, and the creature behind every transform aura
+// (aura 56: costumes, disguises, Noggenfogger, Polymorph and Hex, baked as a `transform` effect or only raw).
+async function wornDisplayIds() {
+  const byEntry = new Map(rows(table('creatures.json.gz')).map((c) => [c.entry, c]));
+  const { formDisplayId } = await import('../src/domain/character/forms.ts');
+  const { nativeDisplayId, orbOfDeceptionDisplayId } = await import('../src/domain/character/displayForm.ts');
+  const ids = new Set();
+  for (let form = 1; form < 32; form++) for (const faction of ['alliance', 'horde']) ids.add(formDisplayId(form, faction));
+  for (const race of [1, 2, 3, 4, 5, 6, 7, 8]) for (const gender of [0, 1]) ids.add(orbOfDeceptionDisplayId(nativeDisplayId(race, gender)));
+  const { spells } = JSON.parse(gunzipSync(readFileSync(join(ROOT, 'src/data/spell-data.json.gz'))).toString('utf8'));
+  for (const s of spells) {
+    for (const e of s.effects ?? []) if (e.kind === 'transform') ids.add(byEntry.get(e.creatureEntry)?.displayId);
+    for (const r of s.rawEffects ?? []) if ((r.auraName | 0) === 56) ids.add(byEntry.get(r.miscValue | 0)?.displayId);
+  }
+  ids.delete(0); ids.delete(undefined);
   return ids;
 }
 
@@ -153,8 +177,10 @@ async function bake(id, file) {
 
 // One job per display id; a player body wins over a creature render with the same id.
 const jobs = new Map();
-for (const id of wantedDisplayIds()) jobs.set(id, join(SRC, `${id}.webp`));
-for (const [id, slug] of Object.entries(PLAYER_BODIES)) jobs.set(+id, join(BODIES, `${slug}.png`));
+const worn = await wornDisplayIds();
+console.error(`${worn.size} models a player can wear (forms, costumes, transforms)`);
+for (const id of WORN ? worn : new Set([...wantedDisplayIds(), ...worn])) jobs.set(id, join(SRC, `${id}.webp`));
+if (!WORN) for (const [id, slug] of Object.entries(PLAYER_BODIES)) jobs.set(+id, join(BODIES, `${slug}.png`));
 const parts = [];
 let missing = 0, done = 0;
 const queue = [...jobs.entries()];
