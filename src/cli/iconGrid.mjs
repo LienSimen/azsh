@@ -8,19 +8,22 @@ import { iconCells } from './iconArt.mjs';
 const RESET = '\x1b[0m';
 const SGR_RE = /\x1b\[[0-9;]*m/g;
 
-/** A painted string split into one string per visible column, each carrying the paint open at it. */
+/** A painted string split into one string per visible column, each carrying the paint open at it. A sixel
+ *  marker (sixel.mjs) is no paint: it rides on the next cell only. */
 export function splitCells(s) {
   const out = [];
-  let open = '';
+  let open = '', mark = '';
   const str = String(s);
   let i = 0;
   while (i < str.length) {
     if (str[i] === '\x1b') {
       SGR_RE.lastIndex = i;
       const m = SGR_RE.exec(str);
+      if (m && m.index === i && m[0].startsWith('\x1b[9999;')) { mark += m[0]; i += m[0].length; continue; }
       if (m && m.index === i) { open = m[0] === RESET || m[0] === '\x1b[m' ? '' : open + m[0]; i += m[0].length; continue; }
     }
-    out.push(open ? `${open}${str[i]}${RESET}` : str[i]);
+    out.push(mark + (open ? `${open}${str[i]}${RESET}` : str[i]));
+    mark = '';
     i++;
   }
   return out;
@@ -52,7 +55,8 @@ const EMPTY_BG = '48;2;34;34;38';
  */
 export function drawCell(cv, x, y, s, { icon, tone = '', frame = '90', selected = false, empty = '', badge = null, mark = null } = {}) {
   const rows = s / 2;
-  const art = icon ? iconCells(icon, s, tone) : null;
+  const holes = [badge?.text && { x: s - badge.text.length, y: rows - 1, w: badge.text.length }, mark?.text && { x: s - mark.text.length, y: 0, w: mark.text.length }].filter(Boolean);
+  const art = icon ? iconCells(icon, s, tone, holes) : null;
   for (let dy = 0; dy < rows; dy++) {
     cv.put(x, y + dy, selected ? paint('1;97', '▐') : paint(frame, '▕'));
     cv.put(x + s + 1, y + dy, selected ? paint('1;97', '▌') : paint(frame, '▏'));

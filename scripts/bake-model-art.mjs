@@ -3,7 +3,7 @@
 // draws as half-block cells. Dev only; needs ffmpeg on PATH to decode the webp.
 //
 //   node scripts/bake-model-art.mjs [--src D:/projects/phonecraft/public/portraits/creature]
-//                                   [--bodies D:/projects/phonecraft/datadump/paperdoll-renders/base] [--all]
+//                                   [--bodies D:/projects/phonecraft/datadump/paperdoll-renders/base] [--all] [--hd]
 //
 // Default: every display id a huntable, dungeon, quest or raid creature uses, and every person a zone lists
 // (trainers, vendors, innkeepers, flight masters, riding instructors). --all bakes every display id
@@ -11,12 +11,15 @@
 // native CreatureDisplayInfo ids (displayForm.ts NATIVE_DISPLAY), so a character draws like any creature.
 // Each sprite is cropped to its opaque box and area-sampled to at most 28x56 px.
 //
+// --hd bakes the same sprites at their full size (at most 128x254 px, 255 colours each) into
+// src/data/model-art-hd.bin.br, brotli: the pack sixel.mjs draws as real pixels where the terminal can.
+//
 // Pack: "AZART" u8 version u32 count, then per sprite u32 displayId u8 w u8 h u8 palLen, palLen*3 palette
 // bytes, w*h palette indices (0 = transparent, n = palette[n-1]).
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { gunzipSync, gzipSync } from 'node:zlib';
+import { gunzipSync, gzipSync, brotliCompressSync, constants as zlibConstants } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -26,15 +29,18 @@ const args = process.argv.slice(2);
 const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; };
 const SRC = opt('--src', 'D:/projects/phonecraft/public/portraits/creature');
 const BODIES = opt('--bodies', 'D:/projects/phonecraft/datadump/paperdoll-renders/base');
-const OUT = join(ROOT, 'src/data/model-art.bin.gz');
+const HD = args.includes('--hd');
+const OUT = join(ROOT, HD ? 'src/data/model-art-hd.bin.br' : 'src/data/model-art.bin.gz');
 // Native display id -> paperdoll base body (race-gender). Cite: displayForm.ts NATIVE_DISPLAY, gender 0 = male.
 const PLAYER_BODIES = {
   49: 'human-male', 50: 'human-female', 51: 'orc-male', 52: 'orc-female', 53: 'dwarf-male', 54: 'dwarf-female',
   55: 'nightelf-male', 56: 'nightelf-female', 57: 'undead-male', 58: 'undead-female', 59: 'tauren-male', 60: 'tauren-female',
   1563: 'gnome-male', 1564: 'gnome-female', 1478: 'troll-male', 1479: 'troll-female',
 };
-// 28 px is as wide as any pane draws a sprite; 127 colours a sprite keeps the pack near 3 MB.
-const MAX_W = 28, MAX_H = 56, MAX_COLORS = 127, PARALLEL = 8;
+// 28 px is as wide as any pane draws a sprite; 127 colours a sprite keeps the pack near 3 MB. The hd pack
+// keeps the renders' own pixels; a size is a byte in the pack and a height rounds up to even, so 254.
+const [MAX_W, MAX_H, MAX_COLORS] = HD ? [128, 254, 255] : [28, 56, 127];
+const PARALLEL = 8;
 
 const table = (f) => JSON.parse(gunzipSync(readFileSync(join(ROOT, 'src/data/tables', f))).toString('utf8'));
 const rows = (t) => (Array.isArray(t) ? t : Object.values(t));
@@ -163,6 +169,6 @@ parts.sort((a, b) => a.readUInt32LE(0) - b.readUInt32LE(0));
 const header = Buffer.alloc(10);
 header.write('AZART', 0, 'ascii'); header[5] = 1; header.writeUInt32LE(parts.length, 6);
 const raw = Buffer.concat([header, ...parts]);
-const gz = gzipSync(raw, { level: 9 });
+const gz = HD ? brotliCompressSync(raw, { params: { [zlibConstants.BROTLI_PARAM_QUALITY]: 11, [zlibConstants.BROTLI_PARAM_LGWIN]: 24, [zlibConstants.BROTLI_PARAM_SIZE_HINT]: raw.length } }) : gzipSync(raw, { level: 9 });
 writeFileSync(OUT, gz);
-console.error(`${parts.length} sprites (${missing} without a render), ${(raw.length / 1e6).toFixed(1)} MB raw, ${(gz.length / 1e6).toFixed(2)} MB gzipped -> ${OUT}`);
+console.error(`${parts.length} sprites (${missing} without a render), ${(raw.length / 1e6).toFixed(1)} MB raw, ${(gz.length / 1e6).toFixed(2)} MB ${HD ? 'brotli' : 'gzipped'} -> ${OUT}`);

@@ -28,6 +28,8 @@
   "files": [
     "bin/",
     "src/",
+    "!src/data/*-hd.bin.br",
+    "!src/data/gear-art-hd/",
     "docs/"
   ],
   "engines": {
@@ -42,6 +44,8 @@
     "art:bake": "node scripts/bake-model-art.mjs",
     "art:gear": "python scripts/bake-gear-art.py",
     "art:icons": "node scripts/bake-icon-art.mjs",
+    "art:hd": "node scripts/bake-model-art.mjs --hd && node scripts/bake-icon-art.mjs --hd && python scripts/bake-gear-art.py --hd",
+    "art:publish": "node scripts/publish-hd-art.mjs",
     "build:exe": "node scripts/build-exe.mjs",
     "check:tui": "node --import ./src/cli/register.mjs src/cli/tuiCheck.mjs",
     "check:pipe": "node scripts/tui-pipe-check.mjs",

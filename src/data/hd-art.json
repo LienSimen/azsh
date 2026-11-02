@@ -1,0 +1,114 @@
+{
+  "tag": "art-1",
+  "base": "https://github.com/LienSimen/azsh/releases/download/art-1/",
+  "files": [
+    {
+      "name": "model-art-hd.bin.br",
+      "path": "model-art-hd.bin.br",
+      "size": 19637101,
+      "sha256": "347fffd9272586dff2eeec7b6763ae0814701906fdcb3bb6217046130240acc8"
+    },
+    {
+      "name": "icon-art-hd.bin.br",
+      "path": "icon-art-hd.bin.br",
+      "size": 5183379,
+      "sha256": "e92bb1e7fe58c1d5a13628cdd12beccf7254c9929dee216b773103452abb6bab"
+    },
+    {
+      "name": "gear-art-hd-dwarf-female.bin.br",
+      "path": "gear-art-hd/dwarf-female.bin.br",
+      "size": 3065094,
+      "sha256": "1c04ccce7f4c1ad24e2e437ca55a2081ad6eb2c589c2da8f05df36127d9729ca"
+    },
+    {
+      "name": "gear-art-hd-dwarf-male.bin.br",
+      "path": "gear-art-hd/dwarf-male.bin.br",
+      "size": 4447262,
+      "sha256": "7e1ff7f3a2f968034f14d53013d4e46c399314c9d3b9a2a242714a4d56b5a179"
+    },
+    {
+      "name": "gear-art-hd-gnome-female.bin.br",
+      "path": "gear-art-hd/gnome-female.bin.br",
+      "size": 3285698,
+      "sha256": "ddac7efdc36cc003ebb34b4811bfe49c86a6bad6c35fb7bb312fc2ad31054f11"
+    },
+    {
+      "name": "gear-art-hd-gnome-male.bin.br",
+      "path": "gear-art-hd/gnome-male.bin.br",
+      "size": 3748025,
+      "sha256": "3ba3e446a654ab2e2a394f60ea7e7d38d66991d1252e318d4e5060bbdf5a4357"
+    },
+    {
+      "name": "gear-art-hd-human-female.bin.br",
+      "path": "gear-art-hd/human-female.bin.br",
+      "size": 2183524,
+      "sha256": "036193451db30ed95cca8120158d5dc494c2210420f53835ba9bad3bcdd2887f"
+    },
+    {
+      "name": "gear-art-hd-human-male.bin.br",
+      "path": "gear-art-hd/human-male.bin.br",
+      "size": 2869717,
+      "sha256": "97fbd6604dec28c8bb68e6e301b1acc2f628a52d831a7c6f3cac3f7eab6d6883"
+    },
+    {
+      "name": "gear-art-hd-nightelf-female.bin.br",
+      "path": "gear-art-hd/nightelf-female.bin.br",
+      "size": 2000472,
+      "sha256": "321f9303ac0e48e71d09e1169a7f4f95e4c747012399da070b42d77e8a33920a"
+    },
+    {
+      "name": "gear-art-hd-nightelf-male.bin.br",
+      "path": "gear-art-hd/nightelf-male.bin.br",
+      "size": 2799028,
+      "sha256": "e9bbcedefb814729f746ae24bc80031627babf6c9bf89fe67ae6fc0783e3f420"
+    },
+    {
+      "name": "gear-art-hd-orc-female.bin.br",
+      "path": "gear-art-hd/orc-female.bin.br",
+      "size": 2639880,
+      "sha256": "65675608a4ef58ab0d19b79f712ce94c994ddadfa72371ec0503e83f1a6dc89f"
+    },
+    {
+      "name": "gear-art-hd-orc-male.bin.br",
+      "path": "gear-art-hd/orc-male.bin.br",
+      "size": 4227013,
+      "sha256": "09bf8130c09719ed0117b507f7baac3fa252bcfe189d2518cb4c4ad24042eff1"
+    },
+    {
+      "name": "gear-art-hd-tauren-female.bin.br",
+      "path": "gear-art-hd/tauren-female.bin.br",
+      "size": 2699924,
+      "sha256": "94cd59aad17351f3d44c338943f61143355f092e5a7a7961055fd46980a8c334"
+    },
+    {
+      "name": "gear-art-hd-tauren-male.bin.br",
+      "path": "gear-art-hd/tauren-male.bin.br",
+      "size": 3810060,
+      "sha256": "b0bd1bd0bdbc6d99846d9969d0136c7ca71fc70150527759cc3b424f1e5cbb33"
+    },
+    {
+      "name": "gear-art-hd-troll-female.bin.br",
+      "path": "gear-art-hd/troll-female.bin.br",
+      "size": 2053657,
+      "sha256": "af3a015cd97f3d37ee6401959a919254c768ea7305243251d1eaf9ffb2bcb8df"
+    },
+    {
+      "name": "gear-art-hd-troll-male.bin.br",
+      "path": "gear-art-hd/troll-male.bin.br",
+      "size": 2820001,
+      "sha256": "bef8de643988c386df9f2c125721692cfd8cda98670d6305f726c0e7f2413c3b"
+    },
+    {
+      "name": "gear-art-hd-undead-female.bin.br",
+      "path": "gear-art-hd/undead-female.bin.br",
+      "size": 2278891,
+      "sha256": "dc2dab19f7eda1af4e69a242509edc58c62a3ba0188ec28302dfa32a37d441e5"
+    },
+    {
+      "name": "gear-art-hd-undead-male.bin.br",
+      "path": "gear-art-hd/undead-male.bin.br",
+      "size": 2812557,
+      "sha256": "3a7d57acd0c824893cb346d7de782983a757b963791957311a6679b383c89545"
+    }
+  ]
+}

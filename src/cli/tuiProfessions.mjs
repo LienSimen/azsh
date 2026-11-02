@@ -752,6 +752,7 @@ export function professionsView(app) {
           const away = cr.comp?.mission?.skill === prof.id;
           return {
             text: `${cr.id ? `${fit(cr.name, 10)} ` : ''}${fit(prof.name, 15)} ${fit(`${sk.current}/${sk.max}`, 8)}${ready ? green(`${ready} ready`) : GATHER_LINES.has(prof.id) ? dim(prof.kind) : ''}${away ? yellow('  away') : ''}`,
+            icon: prof.icon, sub: dim(currentRank(cr.char, prof)?.name ?? ''),
             data: { cr, skill: prof.id },
             detail: () => profRowLines(a, cr, prof, sk, ready),
             act: () => a.push(recipeBook(a, cr.id, prof.id)),
@@ -786,13 +787,13 @@ export function professionsView(app) {
           const prof = ds.profession(t.skill);
           const sk = a.ch.skills[t.skill];
           const newOnes = sk ? ds.recipes().filter((r) => r.skill === t.skill && r.source === 'trainer' && !a.ch.knownRecipes.includes(r.id) && sk.current >= r.orange && a.ch.level >= (r.reqLevel ?? 0)).length : 0;
-          rows.push({ text: `${t.name} ${dim(`<${prof?.name ?? t.skill} Trainer>`)}${newOnes ? green(`  ${newOnes} to learn`) : ''}`, detail: () => [bold(t.name), `${prof?.name ?? t.skill} trainer`, '', dim('Enter: ranks and recipes')], act: () => a.push(profTrainerDialog(a, t)) });
+          rows.push({ text: `${t.name} ${dim(`<${prof?.name ?? t.skill} Trainer>`)}${newOnes ? green(`  ${newOnes} to learn`) : ''}`, icon: prof?.icon, sub: dim(sk ? `your skill ${sk.current}/${sk.max}` : 'not learned'), detail: () => [bold(t.name), `${prof?.name ?? t.skill} trainer`, '', dim('Enter: ranks and recipes')], act: () => a.push(profTrainerDialog(a, t)) });
         }
       }
       const books2 = [];
       g.state.inventory.stacks.forEach((s) => {
         const it = ds.item(s.item), teach = itemTeachIntent(it, ds);
-        if (teach?.kind === 'recipe' || teach?.kind === 'enchant') books2.push({ text: `${qualityPaint(it.quality)(it.name)}${s.count > 1 ? ` x${s.count}` : ''}`, detail: () => itemLines(a, it, ['', dim('Enter: pick who learns it (you or a companion with the craft)')]), act: () => teachFromItem(a, s) });
+        if (teach?.kind === 'recipe' || teach?.kind === 'enchant') books2.push({ text: `${qualityPaint(it.quality)(it.name)}${s.count > 1 ? ` x${s.count}` : ''}`, icon: it.icon, sub: dim(teach.kind), detail: () => itemLines(a, it, ['', dim('Enter: pick who learns it (you or a companion with the craft)')]), act: () => teachFromItem(a, s) });
       });
       if (books2.length) rows.push(H(''), H('Recipes in your bags'), ...books2);
       return rows;

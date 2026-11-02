@@ -6,7 +6,7 @@
 // rotation; a number key presses an ability over it for one GCD.
 import { bold, dim, cyan, yellow, green, red, gray, inverse, fit, vis, cut, bar, strip, brightBlue, itemText, orange } from './text.mjs';
 import { className } from '../domain/core/ids.ts';
-import { SIZES, youSize, foeSize, RANK_WORD, canvas, put, putLines, putRight, putCentred, floorLine } from './tuiStage.mjs';
+import { SIZES, youSize, foeSize, RANK_WORD, canvas, put, putLines, putRight, floorLine } from './tuiStage.mjs';
 import { combatDistanceYd, DEFAULT_OPEN_YD, MELEE_CONTACT_YD } from '../engine/combat/combatGeometry.ts';
 import { formatCombatLog, combatLogPlainText, POWER_MERGE_MS } from './combatLogFormat.ts';
 import { impliedDest } from './combatLogFilter.ts';
@@ -650,9 +650,9 @@ const POP_RISE_MS = 400; // a pop climbs one row every this long
 /**
  * The duel on a stage W x H (the design page's §2): you down the left with your pet beside you, the foes
  * down the right with the one you face outermost. Under each sprite sits its plate (name, level, class or
- * rank; HP; power), its state (a cast bar, crowd control, stealth) and its aura strip. Hits rise from the
- * chest, a spell crosses the gap as a glyph, the floor runs under the plates, your cast bar is centred
- * below it and the ability bar closes the scene. Returns H lines each W wide, or null when the rows leave
+ * rank; HP; power), its state (a cast bar, crowd control, stealth; a row kept even when empty, so the auras
+ * never move) and its aura strip. Hits rise from the chest, a spell crosses the gap as a glyph, the floor
+ * runs under the plates and the ability bar closes the scene. Returns H lines each W wide, or null when the rows leave
  * the sprites no room (the frames list draws instead).
  */
 function duelStage(app, ctl, W, H, { inline }) {
@@ -663,12 +663,12 @@ function duelStage(app, ctl, W, H, { inline }) {
   const plateW = barW + PLATE_PAD;
   const auraH = icons ? 3 : 1;
   // Rows the scene keeps whatever the sprites get: the plate (3), the state row, the auras and the floor.
-  // The cast row and the ability bar go when rows are short, the bar first and only under auto-play.
+  // The state row is there idle or casting, so a cast never moves the auras under it. The ability bar goes
+  // when rows are short, and only under auto-play.
   const barLines = ctl.abilityRows(W, W >= 140 ? 6 : 4, { live: !inline });
-  let barRows = barLines.length, castRow = 1;
-  const fixed = () => 3 + 1 + auraH + 1 + castRow + barRows;
+  let barRows = barLines.length;
+  const fixed = () => 3 + 1 + auraH + 1 + barRows;
   if (H - fixed() < 4 && ctl.auto) barRows = 0;
-  if (H - fixed() < 4) castRow = 0;
   const artRows = H - fixed();
   if (artRows < 4) return null;
   const rankOf = (v) => { const c = v.creatureEntry != null ? app.ds.creature(v.creatureEntry) : null; return c?.rank ?? c?.scaling?.rank ?? 0; };
@@ -726,7 +726,7 @@ function duelStage(app, ctl, W, H, { inline }) {
     }
     cols.push(foe);
   }
-  const zone = artRows, stateRow = zone + 3, auraTop = zone + 4, floorRow = auraTop + auraH, barTop = floorRow + 1 + castRow;
+  const zone = artRows, stateRow = zone + 3, auraTop = zone + 4, floorRow = auraTop + auraH, barTop = floorRow + 1;
   const c = canvas(W, H);
   for (const col of cols) {
     const v = col.v, dead = v.hp <= 0;
@@ -737,7 +737,8 @@ function duelStage(app, ctl, W, H, { inline }) {
       col.ax = col.x + Math.max(0, Math.floor((col.cw - col.aw) / 2)) + lunge; col.top = zone - col.art.length; putLines(c, col.ax, col.top, col.art);
     }
     putLines(c, col.x, zone, plateLines(app, v, { ...col, dead }));
-    const slot = col.isPlayer && castRow && v.casting ? '' : castSlot(v, now);
+    // Your cast sits where the foe's does: under the power bar, in the state row every plate keeps.
+    const slot = castSlot(v, now);
     if (slot && !dead) put(c, col.x, stateRow, cut(slot, col.plateW));
     else if (col === foe && hidden) put(c, col.x, stateRow, dim(`+${hidden} more in the fight`));
     if (!col.small && !dead) putLines(c, col.x, auraTop, auraRows(app, mem, v, col.key, col.plateW, icons));
@@ -769,7 +770,6 @@ function duelStage(app, ctl, W, H, { inline }) {
     if (name && laneRow > 0) put(c, x + (rightward ? 2 : 0), laneRow - 1, dim(cut(name, Math.max(0, b - a))));
   }
   c[floorRow] = floorLine(W, gray);
-  if (castRow && pv.casting && pv.hp > 0) putCentred(c, Math.floor(W / 2), floorRow + 1, castBarText(pv, now, Math.min(40, Math.max(16, Math.floor(W / 4)))));
   if (barRows) putLines(c, 0, barTop, barLines);
   return c.map((l) => fit(l, W));
 }
@@ -786,16 +786,6 @@ function plateLines(app, v, { isPlayer, focused, friend, small, dead, barW, plat
   const pp = POWER_PAINT[v.powerType] ?? cyan;
   const power = v.maxPower > 0 && !dead ? `${bar(v.power, v.maxPower, barW, pp)} ${pp(String(v.power))}${v.powerType !== 'mana' ? dim(` ${v.powerType}`) : ''}` : '';
   return [head, fit(hp, plateW), fit(power, plateW)];
-}
-
-/** Your cast as the bar centred under the floor: the name, a wide bar, the time left. A channel drains. */
-function castBarText(v, now, width) {
-  const total = v.casting.endsAt - v.casting.startedAt;
-  const left = Math.max(0, v.casting.endsAt - now);
-  const prog = total > 0 ? (v.casting.channeled ? left / total : 1 - left / total) : 1;
-  const filled = Math.round(Math.max(0, Math.min(1, prog)) * width);
-  const [on, off] = process.env.AZSH_ASCII ? ['=', '-'] : ['▰', '▱'];
-  return `${yellow(v.casting.name)}  ${yellow(on.repeat(filled))}${dim(off.repeat(width - filled))}  ${dim(`${(left / 1000).toFixed(1)}s`)}`;
 }
 
 /** The aura strip under a plate: short buffs then debuffs in the order they first showed up. With icons

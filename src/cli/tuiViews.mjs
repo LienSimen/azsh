@@ -224,17 +224,17 @@ export function rewardLines(app, q) {
 
 export function makeTabs(app) {
   return [
-    { label: 'World', view: worldView(app) },
-    { label: 'Quests', view: questsView(app) },
-    { label: 'Bags', view: bagsView(app) },
-    { label: 'Gear', view: gearView(app) },
-    { label: 'Spells', view: spellsView(app) },
-    { label: 'Rotation', view: rotationView(app) },
-    { label: 'Talents', view: talentsView(app) },
-    { label: 'Travel', view: travelView(app) },
-    { label: 'Professions', short: 'Profs', view: professionsView(app) },
-    { label: 'Companions', short: 'Party', view: companionsView(app) },
-    { label: 'Character', short: 'Char', view: charView(app) },
+    { label: 'World', icon: 'inv_misc_map_01', view: worldView(app) },
+    { label: 'Quests', icon: 'inv_misc_note_01', view: questsView(app) },
+    { label: 'Bags', icon: 'inv_misc_bag_08', view: bagsView(app) },
+    { label: 'Gear', icon: 'inv_chest_chain_05', view: gearView(app) },
+    { label: 'Spells', icon: 'inv_misc_book_09', view: spellsView(app) },
+    { label: 'Rotation', icon: 'ability_dualwield', view: rotationView(app) },
+    { label: 'Talents', icon: 'spell_nature_naturetouchgrow', view: talentsView(app) },
+    { label: 'Travel', icon: 'spell_nature_swiftness', view: travelView(app) },
+    { label: 'Professions', short: 'Profs', icon: 'trade_blacksmithing', view: professionsView(app) },
+    { label: 'Companions', short: 'Party', icon: 'spell_holy_prayerofhealing', view: companionsView(app) },
+    { label: 'Character', short: 'Char', icon: 'inv_misc_head_human_01', view: charView(app) },
   ];
 }
 

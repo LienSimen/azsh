@@ -30,6 +30,9 @@ import { createGame } from '../engine/game.ts';
 import { toSave } from '../persistence/saveShape.ts';
 import { className, raceName } from '../domain/core/ids.ts';
 import { characterCreation } from './tuiCreate.mjs';
+import { missingHdBytes, downloadHdArt, downloadDir } from './hdArt.mjs';
+import { forgetHdArt } from './modelArt.mjs';
+import { sixelOn } from './sixel.mjs';
 import { moneyText, coinsText } from '../domain/economy/money.ts';
 import { maxHealth, maxPower } from '../domain/character/character.ts';
 import { powerType } from '../domain/character/characterStats.ts';
@@ -122,6 +125,43 @@ export class App {
     this.lastActivity = null;
     term.onKey = (k) => { try { this.onKey(k); } catch (err) { this.say(red(`Error: ${err.message}`)); if (process.env.AZSH_DEBUG) this.say(dim(String(err.stack).split('\n').slice(1, 4).join(' '))); this.render(); } };
     term.onResize = () => this.render();
+    term.onSixel = () => setImmediate(() => this.offerHdArt());
+  }
+
+  // ---- full-size art -----------------------------------------------------------------------------
+
+  /** The terminal draws sixel and the full-size art is not here: offer it once a run, unless told never. */
+  offerHdArt() {
+    const bytes = missingHdBytes();
+    if (!bytes || this.closed || this.hdOffered || this.prefs.get('hdArt') === 'never') return;
+    this.hdOffered = true;
+    const mb = Math.round(bytes / 1e6);
+    this.pick(`Your terminal draws real pixels. Download the full-size art (${mb} MB)?`, [
+      { label: `Download now  ${dim(`${mb} MB into ${downloadDir()}`)}`, value: 'yes' },
+      { label: `Not now  ${dim('asked again next time; :art download fetches it')}`, value: 'later' },
+      { label: `Never ask  ${dim(':art download still fetches it')}`, value: 'never' },
+    ], (v) => { if (v === 'yes') this.fetchHdArt(); else if (v === 'never') this.prefs.set('hdArt', 'never'); });
+  }
+
+  /** Fetch the full-size art in the background, progress on the hint row; the screen repaints in it when done. */
+  fetchHdArt() {
+    if (this.hdFetching) return;
+    this.hdFetching = true;
+    let shown = 0;
+    this.flashMsg('Downloading the full-size art...');
+    this.render();
+    void downloadHdArt((done, total) => {
+      if (Date.now() - shown < 250) return;
+      shown = Date.now();
+      this.flashMsg(`Downloading the full-size art: ${Math.round(done / 1e6)} of ${Math.round(total / 1e6)} MB`);
+      this.render();
+    }).then((res) => {
+      this.hdFetching = false;
+      if (this.closed) return;
+      if (res.ok) { forgetHdArt(); this.flash = null; this.say(green('Full-size art downloaded: creatures, characters and icons draw in real pixels.')); this.term.refresh?.(); }
+      else this.say(red(`The art download stopped: ${res.reason}. :art download tries again.`));
+      this.render();
+    });
   }
 
   // ---- game lifecycle ---------------------------------------------------------------------------
@@ -462,6 +502,14 @@ export class App {
     const c = cmd.toLowerCase();
     if (c === 'quit' || c === 'exit' || c === 'q') { await this.quit(); return; }
     if (c === 'auto') { const m = args.match(/^(\d+)?\s*(?:farm\s+(.+))?$/i); startAutopilot(this, m?.[1] ? Number(m[1]) : Infinity, m?.[2]); return; }
+    if (c === 'art') {
+      const missing = missingHdBytes();
+      if (args.trim().toLowerCase() === 'download') { if (missing) this.fetchHdArt(); else this.say('The full-size art is all here.'); this.render(); return; }
+      const how = sixelOn() ? green('this terminal draws real pixels') : yellow('this terminal draws half-block art (no sixel)');
+      this.say(`Art: ${how}; ${missing ? `${Math.round(missing / 1e6)} MB of full-size art not downloaded (:art download)` : `full-size art in ${downloadDir()}`}.`);
+      this.render();
+      return;
+    }
     if (c === 'autoloot') {
       const want = args.trim().toLowerCase();
       if (want === 'on' || want === 'off') this.prefs.set('autoLoot', want === 'on');
@@ -572,16 +620,20 @@ export class App {
     const l1 = ` ${green('HP')} ${bar(hp, hpMax, seg, hp / Math.max(1, hpMax) < 0.25 ? red : green)} ${fit(`${hp}/${hpMax}`, 9)}`
       + ` ${(POWER_PAINT[pt] ?? cyan)(pt === 'mana' ? 'MP' : pt === 'rage' ? 'RG' : 'EN')} ${bar(pw, pwMax, seg, POWER_PAINT[pt] ?? cyan)} ${fit(`${pw}/${pwMax}`, 9)}`
       + ` ${magenta('XP')} ${bar(ch.xp, xpMax, seg, magenta)} ${dim(`${pct(ch.xp, xpMax)}%${ch.restedXp ? ' rested' : ''}`)}`;
-    // Tabs 1-9 and 0 have a digit. Short labels take over when the full ones do not fit, and inside a
-    // dialog the bar shrinks to the current tab so the breadcrumb stays readable.
+    // Tabs 1-9 and 0 have a digit, and where the terminal draws sixel a one-line icon in front while there is
+    // room (as half-block cells an icon two wide is a smudge of colour, so those get none). Short labels take
+    // over when the full ones do not fit, then the icons go, and inside a dialog the bar shrinks to the
+    // current tab so the breadcrumb stays readable.
     const digit = (i) => (i < 9 ? String(i + 1) : i === 9 ? '0' : '');
-    const tabBar = (short) => this.tabs.map((t, i) => {
+    const tabBar = (short, icons) => (icons && sixelOn() ? ' ' : '') + this.tabs.map((t, i) => {
       const label = short ? (t.short ?? t.label) : t.label, d = digit(i);
-      return i === this.tab && !this.stack.length ? inverse(` ${d ? `${d} ` : ''}${label} `) : ` ${d ? `${dim(d)} ` : ''}${label} `;
+      const art = icons && sixelOn() ? iconArt(t.icon, 2)?.[0] : null;
+      const tab = i === this.tab && !this.stack.length ? inverse(` ${d ? `${d} ` : ''}${label} `) : ` ${d ? `${dim(d)} ` : ''}${label} `;
+      return art ? `${art}${tab}` : tab;
     }).join('');
     const crumbs = this.stack.map((v) => ` › ${bold(v.title)}`).join('');
-    let tabs = tabBar(false);
-    if (vis(tabs + crumbs) > L.W) tabs = tabBar(true);
+    let tabs = tabBar(false, true);
+    for (const [short, icons] of [[true, true], [false, false], [true, false]]) if (vis(tabs + crumbs) > L.W) tabs = tabBar(short, icons);
     if (vis(tabs + crumbs) > L.W && this.stack.length) { const d = digit(this.tab); tabs = ` ${d ? `${dim(d)} ` : ''}${this.tabs[this.tab]?.label ?? ''}`; }
     const strip = this.showsRunStrip() ? [runStripLine(this, L.W)] : [];
     return [l0, l1, cut(tabs + crumbs, L.W), ...strip, dim('─'.repeat(L.W))];

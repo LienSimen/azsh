@@ -314,7 +314,7 @@ function objectRow(app, def, o) {
   const name = spawn.name ?? ds.creature(spawn.entry)?.name ?? `npc ${spawn.entry}`;
   const marks = `${quests.turnIn.length ? green(' ?') : ''}${quests.offer.length ? yellow(' !') : ''}${quests.escort.length ? cyan(' escort') : ''}`;
   return {
-    text: `${dim('☺')} ${name}${marks}`,
+    text: `${dim('•')} ${name}${marks}`,
     detail: () => [bold(name), ...quests.offer.map((q) => `${yellow('!')} ${q.title}`), ...quests.turnIn.map((q) => `${green('?')} ${q.title}`), ...quests.escort.map((q) => `${cyan('escort')} ${q.title}`), '', dim('Enter: speak with them')],
     act: () => npcDialog(app, spawn.entry, name),
   };

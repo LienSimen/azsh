@@ -2,3 +2,6 @@ node_modules/
 saves/
 *.log
 dist/
+src/data/*-hd.bin.br
+src/data/gear-art-hd/
+media/rec/

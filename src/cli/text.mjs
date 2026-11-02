@@ -53,7 +53,7 @@ export function wrapLines(text, width) {
   let open = '';
   return out.map((l) => {
     const line = open + l;
-    for (const m of l.match(SGR_RE) ?? []) open = m === '\x1b[0m' || m === '\x1b[m' ? '' : open + m;
+    for (const m of l.match(SGR_RE) ?? []) if (!m.startsWith('\x1b[9999;')) open = m === '\x1b[0m' || m === '\x1b[m' ? '' : open + m; // a sixel marker is no paint
     return open ? `${line}\x1b[0m` : line;
   });
 }

@@ -2,14 +2,17 @@
 // quest, a vendor and a trainer, pages through quest text, runs a live fight tick by tick, runs the autopilot
 // through a live fight, and edits the rotation through its menu. Run with `npm run check:tui`; pass --frames
 // to see every screen.
-import { HeadlessTerm, decodeKeys } from './term.mjs';
+import { HeadlessTerm, decodeKeys, takeMarks } from './term.mjs';
+import { noteDeviceAttributes, imageOf } from './sixel.mjs';
+import { splitCells } from './iconGrid.mjs';
+import { iconCells } from './iconArt.mjs';
 import { App } from './tui.mjs';
 import { bootDataStore } from './bootData.mjs';
 import { newGameState } from '../engine/game.ts';
-import { strip } from './text.mjs';
+import { strip, wrapLines } from './text.mjs';
 import { visibleBars } from './tuiBars.mjs';
 import { defaultConditionsForSpell } from './tuiRotationCond.mjs';
-import { creatureArt, hasArt } from './modelArt.mjs';
+import { creatureArt, hasArt, artWidth } from './modelArt.mjs';
 import { nativeDisplayId } from '../domain/character/displayForm.ts';
 import { paperdollLayers, paperdollArt } from './paperdoll.mjs';
 import { iconsOn, withIcon, wrapIconLines } from './iconArt.mjs';
@@ -2196,6 +2199,22 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
 // Help overlay and escape.
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);
+
+// Sixel art, last: once on it stays on for the process. The terminal says it draws sixel (DA1 parameter 4);
+// art then travels as placeholders whose markers the terminal layer takes out and places.
+{
+  noteDeviceAttributes('?62;4;22');
+  const art = creatureArt(2332, 28, 14);
+  const mark = art?.[0]?.match(/\x1b\[9999;(\d+);0m/);
+  check('sixel on: a creature is a placeholder of marked blank rows', !!mark && art.every((l, r) => l.includes(`\x1b[9999;${mark[1]};${r}m`)) && /^\x1bP0;1;0q"1;1;\d+;\d+#/.test(imageOf(+mark[1])?.sixel ?? ''));
+  const placed = new Map();
+  const rows = art.map((l, r) => takeMarks(`ab${l}${l}`, 5 + r, placed));
+  check('the same picture twice on a row is two placements, at their columns, markers gone', placed.size === 2 && [...placed.values()].every((p) => p.y === 5 && p.bottom) && [...placed.values()].map((p) => p.x).join() === `2,${2 + artWidth(art)}` && rows.every((l) => !l.includes('\x1b[9999')));
+  check('a marker rides one cell in a grid, not every cell after it', splitCells(art[0]).filter((c) => c.includes('\x1b[9999')).length === 1);
+  check('a wrapped line does not carry a marker to the next', wrapLines(`${art[0]} ${'word '.repeat(20)}`, 40).slice(1).every((l) => !l.includes('\x1b[9999')));
+  const icon = iconCells('spell_holy_holysmite', 6, '', [{ x: 4, y: 2, w: 2 }]);
+  check('an icon is a placeholder too, with its badge corner see-through', !!icon && icon.length === 3 && icon[0][0].includes('\x1b[9999') && /#\d+;2;/.test(imageOf(+icon[0][0].match(/\x1b\[9999;(\d+);/)[1])?.sixel ?? ''));
+}
 
 check('frames were drawn', term.frames > 20);
 check('saves happened', repo.saved > 0);

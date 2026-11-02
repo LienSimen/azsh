@@ -1,12 +1,14 @@
 // Spell and item icons for the windowed game, drawn as truecolour half-block cells like the model art
 // (modelArt.mjs): a cell is ▀ with the top pixel in the foreground and the bottom one in the background.
-// The pack src/data/icon-art.bin.gz (scripts/bake-icon-art.mjs) holds every icon the spells, items and
-// talents name at three sizes a pixel each: 8x8 (4 lines, a detail pane), 6x6 (3 lines, a bag grid or an
-// ability bar) and 4x4 (2 lines, a list row or an aura strip). Icons are keyed by the icon name the tables
-// carry (`spell_holy_holysmite`, `inv_ore_truesilver_01`). No pack, or NO_COLOR: no art, never an error.
+// The pack src/data/icon-art.bin.gz (scripts/bake-icon-art.mjs) holds every icon the spells, items,
+// talents and professions name at three sizes a pixel each: 8x8 (4 lines, a detail pane), 6x6 (3 lines, a
+// bag grid or an ability bar) and 4x4 (2 lines, a list row or an aura strip). Icons are keyed by the icon
+// name the tables carry (`spell_holy_holysmite`, `inv_ore_truesilver_01`). No pack, or NO_COLOR: no art,
+// never an error.
 import { readFileSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import { useColor, vis, wrapLines } from './text.mjs';
+import { sixelIconCells } from './sixel.mjs';
 
 const PACK_URL = new URL('../data/icon-art.bin.gz', import.meta.url);
 const SIZES = [8, 6, 4];
@@ -49,10 +51,14 @@ const CACHE_MAX = 768;
 /**
  * The icon `name` as `cols / 2` rows of `cols` cells, each cell a self-contained painted ▀ (it resets after
  * itself), or null when there is no art. `tone` 'gray' draws it desaturated and dark: a talent you cannot
- * take yet. A grid (iconGrid.mjs) lays cells one by one so it can paint a rank or a count over a corner.
+ * take yet. A grid (iconGrid.mjs) lays cells one by one so it can paint a rank or a count over a corner;
+ * where the terminal draws sixel the icon is a picture instead (sixel.mjs), and `holes` ([{ x, y, w }] in
+ * cells) are the corners it leaves see-through for that text.
  */
-export function iconCells(name, cols = 4, tone = '') {
+export function iconCells(name, cols = 4, tone = '', holes = []) {
   if (!name || !useColor) return null;
+  const six = sixelIconCells(name, cols, tone, holes);
+  if (six) return six;
   const key = `${String(name).toLowerCase()}|${cols}|${tone}`;
   const hit = cache.get(key);
   if (hit !== undefined) return hit;

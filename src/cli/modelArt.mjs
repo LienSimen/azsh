@@ -10,6 +10,8 @@
 import { readFileSync } from 'node:fs';
 import { gunzipSync, brotliDecompressSync } from 'node:zlib';
 import { useColor } from './text.mjs';
+import { sixelCreature, sixelImage, sixelOn, forgetSixelPacks } from './sixel.mjs';
+import { hdArtPath } from './hdArt.mjs';
 
 const PACK_URL = new URL('../data/model-art.bin.gz', import.meta.url);
 const GEAR_URL = new URL('../data/gear-art.bin.br', import.meta.url); // brotli: a fifth smaller than gzip for a hundred thousand tiny images
@@ -116,14 +118,30 @@ export const gearKeyOfItem = (entry) => loadGear().items.get(entry) ?? null;
  */
 export function compositeArt(slug, skin, layers, maxCols, maxRows) {
   if (!useColor || maxCols < 2 || maxRows < 3) return null;
+  const look = `${slug}|${skin}|${layers.map((l) => (l.mirrored ? `~${l.key}` : l.key)).join(',')}`;
+  if (sixelOn()) {
+    const hd = gearBodyHd(slug);
+    const six = hd && sixelImage(`g${look}`, () => {
+      const img = compose(hd, hd.buf, hd.pal, skin, layers);
+      return img && rgbaOf(crop(img));
+    }, maxCols, maxRows);
+    if (six) return six;
+  }
   const g = loadGear(), body = g.bodies.get(slug);
   if (!body || !g.buf) return null;
-  const skinOff = body.skins.get(skin) ?? body.skins.get(0);
-  if (skinOff == null) return null;
-  const key = `${slug}|${skin}|${layers.map((l) => (l.mirrored ? `~${l.key}` : l.key)).join(',')}|${maxCols}x${maxRows}`;
+  const key = `${look}|${maxCols}x${maxRows}`;
   const hit = cache.get(key);
   if (hit) return hit;
-  const c = body.canvas, n = c * c, rgb = new Uint8Array(n * 3), on = new Uint8Array(n), pal = g.pal, buf = g.buf;
+  const img = compose(body, g.buf, g.pal, skin, layers);
+  return img ? remember(key, renderImage(crop(img), maxCols, maxRows)) : null;
+}
+
+/** A body's `skin` with `layers` stacked on it, as { w, h, rgb, on } on the body's square canvas; null
+ *  without the skin. The pack (`buf`, `pal`) is the small one or a body's hd file. */
+function compose(body, buf, pal, skin, layers) {
+  const skinOff = body.skins.get(skin) ?? body.skins.get(0);
+  if (skinOff == null) return null;
+  const c = body.canvas, n = c * c, rgb = new Uint8Array(n * 3), on = new Uint8Array(n);
   const paint = (k, p) => { on[k] = 1; rgb[k * 3] = pal[(p - 1) * 3]; rgb[k * 3 + 1] = pal[(p - 1) * 3 + 1]; rgb[k * 3 + 2] = pal[(p - 1) * 3 + 2]; };
   for (let k = 0; k < n; k++) { const p = buf[skinOff + k]; if (p) paint(k, p); }
   for (const l of [...layers].sort((a, b) => a.z - b.z)) {
@@ -138,8 +156,52 @@ export function compositeArt(slug, skin, layers, maxCols, maxRows) {
       paint(cy * c + cx, p);
     }
   }
-  const lines = renderImage(crop({ w: c, h: c, rgb, on }), maxCols, maxRows);
-  return remember(key, lines);
+  return { w: c, h: c, rgb, on };
+}
+
+/** { w, h, rgb, on } as { w, h, rgba }, the shape sixel.mjs scales. */
+function rgbaOf({ w, h, rgb, on }) {
+  const rgba = new Uint8Array(w * h * 4);
+  for (let i = 0; i < w * h; i++) if (on[i]) { rgba[i * 4] = rgb[i * 3]; rgba[i * 4 + 1] = rgb[i * 3 + 1]; rgba[i * 4 + 2] = rgb[i * 3 + 2]; rgba[i * 4 + 3] = 255; }
+  return { w, h, rgba };
+}
+
+// ---- the hd gear bodies (sixel) -------------------------------------------------------------------------
+
+const gearHd = new Map(); // slug -> { buf, pal, canvas, skins, overlays } or null
+
+/** Forget every full-size pack read or found missing, so the next draw looks again (after a download), and
+ *  the half-block art cached in their place. */
+export function forgetHdArt() { forgetSixelPacks(); gearHd.clear(); cache.clear(); }
+
+/** A body's hd file (scripts/bake-gear-art.py --hd): its palette, then the body section the small pack has
+ *  for it. Read the first time the body is drawn; about 11 MB each once unpacked. */
+function gearBodyHd(slug) {
+  if (gearHd.has(slug)) return gearHd.get(slug);
+  let body = null;
+  try {
+    const buf = brotliDecompressSync(readFileSync(hdArtPath(`gear-art-hd/${slug}.bin.br`)));
+    if (buf.toString('ascii', 0, 7) === 'AZGEARB' && buf[7] === 1) {
+      let off = 8;
+      const palLen = buf[off++];
+      const pal = buf.subarray(off, off + palLen * 3); off += palLen * 3;
+      off += 1 + buf[off]; // the slug again
+      const canvas = buf[off++];
+      body = { buf, pal, canvas, skins: new Map(), overlays: new Map() };
+      const skinCount = buf[off++];
+      for (let i = 0; i < skinCount; i++) { body.skins.set(buf[off], off + 1); off += 1 + canvas * canvas; }
+      const ovCount = buf.readUInt16LE(off); off += 2;
+      for (let i = 0; i < ovCount; i++) {
+        const keyLen = buf[off++];
+        const key = buf.toString('ascii', off, off + keyLen); off += keyLen;
+        const x = buf[off], y = buf[off + 1], w = buf[off + 2], h = buf[off + 3]; off += 4;
+        body.overlays.set(key, { off, x, y, w, h });
+        off += w * h;
+      }
+    }
+  } catch { /* no hd file for this body: the half-block art draws it */ }
+  gearHd.set(slug, body);
+  return body;
 }
 
 // ---- drawing ------------------------------------------------------------------------------------------
@@ -221,6 +283,8 @@ function remember(key, lines) {
  */
 export function creatureArt(displayId, maxCols, maxRows) {
   if (!useColor || maxCols < 2 || maxRows < 3) return null;
+  const six = sixelCreature(displayId, maxCols, maxRows); // real pixels where the terminal draws sixel
+  if (six) return six;
   const sp = spriteOf(displayId);
   if (!sp) return null;
   const key = `${displayId}|${maxCols}x${maxRows}`;
