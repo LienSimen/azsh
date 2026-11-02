@@ -1,11 +1,13 @@
 // The tabs and dialogs of the windowed game. A view is `{ id, title, hint, rows(app), keys, detail }`; a row is
 // `{ text, header?, act?, detail?, keys? }`. Views read the Game facade and DataStore; every change is a facade call.
-import { bold, dim, cyan, yellow, green, red, gray, magenta, brightBlue, brightYellow, qualityPaint, QUALITY, questText, wrapLines, fit, secondsText, plural, vis } from './text.mjs';
+import { bold, dim, cyan, yellow, green, red, gray, magenta, brightBlue, brightYellow, qualityPaint, QUALITY, questText, wrapLines, fit, secondsText, plural, vis, coinText } from './text.mjs';
 import { ruleSentence, conditionsSentence, condSentence, PHASE_LABEL } from './rotationText.mjs';
 import { startFight, startAutopilot } from './tuiFight.mjs';
 import { className, raceName } from '../domain/core/ids.ts';
 import { nativeDisplayId, wornDisplay } from '../domain/character/displayForm.ts';
-import { moneyText } from '../domain/economy/money.ts';
+import { formDisplayId } from '../domain/character/forms.ts';
+import { factionOf } from '../domain/character/races.ts';
+import { SHAPESHIFT_FORM, CREATURE_TYPE } from '../data/schema.ts';
 import { maxHealth, maxPower } from '../domain/character/character.ts';
 import { effectiveStats, effectiveArmor, attackPower, powerType } from '../domain/character/characterStats.ts';
 import { critChanceDisplay, dodgeChanceDisplay, hitChance, weaponSkillIdForHand, skillBonusFor } from '../domain/character/characterRatings.ts';
@@ -18,14 +20,17 @@ import { stackBoundToHolder } from '../domain/raid/partyVault.ts';
 import { knows, learnGrantIds } from '../domain/character/spellbook.ts';
 import { availablePoints, canSpend, canRefund, spentInTree } from '../domain/character/talents.ts';
 import { offeredQuests, chainFollowUpOffer, grayLogQuests } from '../quests/quests.ts';
-import { isRepeatableQuest, questRepeatsAvailable } from '../domain/quests/questlog.ts';
+import { isRepeatableQuest, questRepeatsAvailable, isTalkToNpcQuest, isEventTalkQuest, eventCreditIsTheRemainingWork } from '../domain/quests/questlog.ts';
+import { GARMENTS_ENTRY_QUEST, SPELL_LESSER_HEAL_R2, SPELL_FORTITUDE_R1 } from '../domain/scriptdev/npcsSpecial.ts';
 import { questRewardChoices } from '../domain/quests/questRewardChoice.ts';
 import { pushBuyback, buyBack as buyBackDomain } from '../domain/economy/trading.ts';
-import { cityAccess, bankDialog, auctionDialog, mailDialog } from './tuiCity.mjs';
+import { cityAccess, bankDialog, auctionDialog, mailDialog, tabStrip } from './tuiCity.mjs';
 import { professionsView, profTrainerDialog, worldGatherRows, openSendGoods, reagentUses } from './tuiProfessions.mjs';
 import { companionsView } from './tuiCompanions.mjs';
 import { companionLevel, companionCharacter, companionSpellbook } from '../domain/bots/squad.ts';
 import { squadJoinsPull } from './squad.mjs';
+import { huntableCreatures, questTargets, isQuestMob, zoneWeaponTrainers } from '../world/world.ts';
+import { canInteractWithCreature } from '../domain/creature/faction.ts';
 import { barsDialog, playerBarsOwner } from './tuiBars.mjs';
 import { petWorldRows, petDialog, hasPetClass } from './tuiPet.mjs';
 import { portalRows } from './tuiDungeon.mjs';
@@ -37,13 +42,14 @@ import { outfitterDialog } from './tuiOutfitter.mjs';
 import { castWithPicker } from './tuiEnchantTarget.mjs';
 import { settingsDialog } from './tuiSettings.mjs';
 import { macrosDialog } from './tuiMacros.mjs';
-import { pickPocket, pickPocketTag, journeyRows, afterDeparture, ridingRows, objectRows, meetingStoneQueueRows, outdoorPvpRows } from './tuiWorld.mjs';
+import { hereRows, pickPocket, pickPocketTag, tame, tameTag, tameState, questUseItem, journeyRows, afterDeparture, ridingRows, objectRows, meetingStoneQueueRows, outdoorPvpRows } from './tuiWorld.mjs';
 import { talentBuildsMenu, myTalentLink } from './tuiTalents.mjs';
 import { simLabDialog } from './tuiSimLab.mjs';
+import { withWorldMap } from './tuiMap.mjs';
 import { autopilotSettingsDialog } from './tuiAutopilotSettings.mjs';
 import { preflightCard } from './tuiAutopilot.mjs';
 import { creatureArt } from './modelArt.mjs';
-import { withIcon, iconsOn } from './iconArt.mjs';
+import { withIcon, iconsOn, miniIcon } from './iconArt.mjs';
 import { paperdollGrid, paperdollPlan } from './tuiPaperdoll.mjs';
 import { talentGrid, talentPlan, talentTone, talentIcon } from './tuiTalentTree.mjs';
 import { paperdollArt } from './paperdoll.mjs';
@@ -127,7 +133,7 @@ function itemLinesText(app, item, extra = []) {
     }
   }
   if (item.description) out.push(yellow(`"${item.description}"`));
-  if (item.sellPrice) out.push(dim(`Sells for ${moneyText(item.sellPrice)}`));
+  if (item.sellPrice) out.push(dim(`Sells for ${coinText(item.sellPrice)}`));
   out.push(...extra);
   return out;
 }
@@ -161,7 +167,9 @@ export function creatureLines(app, c) {
   out.push(`${hp} health   hits ${c.dmgMin}-${c.dmgMax} every ${(c.attackTimeMs / 1000).toFixed(1)} s`);
   if (c.armor) out.push(`${c.armor} armor`);
   if (c.xp) out.push(dim(`about ${c.xp} xp at your level`));
-  if (c.tameable) out.push(green(app.ch.cls === 3 ? 'Tameable: t tames it' : 'Tameable'));
+  const tm = tameState(app, c);
+  if (tm === 'use') out.push(green(`t: use ${questUseItem(app).name} on it`));
+  else if (c.tameable) out.push(green({ tame: 'Tameable: t tames it', pet: `Tameable, once ${app.ch.pet?.name} is dismissed or stabled`, unlearned: 'Tameable once you learn Tame Beast' }[tm] ?? 'Tameable'));
   const wanted = app.g.state.questlog.quests.flatMap((qs) => {
     const q = app.ds.quest(qs.entry);
     const k = q?.killTargets.find((t) => t.creatureEntry === c.entry);
@@ -213,11 +221,31 @@ export function objectiveLines(app, q, qs) {
 export function rewardLines(app, q) {
   const out = [];
   if (q.rewXP) out.push(magenta(`${q.rewXP} experience`));
-  if (q.rewMoney) out.push(yellow(moneyText(q.rewMoney)));
-  for (const it of q.rewItems) out.push(`${app.itemLabel(it.item)}${it.count > 1 ? ` x${it.count}` : ''}`);
-  if (q.rewChoiceItems?.length) out.push('Choose one of: ' + q.rewChoiceItems.map((it) => app.itemLabel(it.item)).join(', '));
-  for (const s of q.rewSpells ?? []) out.push(`Learn ${app.spellName(s)}`);
+  if (q.rewMoney) out.push(coinText(q.rewMoney));
+  const item = (it) => `${miniIcon(app.ds.item(it.item)?.icon)}${app.itemLabel(it.item)}${it.count > 1 ? ` x${it.count}` : ''}`;
+  for (const it of q.rewItems) out.push(item(it));
+  if (q.rewChoiceItems?.length) out.push('Choose one of:', ...q.rewChoiceItems.map((it) => `  ${item(it)}`));
+  for (const s of q.rewSpells ?? []) out.push(`${miniIcon(app.ds.spell(s)?.icon)}Learn ${app.spellName(s)}`);
   return out;
+}
+
+/** The rewards on the quest page: each item a row with its icon and its tooltip, the money in coins. */
+function rewardRows(app, q) {
+  const P = (t) => ({ text: t, header: true, plain: true });
+  const item = (it) => {
+    const def = app.ds.item(it.item);
+    return { text: `${app.itemLabel(it.item)}${it.count > 1 ? ` x${it.count}` : ''}`, icon: def?.icon, sub: dim(def?.typeName ?? ''), detail: () => (def ? itemLines(app, def) : []) };
+  };
+  const rows = [];
+  if (q.rewXP) rows.push(P(`  ${magenta(`${q.rewXP} experience`)}`));
+  if (q.rewMoney) rows.push(P(`  ${coinText(q.rewMoney)}`));
+  rows.push(...q.rewItems.map(item));
+  if (q.rewChoiceItems?.length) rows.push(P('  Choose one of:'), ...q.rewChoiceItems.map(item));
+  for (const s of q.rewSpells ?? []) {
+    const sp = app.ds.spell(s);
+    rows.push(sp ? { text: `Learn ${app.spellName(s)}`, icon: sp.icon, sub: dim('spell'), detail: () => spellLines(app, sp) } : P(`  Learn ${app.spellName(s)}`));
+  }
+  return rows;
 }
 
 // ---- tabs ------------------------------------------------------------------------------------------
@@ -227,14 +255,14 @@ export function makeTabs(app) {
     { label: 'World', icon: 'inv_misc_map_01', view: worldView(app) },
     { label: 'Quests', icon: 'inv_misc_note_01', view: questsView(app) },
     { label: 'Bags', icon: 'inv_misc_bag_08', view: bagsView(app) },
-    { label: 'Gear', icon: 'inv_chest_chain_05', view: gearView(app) },
+    { label: 'Character', short: 'Char', icon: 'inv_misc_head_human_01', view: characterView(app) },
     { label: 'Spells', icon: 'inv_misc_book_09', view: spellsView(app) },
     { label: 'Rotation', icon: 'ability_dualwield', view: rotationView(app) },
     { label: 'Talents', icon: 'spell_nature_naturetouchgrow', view: talentsView(app) },
     { label: 'Travel', icon: 'spell_nature_swiftness', view: travelView(app) },
     { label: 'Professions', short: 'Profs', icon: 'trade_blacksmithing', view: professionsView(app) },
     { label: 'Companions', short: 'Party', icon: 'spell_holy_prayerofhealing', view: companionsView(app) },
-    { label: 'Character', short: 'Char', icon: 'inv_misc_head_human_01', view: charView(app) },
+    { label: 'Settings', icon: 'inv_misc_gear_01', view: settingsDialog(app) },
   ];
 }
 
@@ -245,34 +273,42 @@ function worldView(app) {
       s: { hint: 'search', fn: (a) => openWorldSearch(a) },
       S: { fn: (a) => openWorldSearch(a, '', true) },
       f: { hint: 'quick fight', fn: (a, row) => { if (row?.data?.creature) a.cmds.commands.fight(String(row.data.creature.entry)); } },
-      t: { fn: (a, row) => { const c = row?.data?.creature; if (!c) return; if (a.ch.cls !== 3) { a.flashMsg('Only hunters tame beasts.'); return; } a.result(a.g.tamePet(c.entry), `You tame ${c.name}.`); } },
+      t: { fn: (a, row) => { if (row?.data?.creature) tame(a, row.data.creature); } },
       P: { fn: (a, row) => { if (row?.data?.creature) pickPocket(a, row.data.creature); } },
       a: { hint: 'autopilot', fn: (a) => a.push(preflightCard(a)) },
+      c: { hint: 'characters', fn: (a) => { void a.logout(); } },
     },
     rows(a) {
       const ds = a.ds, g = a.g, z = a.zone(), ch = a.ch;
       if (!z) return [{ text: 'You are nowhere.', header: true }];
       const rows = [...journeyRows(a), ...meetingStoneQueueRows(a), { text: `${z.name}  ${dim(`levels ${z.levelRange[0]}-${z.levelRange[1]}${z.faction ? `, ${z.faction}` : ''}`)}`, header: true }];
+      // Enemy-faction service NPCs in a contested zone, and any faction you declared war on, will not deal with you (Unit::CanInteract).
+      const atWar = g.atWarFactions(), canTalk = (entry) => canInteractWithCreature(ds, ch.race, entry, atWar);
       const people = [];
-      for (const t of z.trainers ?? []) if (t.cls === ch.cls) { const d = ds.trainer(t.entry); if (d) people.push({ text: `${d.name} ${dim(`<${className(t.cls)} Trainer>`)}`, detail: () => npcLines(a, d.entry, [bold(d.name), `${className(t.cls)} trainer`, '', dim('Enter: see what you can learn')]), act: () => a.push(trainerDialog(a, d)) }); }
+      for (const t of z.trainers ?? []) if (t.cls === ch.cls && canTalk(t.entry)) { const d = ds.trainer(t.entry); if (d) people.push({ text: `${d.name} ${dim(`<${className(t.cls)} Trainer>`)}`, detail: () => npcLines(a, d.entry, [bold(d.name), `${className(t.cls)} trainer`, '', dim('Enter: see what you can learn')]), act: () => a.push(trainerDialog(a, d)) }); }
+      for (const wm of zoneWeaponTrainers(ds, z.id)) if (canTalk(wm.entry)) people.push({ text: `${wm.name} ${dim(`<${wm.subname || 'Weapon Master'}>`)}`, detail: () => npcLines(a, wm.entry, [bold(wm.name), wm.subname || 'Weapon Master', 'Teaches weapon skills.', '', dim('Enter: see what you can learn')]), act: () => a.push(trainerDialog(a, wm)) });
       const innEntries = new Set((z.innkeepers ?? []).map((i) => i.entry)); // innkeepers sell too, but list once, as the inn
-      for (const v of z.vendors ?? []) { const d = !innEntries.has(v) && ds.vendor(v); if (d) people.push({ text: `${d.name} ${dim(`<${d.subname ?? 'Vendor'}>`)}${d.canRepair ? dim('  repairs') : ''}`, detail: () => npcLines(a, d.entry, [bold(d.name), d.subname ?? 'Vendor', ...(d.canRepair ? ['Repairs armor and weapons'] : []), '', dim('Enter: browse wares')]), act: () => a.push(vendorDialog(a, d)) }); }
-      for (const i of z.innkeepers ?? []) people.push({ text: `${i.name} ${dim('<Innkeeper>')}`, detail: () => npcLines(a, i.entry, [bold(i.name), 'Innkeeper', '', dim('Enter: browse wares, make this your home')]), act: () => a.push(innDialog(a, i)) });
+      for (const v of z.vendors ?? []) { const d = !innEntries.has(v) && canTalk(v) && ds.vendor(v); if (d) people.push({ text: `${d.name} ${dim(`<${d.subname ?? 'Vendor'}>`)}${d.canRepair ? dim('  repairs') : ''}`, detail: () => npcLines(a, d.entry, [bold(d.name), d.subname ?? 'Vendor', ...(d.canRepair ? ['Repairs armor and weapons'] : []), '', dim('Enter: browse wares')]), act: () => a.push(vendorDialog(a, d)) }); }
+      for (const i of z.innkeepers ?? []) if (canTalk(i.entry)) people.push({ text: `${i.name} ${dim('<Innkeeper>')}`, detail: () => npcLines(a, i.entry, [bold(i.name), 'Innkeeper', '', dim('Enter: browse wares, make this your home')]), act: () => a.push(innDialog(a, i)) });
       for (const p of z.profTrainers ?? []) {
-        const d = ds.profTrainer(p);
+        const d = canTalk(p) && ds.profTrainer(p);
         if (!d) continue;
         const prof = ds.profession(d.skill)?.name ?? d.skill;
         const sk = ch.skills[d.skill];
         people.push({ text: `${d.name} ${dim(`<${prof} Trainer>`)}${sk ? dim(`  ${sk.current}/${sk.max}`) : ''}`, detail: () => npcLines(a, d.entry, [bold(d.name), `${prof} trainer`, sk ? `Your skill: ${sk.current}/${sk.max}` : `You do not know ${prof} yet.`, '', dim('Enter: ranks and recipes')]), act: () => a.push(profTrainerDialog(a, d)) });
       }
       people.push(...ridingRows(a));
-      for (const f of z.flightMasters ?? []) people.push({ text: `${f.name} ${dim('<Flight Master>')}`, detail: () => npcLines(a, f.entry, [bold(f.name), 'Flight master', '', dim('Enter: open the travel tab')]), act: () => a.switchTab(7) });
+      // A flight master serves you once you have found this zone's flight path.
+      const found = new Set(ch.discoveredTaxiNodes ?? []);
+      const taxiHere = ds.taxiNodes().some((n) => n.zone === z.id && found.has(n.id));
+      for (const f of taxiHere ? z.flightMasters ?? [] : []) if (canTalk(f.entry) || !ds.creature(f.entry)) people.push({ text: `${f.name} ${dim('<Flight Master>')}`, detail: () => npcLines(a, f.entry, [bold(f.name), 'Flight master', '', dim('Enter: open the travel tab')]), act: () => a.switchTab(7) });
       // City services: the bank in capitals and banker towns, the auction house in capitals, the mailbox by every inn.
       const city = cityAccess(a);
       const services = [];
       if (city.bank) services.push({ text: `${brightBlue('Bank')} ${dim(`<Banker>  ${g.state.bank.stacks.length} stacks stored`)}`, detail: () => [bold('Bank'), 'Store what you do not carry.', '', dim('Enter: open the vault   (also b in Bags)')], act: () => a.push(bankDialog(a)) });
       if (city.ah) { const n = g.browseAuctions(Date.now()).length; services.push({ text: `${brightBlue('Auction House')} ${dim(`<Auctioneer>${n ? `  ${n} listings` : ''}`)}`, detail: () => [bold('Auction House'), 'Buy from and sell to the other players of this realm.', '', dim('Enter: browse, sell, see your auctions')], act: () => a.push(auctionDialog(a)) }); }
       if (city.mail) { const unread = g.unreadMailCount(Date.now()); services.push({ text: `${brightBlue('Mailbox')}${unread ? yellow(`  ${unread} new`) : ''}`, detail: () => [bold('Mailbox'), 'Auction sales, refunds and overflow loot arrive here.', '', dim('Enter: read your mail')], act: () => a.push(mailDialog(a)) }); }
+      rows.push(...hereRows(a));
       if (services.length) rows.push({ text: '', header: true }, { text: 'Services', header: true }, ...services);
       rows.push(...portalRows(a));
       const petRows = petWorldRows(a);
@@ -287,12 +323,14 @@ function worldView(app) {
         if (!dest) continue;
         rows.push({ text: `${cyan(dest.name)} ${dim(`levels ${dest.levelRange[0]}-${dest.levelRange[1]}`)}`, detail: () => travelPreviewLines(a, dest), act: () => travelTo(a, dest) });
       }
-      const mobs = z.huntable.map((e) => ds.creature(e)).filter(Boolean).sort((x, y) => x.level - y.level || x.name.localeCompare(y.name));
+      // What you can attack here: world bosses and quest-summoned targets in, friendly and trigger NPCs out.
+      const mobs = huntableCreatures(ds, z.id, g.state.questlog, ch.race).sort((x, y) => x.level - y.level || x.name.localeCompare(y.name));
       if (mobs.length) {
         rows.push({ text: '', header: true }, { text: `Creatures (${mobs.length})`, header: true });
+        const targets = questTargets(ds, g.state.questlog);
         for (const m of mobs) {
-          const wanted = g.state.questlog.quests.some((qs) => qs.status === 'active' && ds.quest(qs.entry)?.killTargets.some((k) => k.creatureEntry === m.entry));
-          rows.push({ text: `${conPaint(ch.level, m.level)(m.name)} ${dim(`L${m.level}`)}${wanted ? yellow('  !') : ''}${ch.cls === 4 ? pickPocketTag(a, m) : ''}`, data: { creature: m }, detail: () => creatureLines(a, m), act: () => startFight(a, m.entry) });
+          const wanted = isQuestMob(ds, m, targets); // a kill target, or a drop source for a quest item you still need
+          rows.push({ text: `${conPaint(ch.level, m.level)(m.name)} ${dim(`L${m.level}`)}${wanted ? yellow('  !') : ''}${ch.cls === 4 ? pickPocketTag(a, m) : ''}${tameTag(a, m)}`, data: { creature: m }, detail: () => creatureLines(a, m), act: () => startFight(a, m.entry) });
         }
       }
       // Last: hand-ins and the zone's offers (the Quests tab shows the same list under its log).
@@ -311,10 +349,11 @@ function worldView(app) {
 export function travelPreviewLines(app, dest) {
   const pv = app.g.previewTravel(dest.id);
   const out = [bold(dest.name), dim(`levels ${dest.levelRange[0]}-${dest.levelRange[1]}${dest.faction ? `, ${dest.faction}` : ''}`), ''];
-  if (!pv.ok) { out.push(red(pv.reason)); return out; }
-  out.push(`${secondsText(pv.totalSeconds * 1000)} of travel${pv.totalCopper ? `, ${moneyText(pv.totalCopper)} in fares` : ''}`);
-  for (const leg of pv.legs) out.push(dim(`  ${leg.kind} ${app.ds.zone(leg.from)?.name ?? leg.from} → ${app.ds.zone(leg.to)?.name ?? leg.to} (${secondsText(leg.seconds * 1000)})`));
-  return out;
+  if (!pv.ok) { out.push(red(pv.reason)); return withWorldMap(app, out, { dest }); }
+  out.push(`${secondsText(pv.totalSeconds * 1000)} of travel${pv.totalCopper ? `, ${coinText(pv.totalCopper)} in fares` : ''}`);
+  for (const leg of pv.legs) out.push(dim(`  ${(leg.transportEntry && app.ds.transports().find((t) => t.entry === leg.transportEntry)?.name) || leg.kind} ${app.ds.zone(leg.from)?.name ?? leg.from} → ${app.ds.zone(leg.to)?.name ?? leg.to} (${secondsText(leg.seconds * 1000)})`));
+  // The world map under the plan: you, the destination and the route between them (tuiMap.mjs).
+  return withWorldMap(app, out, { dest, legs: pv.legs });
 }
 
 export function travelTo(app, dest) {
@@ -323,7 +362,7 @@ export function travelTo(app, dest) {
   const res = app.g.travelTo(dest.id);
   if (!app.result(res)) return;
   app.vendor = null; app.cmds.setVendor(null);
-  afterDeparture(app, () => `You travel to ${bold(dest.name)}. ${dim(`${secondsText(pv.totalSeconds * 1000)}${pv.totalCopper ? `, ${moneyText(pv.totalCopper)}` : ''}`)}`);
+  afterDeparture(app, () => `You travel to ${bold(dest.name)}. ${dim(`${secondsText(pv.totalSeconds * 1000)}${pv.totalCopper ? `, ${coinText(pv.totalCopper)}` : ''}`)}`);
   landOnTab(app);
 }
 
@@ -396,13 +435,18 @@ export function questDialog(app, q, mode) {
       const objectives = () => section('Objectives', [...text(q.objectivesText ?? '', bold), ...objectiveLines(a, q, s).map((o) => P(`  ${o}`))]);
       // Offered, the story leads as the giver tells it; in the log, what is left to do comes first.
       if (mode === 'offer' || s?.status === 'complete') { story(); objectives(); } else { objectives(); story(); }
-      section('Rewards', rewardLines(a, q).map((r) => P(`  ${r}`)));
+      section('Rewards', rewardRows(a, q));
       rows.push(P(''));
+      // The reward rows can take the cursor for their tooltips, but the page opens on what you came to do.
+      const lead = rows.length;
+      if (!view.placed) { view.placed = true; view.cursor = lead; }
       if (mode === 'offer') {
         rows.push({ text: green('Accept the quest'), act: () => { if (a.result(a.g.acceptQuest(q.entry), `Quest accepted: ${q.title}`)) a.pop(); } });
+        rows.push({ text: 'Accept and do the quest', act: () => { if (a.result(a.g.acceptQuest(q.entry), `Quest accepted: ${q.title}`)) doQuest(a, q); } });
         rows.push({ text: dim('Decline'), act: () => a.pop() });
       } else {
         if (s?.status === 'complete') rows.push({ text: green('Complete the quest'), act: () => turnIn(a, q) });
+        else if (s?.status === 'active') rows.push(...questStepRows(a, q, s));
         // A repeatable with a fixed reward hands in every round the bags pay for in one go.
         const rounds = s?.status === 'complete' && isRepeatableQuest(q) && questRewardChoices(q).length <= 1 ? questRepeatsAvailable(q, a.g.state.inventory, a.ch.zoneId) : 0;
         if (rounds >= 2) rows.push({ text: green(`Hand it in ${rounds} times`), act: () => repeatTurnIn(a, q) });
@@ -415,6 +459,49 @@ export function questDialog(app, q, mode) {
     detail: (a) => questLines(a, q, qs()),
   };
   return view;
+}
+
+// The Garments quests' patient, by quest (the script table is keyed by patient).
+const GARMENTS_PATIENT = Object.fromEntries(Object.entries(GARMENTS_ENTRY_QUEST).map(([entry, quest]) => [quest, Number(entry)]));
+
+/** Speak target for a gossip-event quest: the mid-event NPC its objectives name (Great Bear Spirit) before the
+ * turn-in ender (Dendrite). Ported from phonecraft src/ui/quests/questCardUi.ts eventTalkSpeakName. */
+function eventTalkSpeakName(q) {
+  const text = q.objectivesText ?? '';
+  for (const re of [/\blisten as ([^.]+?) tells/i, /\bseek out the ([^.]+?) in /i, /\bafter speaking with ([^.]+?)\.?$/i, /\bspeak(?:ing)? with ([^.]+?)(?:\.|,| after)/i, /\bspeak to ([^.]+?)(?:\.|,| again)/i]) {
+    const m = text.match(re);
+    if (m?.[1]?.trim()) return m[1].trim();
+  }
+  return (q.enderName || q.starterName || '').trim();
+}
+
+/** The steps on an open quest's page that are a press, not a fight: speak to someone, examine the object that
+ * ends it, finish an escort the data has no path for, or cast on the Garments patient. Ref questCardUi.ts:254. */
+function questStepRows(a, q, s) {
+  const g = a.g, ds = a.ds, rows = [];
+  const eventTalk = isEventTalkQuest(q);
+  const npc = eventTalk ? eventTalkSpeakName(q) : (q.enderName || q.starterName || '').trim();
+  if (npc && ((isTalkToNpcQuest(q) && s.talked !== true) || (eventTalk && s.explored !== true))) {
+    // On 72 of these the ender is an object: the credit is in using it, and a Speak would be refused.
+    const go = q.goEnder || (q.goEnderEntries ?? []).find((e) => e > 0) || 0;
+    const goName = go ? ds.gameObject?.(go)?.name ?? npc : '';
+    rows.push(go
+      ? { text: green(`Examine ${goName}`), act: () => a.result(g.interactObject(go), `You examine ${goName}.`) }
+      : { text: green(`Speak to ${npc}`), act: () => a.result(g.talkToNpc({ npcName: npc }), `You speak to ${npc}.`) });
+  }
+  if (eventCreditIsTheRemainingWork(q, s, g.state.inventory)) {
+    const kind = q.exploreTriggers?.length ? 'exploration' : 'escort';
+    rows.push({ text: green(`Complete the ${kind}`), detail: () => [bold(`Complete the ${kind}`), '', `The data has no path for this ${kind}, so it is credited in one step.`], act: () => a.result(g.finishEscort(q.entry), `${q.title}: ${kind} done.`) });
+  }
+  const patient = GARMENTS_PATIENT[q.entry];
+  if (patient != null) {
+    const who = ds.creature(patient)?.name ?? `NPC ${patient}`;
+    for (const [id, label] of [[SPELL_LESSER_HEAL_R2, `Heal ${who}`], [SPELL_FORTITUDE_R1, `Fortitude on ${who}`]]) {
+      if (!knows(g.state.spellbook, id)) continue;
+      rows.push({ text: green(label), act: () => { if (g.spellCooldownRemaining(id) > 0) { a.flashMsg('Not ready yet.'); return; } a.result(g.castOutOfCombat(id, { targetCreature: patient }), `You cast ${a.spellName(id)} on ${who}.`); } });
+    }
+  }
+  return rows;
 }
 
 /** Do Quest: the autopilot works this one quest (travel, fights, objects, hand-in) and stops when it is done. */
@@ -430,7 +517,7 @@ function repeatTurnIn(app, q) {
   if (!app.result(r)) return;
   const bits = [`${r.turnedIn} times`];
   if (r.xp) bits.push(`+${r.xp} xp`);
-  if (r.money) bits.push(`+${moneyText(r.money)}`);
+  if (r.money) bits.push(`+${coinText(r.money)}`);
   app.say(green(`Quest complete: ${q.title}`) + dim(`  ${bits.join(', ')}`));
   for (const lv of r.leveledTo) { app.say(bold(green(`You have reached level ${lv}!`))); app.flashMsg(`Level ${lv}!`); }
   app.stack = [];
@@ -453,7 +540,7 @@ function turnIn(app, q) {
     if (!app.result(res, `Quest complete: ${q.title}`)) return;
     const bits = [];
     if (res.xp) bits.push(`+${res.xp} xp`);
-    if (res.money) bits.push(`+${moneyText(res.money)}`);
+    if (res.money) bits.push(`+${coinText(res.money)}`);
     for (const it of res.items) bits.push(app.itemLabel(it.item) + (it.count > 1 ? ` x${it.count}` : ''));
     for (const s of res.spells ?? []) bits.push(`learned ${s.name ?? ''}`.trim());
     if (bits.length) app.say('  ' + bits.join(', '));
@@ -467,6 +554,7 @@ function turnIn(app, q) {
   if (q.rewChoiceItems?.length) {
     app.pick('Choose your reward', q.rewChoiceItems.map((it, i) => ({
       label: `${app.itemLabel(it.item)}${it.count > 1 ? ` x${it.count}` : ''}`,
+      icon: app.ds.item(it.item)?.icon, sub: dim(app.ds.item(it.item)?.typeName ?? ''),
       detail: () => itemLines(app, app.ds.item(it.item)),
       value: i,
     })), finish);
@@ -497,7 +585,7 @@ function bagsView(app) {
     rows(a) {
       const st = a.g.state.inventory.stacks;
       const ups = new Set(a.g.suggestedEquipmentUpgrades().filter((u) => !u.holderId).map((u) => u.entry));
-      const rows = [{ text: `${st.length}/${bagCapacity(a.ch, a.ds)} slots   ${yellow(moneyText(a.ch.gold) || '0c')}${ups.size ? green(`   ▲ ${plural(ups.size, 'upgrade')} to wear (u)`) : ''}`, header: true }];
+      const rows = [{ text: `${st.length}/${bagCapacity(a.ch, a.ds)} slots   ${coinText(a.ch.gold)}${ups.size ? green(`   ▲ ${plural(ups.size, 'upgrade')} to wear (u)`) : ''}`, header: true }];
       st.forEach((s, i) => {
         const it = a.ds.item(s.item);
         const name = qualityPaint(it?.quality)(it?.name ?? `item ${s.item}`);
@@ -505,7 +593,7 @@ function bagsView(app) {
         const tag = s.wrappedItemEntry ? dim('  gift') : it?.slot ? dim(`  ${it.slot}`) : it?.consumable ? dim(`  ${it.consumable.effect}`) : verb === 'Open' ? dim('  open') : verb === 'Learn' ? dim('  learn') : it?.questItem ? dim('  quest') : '';
         rows.push({
           text: `${name}${s.count > 1 ? ` x${s.count}` : ''}${tag}${ups.has(s.item) ? green('  ▲') : ''}`, data: s,
-          icon: it?.icon, sub: dim(`${it?.typeName ?? ''}${it?.sellPrice ? `  sells ${moneyText(it.sellPrice * s.count)}` : ''}`),
+          icon: it?.icon, sub: dim(`${it?.typeName ?? ''}${it?.sellPrice ? `  sells ${coinText(it.sellPrice * s.count)}` : ''}`),
           detail: () => itemLines(a, it, [
             '', dim(`Enter: ${verb ? verb.toLowerCase() : 'more'}   m: more${s.count > 1 ? '   /: split' : ''}   [ ]: move   d: destroy`),
             ...(a.vendor ? [dim(`s: sell to ${a.vendor.name}`)] : []),
@@ -556,10 +644,13 @@ function compareLines(app, it, worn) {
   return out;
 }
 
-function gearView(app) {
+/** The Character tab: the paperdoll (your gear around your body), your numbers under the tooltip, s for the rest. */
+function characterView(app) {
   return {
-    id: 'gear', title: 'Equipment', hint: 'Enter: change what you wear',
+    id: 'gear', title: 'Character', hint: 'Enter: change what you wear',
+    detailFoot: (a, w) => statPanel(a, w),
     keys: {
+      s: { hint: 'stats', fn: (a) => a.push(characterDetailsDialog(a)) },
       u: { hint: 'equip all upgrades', fn: (a) => {
         if (!upgradeList(a).length) { a.flashMsg("Nothing in your bags or your companions' beats what you wear."); return; }
         // Best first, re-scored after each piece (two rings, a two-hander). Works in suggest mode too,
@@ -581,12 +672,13 @@ function gearView(app) {
       o: { hint: 'outfits', fn: (a) => a.push(outfitterDialog(a)) },
     },
     // Drawn as the character sheet (tuiPaperdoll.mjs) when colour is on and the window has room.
-    grid: (a, rows, w, h) => paperdollGrid(a, rows, w, h, (cols, lines) => playerArt(a, cols, lines)?.lines ?? null),
+    grid: (a, rows, w, h) => paperdollGrid(a, rows, w, h, (cols, lines) => playerArt(a, cols, lines)?.lines ?? null, characterTitle(a)),
     rows(a) {
       const rows = [];
       const ups = upgradeList(a);
       const extras = gearExtraRows(a);
       const sheet = paperdollPlan(a, extras.filter((r) => !r.header).length);
+      if (!sheet) rows.push({ text: `${characterTitle(a)}   ${dim('s: stats, skills, auras, reputation')}`, header: true, plain: true }, { text: '', header: true });
       if (ups.length && !sheet) {
         rows.push({ text: `${green('▲')} Better gear for you (${ups.length})   ${dim('Enter: put on   u: put on all')}`, header: true });
         for (const u of ups) {
@@ -642,8 +734,8 @@ function slotDialog(app, slot) {
         const low = it.requiredLevel > ch.level;
         const name = qualityPaint(it.quality)(it.name);
         return {
-          text: `  ${low ? dim(name) : name}${s.count > 1 ? dim(` x${s.count}`) : ''}${up ? green(`  ▲ +${Math.round(up.delta)}`) : ''}${low ? red(`  L${it.requiredLevel}`) : ''}${from === 'bank' ? dim('  in bank') : ''}${comp ? cyan(`  ${comp.name}`) : ''}`,
-          data: { s, it },
+          text: `${low ? dim(name) : name}${s.count > 1 ? dim(` x${s.count}`) : ''}${up ? green(`  ▲ +${Math.round(up.delta)}`) : ''}${low ? red(`  L${it.requiredLevel}`) : ''}${from === 'bank' ? dim('  in bank') : ''}${comp ? cyan(`  ${comp.name}`) : ''}`,
+          data: { s, it }, icon: it.icon, sub: dim([it.typeName, it.armor ? `${it.armor} armor` : '', it.weapon ? `${it.weapon.dmgMin}-${it.weapon.dmgMax}` : ''].filter(Boolean).join('  ')),
           detail: () => itemLines(a, it, [...compareLines(a, it, worn), '', dim(from === 'bank' ? 'Enter: take it out of the bank and wear it' : comp ? `Enter: take it from ${comp.name} and wear it` : 'Enter: wear it')]),
           act: () => {
             if (from === 'bank' && !a.result(a.g.bankWithdraw(s.item, 1), '')) return;
@@ -672,15 +764,63 @@ function slotDialog(app, slot) {
   };
 }
 
+/**
+ * The spellbook's tabs, as the client draws them: General, then one per talent tree. A spell goes on the tab
+ * of its class skill line (SkillLineAbility, baked as combatSkillMeta.spellAbilities); the line is matched to
+ * its tree by name, since the trees carry no skill id ("Shadow" is Shadow Magic, "Elemental" is Elemental
+ * Combat). Everything else (Attack, racials, Poisons, Beast Training) is General.
+ */
+function spellbookTabs(ch, ds) {
+  const meta = ds.combatSkillMeta(), bit = 1 << (ch.cls - 1);
+  const trees = ds.talentTrees(ch.cls).map((t) => t.name);
+  const treeOfSkill = (skillId) => {
+    if (meta?.categories?.[skillId] !== 7) return -1;
+    const n = (meta.skillNames?.[skillId] ?? '').toLowerCase();
+    return trees.findIndex((t) => n === t.toLowerCase() || n.startsWith(`${t.toLowerCase()} `));
+  };
+  const tabOf = (sp) => {
+    for (const r of meta?.spellAbilities?.[sp.id] ?? []) {
+      if (r.classMask && !(r.classMask & bit)) continue;
+      const k = treeOfSkill(r.skillId);
+      if (k >= 0) return k + 1;
+    }
+    return 0;
+  };
+  return { names: ['General', ...trees], tabOf };
+}
+
 function spellsView(app) {
-  return {
-    id: 'spells', title: 'Spellbook', hint: 'Enter: cast',
-    keys: { b: { hint: 'action bars', fn: (a) => a.push(barsDialog(a, playerBarsOwner)) }, m: { hint: 'macros', fn: (a) => a.push(macrosDialog(a)) } },
+  // Until a tab is picked the book opens on the first one with spells (a warrior's General can be empty).
+  let book = null;
+  const turn = (a, d) => { a.rowsOf(view); const n = spellbookTabs(a.ch, a.ds).names.length; book = (book + d + n) % n; view.scroll = 0; };
+  const view = {
+    id: 'spells', title: 'Spellbook', hint: 'Enter: cast   [ ]: tab',
+    keys: {
+      b: { hint: 'action bars', fn: (a) => a.push(barsDialog(a, playerBarsOwner)) }, m: { hint: 'macros', fn: (a) => a.push(macrosDialog(a)) },
+      '[': { fn: (a) => turn(a, -1) }, ']': { fn: (a) => turn(a, +1) },
+    },
+    // Left Right on the tab strip turn the book's tabs; anywhere else they still change the window's tabs.
+    onKey(a, k, row) {
+      if (!row?.data?.strip || (k !== 'left' && k !== 'right')) return false;
+      turn(a, k === 'right' ? +1 : -1);
+      return true;
+    },
     rows(a) {
-      const known = knownUsableSpells(a.ch, a.g.state.spellbook, a.ds).sort((x, y) => x.name.localeCompare(y.name));
+      const tabs = spellbookTabs(a.ch, a.ds);
+      const all = knownUsableSpells(a.ch, a.g.state.spellbook, a.ds);
+      const counts = tabs.names.map((_, k) => all.filter((sp) => tabs.tabOf(sp) === k).length);
+      book = book == null ? Math.max(0, counts.findIndex((n) => n > 0)) : Math.min(book, tabs.names.length - 1);
+      const known = all.filter((sp) => tabs.tabOf(sp) === book).sort((x, y) => x.name.localeCompare(y.name));
+      const L = a.layout(), width = (L.detailW ? L.listW : L.W) - 2;
       const head = [{ text: `Action bars ${dim(`${a.g.state.actionBars?.length ?? 0} bars   b`)}`, detail: () => [bold('Action bars'), '', 'Bar 1 is the number row in a fight: put spells and bag items on it and bind keys.'], act: () => a.push(barsDialog(a, playerBarsOwner)) },
         { text: `Macros ${dim(`${a.g.macros().length}   m`)}`, detail: () => [bold('Macros'), '', 'Several casts, uses or gear swaps on one key, with conditions. Out of a fight r runs one; in a fight its key on bar 1 fires it.'], act: () => a.push(macrosDialog(a)) },
         { text: '', header: true }];
+      head.push({
+        text: tabStrip(tabs.names.map((n, k) => `${n} ${counts[k]}`), book, width - 1, view.cursor === head.length), data: { strip: true },
+        detail: () => [bold('Spellbook tabs'), '', 'General, then one tab per talent tree, the way the trainer files them.', '', dim('Left Right here, or [ ] anywhere: turn the tabs'), dim('Down: the spells')],
+        act: (a2) => a2.moveCursor(view, a2.rowsOf(view), +1),
+      }, { text: '', header: true });
+      if (!known.length) head.push({ text: dim('No spells on this tab yet.'), header: true });
       return [...head, ...known.map((sp) => {
         const cd = a.g.spellCooldownRemaining(sp.id);
         return {
@@ -692,6 +832,7 @@ function spellsView(app) {
       })];
     },
   };
+  return view;
 }
 
 // ---- rotation ------------------------------------------------------------------------------------
@@ -781,8 +922,10 @@ function profileMenu(app) {
 
 function rotationView(app) {
   const rebuild = (a) => a.confirm('Rebuild the recommended rotation? The edits are lost.', () => { rotOwner(a).reset(); a.say(green('Rotation rebuilt.')); });
-  return {
+  const view = {
     id: 'rotation', title: 'Rotation', hint: 'Enter: open',
+    // The phases Enter has opened; all start closed so the tab fits a screen.
+    open: new Set(),
     keys: {
       w: { hint: 'whose', fn: (a) => pickRotationOwner(a) },
       p: { hint: 'profiles', fn: (a) => profileMenu(a) },
@@ -796,6 +939,7 @@ function rotationView(app) {
       d: { fn: (a, row) => row?.data?.rule && a.confirm('Delete this rule?', () => deleteRule(a, row.data)) },
       s: { hint: 'spec', fn: (a) => { if (!rotOwner(a).comp) pickSpec(a); } },
       r: { hint: 'rebuild', fn: rebuild },
+      e: { hint: 'open all', fn: (a) => { const all = PHASES.filter((ph) => (rotOwner(a).get().phases[ph] ?? []).length || ph !== 'prebuff'); if (all.every((ph) => view.open.has(ph))) view.open.clear(); else all.forEach((ph) => view.open.add(ph)); } },
     },
     rows(a) {
       const g = a.g, o = rotOwner(a), rot = o.get(), names = rotNames(a);
@@ -805,18 +949,28 @@ function rotationView(app) {
         { text: `${bold(o.comp ? `${o.comp.name}: ${spec}` : `${spec} rotation`)}${rot.custom ? dim('  (edited)') : dim('  (recommended)')}${!o.comp && g.rotationNeedsRefresh() ? yellow('  a newer recommended list exists') : ''}`, header: true },
         ...((g.state.squad ?? []).length ? [{ text: `Whose: ${cyan(o.comp ? o.comp.name : 'You')} ${dim('w')}`, detail: () => [bold('Whose rotation'), '', "Your own, or a seated companion's: the same rules drive them in every fight."], act: () => pickRotationOwner(a) }] : []),
         { text: `Profile: ${cyan(prof?.name ?? 'Default')} ${dim(`${o.profiles().length} saved   p`)}`, detail: () => [bold('Rotation profiles'), '', 'Keep several named rotations and switch which one plays.', ...o.profiles().map((p) => `${p.active ? green('●') : dim('·')} ${p.name}`)], act: () => profileMenu(a) },
-        ...wrapLines('What auto-play casts for you. Each tick the rules are read top to bottom and the first one whose conditions hold fires. ✓ is on, · is off. Enter on a rule opens its menu.', a.layout().listW - 2).map((t) => ({ text: dim(t), header: true })),
+        ...wrapLines('What auto-play casts for you. Each tick the rules are read top to bottom and the first one whose conditions hold fires. ✓ is on, · is off. Enter on a phase opens it, Enter on a rule opens its menu.', a.layout().listW - 2).map((t) => ({ text: dim(t), header: true })),
       ];
       for (const phase of PHASES) {
         const rules = rot.phases[phase] ?? [];
         if (!rules.length && phase === 'prebuff') continue;
-        rows.push({ text: '', header: true }, { text: PHASE_LABEL[phase], header: true });
+        // A phase is one row until Enter opens it; closed, it previews the first few spells it casts.
+        const open = view.open.has(phase), on = rules.filter((r) => r.enabled);
+        const [title, gloss = ''] = PHASE_LABEL[phase].split(/ (?=\()/);
+        const preview = on.slice(0, 4).map((r) => { const id = r.action?.spellId ?? r.before?.spellId; return id ? names.spell(id) : ruleSentence(r, names); }).join(', ') + (on.length > 4 ? ', …' : '');
+        rows.push({ text: '', header: true }, {
+          text: `${open ? '▾' : '▸'} ${bold(title)} ${dim(gloss)}  ${cyan(plural(rules.length, 'rule'))}${!open && preview ? dim(`  ${preview}`) : ''}`,
+          data: { phase, toggle: true },
+          detail: () => [bold(PHASE_LABEL[phase]), '', ...(rules.length ? rules.map((r, i) => `${dim(`${i + 1}.`)} ${r.enabled ? green('✓') : dim('·')} ${ruleSentence(r, names)}`) : [dim('No rules yet.')]), '', dim(open ? 'Enter: close   a: add a rule' : 'Enter: open to see and edit the rules   a: add a rule')],
+          act: () => { if (open) view.open.delete(phase); else view.open.add(phase); },
+        });
+        if (!open) continue;
         rules.forEach((rule, index) => {
           const conds = conditionsSentence(rule.conditions, names);
           // With icons a rule is two lines and the condition takes the second; without, it trails the sentence.
           const icon = iconsOn() ? a.ds.spell(rule.action?.spellId ?? rule.before?.spellId)?.icon : undefined;
           const when = conds !== 'always' ? dim(`when ${conds}`) : '';
-          const text = `${rule.enabled ? green('✓') : dim('·')} ${rule.enabled ? ruleSentence(rule, names) : dim(ruleSentence(rule, names))}${!icon && when ? `  ${when}` : ''}`;
+          const text = `  ${rule.enabled ? green('✓') : dim('·')} ${rule.enabled ? ruleSentence(rule, names) : dim(ruleSentence(rule, names))}${!icon && when ? `  ${when}` : ''}`;
           rows.push({
             text, data: { phase, index, rule },
             icon, sub: when,
@@ -825,7 +979,7 @@ function rotationView(app) {
           });
         });
         rows.push({
-          text: dim(`+ Add a rule to ${PHASE_LABEL[phase].split(' (')[0].toLowerCase()}`), data: { phase },
+          text: dim(`  + Add a rule to ${PHASE_LABEL[phase].split(' (')[0].toLowerCase()}`), data: { phase },
           detail: () => [bold(PHASE_LABEL[phase]), '', dim('Enter picks a spell or a combat item to add at the end of this list. Afterwards you can say when it fires.')],
           act: () => addRule(a, phase),
         });
@@ -844,6 +998,7 @@ function rotationView(app) {
       return rows;
     },
   };
+  return view;
 }
 
 /** Enter on a rule: everything you can do with it, in one list. */
@@ -918,6 +1073,7 @@ function addRule(app, phase, afterIndex) {
     } else if (picked.kind === 'item') {
       ({ action, conditions } = defaultItemRule(app, o, picked.itemEntry));
     }
+    app.tabs[5].view.open.add(phase);
     editRotation(app, (rot) => {
       const rule = { id, action, conditions, enabled: true };
       const list = rot.phases[phase] ??= [];
@@ -953,7 +1109,7 @@ function talentsView(app) {
     grid: (a, rows, w, h) => talentGrid(a, rows, w, h),
     keys: {
       u: { hint: 'refund', fn: (a, row) => row?.data && a.result(a.g.refundTalent(row.data.id), `Refunded a point from ${row.data.name}.`) },
-      R: { hint: 'respec', fn: (a) => { const cost = a.g.respecCost(); a.confirm(`Reset all talents for ${moneyText(cost) || 'free'}?`, () => a.result(a.g.respec(), 'Your talents are reset.')); } },
+      R: { hint: 'respec', fn: (a) => { const cost = a.g.respecCost(); a.confirm(`Reset all talents for ${coinText(cost, 'free')}?`, () => a.result(a.g.respec(), 'Your talents are reset.')); } },
       B: { hint: 'builds', fn: (a) => talentBuildsMenu(a) },
     },
     rows(a) {
@@ -1010,27 +1166,40 @@ function talentLinesText(app, t, rank, can) {
 function travelView(app) {
   return {
     id: 'travel', title: 'Travel', hint: 'Enter: go',
+    // A row without its own detail (a teleport, a portal) still shows the world map with you on it.
+    detail(a) { return withWorldMap(a, [bold(a.zone()?.name ?? a.ch.zoneId), dim('The world, and where you stand in it.')], {}); },
     rows(a) {
       const g = a.g, ds = a.ds, z = a.zone(), ch = a.ch;
-      const rows = [...journeyRows(a), { text: `You are in ${cyan(z?.name ?? ch.zoneId)}`, header: true }, { text: '', header: true }, { text: 'On foot', header: true }];
-      for (const id of z?.neighbors ?? []) { const d = ds.zone(id); if (d) rows.push({ text: `${d.name} ${dim(`L${d.levelRange[0]}-${d.levelRange[1]}`)}`, detail: () => travelPreviewLines(a, d), act: () => travelTo(a, d) }); }
+      const rows = [...journeyRows(a), { text: `You are in ${cyan(z?.name ?? ch.zoneId)}`, header: true }];
+      // A zone's neighbors are every travel edge out of it: a boat, a zeppelin or the tram is not a walk.
+      const edgeTo = new Map(ds.travelEdges().filter((e) => e.a === ch.zoneId || e.b === ch.zoneId).map((e) => [e.a === ch.zoneId ? e.b : e.a, e]));
+      const groups = [['On foot', ['ground', 'portal']], ['Boats and zeppelins', ['transport']], ['Deeprun Tram', ['tram']]];
+      for (const [title, kinds] of groups) {
+        const near = (z?.neighbors ?? []).filter((id) => kinds.includes(edgeTo.get(id)?.kind ?? 'ground')).map((id) => [ds.zone(id), edgeTo.get(id)]).filter(([d]) => d);
+        if (!near.length) continue;
+        rows.push({ text: '', header: true }, { text: title, header: true });
+        for (const [d, e] of near) {
+          const line = e?.kind === 'transport' ? ds.transports().find((t) => t.entry === e.transport)?.name : null;
+          rows.push({ text: `${d.name} ${dim(`L${d.levelRange[0]}-${d.levelRange[1]}`)}${line ? dim(`  ${line}`) : ''}`, detail: () => travelPreviewLines(a, d), act: () => travelTo(a, d) });
+        }
+      }
       const taxi = g.taxiOptions();
       if (taxi.length) {
         rows.push({ text: '', header: true }, { text: 'Flight paths', header: true });
-        for (const t of taxi) { const d = ds.zone(t.toZone); if (d) rows.push({ text: `${d.name} ${dim(`${secondsText(t.seconds * 1000)}, ${moneyText(t.priceCopper)}`)}`, detail: () => travelPreviewLines(a, d), act: () => travelTo(a, d) }); }
+        for (const t of taxi) { const d = ds.zone(t.toZone); if (d) rows.push({ text: `${d.name} ${dim(`${secondsText(t.seconds * 1000)}, ${coinText(t.priceCopper)}`)}`, detail: () => travelPreviewLines(a, d), act: () => travelTo(a, d) }); }
       }
       rows.push({ text: '', header: true }, { text: 'Hearthstone', header: true });
       const bind = ch.hearthBind;
       const cd = Math.max(0, (ch.hearthCooldownUntil ?? 0) - Date.now());
       rows.push({
         text: bind ? `Hearth to ${ds.zone(bind.zone)?.name ?? bind.zone}${bind.name ? dim(` (${bind.name})`) : ''}${cd > 0 ? red(`  ${secondsText(cd)}`) : ''}` : dim('No home set: speak with an innkeeper.'),
-        detail: () => [bold('Hearthstone'), bind ? `Bound at ${bind.name ?? ds.zone(bind.zone)?.name}` : 'Not bound', cd > 0 ? red(`Ready in ${secondsText(cd)}`) : green('Ready')],
+        detail: () => withWorldMap(a, [bold('Hearthstone'), bind ? `Bound at ${bind.name ?? ds.zone(bind.zone)?.name}` : 'Not bound', cd > 0 ? red(`Ready in ${secondsText(cd)}`) : green('Ready')], bind ? { dest: ds.zone(bind.zone), legs: [{ to: bind.zone }] } : {}),
         act: () => { const r = g.castHearth(); if (a.result(r)) { a.vendor = null; afterDeparture(a, () => `You hearth to ${a.zone()?.name}.`); landOnTab(a); } },
       });
       const ports = g.classTravelOptions();
       if (ports.length) {
         rows.push({ text: '', header: true }, { text: 'Teleports', header: true });
-        for (const p of ports) rows.push({ text: `${p.name} → ${ds.zone(p.toZone)?.name ?? p.toZone}${p.reagents.some((r) => r.have < r.count) ? red('  no reagent') : ''}`, act: () => { const r = g.castTeleport(p.spellId); if (a.result(r)) { afterDeparture(a, () => `You teleport to ${a.zone()?.name}.`); landOnTab(a); } } });
+        for (const p of ports) rows.push({ text: `${p.name} → ${ds.zone(p.toZone)?.name ?? p.toZone}${p.reagents.some((r) => r.have < r.count) ? red('  no reagent') : ''}`, detail: () => withWorldMap(a, [bold(p.name), dim(`to ${ds.zone(p.toZone)?.name ?? p.toZone}`)], { dest: ds.zone(p.toZone), legs: [{ to: p.toZone }] }), act: () => { const r = g.castTeleport(p.spellId); if (a.result(r)) { afterDeparture(a, () => `You teleport to ${a.zone()?.name}.`); landOnTab(a); } } });
       }
       rows.push(...portalRows(a));
       return rows;
@@ -1065,25 +1234,110 @@ function weaponSkillRows(a, L) {
   return rows;
 }
 
+// How tall a worn model stands against the body it replaces, which fills its box. Sprites are cropped to the
+// model, so a cat drawn into a person's box came out the size of a person. The client's collision heights are
+// one placeholder for most of these models, so this goes by shape: the druid's animals and Ghost Wolf stand on
+// four legs, a transform by its creature's type (a Polymorph sheep is a critter, a ninja costume a humanoid).
+const FORM_HEIGHT = {
+  [SHAPESHIFT_FORM.CAT]: 0.6, [SHAPESHIFT_FORM.BEAR]: 0.7, [SHAPESHIFT_FORM.DIREBEAR]: 0.7,
+  [SHAPESHIFT_FORM.TRAVEL]: 0.65, [SHAPESHIFT_FORM.AQUA]: 0.5, [SHAPESHIFT_FORM.GHOSTWOLF]: 0.6,
+};
+const TYPE_HEIGHT = { [CREATURE_TYPE.BEAST]: 0.6, [CREATURE_TYPE.CRITTER]: 0.35 };
+const typeByDisplay = new WeakMap(); // ds -> displayId -> the creature type of the first creature drawn with it
+
+function displayType(ds, displayId) {
+  let m = typeByDisplay.get(ds);
+  if (!m) {
+    m = new Map();
+    for (const c of ds.creatures()) if (c.displayId && !m.has(c.displayId)) m.set(c.displayId, c.creatureType);
+    typeByDisplay.set(ds, m);
+  }
+  return m.get(displayId);
+}
+
+/**
+ * The model `subject` (you, or a companion) wears right now, or null for its own body: { displayId, label,
+ * height }, height the share of the box it stands in (FORM_HEIGHT). In a fight, `view` (its combat view) has
+ * the live form and auras: a shift or a Polymorph lands there, not on the saved character, whose costumes are
+ * still read under them.
+ */
+export function wornNow(ds, subject, view) {
+  const worn = wornModel(ds, subject, view);
+  if (!worn) return null;
+  const form = ((view ? view.form : subject.form) ?? 0) | 0;
+  const height = form && worn.displayId === formDisplayId(form, factionOf(ds, subject.race))
+    ? FORM_HEIGHT[form] ?? 1
+    : TYPE_HEIGHT[displayType(ds, worn.displayId)] ?? 1;
+  return { ...worn, height };
+}
+
+/** A worn model (wornNow) as art in a box `maxCols` x `maxRows`, standing its height in it; null without art. */
+export function wornArt(worn, maxCols, maxRows) {
+  return worn?.displayId ? creatureArt(worn.displayId, maxCols, Math.max(3, Math.round(maxRows * worn.height))) : null;
+}
+
+function wornModel(ds, subject, view) {
+  const now = Date.now();
+  if (!view) return wornDisplay(subject, ds, now);
+  // Polymorph and Hex bake as crowd control, the model swap left in their raw aura 56 row, which
+  // wornDisplay reads past. Being turned into a sheep is the latest model change, so it wins.
+  for (const d of view.debuffs ?? []) {
+    const spell = d.spellId != null ? ds.spell(d.spellId) : null;
+    const raw = spell?.rawEffects?.find((r) => (r.auraName | 0) === 56 && r.miscValue);
+    const displayId = raw ? ds.creature(raw.miscValue | 0)?.displayId : 0;
+    if (displayId) return { displayId, label: spell.name };
+  }
+  const live = [...(view.buffs ?? []), ...(view.debuffs ?? [])].filter((b) => b.spellId != null).map((b) => ({ spellId: b.spellId }));
+  return wornDisplay({ ...subject, form: view.form ?? 0, activeAuras: [...live, ...(subject.activeAuras ?? [])] }, ds, now);
+}
+
 /**
  * Your character as a sprite for a pane: the form or costume you wear when the creature pack has it, else
- * you in your gear (paperdoll.mjs), else your bare race and gender body. `label` names the form when that
- * is what shows; null without art.
+ * you in your gear (paperdoll.mjs), else your bare race and gender body. `view` is your combat view in a
+ * fight (wornNow). `label` names the form when that is what shows; null without art.
  */
-export function playerArt(app, maxCols, maxRows) {
+export function playerArt(app, maxCols, maxRows, view = null) {
   const ch = app.ch;
-  const worn = wornDisplay(ch, app.ds, Date.now());
-  const wornArt = worn?.displayId ? creatureArt(worn.displayId, maxCols, maxRows) : null;
-  if (wornArt) return { lines: wornArt, label: worn.label };
+  const worn = wornNow(app.ds, ch, view);
+  const drawn = wornArt(worn, maxCols, maxRows);
+  if (drawn) return { lines: drawn, label: worn.label };
   const geared = paperdollArt(ch, maxCols, maxRows);
   if (geared) return { lines: geared, label: null };
   const own = creatureArt(nativeDisplayId(ch.race, ch.gender), maxCols, maxRows);
   return own ? { lines: own, label: null } : null;
 }
 
-function charView(app) {
+/** Name, level, race and class: the Character tab's title line. */
+function characterTitle(a) {
+  const ch = a.ch;
+  return `${bold(ch.name)}  ${dim(`level ${ch.level} ${raceName(ch.race)} ${className(ch.cls)}`)}`;
+}
+
+/** Your numbers at the foot of the Character tab's tooltip pane: health, power, experience, money, then the
+ *  attributes beside the combat ratings, the way the client's stat frames sit under the paperdoll. */
+function statPanel(a, w) {
+  const ch = a.ch, ds = a.ds;
+  const st = effectiveStats(ch, ds);
+  const pt = powerType(ch);
+  const pct = (x) => `${((x ?? 0) * 100).toFixed(2)}%`;
+  const combat = [
+    ['Armor', effectiveArmor(ch, ds)], ['Attack pwr', attackPower(ch, ds)], ['Crit', pct(critChanceDisplay(ch, ds))],
+    ['Hit', pct(hitChance(ch, ds))], ['Dodge', pct(dodgeChanceDisplay(ch, ds))],
+  ];
+  const attrs = Object.entries(STAT_LABEL).map(([k, name]) => `${fit(name, 10)}${String(st[k]).padStart(5)}`);
+  return [
+    dim('─'.repeat(Math.max(0, w))),
+    `Health ${ch.health}/${maxHealth(ch, ds)}   ${pt[0].toUpperCase() + pt.slice(1)} ${ch.power}/${maxPower(ch, ds)}`,
+    `XP ${ch.xp}/${ds.xpToNext(ch.level)}${ch.restedXp ? dim(` (${ch.restedXp} rested)`) : ''}   ${coinText(ch.gold)}`,
+    '',
+    ...attrs.map((t, i) => `${t}    ${fit(combat[i][0], 10)} ${String(combat[i][1]).padStart(7)}`),
+  ];
+}
+
+/** s on the Character tab: the whole sheet in words: stats, weapon skills, professions, auras, home, pet, honor, reputation. */
+function characterDetailsDialog(app) {
   return {
-    id: 'char', title: 'Character', hint: '',
+    id: 'char', title: 'Stats', hint: 'Esc: back',
     /** The detail pane holds your character: the body of your race and gender, or the form you are in. */
     detail(a) {
       const L = a.layout(), ch = a.ch;
@@ -1100,7 +1354,7 @@ function charView(app) {
         L(`${bold(ch.name)}  level ${ch.level} ${className(ch.cls)}`),
         L(''),
         L(`Health ${ch.health}/${maxHealth(ch, ds)}    ${pt[0].toUpperCase() + pt.slice(1)} ${ch.power}/${maxPower(ch, ds)}`),
-        L(`Experience ${ch.xp}/${ds.xpToNext(ch.level)}${ch.restedXp ? dim(`  (${ch.restedXp} rested)`) : ''}    ${yellow(moneyText(ch.gold) || '0c')}`),
+        L(`Experience ${ch.xp}/${ds.xpToNext(ch.level)}${ch.restedXp ? dim(`  (${ch.restedXp} rested)`) : ''}    ${coinText(ch.gold)}`),
         L(''),
         L(cyan('Attributes')),
         ...Object.entries(STAT_LABEL).map(([k, name]) => L(`  ${fit(name, 10)} ${st[k]}`)),
@@ -1135,7 +1389,6 @@ function charView(app) {
       if (hasPetClass(a)) rows.push(L(''), { text: `Pet: ${ch.pet ? ch.pet.name : dim('none out')}   ${dim('Enter: the pet page')}`, act: () => a.push(petDialog(a)) });
       rows.push(L(''), { text: `Honor   ${dim(`${honorRankLine(a)}   (:honor)`)}`, act: () => a.push(honorDialog(a)) });
       rows.push({ text: `Reputation   ${dim(`${a.ch.watchedFaction ? `watching ${ds.faction(a.ch.watchedFaction)?.name ?? ''}   ` : ''}(:rep)`)}`, act: () => a.push(reputationDialog(a)) });
-      rows.push({ text: `Settings   ${dim('loot, upgrades, disenchanting, junk, gathering   (:settings)')}`, act: () => a.push(settingsDialog(a)) });
       return rows;
     },
   };
@@ -1156,14 +1409,14 @@ export function sellStack(app, slot) {
   const s = app.g.state.inventory.stacks[slot];
   if (!s) return;
   const r = app.g.sellItemStack(slot, s.count);
-  if (app.result(r, r.ok ? `Sold ${app.itemLabel(s.item)}${r.qty > 1 ? ` x${r.qty}` : ''} for ${moneyText(r.earned)}.` : '')) noteSale(app, s.item, r.qty, r.earned);
+  if (app.result(r, r.ok ? `Sold ${app.itemLabel(s.item)}${r.qty > 1 ? ` x${r.qty}` : ''} for ${coinText(r.earned)}.` : '')) noteSale(app, s.item, r.qty, r.earned);
 }
 
 /** Sell every junk-filter match, each onto the buyback list. */
 export function sellJunk(app) {
   const preview = app.g.junkSellPreview();
   const r = app.g.sellAllJunk();
-  if (!app.result(r, r.ok ? `Sold ${plural(r.count, 'junk item')} for ${moneyText(r.earned)}.` : '')) return;
+  if (!app.result(r, r.ok ? `Sold ${plural(r.count, 'junk item')} for ${coinText(r.earned)}.` : '')) return;
   for (const p of preview) noteSale(app, p.entry, p.count, p.unitSell * p.count);
 }
 
@@ -1179,7 +1432,7 @@ function buyBackAt(app, i) {
   const r = buyBackDomain(app.g.state.char, app.g.state.inventory, list, i, app.ds.item(e.entry)?.stackable, bagCapacity(app.ch, app.ds));
   if (!r.ok) { app.say(red(r.reason ?? 'Cannot buy that back.')); return; }
   app.g.state.char = r.char; app.g.state.inventory = r.inventory; app.buyback = r.buyback;
-  app.say(green(`You buy back ${app.itemLabel(e.entry)}${e.qty > 1 ? ` x${e.qty}` : ''} for ${moneyText(e.refundCopper)}.`));
+  app.say(green(`You buy back ${app.itemLabel(e.entry)}${e.qty > 1 ? ` x${e.qty}` : ''} for ${coinText(e.refundCopper)}.`));
 }
 
 export function vendorDialog(app, vendor) {
@@ -1195,7 +1448,7 @@ export function vendorDialog(app, vendor) {
         const comp = row?.data?.comp;
         if (!comp) return;
         const r = a.g.sellCompanionJunk(comp.id);
-        if (a.result(r, r.ok ? `Sold ${plural(r.count, 'junk item')} of ${comp.name}'s for ${moneyText(r.earned)}.` : '')) for (const x of r.sold) noteSale(a, x.entry, x.qty, x.refundCopper, comp);
+        if (a.result(r, r.ok ? `Sold ${plural(r.count, 'junk item')} of ${comp.name}'s for ${coinText(r.earned)}.` : '')) for (const x of r.sold) noteSale(a, x.entry, x.qty, x.refundCopper, comp);
       } },
       d: { hint: 'destroy', fn: (a, row) => {
         if (mode === 'sell' && row?.data) { const i = a.g.state.inventory.stacks.indexOf(row.data); if (i >= 0) destroyStack(a, i); return; }
@@ -1205,7 +1458,7 @@ export function vendorDialog(app, vendor) {
         const name = a.itemLabel(row.data.s.item);
         a.confirm(`Destroy ${name} from ${comp.name}'s bags?`, () => a.result(a.g.discardCompanionBagStack(comp.id, slot), `Destroyed ${name}.`));
       } },
-      ...(vendor.canRepair ? { r: { hint: 'repair', fn: (a) => { const r = a.g.repairAll(vendor.entry); a.result(r, r.ok ? (r.spent ? `Repaired for ${moneyText(r.spent)}.` : 'Nothing needs repair.') : ''); } } } : {}),
+      ...(vendor.canRepair ? { r: { hint: 'repair', fn: (a) => { const r = a.g.repairAll(vendor.entry); a.result(r, r.ok ? (r.spent ? `Repaired for ${coinText(r.spent)}.` : 'Nothing needs repair.') : ''); } } } : {}),
     },
     onKey(a, k) {
       if (k !== 'tab' && k !== 'shift-tab') return false;
@@ -1217,7 +1470,7 @@ export function vendorDialog(app, vendor) {
     onClose(a) { /* the vendor stays "open" for :buy / s in bags until you travel */ },
     rows(a) {
       const tabs = `${bold(VENDOR_MODE_LABEL[mode])} ${dim(`${VENDOR_MODES.indexOf(mode) + 1}/${VENDOR_MODES.length}`)}`;
-      const rows = [{ text: `${bold(vendor.name)} ${dim(`<${vendor.subname ?? 'Vendor'}>`)}   ${tabs}   ${yellow(moneyText(a.ch.gold) || '0c')}`, header: true }, { text: '', header: true }];
+      const rows = [{ text: `${bold(vendor.name)} ${dim(`<${vendor.subname ?? 'Vendor'}>`)}   ${tabs}   ${coinText(a.ch.gold)}`, header: true }, { text: '', header: true }];
       if (mode === 'buy') {
         const offers = a.g.vendorOffers(vendor.entry);
         const uses = reagentUses(a);
@@ -1226,13 +1479,13 @@ export function vendorDialog(app, vendor) {
           const it = a.ds.item(o.itemEntry);
           const ok = o.affordable && o.meetsRequirements && o.inStock && o.fits;
           const name = `${qualityPaint(it?.quality)(it?.name ?? o.itemEntry)}${o.unitsPerPurchase > 1 ? ` x${o.unitsPerPurchase}` : ''}`;
-          const price = o.honorPrice ? `${o.honorPrice} honor` : moneyText(o.pricePerPurchase);
+          const price = o.honorPrice ? `${o.honorPrice} honor` : coinText(o.pricePerPurchase);
           const why = !o.meetsRequirements ? red(`  ${o.requirementReason ?? 'requirements not met'}`) : !o.affordable ? red('  too expensive') : !o.inStock ? red('  out of stock') : !o.fits ? red('  bags full') : '';
           const usedBy = uses.get(o.itemEntry);
           rows.push({
             text: `${ok ? name : dim(name)}  ${yellow(price)}${o.stockRemaining != null ? dim(`  ${o.stockRemaining} left`) : ''}${it?.requiredLevel > a.ch.level ? red(`  L${it.requiredLevel}`) : ''}${usedBy ? cyan('  reagent') : ''}${why}`, data: o,
             icon: it?.icon, sub: dim([it?.typeName, it?.slot].filter(Boolean).join(' · ')),
-            detail: () => itemLines(a, it, ['', `Price: ${yellow(price)}`, ...(o.basePricePerPurchase !== o.pricePerPurchase ? [dim(`(${moneyText(o.basePricePerPurchase)} before reputation)`)] : []),
+            detail: () => itemLines(a, it, ['', `Price: ${yellow(price)}`, ...(o.basePricePerPurchase !== o.pricePerPurchase ? [dim(`(${coinText(o.basePricePerPurchase)} before reputation)`)] : []),
               ...(usedBy ? ['', cyan('Your party crafts with it'), ...usedBy.slice(0, 6).map((n) => `  ${n}`), ...(usedBy.length > 6 ? [dim(`  and ${usedBy.length - 6} more`)] : []), dim('Crafting buys it for you when you run short.')] : [])]),
             act: () => buy(a, o, 1),
           });
@@ -1240,13 +1493,13 @@ export function vendorDialog(app, vendor) {
       } else if (mode === 'sell') {
         const st = a.g.state.inventory.stacks;
         const junk = a.g.junkSellPreview();
-        if (junk.length) rows.push({ text: dim(`j sells ${plural(junk.reduce((n, p) => n + p.count, 0), 'junk item')} for ${moneyText(junk.reduce((n, p) => n + p.unitSell * p.count, 0))}`), header: true });
+        if (junk.length) rows.push({ text: dim(`j sells ${plural(junk.reduce((n, p) => n + p.count, 0), 'junk item')} for ${coinText(junk.reduce((n, p) => n + p.unitSell * p.count, 0))}`), header: true });
         if (!st.length) rows.push({ text: dim('Your bags are empty.'), header: true });
         st.forEach((s, slot) => {
           const it = a.ds.item(s.item);
           const total = (it?.sellPrice ?? 0) * s.count;
           rows.push({
-            text: `${qualityPaint(it?.quality)(it?.name ?? s.item)}${s.count > 1 ? ` x${s.count}` : ''}  ${total ? yellow(moneyText(total)) : dim('no value')}`, data: s,
+            text: `${qualityPaint(it?.quality)(it?.name ?? s.item)}${s.count > 1 ? ` x${s.count}` : ''}  ${total ? coinText(total) : dim('no value')}`, data: s,
             icon: it?.icon, sub: dim(it?.typeName ?? ''),
             detail: () => itemLines(a, it, ['', dim('Enter: sell the stack (you can buy it back on the Buyback tab)   d: destroy')]),
             act: () => sellStack(a, slot),
@@ -1258,8 +1511,8 @@ export function vendorDialog(app, vendor) {
         list.forEach((e, i) => {
           const it = a.ds.item(e.entry);
           rows.push({
-            text: `${qualityPaint(it?.quality)(it?.name ?? e.entry)}${e.qty > 1 ? ` x${e.qty}` : ''}  ${yellow(moneyText(e.refundCopper))}${e.ownerName ? dim(`  back to ${e.ownerName}`) : ''}`,
-            detail: () => itemLines(a, it, ['', `Buy back for ${yellow(moneyText(e.refundCopper))}`]),
+            text: `${qualityPaint(it?.quality)(it?.name ?? e.entry)}${e.qty > 1 ? ` x${e.qty}` : ''}  ${coinText(e.refundCopper)}${e.ownerName ? dim(`  back to ${e.ownerName}`) : ''}`,
+            detail: () => itemLines(a, it, ['', `Buy back for ${coinText(e.refundCopper)}`]),
             act: () => buyBackAt(a, i),
           });
         });
@@ -1274,9 +1527,9 @@ export function vendorDialog(app, vendor) {
           bags.forEach((s, slot) => {
             const it = a.ds.item(s.item);
             rows.push({
-              text: `  ${qualityPaint(it?.quality)(it?.name ?? s.item)}${s.count > 1 ? ` x${s.count}` : ''}  ${it?.sellPrice ? yellow(moneyText(it.sellPrice * s.count)) : dim('no value')}`, data: { comp, s },
+              text: `  ${qualityPaint(it?.quality)(it?.name ?? s.item)}${s.count > 1 ? ` x${s.count}` : ''}  ${it?.sellPrice ? coinText(it.sellPrice * s.count) : dim('no value')}`, data: { comp, s },
               detail: () => itemLines(a, it, ['', dim(`Enter: sell it out of ${comp.name}'s bags   j: sell their junk   d: destroy`)]),
-              act: () => { const r = a.g.sellCompanionItemStack(comp.id, slot); if (a.result(r, r.ok ? `Sold ${comp.name}'s ${it?.name}${r.qty > 1 ? ` x${r.qty}` : ''} for ${moneyText(r.earned)}.` : '')) noteSale(a, s.item, r.qty, r.earned, comp); },
+              act: () => { const r = a.g.sellCompanionItemStack(comp.id, slot); if (a.result(r, r.ok ? `Sold ${comp.name}'s ${it?.name}${r.qty > 1 ? ` x${r.qty}` : ''} for ${coinText(r.earned)}.` : '')) noteSale(a, s.item, r.qty, r.earned, comp); },
             });
           });
         }
@@ -1289,37 +1542,71 @@ export function vendorDialog(app, vendor) {
 
 function buy(app, offer, n) {
   const r = app.g.buyItem(app.vendor.entry, offer.itemEntry, n);
-  app.result(r, r.ok ? `Bought ${app.itemLabel(offer.itemEntry)}${n > 1 ? ` x${n}` : ''} for ${moneyText(r.spent)}.` : '');
+  app.result(r, r.ok ? `Bought ${app.itemLabel(offer.itemEntry)}${n > 1 ? ` x${n}` : ''} for ${coinText(r.spent)}.` : '');
 }
 
 export function trainerDialog(app, trainer) {
   const known = () => new Set(app.g.state.spellbook.known);
   // Weapon masters list every class's weapons; hide the rows the class/race gate would refuse.
   const fits = (ts) => learnGrantIds(ts.spell, app.ds).every((g) => isSpellFitByClassAndRace(g, app.ch.race, app.ch.cls, app.ds.combatSkillMeta(), Math.max(app.ch.level, ts.reqLevel)));
+  // Higher ranks of a talent ability (Ice Barrier 2+) are sold here, but rank 1 only comes from the
+  // talent point, so until it is known the trainer refuses them. Keyed by the chain's first rank.
+  const talentOf = new Map();
+  for (const tree of app.ds.talentTrees(app.ch.cls) ?? []) for (const t of tree.talents ?? []) for (const r of t.ranks ?? []) {
+    for (const id of [r.spellId, ...(r.effects ?? []).filter((e) => e.kind === 'grant_spell').map((e) => e.spellId)]) if (id) talentOf.set(id, { t, tree });
+  }
+  const needsTalent = (ts) => {
+    for (const g of learnGrantIds(ts.spell, app.ds)) {
+      const first = app.ds.spellChain(g)?.first ?? g, hit = talentOf.get(first);
+      if (hit && !knows(app.g.state.spellbook, first)) return hit;
+    }
+    return null;
+  };
   const learnable = () => trainer.spells
-    .filter((ts) => ts.reqLevel <= app.ch.level && !known().has(ts.spell) && fits(ts))
+    .filter((ts) => ts.reqLevel <= app.ch.level && !known().has(ts.spell) && fits(ts) && !needsTalent(ts))
     .map((ts) => ({ ts, sp: app.ds.spell(ts.spell) })).filter((x) => x.sp)
     .sort((x, y) => x.ts.reqLevel - y.ts.reqLevel || x.sp.name.localeCompare(y.sp.name));
   return {
     id: `trainer-${trainer.entry}`, title: trainer.name, hint: 'Enter: learn',
     keys: { A: { hint: 'learn all', fn: (a) => { let n = 0; for (const { sp } of learnable()) if (a.g.learnFromTrainer(trainer.entry, sp.id).ok) { n++; a.say(green(`You have learned ${sp.name}${sp.rank ? ` (Rank ${sp.rank})` : ''}.`)); } if (!n) a.say('Nothing learned.'); } } },
     rows(a) {
-      const rows = [{ text: `${bold(trainer.name)} ${dim(`<${trainer.subname ?? `${className(a.ch.cls)} Trainer`}>`)}   ${yellow(moneyText(a.ch.gold) || '0c')}`, header: true }, { text: '', header: true }, { text: 'Available now', header: true }];
+      const rows = [{ text: `${bold(trainer.name)} ${dim(`<${trainer.subname ?? `${className(a.ch.cls)} Trainer`}>`)}   ${coinText(a.ch.gold)}`, header: true }, { text: '', header: true }, { text: 'Available now', header: true }];
       const now = learnable();
       if (!now.length) rows.push({ text: dim('  Nothing new at your level.'), header: true });
       for (const { sp, ts } of now) {
         const can = ts.cost <= a.ch.gold;
         rows.push({
-          text: `${can ? sp.name : dim(sp.name)}${sp.rank ? dim(` (Rank ${sp.rank})`) : ''}  ${yellow(moneyText(ts.cost) || 'free')}`, data: sp,
+          text: `${can ? sp.name : dim(sp.name)}${sp.rank ? dim(` (Rank ${sp.rank})`) : ''}  ${coinText(ts.cost, 'free')}`, data: sp,
           icon: sp.icon, sub: dim(`level ${ts.reqLevel}${sp.cost ? `  ${sp.cost} ${sp.powerType}` : ''}`),
-          detail: () => spellLines(a, sp, ['', `Cost: ${yellow(moneyText(ts.cost) || 'free')}`]),
+          detail: () => spellLines(a, sp, ['', `Cost: ${coinText(ts.cost, 'free')}`]),
           act: () => a.result(a.g.learnFromTrainer(trainer.entry, sp.id), `You have learned ${sp.name}${sp.rank ? ` (Rank ${sp.rank})` : ''}.`),
         });
       }
-      const later = trainer.spells.filter((ts) => ts.reqLevel > a.ch.level && !known().has(ts.spell) && fits(ts)).map((ts) => ({ ts, sp: a.ds.spell(ts.spell) })).filter((x) => x.sp).sort((x, y) => x.ts.reqLevel - y.ts.reqLevel).slice(0, 12);
+      const later = trainer.spells.filter((ts) => ts.reqLevel > a.ch.level && !known().has(ts.spell) && fits(ts) && !needsTalent(ts)).map((ts) => ({ ts, sp: a.ds.spell(ts.spell) })).filter((x) => x.sp).sort((x, y) => x.ts.reqLevel - y.ts.reqLevel).slice(0, 12);
       if (later.length) {
         rows.push({ text: '', header: true }, { text: 'Coming up', header: true });
-        for (const { sp, ts } of later) rows.push({ text: dim(`${sp.name}${sp.rank ? ` (Rank ${sp.rank})` : ''}  level ${ts.reqLevel}  ${moneyText(ts.cost)}`), header: true });
+        for (const { sp, ts } of later) rows.push({ text: dim(`${sp.name}${sp.rank ? ` (Rank ${sp.rank})` : ''}  level ${ts.reqLevel}  ${coinText(ts.cost)}`), header: true });
+      }
+      // One row per talent, not per rank: the ranks are all locked behind the same point.
+      const gated = new Map();
+      for (const ts of trainer.spells) {
+        const hit = !known().has(ts.spell) && fits(ts) && needsTalent(ts), sp = hit && a.ds.spell(ts.spell);
+        if (!sp) continue;
+        if (!gated.has(hit.t.id)) gated.set(hit.t.id, { ...hit, ranks: [] });
+        gated.get(hit.t.id).ranks.push({ sp, ts });
+      }
+      if (gated.size) {
+        rows.push({ text: '', header: true }, { text: 'Needs a talent', header: true });
+        for (const { t, tree, ranks } of gated.values()) {
+          ranks.sort((x, y) => x.ts.reqLevel - y.ts.reqLevel);
+          const sp = ranks[0].sp, why = `Rank 1 comes from the ${t.name} talent in the ${tree.name} tree. Until you take it, the trainer cannot teach the higher ranks.`;
+          rows.push({
+            text: dim(`${sp.name}  ${tree.name} talent, not taken`), data: sp, icon: sp.icon,
+            sub: dim(ranks.map(({ sp: r, ts }) => `R${r.rank ?? '?'} lv${ts.reqLevel}`).join('  ')),
+            detail: () => spellLines(a, sp, ['', yellow(why)]),
+            act: () => a.say(why),
+          });
+        }
       }
       return rows;
     },

@@ -1,19 +1,18 @@
 // Talent builds for the Talents tab (B): the premade playerbot specs for your class, loadouts you saved, a pasted
 // talent string (Wowhead-style digits or a classicdb link), and your own string to copy. Applying any of them
 // is a respec at the usual price when points are already spent.
-import { bold, dim, yellow, green, red, cyan } from './text.mjs';
-import { moneyText } from '../domain/economy/money.ts';
+import { bold, dim, yellow, green, red, cyan, coinText } from './text.mjs';
 import { talentLinkFromTalents } from '../domain/character/talentLink.ts';
 import { linkFromClassicdbHash } from '../domain/character/talentImport.ts';
 
 function applied(app, r) {
-  app.result(r, r.ok ? `Your talents are now ${r.name}${r.cost ? ` (respec ${moneyText(r.cost)})` : ''}.` : '');
+  app.result(r, r.ok ? `Your talents are now ${r.name}${r.cost ? ` (respec ${coinText(r.cost)})` : ''}.` : '');
 }
 
 /** Spent points cost a respec; say the price before doing it. */
 function withRespec(app, label, run) {
   const cost = app.g.respecCost();
-  if (cost > 0) app.confirm(`Switch to ${label}? The respec costs ${moneyText(cost)}.`, () => applied(app, run()));
+  if (cost > 0) app.confirm(`Switch to ${label}? The respec costs ${coinText(cost)}.`, () => applied(app, run()));
   else applied(app, run());
 }
 

@@ -9,16 +9,21 @@ import { iconCells } from './iconArt.mjs';
 import { App } from './tui.mjs';
 import { bootDataStore } from './bootData.mjs';
 import { newGameState } from '../engine/game.ts';
-import { strip, wrapLines } from './text.mjs';
+import { newGameStateFromWorldBot } from '../engine/game/newGameState.ts';
+import { maxPower } from '../domain/character/character.ts';
+import { startFight } from './tuiFight.mjs';
+import { strip, vis, wrapLines, coinText } from './text.mjs';
 import { visibleBars } from './tuiBars.mjs';
 import { defaultConditionsForSpell } from './tuiRotationCond.mjs';
 import { creatureArt, hasArt, artWidth } from './modelArt.mjs';
 import { nativeDisplayId } from '../domain/character/displayForm.ts';
 import { paperdollLayers, paperdollArt } from './paperdoll.mjs';
+import { playerArt, questDialog } from './tuiViews.mjs';
+import { worldMapLines } from './tuiMap.mjs';
 import { iconsOn, withIcon, wrapIconLines } from './iconArt.mjs';
 import { addItem, countItem } from '../domain/items/inventory.ts';
-import { moneyText as moneyTextOf } from '../domain/economy/money.ts';
 import { offeredQuests } from '../quests/quests.ts';
+import { isTalkToNpcQuest } from '../domain/quests/questlog.ts';
 
 const showFrames = process.argv.includes('--frames');
 let failures = 0;
@@ -75,12 +80,32 @@ check('rotation tab shows rules', (term.press('6'), /Combat \(checked/.test(fram
 check('talents tab renders', (term.press('7'), /Talents unlock|point/.test(frame())));
 check('0 opens the tenth tab', (term.press('0'), app.tab === 9));
 const lastTab = app.tabs.length - 1;
-check('character tab renders', (app.switchTab(lastTab), /Attributes/.test(frame())));
-check('the character tab draws your body', !hasArt(nativeDisplayId(app.ch.race, app.ch.gender)) || /[▀▄]/.test(frame()));
+check('the last tab is Settings', (app.switchTab(lastTab), app.top().id === 'settings' && /Auto-loot/.test(frame())));
+check('the character tab heads with your name and lists your gear', (app.switchTab(3), frame().includes(app.ch.name) && /Chest/.test(strip(frame()))));
+check('s on the character tab opens your stats', (term.press('s'), app.top().id === 'char' && /Attributes/.test(frame())));
+check('the stats page draws your body', !hasArt(nativeDisplayId(app.ch.race, app.ch.gender)) || /[▀▄]/.test(frame()));
 {
   // Starting gear is a shirt, pants, boots and a weapon or two: at least three of them have an appearance overlay.
   const p = paperdollLayers(app.ch);
   check('your starting gear stacks on your body', !p || (p.layers.filter((l) => /^\d/.test(l.key)).length >= 3 && !!paperdollArt(app.ch, 20, 12)));
+}
+{
+  // A form or a costume is the model you are drawn as: each one's model is in the pack, and a fight's live
+  // view (the form, a Polymorph debuff) beats the saved character. Cite: displayForm.ts wornDisplay.
+  const drawn = (view) => playerArt(app, 20, 12, view)?.lines.join('\n');
+  const as = (displayId, height = 1) => creatureArt(displayId, 20, Math.round(12 * height))?.join('\n');
+  const view = (o) => ({ buffs: [], debuffs: [], ...o });
+  const flipOut = app.ds.creature(app.ds.spell(8219)?.effects.find((e) => e.kind === 'transform')?.creatureEntry)?.displayId;
+  const saved = app.ch.activeAuras;
+  app.ch.activeAuras = [...(saved ?? []), { spellId: 8219, expiresAt: Date.now() + 60_000 }];
+  const costumed = drawn(null) === as(flipOut);
+  app.ch.activeAuras = saved;
+  check('every form and costume model is in the art pack', [892, 8571, 2281, 2289, 632, 2428, 4613, 15374, 15375, 864, 857, flipOut].every((id) => hasArt(id)));
+  check('cat form in a fight draws you as the cat', drawn(view({ form: 1 })) === as(892, 0.6));
+  check('the cat stands lower than you do on two legs', playerArt(app, 20, 12, view({ form: 1 })).lines.length < playerArt(app, 20, 12, view({ form: 0 })).lines.length);
+  check('a Polymorph on you draws the sheep over your form, critter-sized', drawn(view({ form: 1, debuffs: [{ spellId: 118 }] })) === as(857, 0.35));
+  check('a costume aura draws its model', costumed);
+  check('out of form you are in your gear again', drawn(view({ form: 0 })) === paperdollArt(app.ch, 20, 12)?.join('\n'));
 }
 if (iconsOn()) {
   // A big window: the Gear tab is the character sheet and the Talents tab the three trees, both icon grids
@@ -90,7 +115,8 @@ if (iconsOn()) {
   const slot = () => app.rowsOf(app.top())[app.top().cursor]?.cell?.slot;
   const rowIndexOfSlot = (s) => app.rowsOf(app.top()).findIndex((r) => r.cell?.slot === s);
   app.switchTab(3);
-  check('a big window draws the Gear tab as the sheet', !!app.top().gridNav && /Equipment/.test(frame()) && /Head/.test(frame()));
+  check('a big window draws the Character tab as the sheet', !!app.top().gridNav && frame().includes(app.ch.name) && /Head/.test(frame()));
+  check('the sheet keeps your stats under the tooltip', /Strength/.test(frame()) && /Attack pwr/.test(frame()));
   app.top().cursor = 0; app.render();
   term.press('shift-right');
   const across = slot();
@@ -114,15 +140,16 @@ if (iconsOn()) {
   const next = app.rowsOf(app.top())[app.top().cursor].node;
   check('Shift+Right walks to the next talent on the tier', next.tree === first.tree && next.t.tier === first.t.tier && next.t.col > first.t.col && frame().includes(next.t.name));
   term.cols = cols; term.rows = rows;
-  app.switchTab(lastTab);
+  app.switchTab(3); term.press('s');
   // A tooltip's long sentence wraps beside its icon while they share rows, not back under the art.
   const tip = wrapIconLines(withIcon('ability_rogue_ambush', ['Ambush', 'Ambush the target, causing 250% weapon damage plus 230 to the target. Must be stealthed and behind the target.']), 36);
   check('tooltip text wraps beside its icon', tip.slice(0, 4).every((l) => l.startsWith('\x1b[38;2;')) && tip.length > 4);
 }
 {
   const charRows = app.rowsOf(app.top()).map((r) => strip(r.text)).join('|');
-  check('the character tab lists weapon skills with Defense and the hand in use', /Weapon skills\|\s+Defense\s+\d+\/\d+\|/.test(charRows) && /\d+\/\d+( \+\d+)? +main hand/.test(charRows));
+  check('the stats page lists weapon skills with Defense and the hand in use', /Weapon skills\|\s+Defense\s+\d+\/\d+\|/.test(charRows) && /\d+\/\d+( \+\d+)? +main hand/.test(charRows));
 }
+home(); app.switchTab(lastTab);
 term.press('right'); check('Right wraps to the first tab', app.tab === 0);
 term.press('left'); check('Left wraps to the last tab', app.tab === lastTab);
 term.press('escape'); check('Esc on a tab returns to World', app.tab === 0);
@@ -320,6 +347,7 @@ if (app.auto) {
   show('autopilot between fights');
   app.fightPane = 'loot'; app.render();
   check('between fights the autopilot keeps the fight pane', /Loot this sitting/.test(strip(frame())));
+  if (iconsOn() && app.lootTally?.rows.length) check('the Loot pane draws an icon beside each item', /Loot this sitting[^\n]*\n ▀▀▀▀ \S/.test(strip(frame())));
   term.press('tab'); check('Tab between autopilot fights cycles the pane, not the tabs', app.fightPane === 'run' && !app.auto.browsing);
   check('the Run pane lists the planner steps with the fights folded', /^ Run\s/m.test(strip(frame())) && autoCtl.ledger.some((r) => r.kind === 'fight' && /won|lost|stalemate/.test(strip(r.body))));
   show('autopilot run pane');
@@ -331,7 +359,8 @@ if (app.auto) {
   check('the Quests pane lists the quests the run works on', /^ Quests\s+next: /m.test(strip(frame())) && app.g.state.questlog.quests.some((qs) => qs.status !== 'turnedIn' && strip(frame()).includes(ds.quest(qs.entry).title)));
   show('autopilot quests pane');
   app.fightPane = 'bags'; app.render();
-  check('the Bags pane shows the bags with a cursor', /^ Bags\s/m.test(strip(frame())) && /▶ /.test(strip(frame())));
+  check('the Bags pane shows the bags with a cursor', /^ Bags\s/m.test(strip(frame())) && /^▶/m.test(strip(frame())));
+  if (iconsOn()) check('the Bags pane draws an icon beside each item', /^▶▀▀▀▀ \S/m.test(strip(frame())));
   const bagCursor = app.bagsPane.cursor; term.press('down');
   check('Down moves the Bags pane cursor', app.bagsPane.cursor > bagCursor && !!app.auto);
   const logBefore = app.log.length; term.press('return');
@@ -406,6 +435,13 @@ if (doRow >= 0) {
 // Rotation editing through the menu: toggle a rule, add one, give it a condition, delete it.
 home(); term.press('6');
 show('rotation');
+check('rotation phases start closed', !app.rowsOf(app.top()).some((r) => r.data?.rule));
+app.top().cursor = rowIndex((r) => r.data?.toggle && r.data.phase === 'pull'); term.press('return');
+check('Enter on Pull opens its rules', app.rowsOf(app.top()).some((r) => r.data?.rule && r.data.phase === 'pull') && rowIndex((r, t) => /\+ Add a rule to pull/.test(t)) > 0);
+term.press('return');
+check('Enter again closes it', !app.rowsOf(app.top()).some((r) => r.data?.rule));
+app.top().cursor = rowIndex((r) => r.data?.toggle && r.data.phase === 'combat'); term.press('return');
+show('rotation, combat open');
 const ruleRow = app.rowsOf(app.top()).findIndex((r) => r.data?.rule);
 const ruleData = app.rowsOf(app.top())[ruleRow].data;
 app.top().cursor = ruleRow; term.press('return');
@@ -655,7 +691,18 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   if (hire >= 0) {
     app.top().cursor = hire; term.press('return'); show('hire list');
     check('the hire list opened', app.top().id === 'hire' && rowIndex(() => true) >= 0);
-    check('hire rows name their trades', /(Mining|Herb|Skin|Tailor|Smith|Engi|Alchemy|Enchant|Leather) \d+/.test(strip(app.rowsOf(app.top()).find((r) => !r.header)?.text ?? '')));
+    check('hire rows name their trades', /(Mining|Herb|Skin|Tailor|Smith|Engi|Alchemy|Enchant|Leather) \d+/.test(strip(app.rowsOf(app.top())[app.top().cursor]?.text ?? '')));
+    const hireRows = () => app.rowsOf(app.top()).filter((r) => !r.header && r.data);
+    check('the hire list is the whole faction, every level', hireRows().length > 1000 && hireRows().some((r) => /^\S+\s+L1 /.test(strip(r.text))) && hireRows().some((r) => /^\S+\s+L60 /.test(strip(r.text))));
+    check('the hire list opens on your level', /^\S+\s+L(8|9|10|11|12) /.test(strip(app.rowsOf(app.top())[app.top().cursor]?.text ?? '')));
+    term.press('right');
+    check('Right steps to the DPS tab', app.top().title === 'Hire · DPS' && hireRows().every((r) => /^\S+\s+L\d+ \S+\s+dps /.test(strip(r.text))));
+    term.press('t'); term.press('t');
+    check('t narrows to one kit', app.top().title === 'Hire · DPS · Shabby' && hireRows().length > 0 && hireRows().every((r) => / dps\s+Shabby /.test(strip(r.text))));
+    term.press('left'); term.press('left'); term.press('right');
+    check('the role tabs wrap, All is the start', app.top().title === 'Hire · Shabby');
+    term.press('T'); term.press('T');
+    check('T steps the kit back to any', app.top().title === 'Hire');
     term.press('return'); show('candidate page');
     check('Enter opens the candidate page', app.top().id.startsWith('cand-'));
     check('the candidate page lists professions and stats', app.rowsOf(app.top()).some((r) => r.header && strip(r.text) === 'Professions') && rowIndex((r, t) => /^Health \d+/.test(t)) >= 0);
@@ -743,6 +790,16 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   }
   const squad = g.state.squad ?? [];
   check(`two companions are seated (${squad.length})`, squad.length >= 2);
+  if (iconsOn() && squad[0]) {
+    // c on a companion's page opens their character sheet: the Character tab's paperdoll, for them.
+    const [cols, rows] = [term.cols, term.rows];
+    term.cols = 160; term.rows = 54;
+    home(); app.switchTab(tabOf('companions'));
+    app.top().cursor = rowIndex((r, t) => t.startsWith(squad[0].name)); term.press('return'); term.press('c'); show('companion sheet');
+    check('c on a companion opens their sheet as the paperdoll grid', app.top().id === `sheet-${squad[0].id}` && !!app.top().gridNav && frame().includes(squad[0].name) && /Attack pwr/.test(frame()));
+    term.cols = cols; term.rows = rows; home();
+  }
+  check('money reads in coins, an empty copper left off', strip(coinText(250000)) === (iconsOn() ? '25●' : '25g 0c') && strip(coinText(0, 'free')) === 'free');
   home(); app.switchTab(tabOf('companions'));
   term.press('m'); show('squad mode picker');
   check('m on Companions opens the squad mode picker', app.top().id === 'pick' && /How do your companions fight/.test(app.top().title));
@@ -856,6 +913,15 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
       }
       check('a cast shows as a bar under the caster', !cast || strip(frame()).includes(cast.casting.name.slice(0, 8)));
       if (cast) show('party stage cast');
+      // The last foe falls and the win holds: the party stays where it fought, it does not walk back to its start.
+      const plates = () => strip(frame()).split('\n').find((l) => /\bT \S/.test(l) && l.includes(app.ch.name))?.replace(/ ◀/, '').replace(/\s+$/, '') ?? ''; // the dead foe loses its mark
+      let before = '';
+      for (let k = 0; k < 3000 && app.fight && !app.fight.ended; k++) {
+        const left = app.fight.session.enemiesView().filter((v) => v.hp > 0);
+        if (left.length === 1 && left[0].hp < left[0].maxHp * 0.25) before = plates();
+        app.fight.tick();
+      }
+      if (app.fight?.holding && before) { const after = plates(); check(`the party holds its ground over the win${after === before ? '' : `\n       ${before}\n       ${after}`}`, after === before); }
     }
     finishFight();
     check(`stop ${n} is cleared and the run window comes back`, g.state.instance.defeated.length === n && app.top()?.id === 'dungeon');
@@ -927,6 +993,16 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   app.top().cursor = rowIndex((r, t) => /^Raid group/.test(t)); term.press('return'); term.press('f');
   check('f fills the 20-man group', g.state.raidLineup?.size === 20 && g.state.raidLineup.ids.length > 0);
   term.press('c'); home();
+  // Travel splits a zone's neighbors by how you get there: Grom'gol's zeppelins are not a walk to Tirisfal.
+  app.switchTab(app.tabs.findIndex((t) => t.view.id === 'travel')); app.render();
+  {
+    const texts = app.rowsOf(app.top()).map((r) => strip(r.text));
+    const foot = texts.indexOf('On foot'), boats = texts.indexOf('Boats and zeppelins');
+    const tirisfal = texts.findIndex((t) => t.startsWith('Tirisfal Glades'));
+    check('Travel lists the zeppelin to Tirisfal under boats, Duskwood on foot', foot >= 0 && boats > foot && tirisfal > boats
+      && /Undercity/.test(texts[tirisfal]) && texts.findIndex((t) => t.startsWith('Duskwood')) < boats);
+  }
+  home();
   g.state.char.zoneId = 'westfall';
 }
 
@@ -974,6 +1050,27 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   check('p adds a named companion rotation', g.companionRotationProfiles(comp().id).some((p) => p.name === 'Second' && p.active));
   term.press('w'); term.press('return');
   check('w back to your own rotation', !app.tabs[5].view.whose);
+  // Spellbook tabs: General, then one per talent tree; [ ] and Left Right on the strip turn them.
+  home(); term.press('5'); show('spellbook');
+  {
+    const rs = () => app.rowsOf(app.top());
+    const stripAt = () => rs().findIndex((r) => r.data?.strip);
+    const spells = () => rs().slice(stripAt() + 1).filter((r) => !r.header).map((r) => strip(r.text));
+    const trees = ds.talentTrees(app.ch.cls).map((t) => t.name);
+    check('spellbook has General and a tab per talent tree', stripAt() > 0 && ['General', ...trees].every((n) => strip(rs()[stripAt()].text).includes(n)));
+    const first = spells();
+    check(`the book opens on a tab with spells (${first.join(', ')})`, first.length > 0);
+    // ] through every tab and back: each spell sits on exactly one tab, and the class spells are not on General.
+    const seen = [];
+    for (let i = 0; i <= trees.length; i++) { seen.push(...spells()); term.press(']'); }
+    check('] walks every tab and comes back round', JSON.stringify(spells()) === JSON.stringify(first) && new Set(seen).size === seen.length);
+    // This warrior's General is empty, so the book opens on Arms.
+    check('Heroic Strike is filed under Arms, not General', /General 0\s+Arms [1-9]/.test(strip(rs()[stripAt()].text)) && first.some((n) => n.startsWith('Heroic Strike')));
+    app.top().cursor = stripAt(); term.press('left');
+    const back = spells();
+    term.press('right');
+    check('Left Right on the strip turn the book, not the window', app.top().id === 'spells' && JSON.stringify(spells()) === JSON.stringify(first) && JSON.stringify(back) !== JSON.stringify(first));
+  }
   // Player action bars: bar 1 from the Spells tab, and the fight's number row reads it.
   home(); term.press('5'); term.press('b'); show('player bars');
   check('b on Spells opens your action bars', app.top().id === 'bars' && /Bar 1/.test(strip(frame())));
@@ -1032,7 +1129,21 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   g2.state.char.level = 12; g2.state.char.gold = 1_000_000;
   app2.render();
   const at = (pred) => app2.rowsOf(app2.top()).findIndex((r) => !r.header && pred(r, strip(r.text)));
-  app2.top().cursor = at((r) => r.data?.creature?.tameable && r.data.creature.level <= 12); term2.press('t');
+  // One with an innate ability, so the pet page has an autocast row to toggle.
+  const beast = () => at((r) => r.data?.creature?.tameable && r.data.creature.level <= 12 && r.data.creature.petDefaultSpells?.length);
+  app2.top().cursor = beast(); term2.press('t');
+  check('t refuses a hunter who has not learned Tame Beast', !g2.state.char.pet);
+  // Taming the Beast (Dun Morogh): the rod goes on the Large Crag Boar the quest names, and t says so on its row.
+  g2.state.char.level = 10; app2.result(g2.acceptQuest(6064));
+  const boar = at((r) => r.data?.creature?.entry === 1126);
+  check('the taming quest puts its rod on the beast it names', boar >= 0 && /t: use Taming Rod/.test(strip(app2.rowsOf(app2.top())[boar].text)));
+  app2.top().cursor = boar; term2.press('t');
+  check('t uses the rod and the quest completes', g2.state.questlog.quests.find((q) => q.entry === 6064)?.status === 'complete');
+  g2.state.char.level = 12;
+  g2.state.spellbook = { known: [...g2.state.spellbook.known, 1515] };
+  app2.render();
+  check('a hunter with Tame Beast sees t: tame on a beast', /t: tame/.test(strip(app2.rowsOf(app2.top())[beast()].text)));
+  app2.top().cursor = beast(); term2.press('t');
   check('t on a tameable beast tames it', !!g2.state.char.pet);
   app2.top().cursor = at((r, t) => /^Pet:/.test(t)); term2.press('return');
   if (showFrames) console.log(`\n=== pet page ===\n${term2.text()}`);
@@ -1057,9 +1168,52 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   check('Dun Morogh lists a pet trainer', trainer > 0);
   if (trainer > 0) {
     app2.top().cursor = trainer; term2.press('return');
-    const rank = at((r, t) => !/level \d+/.test(t) && !/^✓/.test(t));
+    check('the pet trainer offers to untrain the pet', at((r, t) => /^Untrain /.test(t)) > 0);
+    const rank = at((r, t) => !/level \d+/.test(t) && !/^✓/.test(t) && !/^Untrain /.test(t));
     app2.top().cursor = rank; term2.press('return');
     check('a pet trainer rank can be bought', (g2.state.char.petSpells ?? []).length > 0);
+  }
+  term2.close?.();
+}
+
+// ---- what phonecraft's World tab, quest card and bag menu offer: weapon masters, ring picker, hearth, quest steps --
+{
+  const term2 = new HeadlessTerm(110, 34);
+  const app2 = new App({ term: term2, ds, repo });
+  term2.open();
+  const dwarf = ds.races().find((r) => r.name === 'Dwarf');
+  app2.startGame(newGameState(ds, dwarf.id, 1, 'Portcheck', 98, 0), 'portcheck', Date.now(), true);
+  const g2 = app2.g;
+  g2.state.char.level = 20; g2.state.char.zoneId = 'ironforge';
+  app2.switchTab(0); app2.render();
+  const at = (pred) => app2.rowsOf(app2.top()).findIndex((r) => !r.header && pred(r, strip(r.text)));
+  check('Ironforge lists its weapon masters on the World tab', at((r, t) => /Weapon Master|Weapon Trainer/i.test(t)) >= 0);
+  check('no Horde trainer or vendor in an Alliance capital', at((r, t) => /Orgrimmar|Thunder Bluff/.test(t) && /</.test(t)) < 0);
+  // Two rings on, a third from the bags asks which to replace instead of overwriting the first.
+  const rings = ds.allItems().filter((it) => it.slot === 'finger' && (it.requiredLevel ?? 0) <= 20 && !it.unique).slice(0, 3);
+  if (rings.length === 3) {
+    for (const r of rings.slice(0, 2)) { g2.state.inventory = addItem(g2.state.inventory, r.entry, 1, 1); g2.equip(r.entry); }
+    g2.state.inventory = addItem(g2.state.inventory, rings[2].entry, 1, 1);
+    app2.switchTab(2); app2.render();
+    app2.top().cursor = at((r, t) => t.includes(rings[2].name)); term2.press('return');
+    check('a third ring asks which ring to replace', app2.top().id === 'pick' && /replace which/.test(strip(app2.top().title)));
+    term2.press('down'); term2.press('return');
+    check('the picked ring slot takes it', Object.values(g2.state.char.equipped).some((e) => (e?.entry ?? e) === rings[2].entry));
+  } else check('three plain rings exist for the slot picker check', false);
+  // The Hearthstone from the bags takes you home, as the Travel tab's row does.
+  g2.state.char.hearthBind = { zone: 'dunmorogh', name: 'Thunderbrew Distillery' };
+  app2.stack = []; app2.switchTab(2); app2.render();
+  const hs = at((r, t) => /Hearthstone/.test(t));
+  if (hs >= 0) {
+    app2.top().cursor = hs; term2.press('return');
+    check('Enter on the Hearthstone in the bags hearths you', g2.state.char.zoneId !== 'ironforge' || !!g2.state.char.journey);
+  } else check('a new dwarf carries a Hearthstone', false);
+  // A speak-to quest in the log gets its Speak row on the quest page.
+  const talk = ds.quests().find((q) => isTalkToNpcQuest(q) && !q.goEnder && !(q.goEnderEntries ?? []).some((e) => e > 0) && (q.enderName || q.starterName));
+  if (talk) {
+    g2.state.questlog = { ...g2.state.questlog, quests: [...g2.state.questlog.quests, { entry: talk.entry, status: 'active', kills: {} }] };
+    app2.stack = []; app2.push(questDialog(app2, talk, 'log')); app2.render();
+    check('a speak-to quest offers Speak to its NPC on the quest page', at((r, t) => /^Speak to /.test(t)) >= 0);
   }
   term2.close?.();
 }
@@ -1208,7 +1362,7 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   const slotRow = rowIndex((r) => r.data?.slot === worn);
   check('a worn-down slot shows its durability', / 1\/\d+/.test(strip(app.rowsOf(app.top())[slotRow].text)));
   const quote = g.repairQuote();
-  check('the Repair all row prices the bill', rowIndex((r, t) => t.startsWith('Repair all') && t.includes(moneyTextOf(quote.cost))) > 0);
+  check('the Repair all row prices the bill', rowIndex((r, t) => t.startsWith('Repair all') && t.includes(strip(coinText(quote.cost)))) > 0);
   if (quote.vendorName) {
     app.top().cursor = slotRow; term.press('r');
     check('r on a slot repairs that piece', g.state.char.durability?.[worn] == null);
@@ -1372,15 +1526,15 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   home();
 }
 
-// Cancel an aura: from the Character tab, and with c inside a fight.
+// Cancel an aura: from the Character tab's stats page, and with c inside a fight.
 {
   const g = app.g;
   const fort = ds.spell(1243);
   const give = () => { g.state.char.activeAuras = [...(g.state.char.activeAuras ?? []).filter((x) => x.spellId !== 1243), { spellId: 1243, expiresAt: Date.now() + 600000 }]; };
   give();
-  home(); app.switchTab(app.tabs.length - 1); show('character auras');
+  home(); app.switchTab(3); term.press('s'); show('character auras');
   const at = rowIndex((r, t) => t.includes(fort.name));
-  check('the Character tab lists your auras', at > 0);
+  check('the stats page lists your auras', at > 0);
   app.top().cursor = at; term.press('return');
   check('Enter on a buff cancels it', !(g.state.char.activeAuras ?? []).some((x) => x.spellId === 1243));
   give(); home(); term.press('1');
@@ -1509,6 +1663,21 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   field('pullNormalCount'); term.press('return'); term.press('backspace'); typeLine('99');
   check('an out-of-range number is refused', g.autopilotConfig().pullNormalCount === 3);
   g.setAutopilotConfig(before);
+  home();
+}
+
+// The Travel tab's detail pane carries the world map (tuiMap.mjs): the terrain as half-block cells, you and the
+// destination pinned on it, the planned route dotted between them.
+{
+  home(); term.press('8');
+  const here = app.g.state.char.zoneId;
+  const dest = (ds.zone(here)?.neighbors ?? []).map((id) => ds.zone(id)).find((z) => z && app.g.previewTravel(z.id).ok);
+  app.top().cursor = rowIndex((r, t) => t.startsWith(dest.name)); app.render();
+  const pane = strip(frame()).split('\n').map((l) => l.split('│')[1] ?? '').join('\n');
+  check('the Travel tab draws the world map under a destination, you pinned on it', /▀/.test(pane) && pane.includes('●') && /you .*destination/.test(pane));
+  const far = ds.zones().find((z) => z.continent !== ds.zone(here).continent && app.g.previewTravel(z.id).ok);
+  const lines = worldMapLines(app, { dest: far, legs: app.g.previewTravel(far.id).legs, maxCols: 60, maxRows: 24 });
+  check('a trip to the other continent draws its route, every line inside the room given', lines.length === 24 && lines.every((l) => vis(l) <= 60) && lines.slice(0, -1).join('').includes('·') && lines.join('').includes('◆'));
   home();
 }
 
@@ -2247,6 +2416,94 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
 term.press('?'); check('help overlay', app.top().id === 'help'); term.press('escape');
 check('help closed', app.stack.length === 0);
 
+// Pre-pull buffs: a mage buffs standing still, the autopilot drinks back what that cost, and the pull opens at
+// full mana on an attack. Casting the buffs phase on the fight's first ticks sent it in at three quarters.
+{
+  const termB = new HeadlessTerm(110, 34);
+  const appB = new App({ term: termB, ds, repo });
+  termB.open();
+  appB.startGame(newGameStateFromWorldBot(ds, { id: 'buffcheck', index: 0, name: 'Buffcheck', gender: 0, race: 1, cls: 8, faction: undefined, level: 20, specIdx: 0, seed: 7 }, 7), 'buffcheck', Date.now(), true);
+  const gB = appB.g;
+  const wolf = ds.zone(gB.state.char.zoneId).huntable[0];
+  const hasAI = () => (gB.state.char.activeAuras ?? []).some((a) => ds.spell(a.spellId)?.name === 'Arcane Intellect');
+  const full = () => gB.state.char.power === maxPower(gB.state.char, ds);
+  let pulledFull = null, pulledBuffed = null;
+  const ap = appB.cmds.createAutopilot(`farm ${ds.creature(wolf).name}`, { maxSteps: 6, liveFight: (step, settle) => { pulledFull ??= full(); pulledBuffed ??= hasAI(); settle({ outcome: 'win' }); return { ok: true }; } });
+  ap.next();
+  check('autopilot buffs before the pull, then rests instead of pulling', ap.lastKind === 'buff' && hasAI() && !full());
+  for (let i = 0; i < 5 && pulledFull == null; i++) ap.next();
+  check('autopilot pulls buffed and at full mana', pulledFull === true && pulledBuffed === true);
+  gB.state.char.activeAuras = (gB.state.char.activeAuras ?? []).filter((a) => ds.spell(a.spellId)?.name !== 'Arcane Intellect');
+  gB.state.char.activeBuffs = (gB.state.char.activeBuffs ?? []).filter((id) => ds.spell(id)?.name !== 'Arcane Intellect');
+  const from = appB.log.length;
+  startFight(appB, wolf);
+  const buffedFirst = hasAI();
+  for (let i = 0; i < 2000 && appB.fight; i++) appB.fight.tick();
+  const casts = appB.log.slice(from).map(strip).filter((l) => /^\s*[\d.]+s You cast /.test(l));
+  check('a plain fight buffs before it starts and opens on an attack', buffedFirst && casts.length > 0 && !casts.some((l) => /Arcane Intellect/.test(l)));
+  // A dungeon stop: the same buff, then the party drinks back to the rest line before the pull, and again before
+  // the next one. Pulling straight after the armour and conjures opened Rhahk'Zor at 761 of 1966.
+  const { openRun, pullStop } = await import('./tuiDungeon.mjs');
+  const { nextEncounter } = await import('../world/instances.ts');
+  for (const [cls, role] of [[1, 'tank'], [2, 'healer']]) gB.recruitCompanion(cls, role, 'twink');
+  for (const c of gB.state.squad) c.level = 20;
+  gB.state.char.activeAuras = []; gB.state.char.activeBuffs = [];
+  gB.regenTick(600, true);
+  const dm = ds.instance('deadmines');
+  check('a level 20 mage party can enter the Deadmines', gB.enterInstance('deadmines', Date.now()).ok);
+  appB.stack = []; openRun(appB);
+  const openPct = [];
+  for (let i = 0; i < 2; i++) {
+    pullStop(appB, dm, nextEncounter(dm, gB.state.instance));
+    const pv = appB.fight?.session.playerView();
+    openPct.push(pv ? pv.power / maxPower(gB.state.char, ds) : 0);
+    for (let n = 0; n < 8000 && appB.fight; n++) appB.fight.tick();
+    appB.fight?.release?.();
+  }
+  check('a dungeon stop buffs, then drinks back before the pull', hasAI() && openPct[0] >= 0.9);
+  check('the next stop rests back up too', openPct[1] >= 0.9);
+}
+
+// A foe that resets ends the fight. The engine keeps the session open with the mob passive at full HP and the
+// rotation idle, which held a Razormane Scout fight for 970 s. Here a Quilboar is pinned 50 yd out once it is
+// in combat, so it cannot close and evades; the fight must settle as a stalemate a few seconds later.
+{
+  const termQ = new HeadlessTerm(110, 34);
+  const appQ = new App({ term: termQ, ds, repo });
+  termQ.open();
+  appQ.startGame(newGameStateFromWorldBot(ds, { id: 'quietcheck', index: 0, name: 'Quietcheck', gender: 0, race: 2, cls: 7, faction: undefined, level: 11, specIdx: 0, seed: 5 }, 5), 'quietcheck', Date.now(), true);
+  const boar = ds.creatures().find((c) => c.name === 'Razormane Quilboar');
+  const from = appQ.log.length;
+  startFight(appQ, boar.entry);
+  const s = appQ.fight.session, side = s.enemiesView()[0].side;
+  let engagedAt = null, ticks = 0;
+  for (; ticks < 1200 && appQ.fight && !appQ.fight.ended; ticks++) {
+    if (engagedAt == null && s.enemiesView()[0].engaged) engagedAt = s.t;
+    s.setUnitPosYd('player', { x: 0, y: 0 });
+    if (engagedAt != null) s.setUnitPosYd(side, { x: 50, y: 0 });
+    appQ.fight.tick();
+  }
+  const said = appQ.log.slice(from).map(strip);
+  const reset = said.some((l) => /cannot reach you and resets/.test(l));
+  check(`a foe that resets ends the fight as a stalemate (${(s.t / 1000).toFixed(1)} s, reset ${reset})`,
+    reset && said.some((l) => /resets and the fight is over/.test(l)) && said.some((l) => /^Stalemate against/.test(l)) && s.t < 20_000);
+  appQ.fight?.release?.();
+}
+
+// c on the World tab saves, lets go of the character and hands the screen back to the picker.
+{
+  const termL = new HeadlessTerm(110, 34);
+  const repoL = { saved: 0, unlocked: [], async save() { this.saved++; }, async list() { return []; }, async load() { return null; }, unlock(s) { this.unlocked.push(s); } };
+  const appL = new App({ term: termL, ds, repo: repoL });
+  termL.open();
+  appL.startGame(newGameState(ds, human.id, 1, 'Logouttest', 777, 0), 'logouttest', Date.now(), true);
+  let picked = 0;
+  appL.toPicker = async () => { picked++; };
+  termL.press('c');
+  await new Promise((r) => setImmediate(r));
+  check('c on World saves, unlocks and goes back to the character list', !appL.g && picked === 1 && repoL.saved > 0 && repoL.unlocked.includes('logouttest') && !appL.timers.length);
+}
+
 // Sixel art, last: once on it stays on for the process. The terminal says it draws sixel (DA1 parameter 4);
 // art then travels as placeholders whose markers the terminal layer takes out and places.
 {
@@ -2254,10 +2511,14 @@ check('help closed', app.stack.length === 0);
   const art = creatureArt(2332, 28, 14);
   const mark = art?.[0]?.match(/\x1b\[9999;(\d+);0m/);
   check('sixel on: a creature is a placeholder of marked blank rows', !!mark && art.every((l, r) => l.includes(`\x1b[9999;${mark[1]};${r}m`)) && /^\x1bP0;1;0q"1;1;\d+;\d+#/.test(imageOf(+mark[1])?.sixel ?? ''));
+  // The shipped worn pack fills what the downloaded hd pack lacks: forms and costumes draw sharp too.
+  check('sixel on: cat and bear form draw as pixels, not half-blocks', [892, 2281].every((id) => /\x1b\[9999;/.test(creatureArt(id, 28, 14)?.[0] ?? '')));
   const placed = new Map();
   const rows = art.map((l, r) => takeMarks(`ab${l}${l}`, 5 + r, placed));
   check('the same picture twice on a row is two placements, at their columns, markers gone', placed.size === 2 && [...placed.values()].every((p) => p.y === 5 && p.bottom) && [...placed.values()].map((p) => p.x).join() === `2,${2 + artWidth(art)}` && rows.every((l) => !l.includes('\x1b[9999')));
   check('a marker rides one cell in a grid, not every cell after it', splitCells(art[0]).filter((c) => c.includes('\x1b[9999')).length === 1);
+  const map = worldMapLines(app, { maxCols: 40, maxRows: 12 });
+  check('the world map is a placeholder too, with its legend under it', !!map && map.length === 12 && /\x1b\[9999;/.test(map[0]) && /^\x1bP0;1;0q"1;1;\d+;\d+#/.test(imageOf(+map[0].match(/\x1b\[9999;(\d+);/)[1])?.sixel ?? '') && /you/.test(strip(map[11])));
   check('a wrapped line does not carry a marker to the next', wrapLines(`${art[0]} ${'word '.repeat(20)}`, 40).slice(1).every((l) => !l.includes('\x1b[9999')));
   const icon = iconCells('spell_holy_holysmite', 6, '', [{ x: 4, y: 2, w: 2 }]);
   check('an icon is a placeholder too, with its badge corner see-through', !!icon && icon.length === 3 && icon[0][0].includes('\x1b[9999') && /#\d+;2;/.test(imageOf(+icon[0][0].match(/\x1b\[9999;(\d+);/)[1])?.sixel ?? ''));

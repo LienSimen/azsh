@@ -3,16 +3,22 @@
 // held-item menu (panels/heldItemMenu.ts) is the reference; every verb is a Game facade call.
 import { bold, dim, yellow, green, red, qualityPaint, itemText } from './text.mjs';
 import { autoLootOn, openLoot, takeAll } from './tuiLoot.mjs';
-import { SLOT_LABEL, bagCapacity } from '../domain/items/equipment.ts';
+import { SLOT_LABEL, bagCapacity, equipSlotPickTargets, DUAL_WIELD_SPELL_ID } from '../domain/items/equipment.ts';
+import { equippedEntry } from '../domain/items/itemInstance.ts';
+import { knows } from '../domain/character/spellbook.ts';
+import { isDisenchantable, disenchantRuleFor } from '../domain/professions/enchanting.ts';
+import { resolveRosterEnchanters, groupHasEnchanting, partyDisenchantCheck } from '../domain/professions/partyDisenchant.ts';
 import { freeSlots, isWrappingPaper, isFilledGift, canWrapTarget } from '../domain/items/inventory.ts';
 import { isOpenableContainer } from '../domain/items/itemContainer.ts';
 import { isAmmoItem } from '../domain/items/ammo.ts';
 import { itemTeachIntent } from '../domain/items/itemTeaches.ts';
 import { junkListOptions } from './tuiSettings.mjs';
-import { isMountItem, toggleMount } from './tuiWorld.mjs';
-import { questDialog } from './tuiViews.mjs';
+import { isMountItem, toggleMount, afterDeparture } from './tuiWorld.mjs';
+import { questDialog, landOnTab } from './tuiViews.mjs';
 import { useItemWithPicker, isPermanentEnchantItem } from './tuiEnchantTarget.mjs';
 import { bagQuestStartState } from '../quests/quests.ts';
+
+const HEARTHSTONE_ITEM_ENTRY = 6948; // phonecraft src/ui/map/travelUi.ts
 
 const stacks = (app) => app.g.state.inventory.stacks;
 const hasLoot = (app) => (entry) => app.ds.lootTable(`item:${entry}`).length > 0;
@@ -55,7 +61,8 @@ export function useStack(app, slot) {
   }
   if (isWrappingPaper(it)) { wrapWith(app, slot); return; }
   if (isContainer(app, it)) { openContainer(app, slot); return; }
-  if (it?.slot) { const r = app.g.equip(s.item); app.result(r, r.ok ? (it.slot === 'bag' ? `You equip ${itemText(it)} as ${SLOT_LABEL[r.slot] ?? r.slot}.` : `You equip ${itemText(it)}.`) : ''); return; }
+  if (s.item === HEARTHSTONE_ITEM_ENTRY) { const r = app.g.castHearth(); if (app.result(r)) { app.vendor = null; afterDeparture(app, () => `You hearth to ${app.zone()?.name}.`); landOnTab(app); } return; }
+  if (it?.slot) { equipFromBags(app, it); return; }
   if (isAmmoItem(it)) {
     if (app.ch.ammoItem === it.entry) app.result(app.g.clearAmmo(), 'You put your ammo away.');
     else app.result(app.g.setAmmo(s.item), `You load ${itemText(it)}.`);
@@ -65,6 +72,30 @@ export function useStack(app, slot) {
   if (!primaryVerb(app, s)) { itemMenu(app, slot); return; }
   // An armor kit, a scope, a poison or a sharpening stone asks which slot it goes on.
   useItemWithPicker(app, s.item, (r) => (r.learned ? green(`You learn ${r.learned.name}.`) : green(`You use ${itemText(it)}.  HP ${app.hpText()}  ${app.pwText()}`)));
+}
+
+/** Equip from the bags. With both rings, both trinkets or both hands full it asks which to replace rather than
+ * overwrite the first (phonecraft equipSlotPicker.ts); an empty one of the pair still fills by itself. */
+function equipFromBags(app, it) {
+  const done = (r) => app.result(r, r.ok ? (it.slot === 'bag' ? `You equip ${itemText(it)} as ${SLOT_LABEL[r.slot] ?? r.slot}.` : `You equip ${itemText(it)}.`) : '');
+  const ch = app.ch, slots = equipSlotPickTargets(ch, it, { canDualWield: knows(app.g.state.spellbook, DUAL_WIELD_SPELL_ID) });
+  if (slots.length < 2) { done(app.g.equip(it.entry)); return; }
+  const opts = slots.map((slot) => { const cur = equippedEntry(ch.equipped[slot]); return { label: `${SLOT_LABEL[slot] ?? slot}: ${cur != null ? itemText(app.ds.item(cur)) : dim('empty')}`, value: slot }; });
+  app.pick(`Equip ${itemText(it)}: replace which?`, opts, (slot) => done(app.g.equip(it.entry, slot)));
+}
+
+/** Disenchant on one stack, for anyone in the group with the skill: hidden when nobody has Enchanting or the item
+ * yields nothing, the reason shown when the group is short of the skill. Ref heldItemMenu.ts disenchantRow. */
+function disenchantOption(app, slot, s, it) {
+  if (!it || !isDisenchantable(it) || it.quality < 2 || !disenchantRuleFor(it, app.ds)) return null;
+  const g = app.g, enchanters = resolveRosterEnchanters(app.ch, g.state.squad, g.state.botRoster, g.state.raidRoster?.members, app.ds);
+  if (!groupHasEnchanting(enchanters)) return null;
+  const chk = partyDisenchantCheck(s.item, g.state.inventory, app.ds, enchanters);
+  if (!chk.ok) return chk.kind === 'skill' ? { label: `Disenchant  ${dim(chk.reason)}`, value: () => app.flashMsg(chk.reason) } : null;
+  return { label: `Disenchant${chk.who.kind === 'companion' ? dim(`  ${chk.who.name}, Enchanting ${chk.who.skill}`) : ''}`, value: () => {
+    const r = g.disenchantStack(slot);
+    if (app.result(r)) app.say(green(`${r.worker ? `${r.worker} breaks down` : 'You break down'} ${itemText(it)}: ${r.yielded.map((y) => `${app.itemLabel(y.item)}${y.count > 1 ? ` x${y.count}` : ''}`).join(', ') || 'nothing'}.`) + (r.skillUp != null && !r.worker ? dim(`  Enchanting ${r.skillUp}`) : ''));
+  } };
 }
 
 /** Open a clam, crate or lockbox into the loot window; auto-loot takes what fits straight away. */
@@ -159,6 +190,8 @@ export function itemMenu(app, slot) {
   if (slot > 0) opts.push({ label: `Move up  ${dim('[')}`, value: () => moveStack(app, slot, -1) });
   if (slot < stacks(app).length - 1) opts.push({ label: `Move down  ${dim(']')}`, value: () => moveStack(app, slot, +1) });
   opts.push({ label: `Move to the end`, value: () => app.result(app.g.moveItem(slot, stacks(app).length)) });
+  const de = disenchantOption(app, slot, s, it);
+  if (de) opts.push(de);
   opts.push(...junkListOptions(app, s.item));
   opts.push({ label: red(`Destroy  ${dim('d')}`), value: () => destroyStack(app, slot) });
   app.pick(`${itemText(it, 'Item')}${countText(s)}`, opts, (fn) => fn());

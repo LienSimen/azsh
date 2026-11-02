@@ -3,14 +3,14 @@
 // stops, gates, chests and NPCs; Enter on an unlocked stop fights it live with the squad. Ports phonecraft
 // instanceView.ts (the entry card), liveDungeonHeadless.ts (pulls, gates, rest, Finish instantly) and the
 // floor's object clicks (liveObjectLoot.ts) onto the sequential route.
-import { bold, dim, cyan, yellow, green, red, gray, qualityPaint, fit, plural, secondsText, wrapLines, itemText } from './text.mjs';
+import { bold, dim, cyan, yellow, green, red, gray, qualityPaint, fit, plural, secondsText, wrapLines, itemText, coinText } from './text.mjs';
 import { openFloor } from './tuiFloor.mjs';
 import { startFight } from './tuiFight.mjs';
 import { noteLoot } from './tuiFightPanes.mjs';
 import { prePull } from './squad.mjs';
+import { prepOoc, prepText } from './oocPrep.mjs';
 import { questDialog } from './tuiViews.mjs';
 import { nextDoQuestStep } from '../domain/quests/doQuest.ts';
-import { moneyText } from '../domain/economy/money.ts';
 import { maxHealth } from '../domain/character/character.ts';
 import { bagCapacity } from '../domain/items/equipment.ts';
 import { companionLevel, companionCharacter } from '../domain/bots/squad.ts';
@@ -27,10 +27,12 @@ import { isSkippableBeginFailure } from '../engine/game/types.ts';
 import {
   instancePortals, routeEncounterList, routeEncounterIdList, encounterOf, isCleared, isUnlocked, nextEncounter,
   isComplete, requiredFlags, hasFlag, routeBossProgress, applyEncounterCleared, autoAdvanceRouteGates,
-  itemDropsInsideInstance, lockRemainingMs, restoreSavedRun,
+  itemDropsInsideInstance, lockRemainingMs, restoreSavedRun, canEnter,
 } from '../world/instances.ts';
 import { instanceObjectPins, lootObjectPins, objectGatesFor } from '../world/instanceObjects.ts';
 import { dungeonNpcsForMap } from '../data/dungeonSpawns.ts';
+import { extraEntrancesForInstance } from '../data/dungeons/pack-from-clusters.ts';
+import { buildEntryLockInputs } from '../domain/run/canEnterContext.ts';
 import { getDungeonGameObject } from '../data/dungeonGameObjects.ts';
 import { countRouteTrash, selectRouteEncounters, DEFAULT_ROUTE_DENSITY, DEFAULT_PULL_FUSION } from '../world/dungeonRoute.ts';
 import { WIPE_RETRY_PER_PULL, WIPE_CAP_PER_RUN } from '../world/dungeonPreset.ts';
@@ -52,6 +54,15 @@ function packSize(enc) {
 }
 
 // ---- portals and entry ------------------------------------------------------------------------------------
+
+/** The engine's own door check (level, attunement, key, quest chain, lockout), so the row says no before Enter does. Ref worldView.ts:626. */
+function entryCheck(app, def, now = Date.now()) {
+  const g = app.g;
+  return canEnter(def, app.ch.level, g.state.lockouts ?? {}, now, { teleports: app.ds.areatriggerTeleports(), instanceSaves: g.state.instanceSaves, ...buildEntryLockInputs(g.state, def.name) });
+}
+
+/** The other doors into this instance (Maraudon's orange side, Gnomeregan's train depot, Uldaman's back door...). */
+const extraDoors = (def) => extraEntrancesForInstance(def.id).map((row) => ({ id: row.id, name: String(row.name ?? '').replace(/\s*-\s*Entering.*$/i, '').trim() || def.name }));
 
 function lockText(app, def, now = Date.now()) {
   const g = app.g;
@@ -78,10 +89,11 @@ export function portalRows(app) {
   if (!portals.length) return rows;
   rows.push(H(''), H(`Dungeons (${portals.length})`));
   for (const def of portals) {
-    const low = ch.level < def.minLevel;
+    const chk = entryCheck(app, def);
+    const low = !chk.ok && !restoreSavedRun(g.state.instanceSaves, def.id, Date.now());
     const lock = lockText(app, def);
     rows.push({
-      text: `${low ? dim(def.name) : cyan(def.name)} ${dim(`L${def.levelRange[0]}-${def.levelRange[1]}${isRaid(def) ? `  ${def.maxPlayers}-man raid` : ''}`)}${low ? red(`  requires ${def.minLevel}`) : ''}${lock ? `  ${lock}` : ''}`,
+      text: `${low ? dim(def.name) : cyan(def.name)} ${dim(`L${def.levelRange[0]}-${def.levelRange[1]}${isRaid(def) ? `  ${def.maxPlayers}-man raid` : ''}`)}${low && !lock ? red(`  ${chk.reason ?? `requires ${def.minLevel}`}`) : ''}${lock ? `  ${lock}` : ''}`,
       data: { dungeon: def },
       detail: () => portalLines(app, def),
       act: () => app.push(entryDialog(app, def)),
@@ -95,6 +107,8 @@ function portalLines(app, def) {
   const out = [bold(def.name), dim(`levels ${def.levelRange[0]}-${def.levelRange[1]}, requires ${def.minLevel}${isRaid(def) ? `, ${def.maxPlayers} players` : ''}`)];
   const lock = lockText(app, def);
   if (lock) out.push(lock);
+  const chk = entryCheck(app, def);
+  if (!chk.ok && !lock) out.push(red(chk.reason ?? 'You cannot enter yet.'));
   out.push('', cyan(`Bosses (${bosses.length})`), ...bosses.slice(0, 14).map((b) => `  ${b.name}`), ...(bosses.length > 14 ? [dim(`  and ${bosses.length - 14} more`)] : []));
   out.push('', dim('Enter: route, party and supplies, then go in'));
   return out;
@@ -102,7 +116,8 @@ function portalLines(app, def) {
 
 /** The card before the door: route density, party or raid, food and water, Enter. */
 export function entryDialog(app, def) {
-  const opts = { routeDensity: DEFAULT_ROUTE_DENSITY, asRaid: isRaid(def) };
+  const opts = { routeDensity: DEFAULT_ROUTE_DENSITY, asRaid: isRaid(def), door: null };
+  const doors = extraDoors(def);
   return {
     id: `enter-${def.id}`, title: def.name, hint: 'Enter: choose',
     rows(a) {
@@ -114,6 +129,7 @@ export function entryDialog(app, def) {
       rows.push({ text: green(held ? 'Go back in' : 'Enter the dungeon'), detail: () => [bold('Enter'), '', `${opts.routeDensity === 'full' ? 'Every pack on the way' : 'Bosses and what guards them'}; ${opts.asRaid ? 'as a raid, the bench comes too' : `you and ${plural(squad.length, 'companion')}`}.`], act: () => enter(a, def, opts) });
       const pace = (d) => ({ text: `Route: ${cyan(d === 'full' ? 'Full' : 'Bosses')}`, detail: () => [bold('Route density'), '', 'Bosses: the bosses and the packs that stand in their way.', 'Full: every pack in the dungeon.', '', dim('Enter: switch')], act: () => { opts.routeDensity = opts.routeDensity === 'full' ? 'bosses' : 'full'; } });
       rows.push(pace(opts.routeDensity));
+      if (doors.length) { const all = [null, ...doors]; rows.push({ text: `Door: ${cyan(opts.door?.name ?? 'Main entrance')}`, detail: () => [bold('Which door'), '', 'Some instances have more than one way in; each starts you at its own end of the route.', ...doors.map((d) => `  ${d.name}`), '', dim('Enter: next door')], act: () => { opts.door = all[(all.indexOf(opts.door) + 1) % all.length]; } }); }
       rows.push({ text: `Group: ${cyan(opts.asRaid ? 'Raid' : 'Party')}`, detail: () => [bold('Party or raid'), '', 'Party: you and the up to four companions you have seated.', `Raid: the bench comes too, up to ${(def.maxPlayers ?? 5) - 1} companions.`, '', dim('Enter: switch')], act: () => { opts.asRaid = !opts.asRaid; } });
       const walk = walkingIn(g, def, opts.asRaid);
       rows.push({ text: `Who walks in: ${cyan(`${walk.ids.length} of ${walk.cap}`)}${walk.picked ? '' : dim('  (auto)')}`, detail: () => [bold('Who walks in'), '', 'Pick from every companion you own, or Fill to match what this instance wants.', '', dim('Enter: pick')], act: () => a.push(rosterDialog(a, def, () => opts.asRaid)) });
@@ -131,7 +147,7 @@ export function entryDialog(app, def) {
 }
 
 function enter(app, def, opts) {
-  const r = app.g.enterInstance(def.id, Date.now(), { routeDensity: opts.routeDensity, asRaid: opts.asRaid });
+  const r = app.g.enterInstance(def.id, Date.now(), { routeDensity: opts.routeDensity, asRaid: opts.asRaid, ...(opts.door ? { entranceTriggerId: opts.door.id } : {}) });
   if (!app.result(r, `You enter ${def.name}.`)) return;
   app.dungeonPulls = [];
   app.stack = [];
@@ -141,17 +157,17 @@ function enter(app, def, opts) {
 // Food and water before the door: who is short, the vendor ladder, what it costs (runSupplyPanel.ts).
 function supplyRows(app) {
   const plan = app.g.runSupplyPlan();
-  const rows = [H(''), H(`Food and water ${dim(plan.mage ? '(a mage conjures both on the way)' : plan.rows.length ? `${moneyText(plan.cost)} for everyone` : 'everyone has enough')}`)];
+  const rows = [H(''), H(`Food and water ${dim(plan.mage ? '(a mage conjures both on the way)' : plan.rows.length ? `${coinText(plan.cost)} for everyone` : 'everyone has enough')}`)];
   if (plan.mage || !plan.rows.length) return rows;
   for (const r of plan.rows) {
     const rung = r.ladder[r.rung];
-    rows.push(H(`  ${fit(r.memberName, 12)} ${fit(r.kind, 6)} ${dim(`has ${r.have}, short ${r.short}`)}  ${itemText(rung?.item, '?')} x${r.units}  ${yellow(moneyText(r.cost))}`));
+    rows.push(H(`  ${fit(r.memberName, 12)} ${fit(r.kind, 6)} ${dim(`has ${r.have}, short ${r.short}`)}  ${itemText(rung?.item, '?')} x${r.units}  ${coinText(r.cost)}`));
   }
   const buys = supplyBuys(plan.rows, app.ch.gold, true);
   rows.push({
-    text: buys.length ? `Buy them ${yellow(`(${moneyText(buys.reduce((s, b) => s + b.cost, 0))})`)}` : dim('Buy them (not enough gold)'),
+    text: buys.length ? `Buy them ${yellow(`(${coinText(buys.reduce((s, b) => s + b.cost, 0))})`)}` : dim('Buy them (not enough gold)'),
     detail: () => [bold('Buy supplies'), '', 'The vendor price, straight into each member\'s own bags. What does not fit is left out.', ...(plan.full.length ? ['', yellow(`Bags full: ${plan.full.map((f) => f.name).join(', ')}`)] : [])],
-    act: () => { if (!buys.length) { app.flashMsg('Not enough gold for any of it.'); return; } const r = app.g.buyRunSupplies(buys); app.result(r, r.ok ? `Bought ${r.units} food and water for ${moneyText(r.spent)}.` : ''); },
+    act: () => { if (!buys.length) { app.flashMsg('Not enough gold for any of it.'); return; } const r = app.g.buyRunSupplies(buys); app.result(r, r.ok ? `Bought ${r.units} food and water for ${coinText(r.spent)}.` : ''); },
   });
   return rows;
 }
@@ -280,7 +296,7 @@ function openChest(app, pin) {
   app.say(`You open ${pin.name}.${r.loot.length ? '' : ' It is empty.'}`);
   if (took.ok) noteLoot(app, took.taken, took.copper);
   for (const d of took.ok ? took.taken : []) app.say(`  ${yellow('You receive')} ${app.itemLabel(d.item)}${d.count > 1 ? ` x${d.count}` : ''}`);
-  if (took.ok && took.copper) app.say(`  ${yellow('You receive')} ${moneyText(took.copper)}`);
+  if (took.ok && took.copper) app.say(`  ${yellow('You receive')} ${coinText(took.copper)}`);
   if (took.ok && took.remaining) app.say(red(`  ${plural(took.remaining, 'item')} did not fit in your bags.`));
   return true;
 }
@@ -362,7 +378,7 @@ export function runView(app) {
       F: { hint: 'finish instantly', fn: (a) => a.confirm('Run every remaining stop now, without watching?', () => finishInstantly(a)) },
       L: { hint: 'leave', fn: (a) => leaveRun(a) },
       P: { hint: 'blessings', fn: (a) => a.push(paladinDialog(a)) },
-      R: { hint: 'reset', fn: (a) => a.confirm('Reset the run? Every stop comes back.', () => { const id = a.g.state.instance?.dungeonId; if (a.result(a.g.resetInstance(), 'The dungeon resets.')) { a.dungeonPulls = []; a.floor = null; if (a.floorKills && id) delete a.floorKills[id]; } }) },
+      R: { hint: 'reset', fn: (a) => a.confirm('Reset the run? Every stop comes back.', () => { if (a.result(a.g.resetInstance(), 'The dungeon resets.')) { a.dungeonPulls = []; a.floor = null; } }) },
     },
     rows(a) {
       const g = a.g, run = g.state.instance, def = runDef(a);
@@ -399,13 +415,15 @@ export function runView(app) {
 
 // ---- pulls ---------------------------------------------------------------------------------------------
 
-/** Pull one stop. `floor`: the continuous floor's pull (no sequential lock: you walked into it); `onDone(r)`
- *  runs after the fight with its outcome (null when you ran). */
-export function pullStop(app, def, enc, { floor = false, onDone, onTick } = {}) {
+/** Pull one stop. `floor`: the continuous floor's pull (no sequential lock: you walked into it); `ready`: buff
+ *  and rest first, a pull you chose (a floor pack that saw you is already on you); `onDone(r)` runs after the
+ *  fight with its outcome (null when you ran). */
+export function pullStop(app, def, enc, { floor = false, ready = !floor, onDone, onTick } = {}) {
   const run = app.g.state.instance;
   if (!run) return;
   if (isCleared(run, enc.id)) { app.flashMsg(`${enc.name} is already cleared.`); return; }
   if (!floor && !isUnlocked(def, run, enc.id)) { app.flashMsg(`${enc.name} is locked.`); return; }
+  if (ready) readyUp(app);
   for (const l of prePull(app.g, app.ds, app.cmds.buffPace)) app.say(cyan(l));
   let playerMax = 0, session = null;
   const f = startFight(app, enc.creatureEntry, {
@@ -458,14 +476,32 @@ function recordPull(app, def, enc, r, playerMax, session, downtimeSec) {
   });
 }
 
-/** Between pulls: eat and drink from the bags to the squad strategy's rest line, then sit (betweenPullRest.ts). */
-export function restBetween(app, seconds) {
+/** Eat and drink from the bags, then sit, up to the squad strategy's rest line (betweenPullRest.ts). */
+function eatAndDrink(app) {
   const g = app.g;
   const r = betweenPullConsumeLoop({ char: g.state.char, inventory: g.state.inventory, ds: app.ds, strategy: g.state.squadStrategy, deathFlow: g.state.deathFlow });
   g.state.char = r.char; g.state.inventory = r.inventory;
+  app.dungeonDowntime = (app.dungeonDowntime ?? 0) + r.seconds;
+  return r;
+}
+
+/** Between pulls: eat and drink to the rest line, then sit. */
+export function restBetween(app, seconds) {
+  const r = eatAndDrink(app);
   app.idleTick(seconds, true);
-  app.dungeonDowntime = (app.dungeonDowntime ?? 0) + r.seconds + seconds;
+  app.dungeonDowntime += seconds;
   app.say(dim(`The party rests${r.seconds ? ` and eats (${Math.round(r.seconds)} s)` : ''}.  HP ${app.hpText()}  ${app.pwText()}`));
+}
+
+/** Before a pull you chose: the buffs phase cast standing still, then eat and drink back to the rest line, as
+ *  runFullDungeon rests between pulls. Pulling on the mana the armour, Intellect and conjures just took sent
+ *  a level 20 mage in at 761 of 1966, and nothing between stops gave it back. */
+export function readyUp(app) {
+  const buffed = prepText(prepOoc(app.g, app.ds));
+  if (buffed) app.say(cyan(buffed));
+  const r = eatAndDrink(app);
+  if (r.seconds > 0) app.say(dim(`The party rests before the pull (${Math.round(r.seconds)} s).  HP ${app.hpText()}  ${app.pwText()}`));
+  for (const m of r.messages) if (/^Out of /.test(m)) app.say(yellow(`  ${m}.`));
 }
 
 /** Open gates that need no item, and route flags the density skipped (liveDungeonHeadless.ts autoFireGates). */
@@ -576,7 +612,7 @@ export function summaryView(app, s) {
       const deaths = s.pulls.filter((p) => p.outcome === 'defeat').length;
       const rows = [H(`${bold(s.dungeonName)}  ${tag}`), H('')];
       rows.push(H(`  ${s.encountersCleared}/${s.encounterTotal} stops, bosses ${s.bossesDown}/${s.bossTotal}, ${plural(s.pulls.length, 'pull')}, ${plural(deaths, 'wipe')}`));
-      rows.push(H(`  ${secondsText(s.combatMs)} fighting, ${secondsText(s.downtimeSec * 1000)} resting   +${s.totalXp} xp   ${moneyText(s.totalGold) || '0c'}`));
+      rows.push(H(`  ${secondsText(s.combatMs)} fighting, ${secondsText(s.downtimeSec * 1000)} resting   +${s.totalXp} xp   ${coinText(s.totalGold)}`));
       if (s.stopReason) rows.push(H(red(`  Stopped: ${s.stopReason}`)));
       if (s.memberTotals?.length) {
         const secs = Math.max(1, s.combatMs / 1000);

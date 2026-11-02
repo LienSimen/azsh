@@ -13,6 +13,7 @@ import { equippedEntry } from '../domain/items/itemInstance.ts';
 import { nativeDisplayId } from '../domain/character/displayForm.ts';
 import { creatureArt } from './modelArt.mjs';
 import { paperdollArt } from './paperdoll.mjs';
+import { characterNamesEqual } from '../domain/character/characterName.ts';
 
 // A sentence on each race and class, in the voice of the client's create screen; the racials, the start
 // zone and everything else on the card come from the data.
@@ -97,9 +98,14 @@ export function characterCreation(app, done, { onCancel } = {}) {
   const drawn = (cls, maxCols, maxRows) => paperdollArt(hero(cls), maxCols, maxRows) ?? creatureArt(nativeDisplayId(st.race.id, st.gender), maxCols, maxRows);
   const withBody = (text, art) => (art ? [...text, '', ...art] : text);
 
+  // Mail to an alt finds them by name, so two of yours may not share one. Read once as the screen opens.
+  let taken = [];
+  void Promise.resolve(app.repo?.list?.()).then((l) => { taken = (l ?? []).map((s) => s.name ?? ''); }).catch(() => {});
+  const nameTaken = (name) => taken.some((n) => characterNamesEqual(n, name));
   const askName = () => app.prompt('Name (2-12 letters): ', (raw) => {
     const name = raw.trim();
     if (!NAME_RE.test(name)) { app.say(red('Letters only, 2 to 12 of them.')); askName(); return; } // said in the log: the prompt covers the hint line
+    if (nameTaken(name)) { app.say(red(`${properName(name)} is already one of your characters.`)); askName(); return; }
     st.name = properName(name);
     goTo('create'); // named: Enter again creates
   }); // the line starts empty: Esc keeps the name they had
@@ -107,6 +113,7 @@ export function characterCreation(app, done, { onCancel } = {}) {
   const shuffle = () => { st.look = randomLook(st.race.id, st.gender); app.render(); };
   const create = () => {
     if (!st.name) { app.flashMsg('Give them a name first.'); goTo('name'); return; }
+    if (nameTaken(st.name)) { app.flashMsg(`${st.name} is already one of your characters. Pick another name.`); goTo('name'); return; }
     done(newGameState(ds, st.race.id, st.cls, st.name, newSeed(), st.gender, st.look));
   };
   const randomCharacter = () => {

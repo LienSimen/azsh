@@ -2,9 +2,8 @@
 // disenchanting, the junk rules (what gets sold or destroyed on its own) and which gathering nodes the autopilot
 // takes. Enter flips or cycles a row. "Every character" settings live in ~/.azsh/prefs.json through the
 // createGame hooks; "this character" settings live in the save.
-import { bold, dim, yellow, green, red, cyan, qualityPaint } from './text.mjs';
+import { bold, dim, yellow, green, red, cyan, qualityPaint, coinText } from './text.mjs';
 import { autoLootOn } from './tuiLoot.mjs';
-import { moneyText } from '../domain/economy/money.ts';
 import { JUNK_PROTECT_CATEGORIES } from '../domain/items/junkCategories.ts';
 import { autopilotSettingsDialog } from './tuiAutopilotSettings.mjs';
 import { paceLabel, nextPace } from './tuiWorld.mjs';
@@ -81,7 +80,7 @@ export function settingsDialog(app) {
       const eh = g.equipmentHelperConfig();
       rows.push(H(''), H(bold('Equipment helper')));
       rows.push({ text: `Helper                    ${onOff(eh.enabled)}`, detail: () => [bold('Equipment helper'), '', 'Scores what you pick up against what you wear and marks upgrades with ▲.'], act: (a2) => g.setEquipmentHelperConfig({ ...eh, enabled: !eh.enabled }) });
-      rows.push({ text: `Upgrades                  ${eh.mode === 'auto' ? green('put on as they drop') : cyan('suggest only')}`, detail: () => [bold('Upgrades'), '', 'Suggest: ▲ on the Gear and Bags tabs, u puts them on.', 'Put on: strict upgrades are worn the moment they land in your bags.'], act: () => g.setEquipmentHelperConfig({ ...eh, mode: eh.mode === 'auto' ? 'suggest' : 'auto' }) });
+      rows.push({ text: `Upgrades                  ${eh.mode === 'auto' ? green('put on as they drop') : cyan('suggest only')}`, detail: () => [bold('Upgrades'), '', 'Suggest: ▲ on the Character and Bags tabs, u puts them on.', 'Put on: strict upgrades are worn the moment they land in your bags.'], act: () => g.setEquipmentHelperConfig({ ...eh, mode: eh.mode === 'auto' ? 'suggest' : 'auto' }) });
 
       const deMine = g.characterAutoDisenchantConfig(), deAll = g.globalAutoDisenchantConfig();
       rows.push(H(''), H(bold('Disenchant on its own')));
@@ -110,7 +109,7 @@ export function settingsDialog(app) {
         const n = jf[key].length;
         rows.push({ text: `${label.padEnd(26)}${n ? `${n} item${n === 1 ? '' : 's'}` : dim('none')}`, detail: () => [bold(label), '', ...(n ? jf[key].map((e) => a.itemLabel(e)) : [dim('Empty. m on a bag item adds to it.')]), '', dim('Enter: edit')], act: (a2) => a2.push(junkListDialog(a2, key, label)) });
       }
-      rows.push({ text: green('Clear out junk now'), detail: () => [bold('Clear out junk now'), '', 'Sells (when a vendor is open or the rule allows) and destroys what the rules say, once.'], act: (a2) => { const r = g.runAutoJunk(); if (r.sold || r.destroyed) a2.say(green(`Junk: ${r.sold} sold${r.earned ? ` for ${moneyText(r.earned)}` : ''}, ${r.destroyed} destroyed.`)); else a2.flashMsg('Nothing in your bags is junk by these rules.'); } });
+      rows.push({ text: green('Clear out junk now'), detail: () => [bold('Clear out junk now'), '', 'Sells (when a vendor is open or the rule allows) and destroys what the rules say, once.'], act: (a2) => { const r = g.runAutoJunk(); if (r.sold || r.destroyed) a2.say(green(`Junk: ${r.sold} sold${r.earned ? ` for ${coinText(r.earned)}` : ''}, ${r.destroyed} destroyed.`)); else a2.flashMsg('Nothing in your bags is junk by these rules.'); } });
 
       const gf = g.gatherFilterConfig();
       rows.push(H(''), H(`${bold('Gathering')}   ${dim('which nodes the autopilot mines, picks and skins, by skill colour')}`));

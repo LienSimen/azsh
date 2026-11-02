@@ -13,7 +13,7 @@ front end. No graphics, no browser, no build step.
 - [Install](#install)
 - [Keys](#keys)
 - [Playing](#playing): [character](#new-character) · [world and autopilot](#world-and-the-autopilot) ·
-  [fights](#fights) · [rotation](#rotation) · [gear](#gear-and-bags) · [vendors, trainers, talents](#vendors-trainers-talents) ·
+  [fights](#fights) · [rotation](#rotation) · [gear](#character-and-bags) · [vendors, trainers, talents](#vendors-trainers-talents) ·
   [professions](#professions) · [companions](#companions) · [dungeons](#dungeons) · [city services](#city-services)
 - [Art and terminals](#art-and-terminals)
 - [Line mode and saves](#line-mode-and-saves)
@@ -26,7 +26,7 @@ front end. No graphics, no browser, no build step.
 npx azeroth-shell                  # run it straight from npm
 npm install -g azeroth-shell  # or install it once, then:
 azeroth-shell                         # or just azsh
-azeroth-shell --art                 # optional: fetch the full-size art (73 MB) now instead of when asked
+azeroth-shell --art                 # optional: fetch the full-size art (179 MB) now instead of when asked
 ```
 
 The package is the whole game. The one extra download is the full-size art, which only terminals
@@ -50,7 +50,7 @@ every screen redraws in place.
 
 | Key | Does |
 | --- | --- |
-| `1`-`9` `0`, `Tab`, `Left` `Right` | World, Quests, Bags, Gear, Spells, Rotation, Talents, Travel, Professions, Companions; Character is the last tab (`Tab`/`Left`) |
+| `1`-`9` `0`, `Tab`, `Left` `Right` | World, Quests, Bags, Character, Spells, Rotation, Talents, Travel, Professions, Companions; Settings is the last tab (`Tab`/`Left`) |
 | `Up` `Down` `j` `k` | move the cursor; the right pane describes the row |
 | `Enter` | act on the row: fight, open a quest, talk to a vendor or trainer, equip, cast, travel |
 | `Esc` | close the window on top; on a tab, back to World |
@@ -164,21 +164,24 @@ conditions hold fires.
 | `D` | target dummy: run the rotation against a dummy |
 | `A` | autopilot settings |
 
-### Gear and Bags
+### Character and Bags
 
-**Gear** shows every slot with what you wear. `Enter` on a slot lists everything in your bags (and
+**Character** shows every slot with what you wear, and your health, power, experience, money,
+attributes and combat ratings under the item tooltip; `s` opens the rest (weapon skills,
+professions, auras, home, pet, honor, reputation). `Enter` on a slot lists everything in your bags (and
 in the bank, in a bank town) that fits it, with the stat, armor and damage difference in the detail
 pane; `Enter` there puts it on. The engine's equipment helper scores your bags against what you
 wear: upgrades are listed at the top of the tab and marked `▲` in Bags. From 160 columns the tab is
 a character sheet: you in your gear in the middle, the worn pieces' icons down both sides, Shift+arrows
 walking the slots.
 
-![The Gear tab as a character sheet: a level 60 shaman in raid gear, the slots' icons on both sides, the cursor walking them](media/gear.gif)
+![The Character tab as a sheet: a level 60 shaman in raid gear, the slots' icons on both sides, the cursor walking them](media/gear.gif)
 
 | Key | Does |
 | --- | --- |
 | `Enter` on a slot | list what fits, then `Enter` to equip |
-| `u` (Gear or Bags) | put on every upgrade at once |
+| `s` | your stats, skills, auras, pet, honor and reputation |
+| `u` (Character or Bags) | put on every upgrade at once |
 | `x` | take a piece off |
 | `b` (Bags) | open the bank, in a bank town |
 | `g` (Bags) | open Send goods (see [Professions](#professions)) |
@@ -302,7 +305,7 @@ terminal's own retro effect (Windows Terminal: `"experimental.retroTerminalEffec
 profile; cool-retro-term elsewhere).
 
 At 90 columns or wider the creature you face is drawn beside the fight frames and under its detail
-on the World tab. Your own character, in the gear you wear, stands on the Character tab, on the
+on the World tab. Your own character, in the gear you wear, stands on the Character tab and its stats page, on the
 character picker, at creation and (from 130 columns) on the other side of the fight, and a
 companion's page shows them the same way. It is truecolour half-block art baked from the game's
 models; a terminal without 24-bit colour shows it in the nearest colours it has.
@@ -311,7 +314,14 @@ A terminal that draws sixel images (Windows Terminal 1.22+, WezTerm, foot, iTerm
 `terminal.integrated.enableImages`) can draw every creature, every character in their gear and every
 icon in real pixels instead. azsh asks the terminal at start.
 
-The full-size art for that is not in the npm package: it is about 73 MB, too much to ship to every
+The Travel tab has the world map under whatever you point at: both continents, a gold pin where you
+stand, a cyan one on the zone under the cursor and the planned route dotted between them, legs by
+sea and air included; on the road the pin walks its leg. It is the same terrain map the browser game
+pans around, as half-block cells or, on a sixel terminal, as pixels. Both of its packs are small enough
+to ship, so the map needs no download. The pane is short on a short terminal, and so is the map:
+give the window forty rows or more and it grows into them.
+
+The full-size art for that is not in the npm package: it is about 179 MB, too much to ship to every
 terminal that cannot draw it. When azsh finds a sixel terminal without it, it offers to download it
 from the project's GitHub release into `~/.azsh/art/`. Each file is checked against a sha256 the
 package carries. Answer "Not now" and it asks again next run; "Never ask" stops the prompt. `azsh --art` fetches it
@@ -389,6 +399,8 @@ npm run data:pack    # gzip the bake after a data refresh; data:unpack reverses 
 npm run art:bake     # rebuild src/data/model-art.bin.gz from phonecraft's creature renders (needs ffmpeg)
 npm run art:gear     # rebuild src/data/gear-art.bin.gz from phonecraft's paperdoll bake (needs Python with Pillow)
 npm run art:icons    # rebuild src/data/icon-art.bin.gz from phonecraft's spell and item icons (needs ffmpeg)
+npm run art:map      # rebuild the Travel tab's world map, src/data/world-map.bin.gz and world-map-sixel.bin.br,
+                     # from phonecraft's combined Azeroth terrain map (needs ffmpeg)
 npm run art:hd       # rebuild the full-size art sixel draws: model-art-hd.bin.br, icon-art-hd.bin.br and
                      # gear-art-hd/<body>.bin.br (needs ffmpeg, and Python with Pillow for the gear)
 ```

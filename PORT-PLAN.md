@@ -316,6 +316,61 @@ Size: S is an afternoon as a dialog on an existing tab, M is a new window, L is 
       (and on the run panel), you in your gear on the other side from 130 columns; the creature detail,
       the Character tab, the character picker, creation and a companion's line show the sprites too.
 
+## Phase 4: affordances the facade diff missed (audit 2026-11-02)
+
+Every facade method was called somewhere, yet a hunter had no visible Tame and no way to use the Taming
+the Beast rods. The gap is in buttons and their gates, not methods. Found by walking every `case` in
+phonecraft's `appInteractClickA/B.ts`, `appInteractInputB.ts`, `appInteractCore.ts` and the rows of
+`views/worldView.ts`, and checking each against `src/cli`.
+
+Done in that session:
+
+- [x] Tame on the World creature row, shown as `t: tame` and gated like `worldView.ts:155` (Tame Beast known,
+      no pet out; the facade's `tamePet` is ungated). The open Taming the Beast quest's rod replaces it on the
+      beast it names (`useQuestItemOnTarget`), and so does a use-to-credit source item.
+- [x] World "Here" rows: a corpse quest item (`pendingCorpseUseItem`), a script item on a civilian
+      (`pendingScriptItemUse`, Lazy Peons), and reopening loot you closed with things left in it.
+- [x] World NPC rows gated by `canInteractWithCreature` (enemy faction, at war); weapon masters listed
+      (`zoneWeaponTrainers`); flight masters only once the zone's taxi node is found; creatures from
+      `huntableCreatures` (world bosses and quest-summoned targets in, friendly and trigger NPCs out) with the
+      `isQuestMob` marker (drop sources for quest items too).
+- [x] Quest page: Speak to / Examine (`talkToNpc`, or `interactObject` for an object ender), Complete the
+      escort (`finishEscort`), the Garments heals (`castOutOfCombat` on the patient), Accept and do the quest.
+- [x] Dungeon doors: `canEnter` with `buildEntryLockInputs` says why before Enter (attunement, key, chain);
+      the entry card picks an extra entrance (`extraEntrancesForInstance` → `entranceTriggerId`).
+- [x] Bags: Hearthstone travels like the Travel tab row; a ring, trinket or hand pair asks which to replace
+      (`equipSlotPickTargets`); Disenchant on one stack for whoever in the group can (`partyDisenchantCheck`).
+- [x] Creation refuses a name another of your saves already has.
+
+Still open:
+
+- [ ] S  Object rows: show "Requires Lockpicking N" / "Needs (the key)" instead of the verb (`lockAffordanceLabel`,
+      `inventorySatisfiesLock`, `worldView.ts:496`).
+- [ ] S  Learn a book on a chosen reader (`probeLearnOnTargets`, `appInteractCore.ts:523`).
+- [ ] S  Gather lists: always / never gather a node, add from this zone, clear (`setGatherListMembership`,
+      `settingsPanel.ts:744`).
+- [ ] S  Settings reset to defaults (equip helper, junk global and character, auto-DE, gather).
+- [ ] S  Switching the equip helper to auto runs `autoEquipUpgrades` at once, and on load.
+- [ ] S  Companions: release everyone at or under half your level (`releaseCompanions({ maxLevel })`); the squad
+      mode picker on the first hire; squad gear upgrades as a list with per-row Equip and a party-only switch;
+      party vault take with a count (`takeFromPartyStorage(entry, qty)`).
+- [ ] S  Vendor: sell junk for every companion at once (`sellCompanionJunk` per id); sort bank, companion bags
+      and bank and the party vault (`sortContainer` scopes).
+- [ ] S  Bags: destroy leftover quest items from finished quests (`leftoverQuestItems`); mark several stacks
+      and destroy them together.
+- [ ] S  Outfitter: wear an outfit for the whole party (`wearOutfitByName(name, { party: true })`); put an outfit
+      on an action-bar slot (`setOutfitActionSlot`); create an empty outfit and a stat outfit for the party; hide
+      rename on special-occasion outfits (`specialId`; **engine**: `renameOutfit` does not refuse it).
+- [ ] S  Auction house: cancel every undercut listing; equip-slot and usable filters; sortable columns.
+- [ ] M  Auction house: competing listings on the sell pane, pick one to undercut by 1 (`auctionPanel.ts:600`).
+- [ ] M  Vendor multi-sell by quality with rows to untick (`vendorSellAllPanel.ts`, `runSellAll`).
+- [ ] M  Talents: preview a saved build or a pasted link on the tree before applying, save it as a profile.
+- [ ] M  Battleground setup: difficulty tier and reserves from the bench (`bgSetupPanel.ts`, `enterBattleground`
+      `{ tier, allies }`).
+- [ ] M  Companion missions: quick send and up to 8 favourite presets (`companionMissionsDesk.ts`).
+- [ ] M  Run report loot: sell, give to the companion it upgrades most, open (`watchPlayback.ts:168`).
+- [ ] M  Run supplies before entry: food or drink, target count, rows to buy, full-bag choice (`runSupplyFlow.ts`).
+
 ### Not porting
 
 Audio, map tiles and viewports, canvas floor walk and camera, tactical overlay,

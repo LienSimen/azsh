@@ -17,6 +17,7 @@ import { planStep, noteQuestDefeat } from '../autopilot/plan.ts';
 
 // Deaths on one quest before world questing gives up on it and moves to the next.
 const QUEST_SKIP_DEFEATS = 2;
+import { prepOoc, prepText } from './oocPrep.mjs';
 import { pullOpts, squadLogNames, squadModeOf, setSquadMode, SQUAD_MODE_LABEL, SQUAD_MODE_WORDS, COMPANION_HINT_LINES } from './squad.mjs';
 
 const useColor = stdout.isTTY && !process.env.NO_COLOR;
@@ -264,6 +265,8 @@ export function createCommands({ g, ds, out, persist, slot, arrive, skipJourney 
 
   /** g.fight with the squad when the squad mode says so; the log names the companions. */
   const quickFight = (entry) => {
+    const buffed = prepText(prepOoc(g, ds));
+    if (buffed) out(dim(`  ${buffed}`));
     const opts = pullOpts(g, ds, buffPace, entry, (l) => out(dim(`  ${l}`)));
     const r = g.fight(entry, opts);
     return { r, logNames: opts ? squadLogNames(g, entry, names()) : names() };
@@ -603,6 +606,7 @@ export function createCommands({ g, ds, out, persist, slot, arrive, skipJourney 
     let done = false;
     let lastKind = null;
     let lastQuest = null; // the quest the latest step worked on, blamed when the planner gives up
+    let restedForBuffs = false; // the pull's buffs already sent the run to rest once
     let stopReason = null; // why the run ended: the planner's stop step, or 'steps' when the step budget ran out
     const skipped = [];
     const inLog = (entry) => g.state.questlog.quests.some((qs) => qs.entry === entry && qs.status !== 'turnedIn');
@@ -653,6 +657,18 @@ export function createCommands({ g, ds, out, persist, slot, arrive, skipJourney 
         switch (step.kind) {
           case 'fight': {
             const c = ds.creature(step.creatureEntry);
+            // Buff before the pull, then drink back what the buffs cost: casting them on the fight's first ticks
+            // sent a mage in at three quarters of its bar. Once per pull, so a buff that falls off while it
+            // drinks is recast without another rest.
+            const prep = prepOoc(g, ds);
+            const buffed = prepText(prep);
+            if (buffed && !restedForBuffs && cfg.restMode === 'eat-then-wait' && prep.manaPct < cfg.recoverToPct) {
+              restedForBuffs = true; prog.recovering = true; lastKind = 'buff';
+              line = `${buffed}  ${dim('rest before the pull')}`;
+              break;
+            }
+            restedForBuffs = false;
+            if (buffed) out(`${dim(String(i).padStart(3) + '.')} ${buffed}`);
             if (liveFight) {
               const started = liveFight(step, (r) => settle(r, step));
               if (!started.ok) { sets.blockedFights.add(step.creatureEntry); line = red(`fight ${c?.name}: ${started.reason}`); }

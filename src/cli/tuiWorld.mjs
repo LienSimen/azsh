@@ -1,14 +1,20 @@
 // World-tab extras that are not a creature fight, a quest or a vendor: pick pocket for rogues (P on a creature)
 // real-time journeys, riding (instructors, mounts), and the zone's objects (chests, books, quest objects).
-import { bold, dim, yellow, red, green, cyan, bar, wrapLines } from './text.mjs';
+import { bold, dim, yellow, red, green, cyan, bar, wrapLines, coinText } from './text.mjs';
 import { startFight } from './tuiFight.mjs';
 import { knownUsableSpells } from '../domain/character/characterSpells.ts';
 import { activeStealthAura } from '../domain/character/buildCombatant.ts';
+import { inferRole } from '../engine/combat.ts';
+import { countItem } from '../domain/items/inventory.ts';
+import { requiresSourceUseCredit } from '../domain/quests/questlog.ts';
+import { tamingRodByQuestId } from '../domain/quests/questTameRods.ts';
+import { pendingCorpseUseItem } from '../domain/quests/questCorpseUse.ts';
+import { pendingScriptItemUse } from '../domain/quests/questScriptItemUse.ts';
 import { pickpocketLootKey, canRestockPickpocket } from '../domain/professions/pickpocket.ts';
-import { moneyText } from '../domain/economy/money.ts';
 import { vendorPriceMultiplierFor, trainerSpellCost } from '../engine/game/vendorOffers.ts';
 import { questDialog, npcLines } from './tuiViews.mjs';
 import { mailDialog } from './tuiCity.mjs';
+import { withWorldMap } from './tuiMap.mjs';
 import { autoLootOn, openLoot, takeAll } from './tuiLoot.mjs';
 import { zoneGameObjects, zoneGoListedForPlayer, makeGoPlayerVisibility, questReferencedGoEntries, questTargets } from '../world/world.ts';
 import { goQuestGiverOffer, goDialogMarkerFromOffer, questStatusFromLog } from '../domain/quests/questlog.ts';
@@ -52,6 +58,82 @@ export function pickPocket(app, creature) {
 export function pickPocketTag(app, creature) {
   const st = pickPocketState(app, creature);
   return st === 'ready' ? dim('  P: pick pocket') : st === 'empty' ? dim('  pockets empty') : '';
+}
+
+// ---- taming ----------------------------------------------------------------------------------------------
+// The facade's tamePet is ungated, so the row gates it as phonecraft's worldView does: a hunter who has learned
+// Tame Beast (the pet quest's reward) and has no pet out. While a Taming the Beast quest is open, its rod takes
+// the place of the tame on the beast it names (useQuestItemOnTarget credits it). Ref worldView.ts:155.
+
+const HUNTER = 3;
+
+/** The Tame Beast rank you know, or undefined. */
+export function tameSpell(app) {
+  if (app.ch.cls !== HUNTER) return undefined;
+  return knownUsableSpells(app.ch, app.g.state.spellbook, app.ds).find((s) => (s.role ?? inferRole(s)) === 'pet_tame');
+}
+
+/** A quest item to use on a creature: the open Taming the Beast quest's rod (only on its beast), or a use-to-credit source item (on a tameable beast). */
+export function questUseItem(app) {
+  const inv = app.g.state.inventory;
+  for (const qs of app.g.state.questlog.quests) {
+    if (qs.status === 'turnedIn' || qs.status === 'complete') continue;
+    const rod = tamingRodByQuestId(qs.entry);
+    if (rod && countItem(inv, rod.item) >= 1) { const it = app.ds.item(rod.item); if (it) return { entry: it.entry, name: it.name, onlyCreature: rod.targetCreature }; }
+    const q = app.ds.quest(qs.entry);
+    if (!q || !requiresSourceUseCredit(q)) continue;
+    for (const t of q.sourceItemTargets ?? []) { if (countItem(inv, t.item) < 1) continue; const it = app.ds.item(t.item); if (it) return { entry: it.entry, name: it.name }; }
+  }
+  return undefined;
+}
+
+const useItemFits = (use, creature) => !!use && (use.onlyCreature != null ? creature.entry === use.onlyCreature : !!creature.tameable);
+
+/** What t on this creature does: 'use' (a quest item), 'tame', or why not ('' when it is not for t at all). */
+export function tameState(app, creature) {
+  if (useItemFits(questUseItem(app), creature)) return 'use';
+  if (app.ch.cls !== HUNTER || !creature.tameable) return '';
+  if (!tameSpell(app)) return 'unlearned';
+  return app.ch.pet ? 'pet' : 'tame';
+}
+
+export function tameTag(app, creature) {
+  const st = tameState(app, creature);
+  return st === 'use' ? dim(`  t: use ${questUseItem(app).name}`) : st === 'tame' ? dim('  t: tame') : '';
+}
+
+/** t on a creature: use the quest item on it, or tame it. */
+export function tame(app, creature) {
+  const st = tameState(app, creature);
+  if (st === 'use') {
+    const use = questUseItem(app);
+    app.result(app.g.useQuestItemOnTarget({ itemEntry: use.entry, targetCreatureEntry: creature.entry }), `You use ${use.name} on ${creature.name}.`);
+    return;
+  }
+  if (app.ch.cls !== HUNTER) { app.flashMsg('Only hunters tame beasts.'); return; }
+  if (!creature.tameable) { app.flashMsg(`${creature.name} cannot be tamed.`); return; }
+  if (st === 'unlearned') { app.flashMsg('Learn Tame Beast first: the hunter trainer sends you on the taming quests at level 10.'); return; }
+  if (st === 'pet') { app.flashMsg(`Dismiss or stable ${app.ch.pet.name} before taming another.`); return; }
+  app.result(app.g.tamePet(creature.entry), `You tame ${creature.name}.`);
+}
+
+// ---- right here: loot left behind, and quest items used on a corpse or a creature the list never offers -------
+// Ref worldView.ts:551-582. A corpse item (Bramble, a molt) goes on your last kill; a script item (Lazy Peons'
+// blackjack) goes on a civilian, who is never on the creature list.
+
+export function hereRows(app) {
+  const g = app.g, ds = app.ds, inv = g.state.inventory, rows = [];
+  const left = g.pendingLoot();
+  if (left && app.top()?.id !== 'loot') rows.push({ text: `${yellow('Loot')} ${left.title ?? 'what you left'}  ${dim('still lootable')}`, detail: () => [bold(left.title ?? 'Loot'), 'You closed it with things still in it.', '', dim('Enter: open it again')], act: () => openLoot(app) });
+  const active = g.state.questlog.quests.filter((qs) => qs.status === 'active').map((qs) => ({ qs, q: ds.quest(qs.entry) })).filter((x) => x.q);
+  const useRow = (item, target, q) => {
+    const it = ds.item(item), on = target ? ds.creature(target)?.name ?? `creature ${target}` : ds.creature(g.state.lastCorpse?.creatureEntry ?? 0)?.name ?? 'the corpse';
+    return { text: `${yellow('Use')} ${it?.name ?? `item ${item}`} on ${on}  ${dim(q.title)}`, icon: it?.icon, detail: () => [bold(`Use ${it?.name ?? 'item'} on ${on}`), `For ${q.title}.`, '', dim('Enter: use it')], act: () => app.result(g.useQuestItemOnTarget({ itemEntry: item, ...(target ? { targetCreatureEntry: target } : {}) }), `You use ${it?.name ?? 'it'} on ${on}.`) };
+  };
+  const corpse = active.map(({ q }) => ({ q, item: pendingCorpseUseItem(ds, q, inv, g.state.lastCorpse) })).find((x) => x.item);
+  if (corpse) rows.push(useRow(corpse.item, 0, corpse.q));
+  for (const { q, qs } of active) { const u = pendingScriptItemUse(ds, q, qs, inv, app.ch.zoneId); if (u) { rows.push(useRow(u.item, u.targetCreatureEntry, q)); break; } }
+  return rows.length ? [{ text: '', header: true }, { text: 'Here', header: true }, ...rows] : [];
 }
 
 // ---- journeys ------------------------------------------------------------------------------------------
@@ -101,7 +183,8 @@ export function journeyRows(app) {
     { text: `${bar(st.progress.totalElapsedSeconds, total, 30, cyan)} ${mmss(st.progress.remainingSeconds)} left${app.travelPaused ? yellow('  paused') : ''}`, header: true },
     {
       text: `${leg ? `${leg.kind} ${app.ds.zone(leg.from)?.name ?? leg.from} → ${app.ds.zone(leg.to)?.name ?? leg.to}` : ''}  ${dim(`${st.timeScale}x   Enter: journey options`)}`,
-      detail: () => [bold(`To ${dest}`), '', ...st.legs.map((l, i) => `${i < st.progress.legIndex ? green('✓') : i === st.progress.legIndex ? cyan('▶') : dim('·')} ${l.kind} ${app.ds.zone(l.from)?.name ?? l.from} → ${app.ds.zone(l.to)?.name ?? l.to} ${dim(mmss(l.seconds))}`), '', dim('Enter: speed, pause, arrive now, turn back')],
+      // The legs, then the world map with the traveller walking the current one (tuiMap.mjs).
+      detail: () => withWorldMap(app, [bold(`To ${dest}`), '', ...st.legs.map((l, i) => `${i < st.progress.legIndex ? green('✓') : i === st.progress.legIndex ? cyan('▶') : dim('·')} ${l.kind} ${app.ds.zone(l.from)?.name ?? l.from} → ${app.ds.zone(l.to)?.name ?? l.to} ${dim(mmss(l.seconds))}`), '', dim('Enter: speed, pause, arrive now, turn back')]),
       act: (a) => journeyMenu(a),
     },
     { text: '', header: true },
@@ -146,11 +229,11 @@ function ridingDialog(app, entry) {
     seen.add(sp.rank);
     const cost = trainerSpellCost(sp.cost, mod);
     const why = have >= sp.rank ? 'known' : sp.step > 1 && have < 75 ? 'needs Apprentice Riding' : app.ch.level < sp.reqLevel ? `level ${sp.reqLevel}` : app.ch.gold < cost ? 'not enough money' : '';
-    opts.push({ label: `${why ? dim(`Riding ${sp.rank}`) : green(`Riding ${sp.rank}`)}  ${dim(`level ${sp.reqLevel}, ${moneyText(cost)}`)}${why ? dim(`  ${why}`) : ''}`, value: sp.rank });
+    opts.push({ label: `${why ? dim(`Riding ${sp.rank}`) : green(`Riding ${sp.rank}`)}  ${dim(`level ${sp.reqLevel}, ${coinText(cost)}`)}${why ? dim(`  ${why}`) : ''}`, value: sp.rank });
   }
   app.pick(`${app.ds.creature(entry)?.name ?? 'Riding instructor'}`, opts, (rank) => {
     const r = app.g.trainRiding(entry, rank);
-    app.result(r, r.ok ? `You learn Riding (${r.rank}) for ${moneyText(r.spent)}.` : '');
+    app.result(r, r.ok ? `You learn Riding (${r.rank}) for ${coinText(r.spent)}.` : '');
   });
 }
 

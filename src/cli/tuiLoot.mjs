@@ -2,9 +2,8 @@
 // keeps the haul in `state.pendingLoot`; Enter takes one row into the bags, a takes everything that fits, Esc
 // closes it (outdoor leftovers are gone then, an opened bag item keeps its remainder). With auto-loot on (the
 // default) fights never hold their loot and this window does not open.
-import { bold, dim, yellow, green, red, qualityPaint } from './text.mjs';
+import { bold, dim, yellow, green, red, qualityPaint, coinText } from './text.mjs';
 import { itemLines } from './tuiViews.mjs';
-import { moneyText } from '../domain/economy/money.ts';
 import { formatItemName } from '../domain/items/itemDisplayName.ts';
 import { farmNext } from './tuiFight.mjs';
 import { noteLoot } from './tuiFightPanes.mjs';
@@ -32,7 +31,7 @@ export function takeAll(app) {
   if (!app.result(r)) return;
   noteLoot(app, r.taken, r.copper);
   for (const t of r.taken) app.say(`  ${yellow('You receive')} ${app.itemLabel(t.item)}${t.count > 1 ? ` x${t.count}` : ''}`);
-  if (r.copper) app.say(`  ${yellow('You loot')} ${moneyText(r.copper)}`);
+  if (r.copper) app.say(`  ${yellow('You loot')} ${coinText(r.copper)}`);
   if (r.remaining) app.say(red(`  ${r.remaining} left in there: your bags are full.`));
   if (r.emptied && app.top()?.id === 'loot') app.pop();
 }
@@ -69,9 +68,9 @@ export function lootDialog(app) {
       const rows = [{ text: `${KIND_LABEL[L.kind] ?? L.kind}: ${L.title}`, header: true }];
       if (L.copper > 0) {
         rows.push({
-          text: yellow(moneyText(L.copper)),
-          detail: () => [bold('Money'), moneyText(L.copper)],
-          act: (a2) => { const r = a2.g.takeLootMoney(); if (a2.result(r)) { noteLoot(a2, [], r.copper); a2.say(`  ${yellow('You loot')} ${moneyText(r.copper)}`); if (r.emptied) a2.pop(); } },
+          text: coinText(L.copper),
+          detail: () => [bold('Money'), coinText(L.copper)],
+          act: (a2) => { const r = a2.g.takeLootMoney(); if (a2.result(r)) { noteLoot(a2, [], r.copper); a2.say(`  ${yellow('You loot')} ${coinText(r.copper)}`); if (r.emptied) a2.pop(); } },
         });
       }
       L.rows.forEach((r, i) => {

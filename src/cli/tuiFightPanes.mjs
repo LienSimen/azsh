@@ -2,10 +2,10 @@
 // and the loot taken so far. The log is the game's own log (tui.mjs); the meter is phonecraft's DPSMate
 // aggregator fed every tick's events; threat reads the engine's ThreatManager through the session; loot is a
 // session-long tally of what the "You receive" lines handed over. The choice sticks between fights.
-import { bold, dim, cyan, yellow, green, red, inverse, fit, vis, cut, bar, pct } from './text.mjs';
+import { bold, dim, cyan, yellow, green, red, inverse, fit, vis, cut, bar, pct, coinText } from './text.mjs';
 import { createDpsMateMeter, partyMeterSnapshot } from '../domain/bots/dpsMate.ts';
-import { moneyText } from '../domain/economy/money.ts';
 import { runPaneLines, questPaneLines, bagsPaneLines } from './tuiAutopilot.mjs';
+import { iconsOn, iconArt, iconBlank } from './iconArt.mjs';
 
 export const FIGHT_PANES = [
   { id: 'log', label: 'Log' },
@@ -230,16 +230,25 @@ function threatLines(app, ctl, L) {
 function lootLines(app, L) {
   const t = app.lootTally ?? { rows: [], copper: 0 };
   const n = t.rows.reduce((a, r) => a + r.count, 0);
-  const lines = [` ${bold('Loot this sitting')} ${dim(`${n} item${n === 1 ? '' : 's'}${t.copper ? ` · ${moneyText(t.copper)}` : ''}`)}`];
+  const lines = [` ${bold('Loot this sitting')} ${dim(`${n} item${n === 1 ? '' : 's'}${t.copper ? ` · ${coinText(t.copper)}` : ''}`)}`];
   if (!t.rows.length && !t.copper) { lines.push(dim(' Nothing looted yet. Whatever you take shows up here.')); return lines; }
   const colW = Math.max(24, Math.floor((L.W - 2) / Math.max(1, Math.min(3, Math.floor(L.W / 30)))));
   const cols = Math.max(1, Math.floor((L.W - 2) / colW));
-  const cells = t.rows.map((r) => `${app.itemLabel(r.item)}${r.count > 1 ? dim(` x${r.count}`) : ''}`);
-  const rowsAvail = L.logH - 1;
+  // With icons each cell is two lines: a 4px icon down its left, the name beside the top and the count and
+  // kind beside the bottom.
+  const icons = iconsOn() && L.W >= 40;
+  const h = icons ? 2 : 1;
+  const cells = t.rows.map((r) => {
+    if (!icons) return [`${app.itemLabel(r.item)}${r.count > 1 ? dim(` x${r.count}`) : ''}`];
+    const it = app.ds.item(r.item);
+    const art = iconArt(it?.icon, 4) ?? iconBlank(4);
+    return [`${art[0]} ${app.itemLabel(r.item)}`, `${art[1]} ${dim([r.count > 1 ? `x${r.count}` : '', it?.typeName].filter(Boolean).join(' · '))}`];
+  });
+  const rowsAvail = Math.floor((L.logH - 1) / h);
   for (let i = 0; i < rowsAvail; i++) {
     const slice = cells.slice(i * cols, i * cols + cols);
     if (!slice.length) break;
-    lines.push(` ${slice.map((c) => fit(c, colW - 1)).join(' ')}`);
+    for (let k = 0; k < h; k++) lines.push(` ${slice.map((c) => fit(c[k], colW - 1)).join(' ')}`);
   }
   const shown = Math.min(cells.length, rowsAvail * cols);
   if (shown < cells.length) lines[lines.length - 1] = fit(lines[lines.length - 1], L.W - 10) + dim(`+${cells.length - shown} more`);

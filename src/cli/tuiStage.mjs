@@ -3,8 +3,7 @@
 // left and the foe down the right; the dungeon room and the pack are meant to be more actor lists through
 // the same canvas. Sizes come from the design page: a sprite's box says its rank, and the terminal's
 // width says which boxes it can afford.
-import { bold, dim, cyan, yellow, green, red, gray, inverse, fit, vis, cut, bar, brightBlue, orange, useColor, strip, itemText } from './text.mjs';
-import { moneyText } from '../domain/economy/money.ts';
+import { bold, dim, cyan, yellow, green, red, gray, inverse, fit, vis, cut, bar, brightBlue, orange, useColor, strip, itemText, coinText } from './text.mjs';
 import { className } from '../domain/core/ids.ts';
 import { iconArt, iconsOn } from './iconArt.mjs';
 import { sixelOn } from './sixel.mjs';
@@ -15,7 +14,7 @@ export const POWER_PAINT = { mana: brightBlue, rage: red, energy: yellow, focus:
 export const POP_MS = 1500;      // a hit or heal stays on screen this long (fight time)
 export const POP_RISE_MS = 400;  // a pop climbs one row every this long
 export const LUNGE_MS = 250;     // an auto-attack swing moves the sprite two columns toward its target this long
-export const SHORT_BUFF_MS = 60_000; // a frame shows only buffs about to run out; the long ones are on the Character tab
+export const SHORT_BUFF_MS = 60_000; // a frame shows only buffs about to run out; the long ones are under s on the Character tab
 export const ROLE_GLYPH = { tank: cyan('T'), healer: green('H'), damage: red('D') };
 
 /** Sprite boxes, columns x rows: a pack add or a pet, dungeon trash, a normal foe, you or an elite, a boss. */
@@ -135,19 +134,19 @@ export function narrowPlate(app, v, { isPlayer, focused, friend, dead, role, ran
 }
 
 /** The state row of a narrow plate, `w` wide: a cast bar that fills under the spell's name (a channel drains
- *  it), else crowd control, stealth, or "dead"; empty when idle. */
-export function narrowState(v, now, w) {
+ *  it), else crowd control, the cast just done (castSlot), stealth, or "dead"; empty when idle. */
+export function narrowState(v, now, w, recent) {
   if (v.hp <= 0) return gray('dead');
   if (v.casting) {
-    const total = Math.max(1, v.casting.endsAt - v.casting.startedAt);
-    const left = Math.max(0, v.casting.endsAt - now);
-    const prog = Math.max(0, Math.min(1, v.casting.channeled ? left / total : 1 - left / total));
+    const { prog, left } = castProgress(v.casting, now);
     const secs = w >= 14 ? ` ${(left / 1000).toFixed(1)}s` : '';
     const text = fit(cut(v.casting.name, w - secs.length), w - secs.length);
     const filled = Math.round(prog * vis(text));
     return `${inverse(yellow(text.slice(0, filled)))}${yellow(text.slice(filled))}${dim(secs)}`;
   }
   if (v.controlled) return red(cut(v.controlled.control, w));
+  const last = freshCast(recent, now);
+  if (last) return cyan(bold(cut(last.name, w)));
   if (v.stealthed) return dim('stealthed');
   return '';
 }
@@ -176,17 +175,74 @@ export function auraRows(app, mem, v, key, plateW, icons) {
   return rows;
 }
 
-/** The cast slot's text: a cast bar, else crowd control, else stealth; empty when idle. */
-export function castSlot(v, now) {
+export const CAST_NAME_MS = 2000;  // a cast just done keeps its name in the cast slot this long (fight time)
+export const CAST_TRAIL_MS = 8000; // and its icon in the trail beside it this long, greyed for the second half
+
+/** The cast bar's progress and seconds left, 0..1. */
+function castProgress(casting, now) {
+  const total = Math.max(1, casting.endsAt - casting.startedAt);
+  const left = Math.max(0, casting.endsAt - now);
+  return { prog: Math.max(0, Math.min(1, casting.channeled ? left / total : 1 - left / total)), left };
+}
+
+/** The last cast while its icon is still in the trail, with `fresh` set while it keeps its name lit. `recent`
+ *  is the unit's casts, newest first ({ t, spellId, name, instant }, noteCasts in tuiFight). */
+function lastCast(recent, now) {
+  const r = recent?.[0];
+  return r && now - r.t < CAST_TRAIL_MS ? { ...r, fresh: now - r.t < CAST_NAME_MS } : null;
+}
+const freshCast = (recent, now) => { const r = lastCast(recent, now); return r?.fresh ? r : null; };
+
+/** The cast slot's text: a cast bar, else crowd control, else the cast just done (an instant says so, the
+ *  casts before it trail after it), else stealth, else the last cast gone dim; empty when idle. */
+export function castSlot(v, now, recent) {
   if (v.casting) {
-    const total = v.casting.endsAt - v.casting.startedAt;
-    const left = Math.max(0, v.casting.endsAt - now);
-    const prog = v.casting.channeled ? left / total : 1 - left / total;
+    const { prog, left } = castProgress(v.casting, now);
     return `${fit(yellow(v.casting.name), 14)} ${bar(prog, 1, 10, yellow)} ${dim(`${(left / 1000).toFixed(1)}s`)}`;
   }
   if (v.controlled) return red(v.controlled.control);
-  if (v.stealthed) return dim('stealthed');
-  return '';
+  const last = lastCast(recent, now);
+  if (!last || (!last.fresh && v.stealthed)) return v.stealthed ? dim('stealthed') : '';
+  const before = recent.slice(1).filter((r) => now - r.t < CAST_TRAIL_MS).map((r) => r.name);
+  const trail = before.length ? dim(`  ‹ ${before.join(' ‹ ')}`) : '';
+  return last.fresh ? `${cyan(bold(last.name))}${last.instant ? dim(' instant') : ''}${trail}` : `${dim(last.name)}${trail}`;
+}
+
+/**
+ * The cast slot two rows tall and `w` wide, where icons draw: the spell's icon, its name beside it and under
+ * the name the cast bar (a cast in progress) or "instant" (one just gone off, for CAST_NAME_MS; after that the
+ * name stays dim). The icons of the casts before it trail off to the right, newest first, grey once they are
+ * half way out, like an aura strip of what you pressed. Crowd control and stealth take the lead as castSlot has them.
+ */
+export function castRows(app, v, recent, now, w) {
+  const spell = (id) => app.ds.spell(id);
+  let lead = null, top = '', under = '';
+  const last = lastCast(recent, now);
+  if (v.casting) {
+    const { prog, left } = castProgress(v.casting, now);
+    lead = { spellId: v.casting.spellId, since: v.casting.startedAt };
+    top = yellow(v.casting.name);
+    under = `${bar(prog, 1, 10, yellow)} ${dim(`${(left / 1000).toFixed(1)}s`)}`;
+  } else if (v.controlled) top = red(v.controlled.control);
+  else if (last && (last.fresh || !v.stealthed)) {
+    lead = { spellId: last.spellId, since: last.t, gray: now - last.t > CAST_TRAIL_MS / 2 };
+    top = !last.fresh ? dim(last.name) : now - last.t > CAST_NAME_MS / 2 ? cyan(last.name) : cyan(bold(last.name));
+    under = last.fresh && last.instant ? dim('instant') : '';
+  } else if (v.stealthed) top = dim('stealthed');
+  const nameW = Math.min(16, Math.max(8, w - 5));
+  const art = lead ? iconArt(spell(lead.spellId)?.icon, 4, lead.gray ? 'gray' : '') : null;
+  const rows = art ? [`${art[0]} ${fit(cut(top, nameW), nameW)}`, `${art[1]} ${fit(cut(under, nameW), nameW)}`] : [fit(cut(top, nameW + 5), nameW + 5), fit(cut(under, nameW + 5), nameW + 5)];
+  // The trail: what went off before the lead (a channel is in `recent` from its first tick, so it is the lead,
+  // not its own trail).
+  const room = Math.floor((w - vis(rows[0]) - 1) / 5);
+  const trail = (recent ?? []).filter((r) => now - r.t < CAST_TRAIL_MS && !(lead && r.spellId === lead.spellId && r.t >= lead.since)).slice(0, Math.max(0, room));
+  for (const r of trail) {
+    const old = now - r.t > CAST_TRAIL_MS / 2;
+    const ic = iconArt(spell(r.spellId)?.icon, 4, old ? 'gray' : '');
+    rows[0] += ` ${ic ? ic[0] : dim(fit(r.name, 4))}`;
+    rows[1] += ` ${ic ? ic[1] : dim(fit(r.name.slice(4), 4))}`;
+  }
+  return rows.every((l) => !strip(l).trim()) ? ['', ''] : rows;
 }
 
 /** Short buffs green then debuffs red, in the order they first showed up, so a refreshed one keeps its place. */
@@ -256,7 +312,7 @@ const coinIcon = (copper) => (copper < 100 ? 'inv_misc_coin_05' : copper < 10_00
 /** What the foe dropped, items then the coin: each with its icon name and its line in the quality colour. */
 export function lootToasts(app, hold) {
   const out = hold.loot.map((d) => { const it = app.ds.item(d.item); return { icon: it?.icon, text: `${itemText(it, String(d.item))}${d.count > 1 ? dim(` x${d.count}`) : ''}` }; });
-  if (hold.copper) out.push({ icon: coinIcon(hold.copper), coin: true, text: yellow(moneyText(hold.copper)) });
+  if (hold.copper) out.push({ icon: coinIcon(hold.copper), coin: true, text: coinText(hold.copper) });
   return out;
 }
 

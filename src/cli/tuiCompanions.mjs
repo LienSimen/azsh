@@ -1,14 +1,15 @@
 // The Companions tab: your party and bench, hiring at an inn, one page per companion (role, gear, bags,
 // professions) and their gathering trips, and the squad mode that decides who fights beside you. A trimmed
 // port of phonecraft's companionsPanel.ts, companionMissionsDesk.ts and squadModePicker.ts.
-import { bold, dim, cyan, yellow, green, red, qualityPaint, fit, plural, itemText, vis, wrapLines } from './text.mjs';
+import { bold, dim, cyan, yellow, green, red, inverse, qualityPaint, fit, cut, plural, itemText, vis, wrapLines, coinText, coin } from './text.mjs';
+import { miniIcon } from './iconArt.mjs';
+import { paperdollGrid, paperdollPlan } from './tuiPaperdoll.mjs';
 import { itemLines } from './tuiViews.mjs';
 import { recipeBook, openSendGoods, companionsOf } from './tuiProfessions.mjs';
 import { SQUAD_MODES, SQUAD_MODE_LABEL, squadModeOf, setSquadMode } from './squad.mjs';
 import { settingsRows, petRows, questRows, teachRow, bagRows, bankRows, shareDialog, vaultDialog, hireSearch, tavernDuel } from './tuiCompanionKit.mjs';
 import { barsDialog, companionBarsOwner } from './tuiBars.mjs';
 import { enchantLines } from './tuiGear.mjs';
-import { moneyText } from '../domain/economy/money.ts';
 import { className, raceName } from '../domain/core/ids.ts';
 import { paperdollArt } from './paperdoll.mjs';
 import { bagCapacity, EQUIP_SLOTS, SLOT_LABEL, itemSlotTargets } from '../domain/items/equipment.ts';
@@ -16,10 +17,12 @@ import { equippedEntry } from '../domain/items/itemInstance.ts';
 import { companionCharacter, companionLevel, hireSkillMap, MAX_COMPANIONS, SQUAD_ROLES } from '../domain/bots/squad.ts';
 import { companionEquipOpts } from '../domain/professions/autoDisenchant.ts';
 import { companionSkillCap, companionTrainedRank, SECONDARY_SKILLS } from '../domain/bots/botProfessions.ts';
-import { displayGearScore, gearProfileLabel } from '../domain/bots/companionHireCost.ts';
+import { displayGearScore, gearProfileLabel, hireCostCopper } from '../domain/bots/companionHireCost.ts';
+import { GEAR_PROFILES } from '../domain/bots/botGear.ts';
+import { searchWorldBots, innZoneSalt, pickProfile, WORLD_BOT_COUNT } from '../domain/bots/botPool.ts';
 import { maxHealth, maxPower } from '../domain/character/character.ts';
 import { effectiveStats, effectiveArmor, attackPower, powerType } from '../domain/character/characterStats.ts';
-import { critChanceDisplay, dodgeChanceDisplay } from '../domain/character/characterRatings.ts';
+import { critChanceDisplay, dodgeChanceDisplay, hitChance } from '../domain/character/characterRatings.ts';
 import {
   canCompanionLearnProfession, countDoneMissions, hoursAffordable, isMissionSkill, missionEtaLabel, missionHoursLabel,
   missionProgress, missionVerb, energyResetsAtMs, MAX_COMPANION_ENERGY,
@@ -63,8 +66,14 @@ function profTags(lines) {
 
 function profLines(app, lines) {
   if (!lines.length) return [`  ${dim('none')}`];
-  return lines.map((l) => `  ${fit(app.ds.profession(l.line)?.name ?? l.line, 15)} ${fit(`${l.current}/${l.max}`, 8)} ${dim(l.rank ?? '')}`);
+  return lines.map((l) => { const prof = app.ds.profession(l.line); return paneLine(app, `  ${miniIcon(prof?.icon)}${fit(prof?.name ?? l.line, 15)} ${fit(`${l.current}/${l.max}`, 8)} ${dim(l.rank ?? '')}`); });
 }
+
+/** A detail-pane line kept to one row: a mini icon (sixel) is blank cells the pane's wrap would squeeze. */
+function paneLine(app, line) { const w = (app.layout?.().detailW ?? 0) - 2; return w > 0 && vis(line) > w ? cut(line, w) : line; }
+
+/** What a piece is, for the line under its name: Plate  412 armor, Sword  41-77. */
+function gearKind(it) { return it ? [it.typeName, it.armor ? `${it.armor} armor` : '', it.weapon ? `${it.weapon.dmgMin}-${it.weapon.dmgMax}` : ''].filter(Boolean).join('  ') : ''; }
 
 function statLines(app, char) {
   const ds = app.ds, st = effectiveStats(char, ds), pt = powerType(char);
@@ -92,7 +101,7 @@ function wornLines(app, gear) {
   const out = [];
   for (const slot of EQUIP_SLOTS) {
     const e = equippedEntry(gear?.[slot]);
-    if (e != null) { const it = app.ds.item(e); out.push(`  ${fit(SLOT_LABEL[slot] ?? slot, 10)} ${qualityPaint(it?.quality)(it?.name ?? e)}`); }
+    if (e != null) { const it = app.ds.item(e); out.push(paneLine(app, `  ${miniIcon(it?.icon)}${fit(SLOT_LABEL[slot] ?? slot, 10)} ${qualityPaint(it?.quality)(it?.name ?? e)}`)); }
   }
   return out.length ? out : [`  ${dim('nothing')}`];
 }
@@ -140,7 +149,7 @@ export function companionsView(app) {
     rows(a) {
       const g = a.g, squad = g.state.squad ?? [], bench = Object.values(g.state.botRoster ?? {});
       const energy = g.companionPartyEnergy(Date.now());
-      const rows = [H(`Party ${squad.length}/${MAX_COMPANIONS}   ${dim(`trip energy ${energy}/${MAX_COMPANION_ENERGY}`)}   ${yellow(moneyText(a.ch.gold) || '0c')}`), squadModeRow(a)];
+      const rows = [H(`Party ${squad.length}/${MAX_COMPANIONS}   ${dim(`trip energy ${energy}/${MAX_COMPANION_ENERGY}`)}   ${coinText(a.ch.gold)}`), squadModeRow(a)];
       const row = (c) => ({
         text: `${fit(c.name, 12)} ${fit(dim(`L${companionLevel(c, a.ch.level)} ${className(c.cls)}`), 12)} ${fit(roleText(c.role), 6)} ${c.mission ? yellow('away ') : ''}${profTags(compProfLines(a, c))}`,
         detail: () => withArt(a, c, [...compLines(a, c), '', dim('Enter: open their page')]), // them in their gear
@@ -152,8 +161,8 @@ export function companionsView(app) {
       const inn = g.innkeeperHere();
       rows.push(H(''), H('Hire'));
       if (inn) {
-        const n = g.innCandidates().length;
-        rows.push({ text: `Hire a companion at ${inn.name} ${dim(`(${plural(n, 'face')})`)}`, detail: () => [bold(inn.name), 'Innkeeper', '', `${plural(n, 'adventurer')} near your level looking for work. A hire joins at their own level in their own gear; a bench companion comes back free.`], act: () => a.push(hireDialog(a)) });
+        const n = hirePool(a).list.length;
+        rows.push({ text: `Hire a companion at ${inn.name} ${dim(`(${plural(n, 'face')})`)}`, detail: () => [bold(inn.name), 'Innkeeper', '', `${plural(n, 'adventurer')} of your faction looking for work, every level, sorted by role and kit. A hire joins at their own level in their own gear; a bench companion comes back free.`], act: () => a.push(hireDialog(a)) });
       } else rows.push(H(dim('  No inn here. Companions are hired from innkeepers (Goldshire, Razor Hill, every capital).')));
       if (squad.length || bench.length) {
         const ups = g.squadUpgradePlan().length;
@@ -196,7 +205,41 @@ function yieldText(app, rows) {
 
 // ---- hiring -------------------------------------------------------------------------------------------
 
-function findCand(app, botId) { return [...app.g.innCandidates(), ...(app.hireResults ?? [])].find((c) => c.bot.id === botId) ?? null; }
+// Every same-faction face not already yours, from the bot pool alone: who they are, their spec, kit and
+// price. Their gear is the dear part (a gear walk each, 6 s for 3000), so a face gets it when you look at
+// them. The inn's own slate rolls its kits as a set, and hiring prices a slate face by that roll, so those
+// faces come from the slate.
+function hirePool(app) {
+  const g = app.g, ch = g.state.char;
+  const taken = [...(g.state.squad ?? []).map((c) => c.id), ...Object.keys(g.state.botRoster ?? {})];
+  const key = `${ch.zoneId}|${ch.level}|${ch.race}|${g.innkeeperHere()?.entry}|${taken.sort().join(',')}`;
+  if (app.hirePoolMemo?.g === g && app.hirePoolMemo.key === key) return app.hirePoolMemo;
+  const slate = new Map(g.innCandidates().map((c) => [c.bot.id, c]));
+  const salt = innZoneSalt(ch.zoneId, ch.level);
+  const bots = g.innkeeperHere() ? searchWorldBots({ ds: app.ds, playerRace: ch.race, playerLevel: ch.level, zoneId: ch.zoneId, excludeIds: taken, filters: { roles: SQUAD_ROLES, limit: WORLD_BOT_COUNT } }) : [];
+  const list = bots.map((bot) => slate.get(bot.id) ?? (() => {
+    const spec = app.ds.botSpecs(bot.cls)?.[bot.specIdx], gearProfile = pickProfile(bot.id, salt, ch.level);
+    return { bot, ...(spec ? { specName: spec.name, specRole: spec.role } : {}), gearProfile, hireCostCopper: hireCostCopper(bot.level, gearProfile) };
+  })());
+  app.hirePoolMemo = { g, key, list, full: new Map(), tags: new Map() };
+  return app.hirePoolMemo;
+}
+
+/** A pool face with their gear on: built once, through the engine's own search so it is the body a hire gets. */
+function fullCand(app, c) {
+  if (c.gear) return c;
+  const memo = hirePool(app);
+  if (!memo.full.has(c.bot.id)) {
+    const b = c.bot;
+    memo.full.set(b.id, app.g.searchInnCandidates({ name: b.name, classes: [b.cls], minLevel: b.level, maxLevel: b.level, limit: WORLD_BOT_COUNT }).find((x) => x.bot.id === b.id) ?? null);
+  }
+  return memo.full.get(c.bot.id) ?? null;
+}
+
+function findCand(app, botId) {
+  const c = [...app.g.innCandidates(), ...(app.hireResults ?? [])].find((x) => x.bot.id === botId) ?? hirePool(app).list.find((x) => x.bot.id === botId);
+  return c ? fullCand(app, c) : null;
+}
 
 // The body they would bring: same shell hireCandidate builds, on their own spec, for the stat preview.
 function candCharacter(app, c) {
@@ -206,15 +249,16 @@ function candCharacter(app, c) {
 
 function hireText(app, c, short = false) {
   const cost = c.hireCostCopper ?? 0;
-  return (app.ch.gold >= cost ? yellow : red)((short ? shortMoney(cost) : moneyText(cost)) || 'free');
+  if (!cost) return yellow('free');
+  return (app.ch.gold >= cost ? yellow : red)(short ? shortMoney(cost) : coinText(cost));
 }
 
 // The two biggest coins only, for the list column: 1g 20s, 51s, 76c.
 function shortMoney(copper) {
   const g = Math.floor(copper / 10000), sv = Math.floor((copper % 10000) / 100), c = copper % 100;
-  if (g) return `${g}g${sv ? ` ${sv}s` : ''}`;
-  if (sv) return `${sv}s`;
-  return c ? `${c}c` : '';
+  if (g) return `${g}${coin('g')}${sv ? ` ${sv}${coin('s')}` : ''}`;
+  if (sv) return `${sv}${coin('s')}`;
+  return `${c}${coin('c')}`;
 }
 
 function candLines(app, c) {
@@ -232,7 +276,7 @@ function candLines(app, c) {
 function hireAs(app, c, role) {
   const r = app.g.hireCandidate(c.bot.id, role);
   if (r.ok && app.hireResults) app.hireResults = app.hireResults.filter((x) => x.bot.id !== c.bot.id);
-  return app.result(r, `${r.name ?? c.bot.name} joins you as ${role}${r.costCopper ? ` for ${moneyText(r.costCopper)}` : ''}${r.benched ? ', on the bench' : ''}.`);
+  return app.result(r, `${r.name ?? c.bot.name} joins you as ${role}${r.costCopper ? ` for ${coinText(r.costCopper)}` : ''}${r.benched ? ', on the bench' : ''}.`);
 }
 
 function pickRoleAndHire(app, c, after) {
@@ -240,31 +284,77 @@ function pickRoleAndHire(app, c, after) {
   app.pick(`${c.bot.name}: what role?`, roles.map((r) => ({ label: `${roleText(r)}${r === c.specRole ? dim('  (their spec)') : ''}`, value: r })), (role) => { if (hireAs(app, c, role)) after?.(); });
 }
 
+// The hire list's two filters: a role tab (Left and Right) and a kit (t), each with its count under the other.
+const HIRE_ROLES = [{ role: null, label: 'All' }, { role: 'dps', label: 'DPS' }, { role: 'healer', label: 'Heal' }, { role: 'tank', label: 'Tank' }];
+const KIT_SHORT = { naked: 'Naked', shabby: 'Shabby', field: 'Field', twink: 'Twink', 'raid-mixed': 'Raid', 'raid-t2': 'Raid T2', 'raid-t3': 'Raid T3' };
+const roleOfCand = (c) => c.specRole ?? 'dps';
+
 function hireDialog(app, results) {
-  return {
-    id: results ? 'hire-search' : 'hire', title: results ? 'Search' : 'Hire', hint: 'Enter: look closer',
+  // The kits this list has, cheapest first; t steps through them and back to any.
+  const kitsOf = (list) => [null, ...GEAR_PROFILES.filter((p) => list.some((c) => c.gearProfile === p))];
+  const view = {
+    id: results ? 'hire-search' : 'hire', hint: 'Enter: look closer   Left Right: role',
+    roleTab: 0, kit: null, placed: false,
+    // The filter rows scroll off a long list; the breadcrumb keeps them in sight.
+    get title() { return [results ? 'Search' : 'Hire', HIRE_ROLES[this.roleTab].role && HIRE_ROLES[this.roleTab].label, this.kit && KIT_SHORT[this.kit]].filter(Boolean).join(' · '); },
     keys: {
       h: { hint: 'hire', fn: (a, row) => { const c = row?.data && findCand(a, row.data); if (c) pickRoleAndHire(a, c); } },
+      t: { hint: 'kit', fn: (a) => stepKit(a, +1) },
+      T: { hint: 'kit back', fn: (a) => stepKit(a, -1) },
       '/': { hint: 'search', fn: (a) => hireSearch(a, (found) => { a.hireResults = found; a.push(hireDialog(a, found)); }) },
       D: { hint: 'duel', fn: (a, row) => { if (row?.data) tavernDuel(a, row.data); } },
     },
+    onKey(a, k) {
+      const d = { right: +1, tab: +1, left: -1, 'shift-tab': -1 }[k];
+      if (!d) return false;
+      view.roleTab = (view.roleTab + d + HIRE_ROLES.length) % HIRE_ROLES.length;
+      view.placed = false;
+      a.render();
+      return true;
+    },
     rows(a) {
-      const g = a.g, list = results ?? g.innCandidates();
+      const g = a.g, all = results ?? hirePool(a).list, memo = hirePool(a);
       const squad = g.state.squad ?? [];
-      const rows = [H(`${plural(list.length, 'adventurer')} for hire   ${squad.length >= MAX_COMPANIONS ? yellow('party full: a new hire goes to the bench') : dim(`party ${squad.length}/${MAX_COMPANIONS}`)}   ${yellow(moneyText(a.ch.gold) || '0c')}`), H('')];
-      if (!list.length) rows.push(H(dim('  Nobody is looking for work here right now.')));
+      const { role } = HIRE_ROLES[view.roleTab];
+      const ofRole = (c) => !role || roleOfCand(c) === role, ofKit = (c) => !view.kit || c.gearProfile === view.kit;
+      const list = all.filter((c) => ofRole(c) && ofKit(c));
+      const roleTabs = HIRE_ROLES.map((t, i) => { const label = ` ${t.label} ${all.filter((c) => (!t.role || roleOfCand(c) === t.role) && ofKit(c)).length} `; return i === view.roleTab ? inverse(bold(label)) : dim(label); }).join(' ');
+      const kitTabs = kitsOf(all).map((p) => { const label = p ? `${KIT_SHORT[p] ?? p} ${all.filter((c) => ofRole(c) && c.gearProfile === p).length}` : 'Any'; return p === view.kit ? inverse(bold(` ${label} `)) : dim(` ${label} `); });
+      // Seven kits and their counts outrun the list pane at 60: they wrap onto a second row.
+      const kitW = a.listWOf(view, a.layout()) - 2, kitLines = [`Kit`];
+      for (const t of [...kitTabs, dim('  t')]) { if (vis(kitLines.at(-1)) + vis(t) > kitW) kitLines.push('   '); kitLines[kitLines.length - 1] += t; }
+      const rows = [
+        H(`${plural(list.length, 'adventurer')} for hire   ${squad.length >= MAX_COMPANIONS ? yellow('party full: a new hire goes to the bench') : dim(`party ${squad.length}/${MAX_COMPANIONS}`)}   ${coinText(a.ch.gold)}`),
+        H(`${roleTabs}   ${dim('Left Right')}`), ...kitLines.map(H), H(''),
+      ];
+      if (!list.length) rows.push(H(dim(all.length ? '  Nobody here fits that role and kit.' : '  Nobody is looking for work here right now.')));
       for (const c of list) {
         const b = c.bot;
+        if (!memo.tags.has(b.id)) memo.tags.set(b.id, profTags(candProfLines(c)));
         rows.push({
-          text: `${fit(b.name, 12)} ${fit(dim(`L${b.level} ${className(b.cls)}`), 12)} ${fit(c.specRole ? roleText(c.specRole) : '', 6)} ${fit(hireText(a, c, true), 7)} ${profTags(candProfLines(c))}`,
+          text: `${fit(b.name, 12)} ${fit(dim(`L${b.level} ${className(b.cls)}`), 12)} ${fit(c.specRole ? roleText(c.specRole) : '', 6)} ${fit(dim(KIT_SHORT[c.gearProfile] ?? ''), 7)} ${fit(hireText(a, c, true), 7)} ${memo.tags.get(b.id)}`,
           data: b.id,
-          detail: () => withArt(a, candCharacter(a, c), [...candLines(a, c), '', dim('Enter: their page   h: hire')]),
+          detail: () => { const full = fullCand(a, c); return full ? withArt(a, candCharacter(a, full), [...candLines(a, full), '', dim('Enter: their page   h: hire')]) : []; },
           act: () => a.push(candidateDialog(a, b.id)),
         });
+      }
+      // A new list opens on your own level (the slate's window), not on the level 1s at its top.
+      if (!view.placed && list.length) {
+        view.placed = true;
+        const at = list.findIndex((c) => c.bot.level >= a.ch.level - 2);
+        view.cursor = rows.length - list.length + (at < 0 ? list.length - 1 : at);
+        view.scroll = at > 0 ? view.cursor - 3 : 0; // a few lower levels above it, or the filter rows when it heads the list
       }
       return rows;
     },
   };
+  const stepKit = (a, d) => {
+    const kits = kitsOf(results ?? hirePool(a).list);
+    view.kit = kits[(kits.indexOf(view.kit) + d + kits.length) % kits.length];
+    view.placed = false;
+    a.render();
+  };
+  return view;
 }
 
 /** One face at the inn: everything about them, and the hire buttons. */
@@ -284,7 +374,7 @@ function candidateDialog(app, botId) {
       for (const role of roles) {
         rows.push({
           text: `Hire as ${roleText(role)} for ${hireText(a, c)}${role === c.specRole ? dim('  their spec') : ''}`,
-          detail: () => withArt(a, body, [bold(`Hire ${b.name} as ${role}`), `Cost: ${hireText(a, c)}   you have ${yellow(moneyText(a.ch.gold) || '0c')}`,
+          detail: () => withArt(a, body, [bold(`Hire ${b.name} as ${role}`), `Cost: ${hireText(a, c)}   you have ${coinText(a.ch.gold)}`,
             role === c.specRole ? dim(`They already play ${c.specName}.`) : dim('They respec for the role: talents and rotation rebuild for free.'),
             ...((a.g.state.squad ?? []).length >= MAX_COMPANIONS ? [yellow('Your party is full: they start on the bench.')] : []), dim('A released hire refunds the price.')]),
           act: () => { if (hireAs(a, c, role)) a.pop(); },
@@ -295,7 +385,8 @@ function candidateDialog(app, botId) {
       for (const l of candProfLines(c)) {
         const prof = ds.profession(l.line);
         rows.push({
-          text: `${fit(prof?.name ?? l.line, 16)} ${fit(`${l.current}/${l.max}`, 8)} ${dim(l.rank ?? '')}${isSecondary(l.line) ? dim('  secondary') : ''}`,
+          text: `${fit(prof?.name ?? l.line, 16)} ${fit(`${l.current}/${l.max}`, 8)} ${dim(l.rank ?? '')}`,
+          icon: prof?.icon, sub: dim(isSecondary(l.line) ? 'secondary' : prof?.kind ?? ''),
           detail: () => [bold(prof?.name ?? l.line), `${l.current}/${l.max}${l.rank ? `  ${l.rank}` : ''}`, '',
             isMissionSkill(l.line) ? `Once hired they can go on ${missionVerb(l.line).toLowerCase()} trips while you play.` : `Once hired they craft from their own ${prof?.name ?? l.line} recipe book with your materials.`,
             dim('Companions train for free as they level, and can swap trades later.')],
@@ -309,7 +400,7 @@ function candidateDialog(app, botId) {
         const e = equippedEntry(c.gear?.[slot]);
         if (e == null) continue;
         const it = ds.item(e);
-        rows.push({ text: `${fit(SLOT_LABEL[slot] ?? slot, 10)} ${qualityPaint(it?.quality)(it?.name ?? e)}`, detail: () => (it ? itemLines(a, it) : []) });
+        rows.push({ text: `${fit(SLOT_LABEL[slot] ?? slot, 10)} ${qualityPaint(it?.quality)(it?.name ?? e)}`, icon: it?.icon, sub: dim(`${fit('', 10)} ${gearKind(it)}`), detail: () => (it ? itemLines(a, it) : []) });
       }
       return rows;
     },
@@ -322,6 +413,7 @@ export function companionDialog(app, id) {
   return {
     id: `comp-${id}`, title: findComp(app, id)?.name ?? 'Companion', hint: 'Enter: act',
     keys: {
+      c: { hint: 'character sheet', fn: (a) => a.push(companionSheet(a, id)) },
       x: { hint: 'take off / drop', fn: (a, row) => {
         const d = row?.data;
         if (d?.slot && d.it) a.result(a.g.unequipCompanionSlot(id, d.slot), `${findComp(a, id)?.name} takes off ${itemText(d.it)}.`);
@@ -340,6 +432,9 @@ export function companionDialog(app, id) {
       }
       rows.push(H(''));
       const note = (title, ...lines) => withArt(a, comp, [bold(title), '', ...lines]);
+      rows.push({ text: `Character sheet ${dim('c')}`, icon: 'inv_misc_head_human_01', sub: dim('their gear on the paperdoll, and their stats'),
+        detail: () => note('Character sheet', 'What they wear on the paperdoll, the way your Character tab shows you: each piece in its slot, its tooltip beside, their numbers underneath.'),
+        act: () => a.push(companionSheet(a, id)) });
       rows.push({ text: `Role: ${roleText(comp.role)}`, detail: () => note('Role', 'Tank, healer or damage. Changing it is free and rebuilds their talents and rotation for the role.'),
         act: () => a.pick(`${comp.name}: what role?`, SQUAD_ROLES.map((r) => ({ label: roleText(r), value: r })), (r) => a.result(g.setCompanionRole(id, r), `${comp.name} is now your ${r}.`)) });
       rows.push(seated
@@ -359,7 +454,8 @@ export function companionDialog(app, id) {
       for (const l of sortLines(profs?.lines ?? [])) {
         const prof = ds.profession(l.line);
         rows.push({
-          text: `${fit(prof?.name ?? l.line, 16)} ${fit(`${l.current}/${l.max}`, 8)} ${dim(l.rank ?? '')}${isSecondary(l.line) ? dim('  secondary') : ''}${comp.mission?.skill === l.line ? yellow('  away') : ''}`, data: { line: l.line },
+          text: `${fit(prof?.name ?? l.line, 16)} ${fit(`${l.current}/${l.max}`, 8)} ${dim(l.rank ?? '')}${comp.mission?.skill === l.line ? yellow('  away') : ''}`, data: { line: l.line },
+          icon: prof?.icon, sub: dim(`${isSecondary(l.line) ? 'secondary' : prof?.kind ?? ''}   ${isMissionSkill(l.line) ? 'Enter: trips' : 'Enter: recipe book'}`),
           detail: () => [bold(prof?.name ?? l.line), `${l.current}/${l.max}${l.rank ? `  ${l.rank}` : ''}`, '', dim(isMissionSkill(l.line) ? 'Enter: smelting and gathering trips' : 'Enter: their recipe book'), dim('x: drop it')],
           act: () => a.push(recipeBook(a, id, l.line)),
         });
@@ -384,6 +480,7 @@ export function companionDialog(app, id) {
         const it = e != null ? ds.item(e) : null;
         rows.push({
           text: `${fit(SLOT_LABEL[slot] ?? slot, 10)} ${it ? qualityPaint(it.quality)(it.name) : dim('—')}`, data: { slot, it },
+          icon: it?.icon, sub: it ? dim(`${fit('', 10)} ${gearKind(it)}`) : undefined,
           detail: () => (it ? itemLines(a, it, [...enchantLines(a, comp, slot), '', dim('Enter: change   x: take off')]) : [dim(`Nothing in the ${SLOT_LABEL[slot] ?? slot} slot.`), '', dim('Enter: pick something for them to wear')]),
           act: () => slotPicker(a, id, slot),
         });
@@ -393,7 +490,70 @@ export function companionDialog(app, id) {
       rows.push(...bankRows(a, comp));
 
       rows.push(H(''), { text: red(`Release ${comp.name} for good`), detail: () => note('Release', 'They leave your roster for good. You get the hire price back. Their bags and gear go with them.'),
-        act: () => a.confirm(`Release ${comp.name} for good? Their bags and gear go with them.`, () => { const r = g.releaseCompanions({ ids: [id] }); if (a.result(r, `${comp.name} leaves.${r.refundCopper ? ` You get ${moneyText(r.refundCopper)} back.` : ''}`)) a.popTo('__none__'); }) });
+        act: () => a.confirm(`Release ${comp.name} for good? Their bags and gear go with them.`, () => { const r = g.releaseCompanions({ ids: [id] }); if (a.result(r, `${comp.name} leaves.${r.refundCopper ? ` You get ${coinText(r.refundCopper)} back.` : ''}`)) a.popTo('__none__'); }) });
+      return rows;
+    },
+  };
+}
+
+// ---- their character sheet ------------------------------------------------------------------------------
+
+/** Their numbers at the foot of the sheet's tooltip pane, laid out like yours under the Character tab. */
+function sheetStats(app, char, w) {
+  const ds = app.ds, st = effectiveStats(char, ds), pt = powerType(char);
+  const pct = (x) => `${((x ?? 0) * 100).toFixed(2)}%`;
+  const attrs = [['Strength', st.str], ['Agility', st.agi], ['Stamina', st.sta], ['Intellect', st.int], ['Spirit', st.spi]];
+  const combat = [['Armor', effectiveArmor(char, ds)], ['Attack pwr', attackPower(char, ds)], ['Crit', pct(critChanceDisplay(char, ds))],
+    ['Hit', pct(hitChance(char, ds))], ['Dodge', pct(dodgeChanceDisplay(char, ds))]];
+  return [
+    dim('─'.repeat(Math.max(0, w))),
+    `Health ${maxHealth(char, ds)}   ${pt[0].toUpperCase() + pt.slice(1)} ${maxPower(char, ds)}`,
+    '',
+    ...attrs.map(([name, v], i) => `${fit(name, 10)}${String(v).padStart(5)}    ${fit(combat[i][0], 10)} ${String(combat[i][1]).padStart(7)}`),
+  ];
+}
+
+function sheetTitle(app, comp) {
+  const ilvl = displayGearScore(comp.equipped ?? {}, app.ds);
+  return `${bold(comp.name)}  ${dim(`level ${companionLevel(comp, app.ch.level)} ${raceName(comp.race)} ${className(comp.cls)}`)}  ${roleText(comp.role)}${ilvl ? dim(`  ilvl ~${ilvl}`) : ''}`;
+}
+
+/**
+ * A companion's character sheet: the Character tab's paperdoll (tuiPaperdoll.mjs) for them. Their pieces
+ * framed in quality colour down both sides, them in their gear in the middle, the tooltip beside and their
+ * stats at its foot. Enter picks from their bags and yours, x takes a piece off, u puts on every upgrade.
+ * Too small a window or no colour, and it lists the slots with their icons instead.
+ */
+export function companionSheet(app, id) {
+  const viewId = `sheet-${id}`;
+  const hint = 'Enter: change   x: take off   u: upgrades';
+  return {
+    id: viewId, title: 'Character sheet', hint: 'Enter: change',
+    detailFoot: (a, w) => { const c = findComp(a, id); return c ? sheetStats(a, companionCharacter(c, companionLevel(c, a.ch.level), a.ds), w) : []; },
+    keys: {
+      x: { hint: 'take off', fn: (a, row) => { const d = row?.data; if (d?.slot && d.it) a.result(a.g.unequipCompanionSlot(id, d.slot), `${findComp(a, id)?.name} takes off ${itemText(d.it)}.`); } },
+      u: { hint: 'put on upgrades', fn: (a) => { const c = findComp(a, id), r = a.g.equipCompanionBest(id); a.result(r, r.equipped ? `${c?.name} puts on ${plural(r.equipped, 'piece')}.` : `${c?.name} already wears the best they can.`); } },
+    },
+    grid: (a, rows, w, h) => { const c = findComp(a, id); return c ? paperdollGrid(a, rows, w, h, (cols, lines) => paperdollArt(c, cols, lines), sheetTitle(a, c), hint) : null; },
+    rows(a) {
+      const ds = a.ds, comp = findComp(a, id);
+      if (!comp) { setTimeout(() => { if (a.top()?.id === viewId) a.pop(); }, 0); return [H('They are gone.')]; }
+      const ups = a.g.companionUpgradesFor(id);
+      const rows = paperdollPlan(a, 0) ? [] : [{ text: sheetTitle(a, comp), header: true, plain: true }, H('')];
+      for (const slot of EQUIP_SLOTS) {
+        const e = equippedEntry(comp.equipped?.[slot]);
+        const it = e != null ? ds.item(e) : null;
+        const best = ups.filter((u) => u.slot === slot).sort((x, y) => y.delta - x.delta)[0];
+        const bestLines = best ? ['', green(`▲ Better: ${a.itemName(best.entry)} (+${Math.round(best.delta)})${best.from === 'player' ? ', in your bags' : ', in their bags'}`), dim('Enter: pick it   u: put on every upgrade')] : [];
+        rows.push({
+          text: `${fit(SLOT_LABEL[slot] ?? slot, 10)} ${it ? qualityPaint(it.quality)(it.name) : dim('—')}${best ? green('  ▲') : ''}`, data: { slot, it },
+          icon: it?.icon, sub: it ? dim(`${fit('', 10)} ${gearKind(it)}`) : undefined,
+          cell: { slot, it, up: !!best, sub: dim(gearKind(it)) },
+          detail: () => (it ? itemLines(a, it, [...enchantLines(a, comp, slot), '', dim('Enter: change   x: take off'), ...bestLines])
+            : [bold(SLOT_LABEL[slot] ?? slot), dim('Nothing worn here.'), '', dim('Enter: pick something for them to wear'), ...bestLines]),
+          act: () => slotPicker(a, id, slot),
+        });
+      }
       return rows;
     },
   };
@@ -406,7 +566,7 @@ function giveDialog(app, id) {
   if (!st.length) { app.flashMsg('Your bags are empty.'); return; }
   app.pick(`Give to ${comp?.name}`, st.map((s, slot) => {
     const it = app.ds.item(s.item);
-    return { label: `${qualityPaint(it?.quality)(it?.name ?? s.item)}${s.count > 1 ? ` x${s.count}` : ''}`, detail: () => itemLines(app, it), value: { s, slot, it } };
+    return { label: `${qualityPaint(it?.quality)(it?.name ?? s.item)}${s.count > 1 ? ` x${s.count}` : ''}`, icon: it?.icon, sub: dim(it?.typeName ?? ''), detail: () => itemLines(app, it), value: { s, slot, it } };
   }), ({ slot, it }) => {
     const r = app.g.giveItemToBotStack(id, slot);
     app.result(r, `You give ${itemText(it, 'it')}${r.moved > 1 ? ` x${r.moved}` : ''} to ${comp?.name}.`);
@@ -424,7 +584,7 @@ function slotPicker(app, id, slot) {
   const options = [];
   const add = (s, from) => {
     const it = ds.item(s.item), up = ups.get(s.item);
-    options.push({ label: `${qualityPaint(it.quality)(it.name)}${up ? green(`  ▲ +${Math.round(up.delta)}`) : ''}${it.requiredLevel > lvl ? red(`  L${it.requiredLevel}`) : ''}${dim(from === 'you' ? '  your bags' : '  their bags')}`, detail: () => itemLines(app, it), value: it });
+    options.push({ label: `${qualityPaint(it.quality)(it.name)}${up ? green(`  ▲ +${Math.round(up.delta)}`) : ''}${it.requiredLevel > lvl ? red(`  L${it.requiredLevel}`) : ''}${dim(from === 'you' ? '  your bags' : '  their bags')}`, icon: it.icon, sub: dim(gearKind(it)), detail: () => itemLines(app, it), value: it });
   };
   for (const s of comp.bags?.stacks ?? []) if (fits(s)) add(s, 'them');
   for (const s of app.g.state.inventory.stacks) if (fits(s)) add(s, 'you');

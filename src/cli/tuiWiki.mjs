@@ -2,11 +2,10 @@
 // (items, spells, quests, NPCs, talents, recipes, zones, dungeons, objects, factions); Tab narrows to one kind.
 // A page lists what links to it (where an item drops, who sells it, which quest rewards it, who teaches a spell)
 // as rows: Enter follows a link, Esc goes back. Search and sources are phonecraft's own pure indexes.
-import { bold, dim, yellow, green, red, cyan, qualityPaint, wrapLines } from './text.mjs';
+import { bold, dim, yellow, green, red, cyan, qualityPaint, wrapLines, coinText } from './text.mjs';
 import { itemLines, spellLines, creatureLines, rewardLines } from './tuiViews.mjs';
 import { wikiIndex, wikiTokens, wikiSearch, WIKI_KINDS, WIKI_KIND_LABEL, WIKI_KIND_ONE } from './wikiIndex.ts';
 import { wikiSourceIndexSync } from './wikiSources.ts';
-import { moneyText } from '../domain/economy/money.ts';
 import { className } from '../domain/core/ids.ts';
 
 const H = (text) => ({ text, header: true });
@@ -135,7 +134,7 @@ function pageLinks(app, kind, id) {
       section('Reputation', (q.rewRep ?? []).filter((r) => r.value).map((r) => link(app, 'faction', r.faction, `${ds.faction(r.faction)?.name ?? r.faction} ${r.value > 0 ? '+' : ''}${r.value}`)));
       const chain = [q.prevQuest && ['Comes after', q.prevQuest], q.nextQuest && ['Leads to', q.nextQuest]].filter(Boolean);
       for (const [label, e] of chain) section(label, [link(app, 'quest', e, ds.quest(e)?.title ?? String(e))]);
-      rows.push(H(''), H(dim(`From ${q.starterName || '?'}, to ${q.enderName || '?'}${q.rewMoney ? `, ${moneyText(q.rewMoney)}` : ''}`)));
+      rows.push(H(''), H(dim(`From ${q.starterName || '?'}, to ${q.enderName || '?'}${q.rewMoney ? `, ${coinText(q.rewMoney)}` : ''}`)));
     }
   } else if (kind === 'recipe') {
     const r = ds.recipe(id);

@@ -24,7 +24,7 @@ import { honorDialog, weeklyHonorPass } from './tuiHonor.mjs';
 import { devCommand } from './tuiDev.mjs';
 import { savePicker } from './tuiSaves.mjs';
 import { wikiDialog } from './tuiWiki.mjs';
-import { bold, dim, cyan, yellow, green, red, inverse, fit, vis, cut, bar, pct, brightYellow, magenta, brightBlue, strip, qualityPaint } from './text.mjs';
+import { bold, dim, cyan, yellow, green, red, inverse, fit, vis, cut, bar, pct, brightYellow, magenta, brightBlue, strip, qualityPaint, coinText } from './text.mjs';
 import { iconsOn, iconArt, iconBlank, wrapIconLines } from './iconArt.mjs';
 import { createGame } from '../engine/game.ts';
 import { toSave } from '../persistence/saveShape.ts';
@@ -33,7 +33,7 @@ import { characterCreation } from './tuiCreate.mjs';
 import { missingHdBytes, downloadHdArt, downloadDir } from './hdArt.mjs';
 import { forgetHdArt } from './modelArt.mjs';
 import { sixelOn } from './sixel.mjs';
-import { moneyText, coinsText } from '../domain/economy/money.ts';
+import { coinsText } from '../domain/economy/money.ts';
 import { maxHealth, maxPower } from '../domain/character/character.ts';
 import { powerType } from '../domain/character/characterStats.ts';
 import { addItem } from '../domain/items/inventory.ts';
@@ -55,6 +55,7 @@ const HELP_LINES = [
   '                           a in the search (or S on World) widens it to the whole world. Enter goes or opens.',
   '  z                        sit and rest 30 s       ?               this help',
   '  Ctrl-C / :quit           save and leave          Ctrl-L          repaint a garbled screen',
+  '  c (World tab) / :logout  save and go back to the character list',
   '',
   'In the world',
   '  Enter on a creature starts a live fight; f fights it instantly. Enter on a quest, vendor, trainer or',
@@ -75,22 +76,23 @@ const HELP_LINES = [
   '  W walks the floor instead: pick a place, the party walks the nav mesh, patrols walk, and what sees you pulls.',
   '',
   'Gear and bags',
-  '  Gear tab: Enter on a slot lists everything in your bags (and the bank, in a bank town) that fits it.',
+  '  Character tab: your gear around you. Enter on a slot lists everything in your bags (and the bank, in a bank town) that fits it.',
+  '  Your stats sit under the tooltip; s opens the rest: weapon skills, professions, auras, home, pet, honor, reputation.',
   '  ▲ marks an upgrade the equipment helper found; u puts on every upgrade at once, x takes a piece off.',
   '  r repairs one piece, R everything; o opens the Outfitter (gear sets). :outfit <name> wears a set from anywhere.',
-  '  In a big enough window the Gear tab is a character sheet (the Talents tab the three trees): Up and Down walk the icons in order, Shift+arrows move across them.',
+  '  In a big enough window the Character tab is a paperdoll (the Talents tab the three trees): Up and Down walk the icons in order, Shift+arrows move across them.',
   '  Bags tab: Enter uses, equips, opens, unwraps or learns; m lists every verb for the stack. s sells to the open',
   '  vendor, j sells junk, b opens the bank, d destroys, S sorts, / splits a stack, [ ] move it, A uses the whole stack.',
   '  D lists every green, blue or epic the group can disenchant; L lists every book someone can learn. G runs it.',
   '  :dev item|quest|recipe|prof skips the rules (testing). New character offers a random world bot.',
-  '  :settings sets auto-loot, the upgrade helper, auto-disenchant, the junk rules and which nodes get gathered.',
+  '  Settings tab (or :settings) sets auto-loot, the upgrade helper, auto-disenchant, the junk rules and which nodes get gathered.',
   '  Spells tab: b edits your action bars, m your macros. :macro <name> runs one; a macro on bar 1 fires by its key in a fight.',
   '  Loot: with :autoloot off a corpse opens the loot window. Enter takes a row, a takes all, Esc leaves the rest.',
   '',
   'In a fight',
   '  1-9 press an ability    a toggle auto-play    space pause    + - speed    l log    Esc run away',
   '  t gives a companion an order: attack a target, cast one ability, or hold ground (the fight waits).',
-  '  c cancels one of your buffs (also from the Character tab, out of a fight).',
+  '  c cancels one of your buffs (also from s on the Character tab, out of a fight).',
   '  r (in a fight you started with Enter) fights the same creature again after each win, until r again or Esc.',
   '  The ability bar runs along the bottom of the stage with its cooldowns; a takes the keys off the rotation.',
   '',
@@ -239,6 +241,22 @@ export class App {
     this.onQuit?.();
   }
 
+  /** Save, let go of the character and go back to the character picker. Not in the middle of a fight or a run. */
+  async logout() {
+    if (!this.g) return;
+    if (this.fight || this.auto) { this.flashMsg('Finish the fight or stop the run first.'); this.render(); return; }
+    for (const t of this.timers) this.term.clearInterval(t);
+    this.timers = [];
+    await this.persist();
+    if (this.slot != null) this.repo.unlock?.(this.slot);
+    this.say(dim(`Saved ${this.g.state.char.name}.`));
+    this.g = null; this.slot = null; this.cmds = null; this.vendor = null;
+    this.tabs = []; this.tab = 0; this.stack = [];
+    this.meter = null; this.lootTally = null; this.lastActivity = null;
+    await this.toPicker?.();
+    this.render();
+  }
+
   // ---- small helpers the views lean on -------------------------------------------------------------
 
   get ch() { return this.g.state.char; }
@@ -291,7 +309,7 @@ export class App {
   pick(title, options, onPick, { hint, keepOpen } = {}) {
     const view = {
       id: 'pick', title, hint: hint ?? 'Enter: choose   Esc: back',
-      rows: () => options.map((o) => ({ text: o.label, data: o.value, detail: o.detail ? () => (typeof o.detail === 'function' ? o.detail() : o.detail) : undefined, act: () => { if (!keepOpen) this.pop(); onPick(o.value, o); } })),
+      rows: () => options.map((o) => ({ text: o.label, icon: o.icon, sub: o.sub, data: o.value, detail: o.detail ? () => (typeof o.detail === 'function' ? o.detail() : o.detail) : undefined, act: () => { if (!keepOpen) this.pop(); onPick(o.value, o); } })),
       noDetail: !options.some((o) => o.detail),
     };
     this.push(view);
@@ -502,6 +520,7 @@ export class App {
     const [, cmd = '', args = ''] = line.match(/^(\S+)\s*(.*)$/) ?? [];
     const c = cmd.toLowerCase();
     if (c === 'quit' || c === 'exit' || c === 'q') { await this.quit(); return; }
+    if (c === 'logout' || c === 'characters') { await this.logout(); return; }
     if (c === 'auto') { const m = args.match(/^(\d+)?\s*(?:farm\s+(.+))?$/i); startAutopilot(this, m?.[1] ? Number(m[1]) : Infinity, m?.[2]); return; }
     if (c === 'art') {
       const missing = missingHdBytes();
@@ -610,7 +629,7 @@ export class App {
     const dead = this.isDead() ? red(bold('  DEAD')) : ch.mountedItem != null ? dim('  mounted') : '';
     const title = ` ${bold(ch.name)} ${dim(`L${ch.level} ${raceName(ch.race)} ${className(ch.cls)}`)}${dead}`;
     const road = journeyHeader(this);
-    const right = `${road ? yellow(road) : cyan(z?.name ?? ch.zoneId)}  ${yellow(moneyText(ch.gold) || '0c')} `;
+    const right = `${road ? yellow(road) : cyan(z?.name ?? ch.zoneId)}  ${coinText(ch.gold)} `;
     const l0 = fit(title, L.W - vis(right)) + right;
     // In a fight the bars follow the live session, so the header is the player's frame and no panel needs another.
     const live = this.fight?.session?.playerView?.() ?? null;
@@ -690,7 +709,11 @@ export class App {
     if (showDetail) {
       const d = cursorRow?.detail?.(this, cursorRow) ?? view.detail?.(this, cursorRow) ?? [];
       detailLines = wrapIconLines(d, L.detailW - 2);
-      if (detailLines.length > L.mainH) detailLines = detailLines.slice(0, L.mainH - 1).concat(dim('…'));
+      // A view's foot (the Character tab's stats) sits at the bottom of the pane when the tooltip keeps room above it.
+      const foot = view.detailFoot ? wrapIconLines(view.detailFoot(this, L.detailW - 2), L.detailW - 2) : [];
+      const room = foot.length && L.mainH - foot.length >= 16 ? L.mainH - foot.length - 1 : L.mainH;
+      if (detailLines.length > room) detailLines = detailLines.slice(0, room - 1).concat(dim('…'));
+      if (room < L.mainH) detailLines = [...detailLines, ...Array(L.mainH - foot.length - detailLines.length).fill(''), ...foot];
     }
     for (let i = 0; i < L.mainH; i++) {
       const left = fit(listLines[i] ?? '', listW);
@@ -766,6 +789,7 @@ export async function runTui({ term = new RealTerm(), argv = [] } = {}) {
     app.render();
   };
   const reopenPicker = () => savePicker(app, { onPlay: (save) => { void begin(save); }, onNew: createFlow });
+  app.toPicker = reopenPicker;
   const createFlow = () => characterCreation(app, (state) => {
     app.stack = [];
     app.startGame(state, `${state.char.name.toLowerCase()}-${Date.now().toString(36)}`, Date.now(), true);

@@ -21,7 +21,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { bold, dim, yellow, green, red, cyan, fit } from './text.mjs';
 import { startFight } from './tuiFight.mjs';
-import { pullStop, restBetween } from './tuiDungeon.mjs';
+import { pullStop, restBetween, readyUp } from './tuiDungeon.mjs';
 import { prePull } from './squad.mjs';
 import { decodeNavMesh, registerNavMeshForMap, navMeshForMap } from '../domain/nav/navmesh.ts';
 import { bakeSlugForInstance } from '../world/bakeSlug.ts';
@@ -82,9 +82,13 @@ function stampTemplates(app, ents) {
 /** The floor for the current run, built on first use and kept on the app while the run lasts. */
 function floorFor(app, def) {
   const run = app.g.state.instance;
-  if (app.floor?.dungeonId === run.dungeonId) return app.floor;
-  // Bodies of stops already cleared stay dead on the rebuilt floor, with any loose kills from before.
-  const cleared = new Set(app.floorKills?.[run.dungeonId] ?? []);
+  // One floor per entry: a hearth or a taxi out never cleared app.floor, so the next run of the dungeon walked the old one.
+  const enteredAt = app.g.state.instanceEnteredAtMs ?? null;
+  if (app.floor?.dungeonId === run.dungeonId && app.floor.enteredAt === enteredAt) return app.floor;
+  // Bodies of stops already cleared stay dead on the rebuilt floor, with any loose kills from before. The kills
+  // ride on the run, not the dungeon: a fresh run of the same dungeon stood the last run's dead back up, and an
+  // event's body (the Ring of Law's champion, one guid every run) was born dead and paid out unfought.
+  const cleared = new Set(run.floorClearedGuids ?? []);
   for (const enc of def.encounters) if (isCleared(run, enc.id)) for (const gd of enc.spawnGuids ?? []) cleared.add(gd);
   const bossEntries = new Set(def.encounters.filter((e) => e.kind === 'boss' && e.creatureEntry > 0).map((e) => e.creatureEntry));
   const world = createContinuousWorld({
@@ -96,7 +100,7 @@ function floorFor(app, def) {
     skipEntry: (entry) => !bossEntries.has(entry) && isTechnicalTriggerCreature(app.ds.creature(entry)),
   });
   stampTemplates(app, world.entities);
-  const f = { dungeonId: run.dungeonId, def, world, runMs: 0, patrolIndex: new Map(), target: null, walking: false, follow: true, speed: 1, timer: null, script: null, questScanMs: -Infinity, waiting: [], eventHoldUntil: 0,
+  const f = { dungeonId: run.dungeonId, enteredAt, def, world, runMs: 0, patrolIndex: new Map(), target: null, walking: false, follow: true, speed: 1, timer: null, script: null, questScanMs: -Infinity, waiting: [], eventHoldUntil: 0,
     rng: mulberry32(((app.g.state.rngSeed ?? 1) ^ 0x9e3779b9) >>> 0) };
   f.script = scriptContext(app, f);
   app.floor = f;
@@ -158,8 +162,13 @@ function markEngaged(f, ents) {
 
 function remember(app, f, guids) {
   resolveKill(f.world, guids);
-  app.floorKills ??= {};
-  app.floorKills[f.dungeonId] = [...new Set([...(app.floorKills[f.dungeonId] ?? []), ...guids])];
+  keepKills(app, f);
+}
+
+/** The floor's dead onto the run, so a step outside keeps them and a fresh run starts without them. */
+function keepKills(app, f) {
+  const run = app.g.state.instance;
+  if (run?.dungeonId === f.dungeonId) app.g.state.instance = { ...run, floorClearedGuids: [...f.world.clearedGuids] };
 }
 
 /** One floor tick: patrols, the walk, the scripts, then what sees you. Returns true when a pull started. */
@@ -339,6 +348,7 @@ function fightBodies(app, f, ents) {
 /** The event is lost: its summoned bodies go, claimed ones stand down, and it waits a minute before it arms again. */
 function failEvent(app, f) {
   f.script.resetGauntletOnWipe();
+  keepKills(app, f); // the event's fallen came off the floor's dead; a rebuilt floor must not bring them back dead
   f.eventHoldUntil = f.runMs + EVENT_HOLD_MS;
   app.say(red('The event fails. Rest (z) before you go again; it waits a minute.'));
 }
@@ -398,6 +408,8 @@ function reopen(app) {
 export function walkTo(app, f, enc) {
   const dest = enc.origin;
   if (!dest) { app.flashMsg(`${enc.name} has no place on the floor.`); return; }
+  // Buff and drink before setting off: whatever sees you on the way pulls with no time for it.
+  readyUp(app);
   const r = setMoveOrder(f.world, dest, f.def.mapId);
   f.target = enc.id;
   f.walking = true;
@@ -407,7 +419,7 @@ export function walkTo(app, f, enc) {
 
 /** P on a stop: an event starts where it stands, anything else is pulled from here. */
 function pullFromHere(app, f, enc) {
-  if (!floorGauntletWaves(enc)) { pullStop(app, f.def, enc, { floor: true, onTick: () => stepInFight(app, f), onDone: (r) => settle(app, f, r) }); if (app.fight) app.fight.floor = f; return; }
+  if (!floorGauntletWaves(enc)) { pullStop(app, f.def, enc, { floor: true, ready: true, onTick: () => stepInFight(app, f), onDone: (r) => settle(app, f, r) }); if (app.fight) app.fight.floor = f; return; }
   const run = app.g.state.instance;
   const need = requiredFlags(enc).filter((fl) => !hasFlag(run, fl));
   if (need.length) { app.flashMsg(`${enc.name} has not been set off yet (${need.join(', ')}).`); return; }

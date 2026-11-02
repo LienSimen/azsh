@@ -2,12 +2,12 @@
 // you browse, the run panel between fights (now, next, quests, this run's numbers, what stops it), the Run
 // pane at the bottom (one row per planner step) and the end card. The run itself is the controller in
 // tuiFight.mjs (startAutopilot); the planner is repl.mjs createAutopilot. Everything here only reads.
-import { bold, dim, cyan, yellow, green, red, magenta, inverse, fit, vis, cut, bar, strip, pct, secondsText, wrapLines } from './text.mjs';
+import { bold, dim, cyan, yellow, green, red, magenta, inverse, fit, vis, cut, bar, strip, pct, secondsText, wrapLines, coinText } from './text.mjs';
 import { idlePlayerFrame, startAutopilot, fightArt, flankArt } from './tuiFight.mjs';
 import { objectiveLines, questDialog } from './tuiViews.mjs';
 import { autopilotSettingsDialog } from './tuiAutopilotSettings.mjs';
 import { squadModeOf } from './squad.mjs';
-import { moneyText } from '../domain/economy/money.ts';
+import { iconsOn, iconArt, iconBlank } from './iconArt.mjs';
 import { maxHealth, maxPower } from '../domain/character/character.ts';
 
 const H = (text) => ({ text, header: true, plain: true });
@@ -15,7 +15,7 @@ const H = (text) => ({ text, header: true, plain: true });
 const wrapRows = (lead, text, W) => wrapLines(text, Math.max(20, W - 13)).map((l, i) => H(`${i ? ' '.repeat(11) : lead}${l}`));
 const num = (n) => Math.round(n).toLocaleString('en-US');
 const clock = (ms) => { const s = Math.max(0, Math.floor(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
-const signedMoney = (copper) => (copper < 0 ? `-${moneyText(-copper)}` : `+${moneyText(copper) || '0c'}`);
+const signedMoney = (copper) => (copper < 0 ? `-${coinText(-copper)}` : `+${coinText(copper)}`);
 
 /** "questing in Redridge Mountains", "farming Redridge Mystic in …", "doing A Baying of Gnolls". */
 export function runWhat(app, ctl) {
@@ -149,14 +149,23 @@ export function bagsPaneLines(app, L) {
   const items = rows.map((r, i) => i).filter((i) => !rows[i].header);
   if (!items.length) return [` ${bold('Bags')}`, dim(' Nothing in your bags.')];
   if (!items.includes(st.cursor)) st.cursor = items.find((i) => i >= st.cursor) ?? items[items.length - 1];
-  const room = L.logH - 1;
+  // With icons a row is two lines like the Bags tab's list: the icon down the left, the name beside the top
+  // and the row's kind and price beside the bottom.
+  const icons = iconsOn() && L.W >= 40;
+  const room = Math.floor((L.logH - 1) / (icons ? 2 : 1));
   const at = items.indexOf(st.cursor);
   const start = Math.max(0, Math.min(at - Math.floor(room / 2), items.length - room));
   const lines = [` ${bold('Bags')}   ${dim('Up Down: pick   Enter: use, equip, open   the run plays on')}`];
   for (const i of items.slice(start, start + room)) {
-    const r = rows[i];
-    const text = fit(i === st.cursor ? `▶ ${r.text}` : `  ${r.text}`, L.W - 1);
-    lines.push(i === st.cursor ? inverse(text) : ` ${text}`);
+    const r = rows[i], sel = i === st.cursor;
+    if (icons) {
+      const art = iconArt(r.icon, 4) ?? iconBlank(4);
+      const t1 = fit(` ${r.text}`, L.W - 6), t2 = fit(` ${r.sub ?? ''}`, L.W - 6);
+      lines.push(`${sel ? '▶' : ' '}${art[0]}${sel ? inverse(t1) : t1}`, ` ${art[1]}${sel ? inverse(t2) : t2}`);
+      continue;
+    }
+    const text = fit(sel ? `▶ ${r.text}` : `  ${r.text}`, L.W - 1);
+    lines.push(sel ? inverse(text) : ` ${text}`);
   }
   return lines;
 }
@@ -229,7 +238,7 @@ function runLine(app, ctl) {
 // ---- the Run pane ----------------------------------------------------------------------------------
 
 const GLYPH = {
-  fight: red('⚔'), wait: dim('~'), consume: dim('~'), cannibalize: dim('~'), turnin: green('✓'), accept: green('+'), travel: cyan('→'),
+  fight: red('⚔'), buff: cyan('↑'), wait: dim('~'), consume: dim('~'), cannibalize: dim('~'), turnin: green('✓'), accept: green('+'), travel: cyan('→'),
   gather: yellow('⚒'), skin: yellow('⚒'), buy: yellow('$'), equip: green('▲'), skip: yellow('✗'), dead: red('☠'), stop: yellow('■'),
 };
 

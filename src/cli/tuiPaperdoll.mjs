@@ -1,4 +1,4 @@
-// The Gear tab as a character sheet: you in your gear in the middle, the worn pieces' icons down both sides
+// The Character tab as a sheet: you in your gear in the middle, the worn pieces' icons down both sides
 // the way the client's paperdoll lays them out (head to wrists on the left, hands to trinkets on the right,
 // the weapons and the bag bar underneath), each framed in its quality colour. Arrows move between the
 // slots (Up and Down in order, Shift+arrows across the picture), the detail pane is the piece's tooltip, and Enter, x and r act on the slot as they do in the list.
@@ -35,7 +35,7 @@ function sheetSize(w, h, extras) {
   return null;
 }
 
-/** Will the Gear tab draw as the sheet right now? `extras` is how many rows follow the slots. */
+/** Will the Character tab draw as the sheet right now? `extras` is how many rows follow the slots. */
 export function paperdollPlan(app, extras) {
   if (!iconsOn()) return null;
   const L = app.layout();
@@ -44,9 +44,10 @@ export function paperdollPlan(app, extras) {
 
 /**
  * The sheet's lines for the gear view's `rows` in a `W` x `H` pane, with `body(cols, lines)` drawing the
- * character (playerArt), plus where the arrows go; null when it does not fit.
+ * character (playerArt) and `title` heading it, plus where the arrows go; null when it does not fit. `hint`
+ * replaces the keys line (a companion's sheet has no repair or outfits).
  */
-export function paperdollGrid(app, rows, W, H, body) {
+export function paperdollGrid(app, rows, W, H, body, title, hint) {
   const extraRows = rows.map((r, i) => ({ r, i })).filter(({ r }) => !r.cell && !r.header);
   const plan = iconsOn() ? sheetSize(W, H, extraRows.length) : null;
   if (!plan) return null;
@@ -58,7 +59,7 @@ export function paperdollGrid(app, rows, W, H, body) {
   const top = 2, colH = SIDE * ch;
 
   const ups = rows.filter((r) => r.cell?.up).length;
-  cv.text(1, 0, `${bold('Equipment')}   ${ups ? green(`▲ ${plural(ups, 'upgrade')} in your bags   u: put on all`) : dim(`Shift+arrows: move on the sheet   Enter: change${plan.extras ? '' : '   R: repair all   o: outfits'}`)}`);
+  cv.text(1, 0, `${title ?? bold('Equipment')}   ${ups ? green(`▲ ${plural(ups, 'upgrade')} in your bags   u: put on all`) : dim(hint ?? `s: stats   Shift+arrows: move   Enter: change${plan.extras ? '' : '   R: repair all   o: outfits'}`)}`);
 
   // Labels take a share of the width beside each column; the body gets the middle.
   const lw = Math.max(0, Math.min(22, Math.floor((W - 2 * cw) * 0.28)));

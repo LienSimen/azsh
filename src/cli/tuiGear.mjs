@@ -1,7 +1,6 @@
-// The Gear tab's lower rows: what repairs cost and where, the ammo you shoot, and the food, water and elixirs the
+// The Character tab's lower rows: what repairs cost and where, the ammo you shoot, and the food, water and elixirs the
 // game uses for you out of combat. Per-slot durability and r (repair this one) ride on the slot rows themselves.
-import { bold, dim, yellow, green, red, qualityPaint, itemText, secondsText } from './text.mjs';
-import { moneyText } from '../domain/economy/money.ts';
+import { bold, dim, yellow, green, red, qualityPaint, itemText, secondsText, coinText } from './text.mjs';
 import { equippedEntry, equippedInstance } from '../domain/items/itemInstance.ts';
 import { gearEnchantDisplayName } from '../domain/professions/gearEnchant.ts';
 import { hasDurability, maxDurability, currentDurability, repairCostSlot } from '../domain/items/durability.ts';
@@ -49,23 +48,23 @@ export function repairOne(app, slot) {
   const cost = repairCostSlot(app.ch, slot, (e) => app.ds.item(e));
   if (!cost) { app.flashMsg('That piece needs no repair.'); return; }
   const r = app.g.repairSlot(slot, q.vendorEntry ?? undefined);
-  app.result(r, r.ok ? `${q.vendorName} repairs it for ${moneyText(r.spent)}.` : '');
+  app.result(r, r.ok ? `${q.vendorName} repairs it for ${coinText(r.spent)}.` : '');
 }
 
-/** Enter on Repair all, or R on the Gear tab: mend everything you wear at the repairer the quote prices against. */
+/** Enter on Repair all, or R on the Character tab: mend everything you wear at the repairer the quote prices against. */
 export function repairAll(app) {
   const q = app.g.repairQuote();
   if (!q.cost) { app.flashMsg('Nothing needs repair.'); return; }
   if (!q.vendorName) { app.flashMsg('Nobody here repairs.'); return; }
   const r = app.g.repairAll(q.vendorEntry ?? undefined);
-  app.result(r, r.ok ? `Repaired for ${moneyText(r.spent)}.` : '');
+  app.result(r, r.ok ? `Repaired for ${coinText(r.spent)}.` : '');
 }
 
 export function slotRepairLines(app, slot) {
   const cost = repairCostSlot(app.ch, slot, (e) => app.ds.item(e));
   if (!cost) return [];
   const q = app.g.repairQuote();
-  return [q.vendorName ? dim(`r: repair this piece for ${moneyText(cost)} at ${q.vendorName}`) : dim(`Repairing this piece costs about ${moneyText(cost)}.`)];
+  return [q.vendorName ? dim(`r: repair this piece for ${coinText(cost)} at ${q.vendorName}`) : dim(`Repairing this piece costs about ${coinText(cost)}.`)];
 }
 
 const rangedWeapon = (app) => { const e = equippedEntry(app.ch.equipped.ranged); return e != null ? app.ds.item(e) : undefined; };
@@ -127,13 +126,13 @@ export function autoConsumablesDialog(app) {
   };
 }
 
-/** The rows under the paperdoll on the Gear tab. */
+/** The rows under the paperdoll on the Character tab. */
 export function gearExtraRows(app) {
   const rows = [H(''), H('Upkeep')];
   const q = app.g.repairQuote();
   rows.push({
-    text: `Repair all  ${q.cost ? yellow(moneyText(q.cost)) : dim('nothing to mend')}${q.cost ? dim(q.vendorName ? `  at ${q.vendorName}` : '  nobody here repairs') : ''}`,
-    detail: () => [bold('Repair'), '', q.cost ? `Mending everything you wear costs ${moneyText(q.cost)}.` : 'Everything you wear is in good shape.', q.vendorName ? dim(`Priced at ${q.vendorName}.`) : dim('A smith or general goods vendor repairs.'), '', dim('Enter: repair all   r on a slot: repair one piece')],
+    text: `Repair all  ${q.cost ? coinText(q.cost) : dim('nothing to mend')}${q.cost ? dim(q.vendorName ? `  at ${q.vendorName}` : '  nobody here repairs') : ''}`,
+    detail: () => [bold('Repair'), '', q.cost ? `Mending everything you wear costs ${coinText(q.cost)}.` : 'Everything you wear is in good shape.', q.vendorName ? dim(`Priced at ${q.vendorName}.`) : dim('A smith or general goods vendor repairs.'), '', dim('Enter: repair all   r on a slot: repair one piece')],
     act: (a) => repairAll(a),
   });
   const weapon = rangedWeapon(app);

@@ -3,10 +3,10 @@
 // Send goods. Ported from phonecraft's professionsPanel.ts and the vendorPanel.ts send-goods overlay.
 // A craft buys short vendor reagents (vials, thread, flux) from your purse on the way: the buy-in phonecraft
 // shows as a coin chip on Create. Views only read; every change is a Game facade call.
-import { bold, dim, cyan, yellow, green, red, gray, orange, qualityPaint, fit, plural, secondsText, wrapLines, itemText } from './text.mjs';
+import { bold, dim, cyan, yellow, green, red, gray, orange, qualityPaint, fit, plural, secondsText, wrapLines, itemText, coinText } from './text.mjs';
 import { itemLines } from './tuiViews.mjs';
 import { missionDialog, companionDialog } from './tuiCompanions.mjs';
-import { moneyText, coinsText } from '../domain/economy/money.ts';
+import { coinsText } from '../domain/economy/money.ts';
 import { className } from '../domain/core/ids.ts';
 import { countItem, emptyInventory } from '../domain/items/inventory.ts';
 import { equippedEntry } from '../domain/items/itemInstance.ts';
@@ -102,7 +102,7 @@ function craftCheck(app, cr, r, env) {
   if (chk.reason !== 'Missing reagents') return { ok: false, reason: chk.reason, cost: 0, buys: [], max: 0 };
   const b = vendorBuyInReady(app.ds, app.ch, r.reagents, cr.inv);
   if (!b.ok) {
-    const reason = b.blocked.length ? `Missing ${b.blocked.map((i) => app.itemLabel(i)).join(', ')}` : `Need ${moneyText(b.cost)} for ${buyList(app, b.buys)}`;
+    const reason = b.blocked.length ? `Missing ${b.blocked.map((i) => app.itemLabel(i)).join(', ')}` : `Need ${coinText(b.cost)} for ${buyList(app, b.buys)}`;
     return { ok: false, short: true, reason, cost: b.cost, buys: b.buys, max: 0 };
   }
   const again = canCraft(cr.char, applyVendorBuys(app.ds, cr.inv, b.buys), r, env.focus, null, env.tools);
@@ -112,7 +112,7 @@ function craftEnv(app) { return { focus: zoneFocus(app), tools: sharedTools(app)
 
 /** One status chip for a recipe row: how many you can make, what the buy-in costs, or why not. */
 function craftChip(chk) {
-  if (chk.ok) return green(`${chk.max} ready`) + (chk.cost ? yellow(`  buys ${moneyText(chk.cost)}`) : '');
+  if (chk.ok) return green(`${chk.max} ready`) + (chk.cost ? yellow(`  buys ${coinText(chk.cost)}`) : '');
   return (chk.short ? dim : red)(chk.reason ?? 'cannot make');
 }
 
@@ -143,7 +143,7 @@ function craftMany(app, cr, r, want, all = false) {
   if (!made) { app.say(red(reason ?? 'Cannot make that.')); return; }
   const prod = app.ds.item(r.product.item);
   app.say(green(`${cr.id ? `${cr.name} creates` : 'You create'} ${itemText(prod, r.name)}${units > 1 ? ` x${units}` : ''}.`)
-    + (spent ? yellow(`  Vendor reagents ${moneyText(spent)}.`) : '')
+    + (spent ? yellow(`  Vendor reagents ${coinText(spent)}.`) : '')
     + (made < n && reason ? dim(`  Stopped after ${made}: ${reason}`) : ''));
   if (skill != null) app.say(cyan(`${whose(cr)} ${app.ds.profession(r.skill)?.name ?? r.skill} skill is now ${skill}.`));
   for (const l of other.reverse()) app.say(dim('· ' + coinsText(l)));
@@ -193,7 +193,7 @@ function reagentLines(app, reagents, tools, inv) {
     const vendor = !ok && it && unlimitedVendorFor(app.ds, rg.item, app.ch.race) != null;
     const lot = Math.max(1, it?.buyCount ?? 1);
     const cost = vendor ? Math.ceil((rg.count - have) / lot) * it.buyPrice : 0;
-    out.push(`  ${(ok ? green : vendor ? yellow : red)(`${have}/${rg.count}`)} ${app.itemLabel(rg.item)}${vendor ? dim(`  vendor ${moneyText(cost)}`) : ''}`);
+    out.push(`  ${(ok ? green : vendor ? yellow : red)(`${have}/${rg.count}`)} ${app.itemLabel(rg.item)}${vendor ? dim(`  vendor ${coinText(cost)}`) : ''}`);
   }
   for (const t of tools ?? []) {
     const ok = countItem(inv, t) > 0 || sharedTools(app).has(t);
@@ -214,7 +214,7 @@ function recipeDetail(app, cr, r, chk, who) {
   out.push(...wearerLines(app, r.product.item, who));
   out.push('');
   if (chk.ok) {
-    if (chk.cost) out.push(yellow(`Buys ${buyList(app, chk.buys)} for ${moneyText(chk.cost)} from your purse.`));
+    if (chk.cost) out.push(yellow(`Buys ${buyList(app, chk.buys)} for ${coinText(chk.cost)} from your purse.`));
     out.push(green(`Enter: make one   A: make ${chk.max}   N: a number`));
   } else out.push(red(chk.reason ?? 'Cannot make this.'));
   if (cr.id) out.push('', dim(`${cr.name} crafts from the whole party's bags and banks. What they make lands in their bags.`));
@@ -246,7 +246,7 @@ export function recipeBook(app, crafterId, skill) {
       const cr = current();
       const sk = cr.char.skills[skill];
       const env = craftEnv(a);
-      const rows = [H(`${bold(cr.name)}  ${prof?.name ?? skill} ${sk ? `${sk.current}/${sk.max}` : dim('untrained')}${sk && prof ? dim(`  ${currentRank(cr.char, prof)?.name ?? ''}`) : ''}   ${yellow(moneyText(a.ch.gold) || '0c')}`)];
+      const rows = [H(`${bold(cr.name)}  ${prof?.name ?? skill} ${sk ? `${sk.current}/${sk.max}` : dim('untrained')}${sk && prof ? dim(`  ${currentRank(cr.char, prof)?.name ?? ''}`) : ''}   ${coinText(a.ch.gold)}`)];
       const filters = [haveOnly && 'only what you can make', search && `matching "${search}"`].filter(Boolean);
       rows.push(H(dim(filters.length ? `Showing ${filters.join(', ')}.` : 'c: switch crafter   h: only what you can make   /: search')));
       if (GATHER_LINES.has(skill)) rows.push(...gatherRows(a, skill, cr));
@@ -359,7 +359,7 @@ function enchantCheck(app, cr, e, env) {
   if (e.reagents.every((rg) => countItem(cr.inv, rg.item) >= rg.count)) return { ok: true, cost: 0, buys: [] };
   const b = vendorBuyInReady(app.ds, app.ch, e.reagents, cr.inv);
   if (b.ok) return { ok: true, cost: b.cost, buys: b.buys };
-  return { ok: false, short: true, reason: b.blocked.length ? `Missing ${b.blocked.map((i) => app.itemLabel(i)).join(', ')}` : `Need ${moneyText(b.cost)}`, cost: b.cost, buys: b.buys };
+  return { ok: false, short: true, reason: b.blocked.length ? `Missing ${b.blocked.map((i) => app.itemLabel(i)).join(', ')}` : `Need ${coinText(b.cost)}`, cost: b.cost, buys: b.buys };
 }
 
 /** Whose worn piece can take this enchant: you and the party, one option per matching slot. */
@@ -406,7 +406,7 @@ function enchantBench(app, crafterId) {
       const cr = current(), ds = a.ds;
       const sk = cr.char.skills.enchanting;
       const env = craftEnv(a);
-      const rows = [H(`${bold(cr.name)}  Enchanting ${sk ? `${sk.current}/${sk.max}` : dim('untrained')}   ${dim(`rod: ${bestRodTier(cr.inv, ds, env.tools) ? rodNameForTier(bestRodTier(cr.inv, ds, env.tools), ds) : 'none'}`)}   ${yellow(moneyText(a.ch.gold) || '0c')}`), H(dim('c: switch enchanter'))];
+      const rows = [H(`${bold(cr.name)}  Enchanting ${sk ? `${sk.current}/${sk.max}` : dim('untrained')}   ${dim(`rod: ${bestRodTier(cr.inv, ds, env.tools) ? rodNameForTier(bestRodTier(cr.inv, ds, env.tools), ds) : 'none'}`)}   ${coinText(a.ch.gold)}`), H(dim('c: switch enchanter'))];
       const known = new Set(cr.char.knownEnchants ?? []);
       const formulas = ds.enchants().filter((e) => known.has(e.id)).sort((x, y) => y.orange - x.orange || x.name.localeCompare(y.name));
       const W = Math.max(20, Math.min(34, a.layout().listW - 31));
@@ -415,7 +415,7 @@ function enchantBench(app, crafterId) {
       for (const e of formulas) {
         const chk = enchantCheck(a, cr, e, env);
         rows.push({
-          text: `${fit(DIFF_PAINT[diffOf(cr, 'enchanting', e)](e.name.replace(/^Enchant\s+/, '')), W)} ${chk.ok ? green('ready') + (chk.cost ? yellow(`  buys ${moneyText(chk.cost)}`) : '') : (chk.short ? dim : red)(chk.reason)}`,
+          text: `${fit(DIFF_PAINT[diffOf(cr, 'enchanting', e)](e.name.replace(/^Enchant\s+/, '')), W)} ${chk.ok ? green('ready') + (chk.cost ? yellow(`  buys ${coinText(chk.cost)}`) : '') : (chk.short ? dim : red)(chk.reason)}`,
           detail: () => [bold(e.name), dim(`goes on: ${e.slots.join(', ')}   ${rodNameForTier(e.minRodTier, ds)}`), '', ...reagentLines(a, e.reagents, [], cr.inv), '',
             `${DIFF_PAINT[diffOf(cr, 'enchanting', e)](diffOf(cr, 'enchanting', e))}   ${upPct(cr, 'enchanting', e) ? `${upPct(cr, 'enchanting', e)}% skill-up` : dim('no skill-up')}`, '',
             chk.ok ? green('Enter: pick whose gear to enchant') : red(chk.reason)],
@@ -489,7 +489,7 @@ function partyBook(app) {
         groups.set(r.skill, g);
       }
       const ready = [...byRecipe.values()].filter((o) => o.some((x) => x.chk.ok)).length;
-      const rows = [H(`${plural(byRecipe.size, 'recipe')} known across ${plural(all.length, 'crafter')}, ${ready} ready   ${yellow(moneyText(a.ch.gold) || '0c')}`), H(dim(haveOnly ? 'Showing what someone can make now. h shows everything.' : 'Showing every known recipe. h shows only what someone can make.'))];
+      const rows = [H(`${plural(byRecipe.size, 'recipe')} known across ${plural(all.length, 'crafter')}, ${ready} ready   ${coinText(a.ch.gold)}`), H(dim(haveOnly ? 'Showing what someone can make now. h shows everything.' : 'Showing every known recipe. h shows only what someone can make.'))];
       if (!groups.size) rows.push(H(''), H(dim(byRecipe.size ? '  Nobody can make anything right now. h shows every recipe.' : '  Nobody in the party knows a recipe yet.')));
       const W = Math.max(20, Math.min(34, a.layout().listW - 34));
       for (const [skill, list] of [...groups].sort((x, y) => x[0].localeCompare(y[0]))) {
@@ -527,9 +527,9 @@ function specRows(app, trainer) {
     const name = sp?.name ?? it.kind.replace(/^(un)?learn_/, '');
     const cost = it.costCopper ?? 0;
     rows.push({
-      text: `${unlearn ? red(`Unlearn ${name}`) : green(`Become a specialist: ${name}`)}${cost ? `  ${yellow(moneyText(cost))}` : ''}`,
-      detail: () => [bold(name), '', unlearn ? 'Forget this specialisation and the recipes that go with it.' : 'A specialisation opens its own recipes. You can hold one at a time.', ...(cost ? ['', `Cost ${moneyText(cost)}`] : [])],
-      act: (a) => (unlearn ? a.confirm(`Unlearn ${name}${cost ? ` for ${moneyText(cost)}` : ''}? Its recipes are forgotten.`, () => applySpec(a, trainer, it, name, true)) : applySpec(a, trainer, it, name, false)),
+      text: `${unlearn ? red(`Unlearn ${name}`) : green(`Become a specialist: ${name}`)}${cost ? `  ${coinText(cost)}` : ''}`,
+      detail: () => [bold(name), '', unlearn ? 'Forget this specialisation and the recipes that go with it.' : 'A specialisation opens its own recipes. You can hold one at a time.', ...(cost ? ['', `Cost ${coinText(cost)}`] : [])],
+      act: (a) => (unlearn ? a.confirm(`Unlearn ${name}${cost ? ` for ${coinText(cost)}` : ''}? Its recipes are forgotten.`, () => applySpec(a, trainer, it, name, true)) : applySpec(a, trainer, it, name, false)),
     });
   }
   rows.push(H(''));
@@ -569,21 +569,21 @@ export function profTrainerDialog(app, trainer) {
           const before = a.ch.gold;
           if (learn(a, t).ok) { n++; spent += before - a.ch.gold; }
         }
-        a.say(n ? green(`You learn ${plural(n, 'recipe')}${spent ? ` for ${moneyText(spent)}` : ''}.`) : dim('Nothing you can learn yet.'));
+        a.say(n ? green(`You learn ${plural(n, 'recipe')}${spent ? ` for ${coinText(spent)}` : ''}.`) : dim('Nothing you can learn yet.'));
       } },
     },
     rows(a) {
       const ch = a.ch, sk = ch.skills[trainer.skill];
       const mod = vendorPriceMultiplierFor(ds, ch, trainer.entry);
-      const rows = [H(`${bold(trainer.name)} ${dim(`<${prof?.name ?? trainer.skill} Trainer>`)}   ${yellow(moneyText(ch.gold) || '0c')}`), H(dim(sk ? `Your ${prof?.name} skill: ${sk.current}/${sk.max}` : `You do not know ${prof?.name ?? trainer.skill} yet.`)), H('')];
+      const rows = [H(`${bold(trainer.name)} ${dim(`<${prof?.name ?? trainer.skill} Trainer>`)}   ${coinText(ch.gold)}`), H(dim(sk ? `Your ${prof?.name} skill: ${sk.current}/${sk.max}` : `You do not know ${prof?.name ?? trainer.skill} yet.`)), H('')];
       const nr = prof ? nextTrainerRank(ch, prof) : undefined;
       if (nr) {
         const cost = trainerSpellCost(nr.cost, mod);
         const need = nextRankReqSkill(nr, sk);
         const why = ch.level < nr.reqLevel ? `requires level ${nr.reqLevel}` : (sk?.current ?? 0) < need ? `requires ${prof.name} ${need}` : ch.gold < cost ? 'not enough money' : '';
         rows.push(H('Rank'), {
-          text: `${why ? dim(`${sk ? 'Train' : 'Learn'} ${nr.name} ${prof.name}`) : green(`${sk ? 'Train' : 'Learn'} ${nr.name} ${prof.name}`)}  ${yellow(moneyText(cost) || 'free')}${why ? red(`  ${why}`) : ''}`,
-          detail: () => [bold(`${nr.name} ${prof.name}`), `Raises your ${prof.name} cap to ${nr.cap}.`, '', `Requires level ${nr.reqLevel}${need ? `, ${prof.name} ${need}` : ''}`, `Cost ${moneyText(cost) || 'free'}`, '', prof.kind !== 'secondary' && !sk ? dim('You can hold two primary professions. Cooking, First Aid and Fishing do not count.') : ''],
+          text: `${why ? dim(`${sk ? 'Train' : 'Learn'} ${nr.name} ${prof.name}`) : green(`${sk ? 'Train' : 'Learn'} ${nr.name} ${prof.name}`)}  ${coinText(cost, 'free')}${why ? red(`  ${why}`) : ''}`,
+          detail: () => [bold(`${nr.name} ${prof.name}`), `Raises your ${prof.name} cap to ${nr.cap}.`, '', `Requires level ${nr.reqLevel}${need ? `, ${prof.name} ${need}` : ''}`, `Cost ${coinText(cost, 'free')}`, '', prof.kind !== 'secondary' && !sk ? dim('You can hold two primary professions. Cooking, First Aid and Fishing do not count.') : ''],
           act: () => a.result(a.g.learnProfession(trainer.entry), `You are now a${/^[AEIOU]/.test(nr.name) ? 'n' : ''} ${nr.name} ${prof.name}.`),
         }, H(''));
       } else if (sk) rows.push(H(dim(prof?.kind === 'secondary' && sk.max < 300 ? 'Expert and Artisan come from books, not trainers.' : 'You hold the highest rank they teach.')), H(''));
@@ -598,14 +598,14 @@ export function profTrainerDialog(app, trainer) {
         const cost = trainerSpellCost(t.def.cost ?? 0, mod);
         const prod = t.kind === 'recipe' ? ds.item(t.def.product.item) : null;
         rows.push({
-          text: `${fit(ch.gold >= cost ? t.def.name : dim(t.def.name), W)} ${yellow(moneyText(cost) || 'free')}`,
-          detail: () => [...(prod ? itemLines(a, prod).filter((l) => !/Sells for/.test(l)) : [bold(t.def.name), dim(`goes on: ${t.def.slots.join(', ')}`)]), '', ...reagentLines(a, t.def.reagents, t.def.requiredTools, a.g.state.inventory), '', dim(`Requires ${prof?.name} ${t.def.orange}   cost ${moneyText(cost) || 'free'}`)],
+          text: `${fit(ch.gold >= cost ? t.def.name : dim(t.def.name), W)} ${coinText(cost, 'free')}`,
+          detail: () => [...(prod ? itemLines(a, prod).filter((l) => !/Sells for/.test(l)) : [bold(t.def.name), dim(`goes on: ${t.def.slots.join(', ')}`)]), '', ...reagentLines(a, t.def.reagents, t.def.requiredTools, a.g.state.inventory), '', dim(`Requires ${prof?.name} ${t.def.orange}   cost ${coinText(cost, 'free')}`)],
           act: () => a.result(learn(a, t), `You learn ${t.def.name}.`),
         });
       }
       if (later.length) {
         rows.push(H(''), H('Coming up'));
-        for (const t of later) rows.push(H(dim(`  ${fit(t.def.name, W)} ${prof?.name} ${t.def.orange}${t.reqLevel > ch.level ? `, level ${t.reqLevel}` : ''}  ${moneyText(trainerSpellCost(t.def.cost ?? 0, mod))}`)));
+        for (const t of later) rows.push(H(dim(`  ${fit(t.def.name, W)} ${prof?.name} ${t.def.orange}${t.reqLevel > ch.level ? `, level ${t.reqLevel}` : ''}  ${coinText(trainerSpellCost(t.def.cost ?? 0, mod))}`)));
       }
       return rows;
     },
@@ -761,7 +761,7 @@ export function professionsView(app) {
       };
       const you = crafterOf(a, null);
       const mine = profRows(you);
-      const rows = [H(`Your professions   ${yellow(moneyText(a.ch.gold) || '0c')}`)];
+      const rows = [H(`Your professions   ${coinText(a.ch.gold)}`)];
       if (mine.length) rows.push(...mine);
       else rows.push(H(dim('  You have no professions yet. Profession trainers stand in towns and capitals (World tab).')));
       const comps = companionsOf(g);

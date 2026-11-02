@@ -5,7 +5,7 @@
 // zones it grows in; a zone, a quest, an object. Enter acts on the place: open it when you are already there
 // (the vendor, the fight, the portal, the node), travel there when you are not. The matching is the wiki's
 // (substring, then character subsequence), over the wiki's name index plus a gather-node index of our own.
-import { bold, dim, yellow, green, red, cyan, qualityPaint, secondsText, plural } from './text.mjs';
+import { bold, dim, yellow, green, red, cyan, qualityPaint, secondsText, plural, coinText } from './text.mjs';
 import { wikiIndex, wikiTokens, rowMatches } from './wikiIndex.ts';
 import { wikiSourceIndexSync } from './wikiSources.ts';
 import { wikiPage } from './tuiWiki.mjs';
@@ -13,7 +13,6 @@ import { itemLines, creatureLines, questLines, travelPreviewLines, travelTo, ven
 import { profTrainerDialog } from './tuiProfessions.mjs';
 import { entryDialog } from './tuiDungeon.mjs';
 import { startFight } from './tuiFight.mjs';
-import { moneyText } from '../domain/economy/money.ts';
 import { vendorPriceMultiplierFor } from '../engine/game/vendorOffers.ts';
 import { className } from '../domain/core/ids.ts';
 
@@ -162,7 +161,7 @@ function goTo(app, zoneId, here) {
   if (!dest) { app.flashMsg('No road leads there.'); return; }
   const pv = app.g.previewTravel(dest.id);
   if (!app.result(pv)) return;
-  app.confirm(`Travel to ${dest.name}? ${secondsText(pv.totalSeconds * 1000)}${pv.totalCopper ? `, ${moneyText(pv.totalCopper)} in fares` : ''}`, () => travelTo(app, dest));
+  app.confirm(`Travel to ${dest.name}? ${secondsText(pv.totalSeconds * 1000)}${pv.totalCopper ? `, ${coinText(pv.totalCopper)} in fares` : ''}`, () => travelTo(app, dest));
 }
 
 /** Enter on a place with several zones: travel to the one you pick, the current zone first. */
@@ -183,7 +182,7 @@ function travelHint(app, zones) {
   const dest = app.ds.zone(zones[0]);
   const pv = dest ? app.g.previewTravel(dest.id) : null;
   if (pv && !pv.ok) return red(pv.reason);
-  return dim(`Enter: travel to ${zoneName(app, zones[0])}${pv ? ` (${secondsText(pv.totalSeconds * 1000)}${pv.totalCopper ? `, ${moneyText(pv.totalCopper)}` : ''})` : ''}${zones.length > 1 ? ', or pick another zone' : ''}`);
+  return dim(`Enter: travel to ${zoneName(app, zones[0])}${pv ? ` (${secondsText(pv.totalSeconds * 1000)}${pv.totalCopper ? `, ${coinText(pv.totalCopper)}` : ''})` : ''}${zones.length > 1 ? ', or pick another zone' : ''}`);
 }
 
 // ---- rows per kind ------------------------------------------------------------------------------------------
@@ -328,7 +327,7 @@ function itemRows(app, entry, only) {
     if (s.kind === 'vendor') {
       const v = ds.vendor(s.ref);
       if (!v) continue;
-      const price = it.buyPrice ? dim(`  ${moneyText(Math.floor(it.buyPrice * vendorPriceMultiplierFor(ds, app.ch, v.entry)))}`) : '';
+      const price = it.buyPrice ? dim(`  ${coinText(Math.floor(it.buyPrice * vendorPriceMultiplierFor(ds, app.ch, v.entry)))}`) : '';
       rows.push(npcRow(app, s.ref, { indent: `${indent}${dim('sold by')} `, note: price }));
     } else if (s.kind === 'drop' || s.kind === 'skin' || s.kind === 'pickpocket') {
       if (!ds.creature(s.ref)) continue;

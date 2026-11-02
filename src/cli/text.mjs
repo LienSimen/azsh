@@ -1,6 +1,7 @@
 // Text helpers shared by the line REPL and the windowed TUI: quest text codes, wrapping, fuzzy
 // picking, ANSI colour and visible-width maths. Nothing here touches game state.
 import { className, raceName } from '../domain/core/ids.ts';
+import { coinParts, moneyText } from '../domain/economy/money.ts';
 
 export const useColor = !process.env.NO_COLOR;
 // A reset inside the painted text (a coloured item name in a green sentence) re-opens this paint,
@@ -24,6 +25,21 @@ export function qualityCodes(quality) { const [r, g, b] = QUALITY_RGB[quality ??
 export function qualityPaint(quality) { return QUALITY_PAINT[quality ?? 1] ?? white; }
 /** An item record's name in its quality colour; `fallback` when the record is missing. */
 export function itemText(it, fallback = 'item') { return qualityPaint(it?.quality)(it?.name ?? fallback); }
+
+// The client's coin colours. A count is followed by its coin, as the money frame draws it: 1● 20● 5●.
+const COIN_RGB = { g: [255, 210, 0], s: [205, 205, 215], c: [205, 120, 55] };
+const COIN = Object.fromEntries(Object.entries(COIN_RGB).map(([k, [r, g, b]]) => [k, `\x1b[38;2;${r};${g};${b}m●\x1b[0m`]));
+/** One coin, 'g', 's' or 'c', for a count written by hand; the letter without colour. */
+export const coin = (k) => (useColor ? COIN[k] : k);
+/** Copper as counts and coins (gold, silver, copper in their colours), an empty copper left off after a
+ *  bigger coin as the client does; `zero` stands in for nothing when given ('free'). Without colour the
+ *  letters: 1g 20s 5c. The counts take whatever paint is round them. */
+export function coinText(copper, zero) {
+  if (zero != null && !(copper > 0)) return zero;
+  if (!useColor) return moneyText(copper);
+  const parts = coinParts(copper);
+  return parts.filter((p, i) => p.n || i === 0).map((p) => `${p.n}${COIN[p.k]}`).join(' ');
+}
 
 const GENDER_TOKEN = /\$[Gg]\s*([^:]*):([^;]*);/g;
 /** $N name, $C class, $R race, $B break, $G male:female; (SharedDefines.h:26). Same codes as phonecraft questText. */

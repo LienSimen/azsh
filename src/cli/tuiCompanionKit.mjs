@@ -1,11 +1,10 @@
 // The rest of a companion's page and the party-wide companion dialogs: spec, talent link, AoE, off-heal and xp
 // lock; their pet; their quests; their bags and bank; the tavern duel; consumable sharing, the party vault
 // and the hire search. Ports of phonecraft companionsPanel.ts, companionKitPanel.ts and consumableSharePanel.ts.
-import { bold, dim, cyan, yellow, green, red, qualityPaint, fit, plural, itemText } from './text.mjs';
+import { bold, dim, cyan, yellow, green, red, qualityPaint, fit, plural, itemText, coinText } from './text.mjs';
 import { itemLines, noteSale } from './tuiViews.mjs';
 import { companionUseWithPicker } from './tuiEnchantTarget.mjs';
 import { startFight } from './tuiFight.mjs';
-import { moneyText } from '../domain/economy/money.ts';
 import { className } from '../domain/core/ids.ts';
 import { companionLevel, companionCharacter } from '../domain/bots/squad.ts';
 import { listTameablePets, unlockedWarlockDemons, WARLOCK_DEMONS, WARLOCK_DEMON_UNLOCK } from '../domain/bots/botPet.ts';
@@ -123,7 +122,7 @@ export function questRows(app, comp) {
       act: () => {
         if (o.kind === 'accept') { app.result(g.acceptCompanionQuest(id, o.quest), `${comp.name} takes ${o.title}.`); return; }
         const q = ds.quest(o.quest);
-        const finish = (choice) => { const r = g.turnInCompanionQuest(id, o.quest, choice); app.result(r, r.ok ? `${comp.name} hands in ${o.title}${r.xp ? `: +${r.xp} xp` : ''}${r.money ? `, ${moneyText(r.money)} to you` : ''}.` : ''); };
+        const finish = (choice) => { const r = g.turnInCompanionQuest(id, o.quest, choice); app.result(r, r.ok ? `${comp.name} hands in ${o.title}${r.xp ? `: +${r.xp} xp` : ''}${r.money ? `, ${coinText(r.money)} to you` : ''}.` : ''); };
         if (q?.rewChoiceItems?.length > 1) app.pick(`${comp.name}: choose a reward`, q.rewChoiceItems.map((it, i) => ({ label: app.itemLabel(it.item), detail: () => itemLines(app, ds.item(it.item)), value: i })), finish);
         else finish(0);
       },
@@ -165,12 +164,13 @@ export function bagRows(app, comp, cap) {
     const name = `${itemText(it, 'it')}${s.count > 1 ? ` x${s.count}` : ''}`;
     rows.push({
       text: `${qualityPaint(it?.quality)(it?.name ?? s.item)}${s.count > 1 ? ` x${s.count}` : ''}`,
+      icon: it?.icon, sub: dim(`${it?.typeName ?? ''}${it?.sellPrice ? `  sells ${coinText(it.sellPrice * s.count)}` : ''}`),
       detail: () => itemLines(app, it, ['', dim('Enter: take it   u: use on them   s: sell   e: disenchant   m: to another companion   b: their bank   d: destroy')]),
       act: () => { const r = g.takeItemFromBotStack(id, slot); app.result(r, `You take ${it?.name ?? 'it'}${r.moved > 1 ? ` x${r.moved}` : ''} from ${comp.name}.`); },
       keys: {
         u: (a) => companionUseWithPicker(a, comp, s.item),
         d: (a) => a.confirm(`Destroy ${name} from ${comp.name}'s bags?`, () => a.result(g.discardCompanionBagStack(id, slot), `Destroyed ${name}.`)),
-        s: (a) => { if (!a.vendor) { a.flashMsg('Open a vendor first.'); return; } const r = g.sellCompanionItemStack(id, slot); if (a.result(r, r.ok ? `Sold ${name} for ${moneyText(r.earned)}.` : '')) noteSale(a, s.item, r.qty, r.earned, comp); },
+        s: (a) => { if (!a.vendor) { a.flashMsg('Open a vendor first.'); return; } const r = g.sellCompanionItemStack(id, slot); if (a.result(r, r.ok ? `Sold ${name} for ${coinText(r.earned)}.` : '')) noteSale(a, s.item, r.qty, r.earned, comp); },
         e: (a) => { const r = g.disenchantCompanionBagStack(id, slot); a.result(r, r.ok ? `It breaks into ${r.yielded.map((y) => `${a.itemLabel(y.item)}${y.count > 1 ? ` x${y.count}` : ''}`).join(', ')}.` : ''); },
         b: (a) => a.result(g.companionBankDepositStack(id, slot), `${name} goes into ${comp.name}'s bank.`),
         m: (a) => {
@@ -191,10 +191,10 @@ export function bankRows(app, comp) {
   const rows = [H(''), H(`Their bank ${dim(`${bank.length} stacks   Enter: back to their bags`)}`)];
   bank.forEach((s, slot) => {
     const it = ds.item(s.item);
-    rows.push({ text: `${qualityPaint(it?.quality)(it?.name ?? s.item)}${s.count > 1 ? ` x${s.count}` : ''}`, detail: () => itemLines(app, it), act: () => app.result(g.companionBankWithdrawStack(id, slot), `${it?.name} comes back out.`) });
+    rows.push({ text: `${qualityPaint(it?.quality)(it?.name ?? s.item)}${s.count > 1 ? ` x${s.count}` : ''}`, icon: it?.icon, sub: dim(it?.typeName ?? ''), detail: () => itemLines(app, it), act: () => app.result(g.companionBankWithdrawStack(id, slot), `${it?.name} comes back out.`) });
   });
   const bagSlots = comp.bankBags ?? [];
-  rows.push({ text: dim('Buy them another bank bag slot'), detail: () => [bold('Bank bag slot'), '', 'Paid from your purse; the price climbs with each slot like your own.'], act: () => { const r = g.buyCompanionBankSlot(id); app.result(r, r.ok ? `A new bank bag slot for ${comp.name}: ${moneyText(r.cost)}.` : ''); } });
+  rows.push({ text: dim('Buy them another bank bag slot'), detail: () => [bold('Bank bag slot'), '', 'Paid from your purse; the price climbs with each slot like your own.'], act: () => { const r = g.buyCompanionBankSlot(id); app.result(r, r.ok ? `A new bank bag slot for ${comp.name}: ${coinText(r.cost)}.` : ''); } });
   const bagsInBags = g.state.inventory.stacks.map((s) => ds.item(s.item)).filter((it) => it?.slot === 'bag');
   if (bagsInBags.length) {
     const free = bagSlots.map((b, i) => (b == null ? i : -1)).filter((i) => i >= 0);

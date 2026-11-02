@@ -10,7 +10,7 @@ import { dim, gray, fit } from './text.mjs';
 import { SIZES, canvas, put, putLines, putRight, floorLine, narrowPlate, narrowState, auraRows, putMissiles, putPopsAbove, POP_MS, LUNGE_MS } from './tuiStage.mjs';
 import { creatureArt, artWidth } from './modelArt.mjs';
 import { paperdollArt } from './paperdoll.mjs';
-import { playerArt } from './tuiViews.mjs';
+import { playerArt, wornNow, wornArt } from './tuiViews.mjs';
 import { iconsOn } from './iconArt.mjs';
 import { allyIndexOfSide } from '../engine/core/events.ts';
 import { combatDistanceYd, DEFAULT_OPEN_YD, MELEE_CONTACT_YD } from '../engine/combat/combatGeometry.ts';
@@ -19,6 +19,7 @@ const GAP = 1;        // columns between two columns of the same side
 const LANE = 6;       // columns kept open between a party column and a foe column, for the glyphs that cross
 const PLATE_MIN = 9;  // a plate's narrowest: a 5-cell bar and "100%"
 const PLATE_FULL = 14; // and its widest when the stage has width to spare: a 10-cell bar, a 12-letter name
+const SWAP_YD = 2;    // how much clearer of a neighbour a unit must be, in yards, before the two trade places
 const SIZE_ORDER = ['xs', 's', 'm', 'l'];
 // Who stands nearest the foes among units on the same spot (the melee pile opens on one): the healer last.
 const ROLE_RANK = { healer: 0, damage: 2, tank: 3 };
@@ -31,12 +32,13 @@ function companionOf(app, v) {
   return byIndex?.name === v.name ? byIndex : squad.find((c) => c.name === v.name) ?? byIndex;
 }
 
-/** A unit's sprite in a box: you in your gear, a creature by its display id, a companion in its gear. */
+/** A unit's sprite in a box: you or a companion in your form or gear, a creature by its display id. */
 function spriteOf(app, u, cols, rows) {
-  if (u.isPlayer) return playerArt(app, cols, rows)?.lines ?? null;
+  if (u.isPlayer) return playerArt(app, cols, rows, u.v)?.lines ?? null;
   if (u.v.creatureEntry != null) return creatureArt(app.ds.creature(u.v.creatureEntry)?.displayId, cols, rows);
   const comp = u.friend ? companionOf(app, u.v) : null;
-  return comp ? paperdollArt(comp, cols, rows) : null;
+  if (!comp) return null;
+  return wornArt(wornNow(app.ds, comp, u.v), cols, rows) ?? paperdollArt(comp, cols, rows);
 }
 
 /** The box a unit gets when the big ones get `size`: pets a size under, a boss a size over. */
@@ -106,8 +108,10 @@ export function partyStage(app, ctl, W, H, { inline }) {
   // a mob that runs onto the healer crosses to the lane while the healer stays put, and a mage walking into
   // range slides in while its mob stands. Melee units park all round a mob, so this is read off distances, not
   // bearings: a rogue behind its target still stands on the party's side.
+  // A corpse, or a body with nobody living left to measure against (the last foe falls, the win holds), stays
+  // where it last stood: without this the whole party walks back to where it opened under the loot.
   const posOf = (u) => s.unitPosYd?.(u.key);
-  mem.openPos ??= new Map(); mem.openD ??= new Map();
+  mem.openPos ??= new Map(); mem.openD ??= new Map(); mem.lastC ??= new Map();
   const nearest = (u) => {
     let best = null;
     for (const o of units) {
@@ -131,7 +135,12 @@ export function partyStage(app, ctl, W, H, { inline }) {
     const c0 = 1 - frac(mem.openD.get(u.key));
     return Math.max(0, Math.min(1, c0 + (1 - frac(n.d) - c0) * share));
   };
-  for (const col of cols) col.c = closingOf(col);
+  for (const col of cols) {
+    const held = mem.lastC.get(col.key);
+    if (held != null && (col.v.hp <= 0 || !near.get(col.key))) { col.c = held; continue; }
+    col.c = closingOf(col);
+    mem.lastC.set(col.key, col.c);
+  }
   // The party's half and the pack's, the free width shared by head count, the lane between. In each half the
   // columns stand by their closing, the nearest to the lane innermost; on the same spot the healer, the
   // ranged, the melee, then the tank, and the foe you face before the rest. Then nobody overlaps: a column
@@ -145,6 +154,26 @@ export function partyStage(app, ctl, W, H, { inline }) {
   const q = (col) => Math.round(col.c * 50);
   friends.sort((a, b) => q(a) - q(b) || a.order - b.order);
   foes.sort((a, b) => q(b) - q(a) || a.order - b.order);
+  // The lineup holds: two neighbours trade places only when one is more than SWAP_YD clearer of the other, so a
+  // melee pile that jitters by a yard does not flicker. A newcomer takes its sorted slot; the rest keep last
+  // frame's order among theirs, then adjacent pairs out of order by more than the leeway swap until none are.
+  mem.lineup ??= new Map();
+  const leeway = SWAP_YD / Math.max(1, mem.openYd - MELEE_CONTACT_YD);
+  const hold = (list, key) => {
+    const known = list.filter((col) => mem.lineup.has(col.key)).sort((a, b) => mem.lineup.get(a.key) - mem.lineup.get(b.key));
+    let k = 0;
+    for (let i = 0; i < list.length; i++) if (mem.lineup.has(list[i].key)) list[i] = known[k++];
+    for (let swapped = true; swapped;) {
+      swapped = false;
+      for (let i = 0; i + 1 < list.length; i++) {
+        if (key(list[i]) - key(list[i + 1]) <= leeway) continue;
+        [list[i], list[i + 1]] = [list[i + 1], list[i]]; swapped = true;
+      }
+    }
+    list.forEach((col, i) => mem.lineup.set(col.key, i));
+  };
+  hold(friends, (col) => col.c);
+  hold(foes, (col) => -col.c);
   const place = (list, L, R) => {
     for (const col of list) col.x = col.friend ? L + col.c * (R - col.cw - L) : R - col.cw - col.c * (R - col.cw - L);
     for (let i = 1; i < list.length; i++) list[i].x = Math.max(list[i].x, list[i - 1].x + list[i - 1].cw + GAP);
@@ -164,7 +193,7 @@ export function partyStage(app, ctl, W, H, { inline }) {
       putLines(c, col.ax, col.top, col.art);
     }
     putLines(c, col.x, zone, narrowPlate(app, v, { ...col, dead, w: col.cw }));
-    const state = narrowState(v, now, col.cw);
+    const state = narrowState(v, now, col.cw, mem.casts?.get(col.key));
     if (state) put(c, col.x, stateRow, state);
     if (showAuras && !col.small && !dead) putLines(c, col.x, auraTop, auraRows(app, mem, v, col.key, col.cw, icons));
     putPopsAbove(c, col, (mem.pops.get(col.key) ?? []).filter((p) => now - p.t < POP_MS), now, zone);

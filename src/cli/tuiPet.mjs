@@ -1,9 +1,8 @@
 // Your pet (hunter, warlock): the page with command, react, food and abilities; the stable; the pet trainer.
 // Ports phonecraft playChrome.ts's feed modal, render/petBar.ts, panels/stablePanel.ts and the pet trainer rows.
-import { bold, dim, cyan, yellow, green, red, itemText } from './text.mjs';
+import { bold, dim, cyan, yellow, green, red, itemText, coinText } from './text.mjs';
 import { itemLines, spellLines } from './tuiViews.mjs';
-import { moneyText } from '../domain/economy/money.ts';
-import { LOYALTY_NAMES, petHasHappiness, petKnownSpells, petAutocastOn } from '../domain/pet/pet.ts';
+import { LOYALTY_NAMES, HAPPINESS_MAX, petHasHappiness, petKnownSpells, petAutocastOn } from '../domain/pet/pet.ts';
 import { MAX_PET_STABLES, STABLE_SLOT_PRICES } from '../domain/pet/petStable.ts';
 import { zonePetTrainers } from '../world/world.ts';
 import { MAX_SOUL_SHARD_CAP } from '../autopilot/config.ts';
@@ -15,7 +14,7 @@ export const hasPetClass = (app) => app.ch.cls === HUNTER || app.ch.cls === WARL
 function petStatus(app, pet) {
   const cdef = app.ds.creature(pet.creature);
   const bits = [`${pet.health <= 0 ? red('dead') : `${pet.health} health`}`];
-  if (cdef && petHasHappiness(cdef)) bits.push(`happiness ${pet.happiness}%`, LOYALTY_NAMES[pet.loyalty ?? 1] ?? '');
+  if (cdef && petHasHappiness(cdef)) bits.push(`happiness ${Math.round((pet.happiness / HAPPINESS_MAX) * 100)}%`, LOYALTY_NAMES[pet.loyalty ?? 1] ?? '');
   if (pet.trainingPoints != null) bits.push(`${pet.trainingPoints} training points`);
   return bits.filter(Boolean).join(', ');
 }
@@ -81,7 +80,7 @@ function stableRows(app) {
     rows.push({ text: `  Slot ${i + 1}: ${p ? `${p.name} ${dim(app.ds.creature(p.creature)?.name ?? '')}` : dim('empty')}`, detail: () => [bold(`Stable slot ${i + 1}`), '', p ? `Enter: call ${p.name}${ch.pet ? `, stabling ${ch.pet.name} in its place` : ''}.` : 'Empty.'], act: () => { if (p) app.result(g.callStabledPet(i + 1), `${p.name} comes to you.`); } });
   }
   if (ch.pet || ch.storedPet) rows.push({ text: `Stable ${(ch.pet ?? ch.storedPet).name}`, act: () => { const r = g.stablePet(); app.result(r, r.ok ? `Stabled in slot ${r.slot}.` : ''); } });
-  if (slots < MAX_PET_STABLES) rows.push({ text: `Buy a stable slot ${yellow(moneyText(STABLE_SLOT_PRICES[slots] ?? 0))}`, act: () => { const r = g.buyStableSlot(); app.result(r, r.ok ? `A stable slot for ${moneyText(r.spent)}.` : ''); } });
+  if (slots < MAX_PET_STABLES) rows.push({ text: `Buy a stable slot ${coinText(STABLE_SLOT_PRICES[slots] ?? 0)}`, act: () => { const r = g.buyStableSlot(); app.result(r, r.ok ? `A stable slot for ${coinText(r.spent)}.` : ''); } });
   return rows;
 }
 
@@ -99,13 +98,22 @@ export function petTrainerDialog(app, trainer) {
     id: `pettrainer-${trainer.entry}`, title: trainer.name, hint: 'Enter: buy the rank',
     rows(a) {
       const known = new Set(a.ch.petSpells ?? []);
-      const rows = [H(`${bold(trainer.name)} ${dim('<Pet Trainer>')}   ${yellow(moneyText(a.ch.gold) || '0c')}`), H(dim('A rank bought here is yours for good; Beast Training teaches it to whichever pet is out.')), H('')];
+      const rows = [H(`${bold(trainer.name)} ${dim('<Pet Trainer>')}   ${coinText(a.ch.gold)}`), H(dim('A rank bought here is yours for good; Beast Training teaches it to whichever pet is out.')), H('')];
+      const pet = a.ch.pet, untrainCost = a.g.untrainPetCost();
+      if (pet && untrainCost != null) {
+        const taught = pet.taughtSpells?.length ?? 0;
+        rows.push({
+          text: `Untrain ${pet.name}  ${coinText(untrainCost)}${taught ? '' : dim('  nothing taught')}`,
+          detail: () => [bold('Untrain pet'), '', `${pet.name} forgets the ${taught} abilit${taught === 1 ? 'y' : 'ies'} you taught it and gets every training point back to spend again. Its innate abilities stay, and the ranks you bought stay in Beast Training.`, '', `Cost: ${coinText(untrainCost)}. It climbs with each untrain, up to 10 gold, and falls back to 10 silver a day later.`, '', dim('Enter: untrain')],
+          act: () => a.confirm(`Untrain ${pet.name} for ${coinText(untrainCost)}?`, () => { const r = a.g.untrainPet(trainer.entry); a.result(r, r.ok ? `${pet.name} forgets its training: ${a.ch.pet?.trainingPoints ?? 0} training points to spend.` : ''); }),
+        }, H(''));
+      }
       const list = trainer.spells.map((ts) => ({ ts, sp: a.ds.spell(ts.spell) })).filter((x) => x.sp).sort((x, y) => x.ts.reqLevel - y.ts.reqLevel || x.sp.name.localeCompare(y.sp.name));
       for (const { ts, sp } of list) {
         const have = known.has(sp.id), low = ts.reqLevel > a.ch.level;
         rows.push({
-          text: `${have ? green('✓ ') : '  '}${low || have ? dim(sp.name) : sp.name}${sp.rank ? dim(` (Rank ${sp.rank})`) : ''}  ${yellow(moneyText(ts.cost) || 'free')}${low ? red(`  level ${ts.reqLevel}`) : ''}`,
-          detail: () => spellLines(a, sp, ['', `Cost: ${yellow(moneyText(ts.cost) || 'free')}`]),
+          text: `${have ? green('✓ ') : '  '}${low || have ? dim(sp.name) : sp.name}${sp.rank ? dim(` (Rank ${sp.rank})`) : ''}  ${coinText(ts.cost, 'free')}${low ? red(`  level ${ts.reqLevel}`) : ''}`,
+          detail: () => spellLines(a, sp, ['', `Cost: ${coinText(ts.cost, 'free')}`]),
           act: () => { if (!have) a.result(a.g.buyPetSpell(trainer.entry, sp.id), `You learn ${sp.name} for your pets.`); },
         });
       }

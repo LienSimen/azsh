@@ -4,17 +4,17 @@
 // your cast bar is centred under the floor and the keyed ability bar runs along the bottom. A party fight or
 // a narrow terminal falls back to the list of unit frames (renderFrames). Auto-play runs the character's
 // rotation; a number key presses an ability over it for one GCD.
-import { bold, dim, cyan, yellow, green, red, gray, inverse, fit, vis, cut, bar, strip, brightBlue, itemText, orange } from './text.mjs';
+import { bold, dim, cyan, yellow, green, red, gray, inverse, fit, vis, cut, bar, strip, brightBlue, itemText, orange, coinText } from './text.mjs';
 import { className } from '../domain/core/ids.ts';
-import { SIZES, youSize, foeSize, canvas, put, putLines, floorLine, POWER_PAINT, POP_MS, POP_RISE_MS, LUNGE_MS, SHORT_BUFF_MS, ROLE_GLYPH, plateLines, auraRows, castSlot, auraText, auraTime, putMissiles, lootToasts, putLootToasts } from './tuiStage.mjs';
+import { SIZES, youSize, foeSize, canvas, put, putLines, floorLine, POWER_PAINT, POP_MS, POP_RISE_MS, LUNGE_MS, SHORT_BUFF_MS, ROLE_GLYPH, plateLines, auraRows, castSlot, castRows, auraText, auraTime, putMissiles, lootToasts, putLootToasts } from './tuiStage.mjs';
 import { partyStage } from './tuiPartyStage.mjs';
 import { combatDistanceYd, DEFAULT_OPEN_YD, MELEE_CONTACT_YD } from '../engine/combat/combatGeometry.ts';
 import { formatCombatLog, combatLogPlainText, dropLogRepeats, POWER_MERGE_MS } from './combatLogFormat.ts';
 import { impliedDest } from './combatLogFilter.ts';
-import { moneyText } from '../domain/economy/money.ts';
 import { maxHealth, maxPower } from '../domain/character/character.ts';
 import { powerType } from '../domain/character/characterStats.ts';
 import { pullOpts, sessionLogNames } from './squad.mjs';
+import { prepOoc, prepText } from './oocPrep.mjs';
 import { slotContent, visibleBars } from './tuiBars.mjs';
 import { autoLootOn, openLoot } from './tuiLoot.mjs';
 import { createCombatMacroHost } from './macroHostCombat.ts';
@@ -25,6 +25,8 @@ import { creatureArt, artWidth } from './modelArt.mjs';
 import { iconArt, iconsOn } from './iconArt.mjs';
 
 export const TICK_MS = 100; // one engine tick per 100 ms of real time, like the web client
+// Fight time with every living foe out of combat (an evade, a leash) before the fight ends as a stalemate.
+export const QUIET_END_MS = 3000;
 // A win holds the fight on screen this long (real time), plus a beat for each drop as it slides in.
 const WIN_HOLD_MS = 1000, DROP_HOLD_MS = 450, DROP_STAGGER_MS = 220, WIN_HOLD_MAX_MS = 3500;
 
@@ -38,6 +40,8 @@ const WIN_HOLD_MS = 1000, DROP_HOLD_MS = 450, DROP_STAGGER_MS = 220, WIN_HOLD_MA
 export function startFight(app, creatureEntry, { onEnd, label, begin, after, resolve, onTick, why } = {}) {
   if (app.fight) return { ok: false, reason: 'Already in a fight.' };
   if (app.isDead()) { app.flashMsg('You are dead.'); return { ok: false, reason: 'You are dead.' }; }
+  // A pull you chose buffs first, standing still; a dungeon stop does it in pullStop, an ambush (begin) cannot.
+  if (!begin && !resolve) { const buffed = prepText(prepOoc(app.g, app.ds)); if (buffed) app.say(cyan(buffed)); }
   const opts = begin ? { withSquad: true } : pullOpts(app.g, app.ds, app.cmds.buffPace, creatureEntry, (l) => app.say(cyan(l)));
   const b = begin ? begin() : app.g.beginFight(creatureEntry, opts);
   if (!app.result(b)) { app.render(); return { ok: false, reason: b.reason || 'Cannot fight that.' }; }
@@ -81,8 +85,23 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       else events = session.tick();
       this.logEvents(events);
       if (!session.ended) this.onTick?.();
+      if (!session.ended && !begin && !resolve) this.watchQuiet();
       if (session.ended) this.finish();
       app.renderSoon();
+    },
+    /** A pull that went quiet: something was in combat, and every living foe has been out of it for QUIET_END_MS.
+     *  The engine keeps that session open (a reset mob stands passive and the rotation leaves it be, so a Scout
+     *  that evaded once held the fight for 970 s), so it ends here as a timeout, which settles as a stalemate:
+     *  the web client's "Enemies evade" settle. Not on a dungeon floor, whose session holds unpulled packs. */
+    wasEngaged: false, quietSince: null,
+    watchQuiet() {
+      const live = session.enemiesView().filter((e) => e.hp > 0);
+      if (live.some((e) => e.engaged)) { this.wasEngaged = true; this.quietSince = null; return; }
+      if (!this.wasEngaged || !live.length || !session.mirrorOutcome) return;
+      this.quietSince ??= session.t;
+      if (session.t - this.quietSince < QUIET_END_MS) return;
+      app.say(yellow(`${live.length > 1 ? 'Your foes reset' : `${live[0].name} resets`} and the fight is over.`));
+      session.mirrorOutcome(true, 'timeout');
     },
     /** A win holds the fight on screen a moment before it gives the screen back: the foe at 0 on its plate and
      *  what it dropped sliding in beside it (putLootToasts). The timer keeps ticking through it, so the hold is
@@ -102,6 +121,8 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
     logEvents(events) {
       app.meter?.ingest(events);
       notePops(this.frames, events);
+      let known = null;
+      noteCasts(this.frames, events, (id) => (known ??= new Set(session.abilities().map((a) => a.spell.id))).has(id));
       if (this.folded()) return;
       const flush = () => { if (this.pend && this.pend.amount > 0) app.say(line(this.pend.t, this.pend.remake(this.pend.amount))); this.pend = null; };
       const line = (t, row) => `${dim((t / 1000).toFixed(1).padStart(5) + 's')} ${paintLog(row)}`;
@@ -130,7 +151,7 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       const tag = r.outcome === 'win' ? green(bold('Victory')) : r.outcome === 'defeat' ? red(bold('Defeat')) : yellow(bold('Stalemate'));
       const bits = [`${(r.result.durationMs / 1000).toFixed(1)} s`, `HP ${app.hpText()}`];
       if (r.xpGained) bits.push(`+${r.xpGained} xp`);
-      if (r.goldGained && !hold) bits.push(`+${moneyText(r.goldGained)}`);
+      if (r.goldGained && !hold) bits.push(`+${coinText(r.goldGained)}`);
       app.say(`${tag} against ${this.enemyName}  ${dim(bits.join('  '))}`);
       if (!hold) { noteLoot(app, r.loot, r.goldGained); for (const d of r.loot) app.say(`  ${yellow('You receive')} ${app.itemLabel(d.item)}${d.count > 1 ? ` x${d.count}` : ''}`); }
       const gained = (app.g.state.squad ?? []).filter((c) => (c.xp ?? 0) !== squadXp.get(c.id)).map((c) => `${c.name} ${(c.xp ?? 0) > (squadXp.get(c.id) ?? 0) ? `+${(c.xp ?? 0) - (squadXp.get(c.id) ?? 0)} xp` : 'levels up'}`);
@@ -558,7 +579,21 @@ const CAST_W = 30; // the cast/control slot on a frame's second line, so auras n
 function newFrameMemory(app) {
   // The player's own aura order carries across fights, so their frame never reshuffles.
   app.playerAuraOrder ??= new Map();
-  return { auraOrder: new Map([['player', app.playerAuraOrder]]), pops: new Map(), used: new Map(), lunge: new Map() };
+  return { auraOrder: new Map([['player', app.playerAuraOrder]]), pops: new Map(), used: new Map(), lunge: new Map(), casts: new Map(), barred: new Map() };
+}
+
+/** Every unit's casts as they go off, newest first, for its cast slot (castRows): a cast_finish with no
+ *  cast_start before it is an instant. `own(id)` keeps yours to the spells you know, so a proc's triggered
+ *  spell never shows as something you pressed. */
+function noteCasts(mem, events, own) {
+  for (const ev of events) {
+    if (!ev.actor || ev.spellId == null) continue;
+    if (ev.kind === 'cast_start') { mem.barred.set(ev.actor, ev.spellId); continue; }
+    if (ev.kind !== 'cast_finish' || (ev.actor === 'player' && !own(ev.spellId))) continue;
+    const instant = mem.barred.get(ev.actor) !== ev.spellId;
+    mem.barred.delete(ev.actor);
+    mem.casts.set(ev.actor, [{ t: ev.t, spellId: ev.spellId, name: ev.name, instant }, ...(mem.casts.get(ev.actor) ?? [])].slice(0, 8));
+  }
 }
 
 const POP_W = 18; // a hit or heal stays beside the bars for POP_MS (fight time), in a slot this wide
@@ -566,12 +601,14 @@ const USED_FLASH_MS = 500; // the ability bar slot of a spell just cast stays in
 const MISS_WORD = { miss: 'Miss', dodge: 'Dodge', parry: 'Parry', immune: 'Immune', deflect: 'Deflect', block: 'Block' };
 
 /** Damage and healing landing on each unit, newest first, for the numbers that pop up beside its bars; the
- *  player's casts, for the flash on the ability bar; and every melee swing, for the lunge. */
+ *  player's casts, for the flash on the ability bar; and every melee auto-attack, for the lunge. */
 function notePops(mem, events) {
   for (const ev of events) {
     let side, text;
     if (ev.actor === 'player' && ev.spellId != null && (ev.kind === 'cast_start' || ev.kind === 'cast_finish' || ev.kind === 'spell_hit' || ev.kind === 'cast_self')) mem.used?.set(ev.spellId, ev.t);
-    if (ev.kind === 'melee' && ev.actor) mem.lunge?.set(ev.actor, ev.t); // only a weapon swing lunges; spells, strikes and thorns do not
+    // Only a melee auto-attack lunges: spells, strikes and thorns do not, nor a ranged white (Auto Shot, Shoot
+    // or Throw), which the engine sends as a melee event tagged with the shoot spell's id and name.
+    if (ev.kind === 'melee' && ev.actor && ev.spellId == null && !ev.name) mem.lunge?.set(ev.actor, ev.t);
     if (ev.kind === 'melee' || ev.kind === 'spell_hit' || ev.kind === 'dot_tick') {
       side = ev.target ?? impliedDest(ev.actor);
       if (ev.amount > 0) text = ev.result === 'crit' ? bold(red(`-${ev.amount}!`)) : red(`-${ev.amount}`);
@@ -603,7 +640,7 @@ function unitFrame(app, mem, v, W, now, isPlayer, focused = false, { compact = f
   if (!bars) {
     const key = isPlayer ? 'player' : (v.side ?? v.name);
     const name = `${(dead ? gray : isPlayer ? green : yellow)(bold(v.name))} ${dim(`L${v.level}`)}`;
-    const slot = castSlot(v, now);
+    const slot = castSlot(v, now, mem.casts?.get(key));
     const auras = auraText(app, mem, v, key);
     return [cut(` ${fit(name, 20)} ${fit(slot, CAST_W)} ${fit(popText(mem, key, now), POP_W)} ${auras}`, W)];
   }
@@ -619,12 +656,15 @@ function unitFrame(app, mem, v, W, now, isPlayer, focused = false, { compact = f
   if (compact) return [cut(`${head}${v.casting && !dead ? `  ${yellow(v.casting.name)}` : after}`, W)];
   // The second line is always there, cast slot first (a cast bar, else crowd control, else stealth, blank when
   // idle) and the auras after it, so gaining a buff or starting a cast never moves this frame or the ones below.
-  const slot = castSlot(v, now);
+  const recent = mem.casts?.get(key);
   if (iconsOn()) {
-    // Icons: a strip of 4x4 icons beside the cast slot, each one's time (or stacks) under it on a third line.
+    // Icons: the cast slot two lines tall (the spell's icon, its name, the casts before it), then a strip of
+    // 4x4 icons, each aura's time (or stacks) under it on the third line.
     const [top, bottom] = auraIcons(app, mem, v, key);
-    return [cut(`${head}${after}`, W), cut(`   ${fit(slot, CAST_W)}  ${top}`, W), cut(`   ${' '.repeat(CAST_W)}  ${bottom}`, W)];
+    const [slotTop, slotUnder] = dead ? ['', ''] : castRows(app, v, recent, now, CAST_W);
+    return [cut(`${head}${after}`, W), cut(`   ${fit(slotTop, CAST_W)}  ${top}`, W), cut(`   ${fit(slotUnder, CAST_W)}  ${bottom}`, W)];
   }
+  const slot = castSlot(v, now, recent);
   const auras = auraText(app, mem, v, key);
   return [cut(`${head}${after}`, W), cut(`   ${fit(slot, CAST_W)}  ${auras}`, W)];
 }
@@ -662,7 +702,7 @@ export function fightArt(app, ctl, W, H) {
   const cols = artCols(W);
   const entry = ctl.session?.enemyView()?.creatureEntry ?? ctl.enemyEntry;
   const foe = cols && entry != null ? creatureArt(app.ds.creature(entry)?.displayId, cols, H) : null;
-  const me = cols && W >= 130 ? playerArt(app, cols, H)?.lines ?? null : null;
+  const me = cols && W >= 130 ? playerArt(app, cols, H, ctl.session?.playerView())?.lines ?? null : null;
   const innerW = W - (foe ? artWidth(foe) + 2 : 0) - (me ? artWidth(me) + 2 : 0);
   return { me, foe, innerW };
 }
@@ -698,13 +738,14 @@ function duelStage(app, ctl, W, H, { inline }) {
   const icons = iconsOn();
   const barW = W >= 140 ? 30 : W >= 110 ? 24 : 18;
   const plateW = barW + PLATE_PAD;
-  const auraH = icons ? 3 : 1;
-  // Rows the scene keeps whatever the sprites get: the plate (3), the state row, the auras and the floor.
-  // The state row is there idle or casting, so a cast never moves the auras under it. The ability bar goes
+  const auraH = icons ? 3 : 1, stateH = icons ? 2 : 1;
+  // Rows the scene keeps whatever the sprites get: the plate (3), the state rows, the auras and the floor.
+  // The state rows are there idle or casting, so a cast never moves the auras under them; with icons they are
+  // two, the spell's icon beside its name and the trail of casts before it (castRows). The ability bar goes
   // when rows are short, and only under auto-play.
   const barLines = ctl.abilityRows(W, W >= 140 ? 6 : 4, { live: !inline });
   let barRows = barLines.length;
-  const fixed = () => 3 + 1 + auraH + 1 + barRows;
+  const fixed = () => 3 + stateH + auraH + 1 + barRows;
   if (H - fixed() < 4 && ctl.auto) barRows = 0;
   const artRows = H - fixed();
   if (artRows < 4) return null;
@@ -718,7 +759,7 @@ function duelStage(app, ctl, W, H, { inline }) {
     return { v, key, art, aw: artWidth(art), cw: Math.max(pw, art ? artWidth(art) : 0), plateW: pw, ...o, barW: o.barW ?? barW };
   };
   const cols = [];
-  const you = column(pv, 'player', youSize(W), (c, r) => playerArt(app, c, r)?.lines ?? null, { isPlayer: true });
+  const you = column(pv, 'player', youSize(W), (c, r) => playerArt(app, c, r, pv)?.lines ?? null, { isPlayer: true });
   const margin = Math.max(GAP, Math.floor(W / 16)); // the actors stand a little in from the edges
   you.x = margin; cols.push(you);
   let left = you.x + you.cw + GAP, right = W - margin, petCol = null;
@@ -763,7 +804,7 @@ function duelStage(app, ctl, W, H, { inline }) {
     }
     cols.push(foe);
   }
-  const zone = artRows, stateRow = zone + 3, auraTop = zone + 4, floorRow = auraTop + auraH, barTop = floorRow + 1;
+  const zone = artRows, stateRow = zone + 3, auraTop = stateRow + stateH, floorRow = auraTop + auraH, barTop = floorRow + 1;
   const c = canvas(W, H);
   for (const col of cols) {
     const v = col.v, dead = v.hp <= 0;
@@ -774,9 +815,10 @@ function duelStage(app, ctl, W, H, { inline }) {
       col.ax = col.x + Math.max(0, Math.floor((col.cw - col.aw) / 2)) + lunge; col.top = zone - col.art.length; putLines(c, col.ax, col.top, col.art);
     }
     putLines(c, col.x, zone, plateLines(app, v, { ...col, dead }));
-    // Your cast sits where the foe's does: under the power bar, in the state row every plate keeps.
-    const slot = castSlot(v, now);
-    if (slot && !dead) put(c, col.x, stateRow, cut(slot, col.plateW));
+    // Your cast sits where the foe's does: under the power bar, in the state rows every plate keeps.
+    const recent = mem.casts.get(col.key);
+    const slot = dead ? [''] : icons ? castRows(app, v, recent, now, col.plateW) : [castSlot(v, now, recent)];
+    if (slot[0] || slot[1]) putLines(c, col.x, stateRow, slot.map((l) => cut(l, col.plateW)));
     else if (col === foe && hidden) put(c, col.x, stateRow, dim(`+${hidden} more in the fight`));
     if (!col.small && !dead) putLines(c, col.x, auraTop, auraRows(app, mem, v, col.key, col.plateW, icons));
     // Hits and heals rise from the chest, the newest lowest; without art they sit beside the name.
