@@ -1,6 +1,6 @@
 {
   "name": "azeroth-shell",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "type": "module",
   "description": "Azeroth shell. A WoW Classic 1.12 text RPG for the terminal, built on CMaNGOS data.",
   "keywords": [
