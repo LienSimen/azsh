@@ -1000,6 +1000,9 @@ function pullSequenceAction(
     const condSnap = snapForAction(snap, action);
     if (!conditionsPass(condSnap, conditionsForEval(rule))) continue; // not needed this pull
     if (!actionUsable(snap, action)) {
+      // An immune target never makes the opener usable: waiting on it held a fire mage at range
+      // forever against a Fire Elemental. Step past it like a spent row.
+      if (action.kind === 'spell' && snap.target?.immuneSpellIds?.has(action.spellId)) continue;
       const inMelee = snap.self.inMelee === true
         || (!!snap.enemyDists && snap.enemyDists.some((d) => d <= IN_MELEE_YD));
       if (inMelee || snap.enemyCount === 0) continue;

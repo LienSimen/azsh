@@ -216,7 +216,11 @@ if (eff.kind === 'summon_totem') {
           };
           // Register the kit aura as a live class-A holder so the maintain pass keeps re-checking the
           // totem-to-ally distance. The origin is the TOTEM; the mod owner is the shaman.
-          const registerTotemAreaAura = (abil: SpellDef, apply: (fr: Fighter) => void): void => {
+          // Each kit closure takes `now` (default: the summon's `t`): the maintain pass calls it later for an
+          // ally walking into radius, and the summon-time clock put that row's first tick in the past, so
+          // every missed Healing Stream tick landed at once.
+          // Expiry stays on the totem's clock, the holder's remaining life.
+          const registerTotemAreaAura = (abil: SpellDef, apply: (fr: Fighter, now: number) => void): void => {
             registerAreaAuraSource?.({
               holderSide: built.side,
               spellId: abil.id,
@@ -256,7 +260,7 @@ if (eff.kind === 'summon_totem') {
                     isWithinRadiusYd(posOf?.(built.side), posOf?.(en.side), kitRadiusYd(abil) ?? 10),
                   )
                   : (ae.applyTo === 'self' ? [player] : inRadiusParty(abil));
-                const applyKitBuff = (fr: Fighter): void => {
+                const applyKitBuff = (fr: Fighter, now = t): void => {
                   if (dead(fr)) return;
                   if (hasAreaAuraRow(rowsOn(fr), fr, abil.id, built.side)) return;
                   applyBuffMod(fr, ae.mod, amount);
@@ -265,7 +269,7 @@ if (eff.kind === 'summon_totem') {
                     kind: 'buff', source: built.side, target: fr.side, spellId: abil.id, name: abil.name,
                     mod: ae.mod, amount, expiresAt: t + dur, fromTotem: built.side,
                   });
-                  push({ t, kind: 'aura', actor: fr.side, name: abil.name, applied: true });
+                  push({ t: now, kind: 'aura', actor: fr.side, name: abil.name, applied: true });
                 };
                 // continue (not return): one dead friendly must not abort party aura reach.
                 // Cite: Totem.cpp UnSummon party strip :145–157; APPLY_AREA_AURA_PARTY effect 35.
@@ -278,7 +282,7 @@ if (eff.kind === 'summon_totem') {
                 // Cite: APPLY_AREA_AURA_PARTY; Totem.cpp UnSummon removes aura on all subgroup members.
                 const tickMs = Math.max(1, ae.tickMs);
                 const kitPower = ae.kind === 'restore_power' ? (ae.powerType ?? POWER_MANA) | 0 : undefined;
-                const applyKitTick = (fr: Fighter): void => {
+                const applyKitTick = (fr: Fighter, now = t): void => {
                   if (dead(fr)) return;
                   if (hasAreaAuraRow(rowsOn(fr), fr, abil.id, built.side)) return;
                   // The aura lands on every living party member for strip symmetry; the pool it pays
@@ -286,11 +290,11 @@ if (eff.kind === 'summon_totem') {
                   fr.buffActive.add(abil.id);
                   effects.push({
                     kind: ae.kind, source: built.side, target: fr.side, spellId: abil.id, name: abil.name,
-                    amountPerTick: ae.amountPerTick, pctOfMax: ae.pctOfMax, tickMs, nextTickAt: t + tickMs,
+                    amountPerTick: ae.amountPerTick, pctOfMax: ae.pctOfMax, tickMs, nextTickAt: now + tickMs,
                     ...(kitPower != null ? { powerType: kitPower } : {}),
                     expiresAt: t + built.durationMs, fromTotem: built.side,
                   });
-                  push({ t, kind: 'aura', actor: fr.side, name: abil.name, applied: true });
+                  push({ t: now, kind: 'aura', actor: fr.side, name: abil.name, applied: true });
                 };
                 // Healing Stream / Mana Spring only tick on allies standing in the totem's
                 // radius — walk out and the stream stops for you (§4.9.1).
@@ -315,7 +319,7 @@ if (eff.kind === 'summon_totem') {
               } else if (ae.kind === 'resist') {
                 // MOD_RESISTANCE party aura — the Frost, Fire and Nature Resistance Totems. Same party
                 // reach and strip symmetry as the stat buffs; without it they were summoned decoration.
-                const applyKitResist = (fr: Fighter): void => {
+                const applyKitResist = (fr: Fighter, now = t): void => {
                   if (dead(fr)) return;
                   if (hasAreaAuraRow(rowsOn(fr), fr, abil.id, built.side)) return;
                   applyResistMod(fr, ae.school, ae.amount);
@@ -325,7 +329,7 @@ if (eff.kind === 'summon_totem') {
                     name: abil.name, school: ae.school, amount: ae.amount,
                     expiresAt: t + built.durationMs, fromTotem: built.side,
                   });
-                  push({ t, kind: 'aura', actor: fr.side, name: abil.name, applied: true });
+                  push({ t: now, kind: 'aura', actor: fr.side, name: abil.name, applied: true });
                 };
                 for (const fr of inRadiusParty(abil)) applyKitResist(fr);
                 registerTotemAreaAura(abil, applyKitResist);
@@ -335,10 +339,10 @@ if (eff.kind === 'summon_totem') {
                 applyFlatThreat(tot, ae.amount, abil as unknown as SpellDef);
               } else if (ae.kind === 'spell_magnet') {
                 const magnetDur = ae.durationMs > 0 ? ae.durationMs : built.durationMs;
-                const applyKitMagnet = (fr: Fighter): void => {
+                const applyKitMagnet = (fr: Fighter, now = t): void => {
                   applySpellMagnetToParty({
                     effects, effectsOn, party: [fr], source: built.side, spell: abil,
-                    expiresAt: t + magnetDur, t, push, touchEffect,
+                    expiresAt: t + magnetDur, t: now, push, touchEffect,
                   });
                 };
                 for (const fr of inRadiusParty(abil)) applyKitMagnet(fr);
@@ -374,11 +378,11 @@ if (eff.kind === 'summon_totem') {
             const magnetFx = trig.effects.find((e) => e.kind === 'spell_magnet');
             if (!magnetFx || magnetFx.kind !== 'spell_magnet') continue;
             const magnetDur = magnetFx.durationMs > 0 ? magnetFx.durationMs : built.durationMs;
-            const applyTrigMagnet = (fr: Fighter): void => {
+            const applyTrigMagnet = (fr: Fighter, now = t): void => {
               applySpellMagnetToParty({
                 effects, effectsOn, party: [fr], source: built.side,
                 spell: { id: trig.id, name: trig.name, procCharges: magnetFx.charges },
-                expiresAt: t + magnetDur, t, push, touchEffect,
+                expiresAt: t + magnetDur, t: now, push, touchEffect,
               });
             };
             for (const fr of inRadiusParty(trig)) applyTrigMagnet(fr);

@@ -2320,6 +2320,38 @@ export function installPickAction(ctx: CombatContext, deps: installPickActionDep
     return snap;
   };
 
+  // A rotation whose damage rows the focus is immune to returns nothing, and a null pick is white
+  // swings a caster holding at range never throws: the fire mage stood off a Fire Elemental forever.
+  // Only then does the kit speak, in the class heuristics' order: a DoT not yet ticking, an instant,
+  // a cast nuke, the wand. Single-target before ground AoE (Blizzard is a dot), and never a self AoE:
+  // Hellfire burned a warlock to death. Healers keep their idle GCDs. Cite: Unit.cpp IsImmuneToSpell ~7329.
+  // Only a SCHOOL wall, only a mana caster, only out of form: a bleed-immune mob is most mobs, and a
+  // cat pooling energy against one shifted out to Wrath (feral vs Mana Surge 19 s -> 49 s).
+  const IMMUNE_FILLER_ROLES = ['dot', 'instant_nuke', 'nuke'] as const;
+  const immuneFallbackFiller = (f: Fighter, foe: Fighter): SpellDef | null => {
+    if (f.spec.groupRole === 'healer' || foe === f || dead(foe)) return null;
+    if (f.spec.powerType !== 'mana' || f.form) return null;
+    if (((foe.immunity?.schoolImmuneMask ?? 0) | (foe.immunity?.damageImmuneMask ?? 0)
+      | (foe.spec.schoolImmuneMask ?? 0)) === 0) return null;
+    if (!targetImmunityIdsFor(foe, f).spells?.size) return null;
+    // A reach, too: Hellfire is a self channel that passes the foe test and burns its caster.
+    const usable = (s: SpellDef): boolean =>
+      (s.rangeMax ?? 0) > 0 && isFoeDirectedOffense(s) && !isTriggeredCompanion(f, s)
+      && !isNonCastableTalentProc(s) && canCastSpell(f, foe, s);
+    for (const aoe of [false, true]) {
+      for (const role of IMMUNE_FILLER_ROLES) {
+        // Any of our DoTs already ticking is skipped, hybrids too: Immolate went out 30 times a fight.
+        const hit = f.spec.spells.find((s) => roleOf(s) === role && !!s.aoe === aoe && usable(s)
+          && !(s.effects.some((e) => e.kind === 'dot') && ctx.effectsOn(foe.side).some(
+            (e) => e.kind === 'dot' && e.spellId === s.id && e.source === f.side,
+          )));
+        if (hit) return hit;
+      }
+    }
+    const shoot = f.spec.spells.find((s) => isRangedAutoRepeatToggle(s) && usable(s));
+    return shoot && f.spec.ranged && f.mode !== 'ranged' ? shoot : null;
+  };
+
   const pickAction = (f: Fighter, foe: Fighter): SpellDef | null => {
     const t = ctx.t;
     // E6: MT/OT focus from the raid plan (boss-a / boss-b by stable side order — no entry id).
@@ -2912,6 +2944,7 @@ export function installPickAction(ctx: CombatContext, deps: installPickActionDep
           return sp;
         }
       }
+      if (pick == null && !f.haltDpsSchool) return immuneFallbackFiller(f, foe);
       return null;
     };
 

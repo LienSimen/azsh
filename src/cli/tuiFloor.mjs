@@ -277,7 +277,7 @@ function engage(app, f, ents) {
   if (!live.length) return false;
   const fight = app.fight;
   if (!fight) return fightBodies(app, f, live);
-  if (!fight.floor) { f.waiting.push(...live); return false; }
+  if (!fight.floor || fight.ended) { f.waiting.push(...live); return false; } // a fight over (its win still on screen) takes nobody in
   let n = 0;
   for (const e of live) {
     if (fight.session.sideOfGuid?.(e.guid)) continue;

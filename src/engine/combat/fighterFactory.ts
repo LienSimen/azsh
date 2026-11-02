@@ -51,7 +51,7 @@ import {
 export const ALL_SCHOOLS: School[] = ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'];
 
 /** One-school MOD_DAMAGE_DONE BuffMod → school. Cite: SharedDefines.h SpellSchoolMask. */
-const SPELL_DAMAGE_MOD_SCHOOL: Partial<Record<BuffMod, School>> = {
+export const SPELL_DAMAGE_MOD_SCHOOL: Partial<Record<BuffMod, School>> = {
   spell_damage_holy: 'holy',
   spell_damage_fire: 'fire',
   spell_damage_nature: 'nature',

@@ -344,7 +344,8 @@ export class App {
       }
       // The Bags pane at the bottom has its own cursor; Enter there uses the item under it.
       if (fightPane(this) === 'bags' && (MOVE_KEYS.has(k) || k === 'return') && bagsPaneKey(this, k)) return;
-      if (k === 'escape' || k === 'q') { if (f) f.flee(); else auto.end('you stopped it'); return; }
+      // Over a win's hold there is nothing to run from: the hold lets go and the run stops.
+      if (k === 'escape' || k === 'q') { if (f && !f.holding) f.flee(); else { f?.release(); if (this.auto === auto) auto.end('you stopped it'); } return; }
       if (k === 'space') { auto.paused = !auto.paused; if (f) f.paused = auto.paused; this.render(); return; }
       if (k === 'l') { this.openLog(); return; }
       if ((k === 'w' || k === 'return') && f) { auto.watchFight = true; this.render(); return; }

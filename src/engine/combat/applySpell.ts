@@ -281,7 +281,17 @@ export type installApplySpellDeps = {
 };
 
 export function installApplySpell(ctx: CombatContext, deps: installApplySpellDeps): void {
-  const push = (e: any) => ctx.push(e);
+  // One aura row per holder, spell and instant. The push sits in the per-effect loop, so a two-effect
+  // buff (Dampen Magic: spell and healing taken) read "You gain" twice for one cast.
+  let lastAuraKey = '';
+  const push = (e: any) => {
+    if (e.kind === 'aura') {
+      const key = e.applied && e.spellId != null ? `${e.t}|${e.actor}|${e.spellId}` : '';
+      if (key && key === lastAuraKey) return;
+      lastAuraKey = key;
+    }
+    ctx.push(e);
+  };
   const player = ctx.player;
   const pet = ctx.pet;
   const effects = ctx.effects;
@@ -2220,7 +2230,8 @@ export function installApplySpell(ctx: CombatContext, deps: installApplySpellDep
         };
         // One-target apply, hoisted so the area-aura maintain pass can RE-apply it when an ally walks
         // back into radius. Idempotent: an existing row refreshes duration and never re-adds flat mods.
-        const applyBuffToTarget = (buffTgt: Fighter): void => {
+        // `now` is that pass's clock for the log; the expiry stays on the cast's (the holder's remaining life).
+        const applyBuffToTarget = (buffTgt: Fighter, now = t): void => {
           // Totem.cpp:282-287: mixed-hit school damage still lands; the APPLY_AURA index does not.
           const hostileBuff = isHostileBuffEffect(eff, baseAmount);
           if (
@@ -2353,10 +2364,10 @@ export function installApplySpell(ctx: CombatContext, deps: installApplySpellDep
               });
             }
             buffTgt.buffActive.add(spell.id);
-            push({ t, kind: 'aura', actor: buffTgt.side, name: spell.name, applied: true, spellId: spell.id });
+            push({ t: now, kind: 'aura', actor: buffTgt.side, name: spell.name, applied: true, spellId: spell.id });
             if (buffTgt.side !== src.side) {
               push({
-                t, kind: 'spell_hit', actor: src.side, target: buffTgt.side,
+                t: now, kind: 'spell_hit', actor: src.side, target: buffTgt.side,
                 spellId: spell.id, name: spell.name, result: 'hit', amount: 0, school: spell.school,
               });
             }
@@ -2424,7 +2435,7 @@ export function installApplySpell(ctx: CombatContext, deps: installApplySpellDep
                   }
                   buffTgt.buffActive.delete(row.spellId);
                   effects.splice(at, 1);
-                  push({ t, kind: 'aura', actor: buffTgt.side, name: row.name, applied: false });
+                  push({ t: now, kind: 'aura', actor: buffTgt.side, name: row.name, applied: false });
                 }
               }
             }
@@ -2457,10 +2468,10 @@ export function installApplySpell(ctx: CombatContext, deps: installApplySpellDep
               });
               // The aura row lives on the target's buff bar. Also emit a spell_hit for the caster so a
               // damageless hostile debuff shows in the fight log as a cast.
-              push({ t, kind: 'aura', actor: buffTgt.side, name: spell.name, applied: true, spellId: spell.id });
+              push({ t: now, kind: 'aura', actor: buffTgt.side, name: spell.name, applied: true, spellId: spell.id });
               if (buffTgt.side !== src.side) {
                 push({
-                  t, kind: 'spell_hit', actor: src.side, target: buffTgt.side,
+                  t: now, kind: 'spell_hit', actor: src.side, target: buffTgt.side,
                   spellId: spell.id, name: spell.name, result: 'hit', amount: 0, school: spell.school,
                 });
               }
@@ -2530,9 +2541,9 @@ export function installApplySpell(ctx: CombatContext, deps: installApplySpellDep
             exclusionGroup: spell.exclusionGroup,
             // AreaAura::Update applies the MISSING rank only. An unguarded re-apply emitted 50 events
             // for one Blood Pact in a 2.5 s fight — the totem kit path guards the same way.
-            apply: (m: Fighter) => {
+            apply: (m: Fighter, now: number) => {
               if (hasAreaAuraRow(ctx.effectsOn(m.side), m, spell.id, src.side)) return;
-              applyBuffToTarget(m);
+              applyBuffToTarget(m, now);
             },
             strip: (m: Fighter) => {
               stripAreaAuraRowsFrom(effects, m, spell.id, src.side, reverseActiveEffect, ctx.effectsOn(m.side));

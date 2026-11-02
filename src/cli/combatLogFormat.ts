@@ -333,6 +333,28 @@ function wrap(
   return { segs, cls: lineCls(type, source, crit), type, source, dest };
 }
 
+/**
+ * One thing happening reads as one line. The engine reports a stance as a form change plus its aura,
+ * a multi-effect aura once per effect, and a buff or damageless debuff as its aura plus a 0 spell_hit
+ * the meters count as the cast. The log keeps the first aura line and drops the rest.
+ */
+export function dropLogRepeats(events: readonly CombatEvent[]): CombatEvent[] {
+  const key = (t: number, unit: Side, name: string, on: boolean) => `${t}|${unit}|${name}|${on}`;
+  const auras = new Set<string>();
+  for (const ev of events) if (ev.kind === 'aura' && ev.applied) auras.add(key(ev.t, ev.actor, ev.name, true));
+  const seen = new Set<string>();
+  return events.filter((ev) => {
+    if (ev.kind === 'spell_hit') {
+      return !(ev.amount === 0 && (ev.result === 'hit' || ev.result === 'crit') && ev.target != null && auras.has(key(ev.t, ev.target, ev.name, true)));
+    }
+    if (ev.kind !== 'aura' && ev.kind !== 'form') return true;
+    const k = key(ev.t, ev.actor, ev.name, ev.kind === 'aura' ? ev.applied : !!ev.form);
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
 /** Format one combat event into 1.12 combat-log wording. Null = drop the row. */
 export function formatCombatLog(ev: CombatEvent, names: CombatLogNames): FormattedCombatLog | null {
   const who = (a: Side) => whoOf(a, names);

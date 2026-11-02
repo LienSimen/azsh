@@ -32,7 +32,7 @@ import {
   isChaseInsideModel,
   type ChaseClosenessState,
 } from './chaseCloseness.ts';
-import { rangedAutoMinYards, spellTargetTypeAllowed } from './predicates.ts';
+import { focusImmunityBlocksSpell, rangedAutoMinYards, spellTargetTypeAllowed } from './predicates.ts';
 import { CREATURE_FAMILY_ASSISTANCE_RADIUS } from '../../domain/creature/creatureAiConstants.ts';
 import type { MotionOwner } from './motionClaim.ts';
 import type { MotionGenerator } from './motionGenerator.ts';
@@ -47,6 +47,8 @@ import type { UnitNavPath, PathToOpts } from './sessionPathTo.ts';
 const RANGED_MIN_CLEARANCE_YD = 2;
 /** Stay this far inside an unpulled mob's detection so the step does not graze aggro. */
 const UNPULLED_AGGRO_MARGIN_YD = 1.5;
+/** Park this far inside a cast's rangeMax, past the walk order's 0.25 yd arrival slack. */
+const CAST_REACH_SLACK_YD = 0.5;
 // How far inside the bad arc a melee DPS must be before it starts a flank slide (~20 deg). A dead band, not
 // a tolerance: the arc's own edge is what moves under it every tick.
 const MELEE_SLOT_ENTRY_MARGIN_RAD = 0.35;
@@ -773,10 +775,14 @@ export function createChaseArm(deps: ChaseDeps): {
       for (const s of shortOffenseList(f)) {
         if (onCooldown(f, s) || !canAfford(f, s)) continue;
         if (!spellTargetTypeAllowed(s, tgt.creatureType ?? 0)) continue;
+        if (focusImmunityBlocksSpell(s, tgt, 1)) continue;
         const r = s.rangeMax ?? 0;
         if (r > fireR) fireR = r;
       }
       if (fireR > 0) {
+        // Inside the reach, not on it: a walk order arrives within ARRIVE_YD (0.25) of its dest, and
+        // a shaman parked at 20.2 yd never got the 20 yd Flame Shock off.
+        fireR -= CAST_REACH_SLACK_YD;
         stopAt = stopAt > 0 ? Math.min(stopAt, fireR) : fireR;
       } else {
         // Healer off-aggro may keep a stamped stand for heals; solo MH must not freeze.

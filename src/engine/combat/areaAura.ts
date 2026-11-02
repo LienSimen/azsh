@@ -49,8 +49,9 @@ export interface AreaAuraSource {
   baseRadiusYd?: number;
   /** Unit whose SPELLMOD_RADIUS mods scale the radius (totem OWNER, or the caster). */
   modOwnerSide: Side;
-  /** Re-apply to a member that is (still / again) in radius. Must be idempotent. */
-  apply: (target: Fighter) => void;
+  // Re-apply to a member that is (still / again) in radius. Must be idempotent. `t` is the pass's
+  // clock: a closure that kept its cast's `t` stamped a late joiner's row in the past and ticked it up.
+  apply: (target: Fighter, t: number) => void;
   /** Remove this holder's rows from a member that left radius / party / died. */
   strip: (target: Fighter) => void;
   /** Current membership candidates (living party / pet rules). */
@@ -271,12 +272,12 @@ export function runAreaAuraMaintain(deps: AreaAuraMaintainDeps): void {
       }
       if (!geometry) {
         // No coords — keep the historic whole-side reach (never invent a radius).
-        s.apply(m);
+        s.apply(m, deps.t);
         continue;
       }
       // isWithinRadiusYd fails OPEN on a missing radius or a missing position:
       // a bake gap must not silently delete a real party aura (§4.7).
-      if (isWithinRadiusYd(origin, deps.posOf(m.side), radius)) s.apply(m);
+      if (isWithinRadiusYd(origin, deps.posOf(m.side), radius)) s.apply(m, deps.t);
       else s.strip(m);
     }
   }

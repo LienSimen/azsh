@@ -19,7 +19,7 @@ import {
   spellCritChance,
   ccResistChance,
 } from './formulas.ts';
-import { fighterSpellCrit, fighterEffectiveArmor, applyBuffMod } from './fighterFactory.ts';
+import { fighterSpellCrit, fighterEffectiveArmor, applyBuffMod, SPELL_DAMAGE_MOD_SCHOOL } from './fighterFactory.ts';
 import {
   powerOfType, maxPowerOfType, setPowerOfType, casterPowerTypeId, powerTypeName,
 } from './powerPools.ts';
@@ -267,6 +267,35 @@ export function installProcsDamage(ctx: CombatContext, deps: installProcsDamageD
     }
   };
 
+  // A charged stat buff with DEAL spell flags (Chaos Fire 24389: "your next Fire spell") spends a
+  // charge when the bearer lands a damaging spell. Aura 13 has no proc handler, so the generic path
+  // drops the charge. A one-school damage mod only takes a spell of that school (24389 SchoolMask 0x04).
+  // Cite: UnitAuraProcHandler.cpp:46,:500-509; sql/archive/0.10/5019_mangos_spell_proc_event.sql.
+  const consumeChargedBuffsOnDealHit = (src: Fighter, fromSpell: SpellDef): void => {
+    const t = ctx.t;
+    const dealFlags = harmfulSpellDealFlags();
+    const mine = ctx.effectsOn(src.side);
+    for (let i = mine.length - 1; i >= 0; i--) {
+      const e = mine[i]!;
+      if (e.kind !== 'buff') continue;
+      if (e.charges == null || e.charges <= 0) continue;
+      if (e.expiresAt <= t) continue;
+      // An aura cannot spend its own charge. Cite: UnitAuraProcHandler.cpp:543.
+      if (e.spellId === fromSpell.id) continue;
+      const pf = (e.procFlags ?? 0) | 0;
+      if (pf === 0 || (pf & dealFlags) === 0) continue;
+      const modSchool = e.mod ? SPELL_DAMAGE_MOD_SCHOOL[e.mod as keyof typeof SPELL_DAMAGE_MOD_SCHOOL] : undefined;
+      if (modSchool && fromSpell.school !== modSchool) continue;
+      const { remaining, remove } = consumeProcCharge(e.charges);
+      if (remove) {
+        ctx.removeAurasDueToSpell?.(src, e.spellId);
+      } else {
+        e.charges = remaining;
+        ctx.touchEffect(e);
+      }
+    }
+  };
+
   // Proc support: match the flags and the per-minute rate, then fire the trigger spell's effects as a
   // free, instant, no-cost side effect. The injected rng keeps it deterministic, and procs do not nest.
   const triggerProcs = (
@@ -290,6 +319,7 @@ export function installProcsDamage(ctx: CombatContext, deps: installProcsDamageD
         else syncCombustionChip(src);
       }
     }
+    if (flagsHint === 'spell' && fromSpell) consumeChargedBuffsOnDealHit(src, fromSpell);
     const procs = src.procs || [];
     if (!procs.length) return;
     const procCtx = makeProcCtx(src, wasCrit, flagsHint, fromSpell);

@@ -10,6 +10,7 @@ import { effectiveSpeeds, type SpeedEffect } from '../../domain/nav/speed.ts';
 import { MIN_AGGRO_DISTANCE } from '../../domain/creature/creatureAi.ts';
 import { woundedSlowdownFactor } from '../../domain/creature/creatureAiConstants.ts';
 import { roleOf } from './roles.ts';
+import { focusImmunityBlocksSpell } from './predicates.ts';
 import { triggeredIdsOf } from './triggeredCompanion.ts';
 import type { CombatContext } from './context.ts';
 import type { Fighter } from './types.ts';
@@ -132,8 +133,42 @@ export function createMotionKit(deps: MotionKitDeps): MotionKit {
     return r;
   };
 
-  const longestOffenseRangeYd = (f: Fighter): number =>
-    rangedOffenseKit(f, (f.spec.weapon?.dmgMax ?? 0) > 0, rangedPlan(f)).maxRangeYd;
+  // The focus when it can refuse a school, else null. Almost nothing can, so the kit walks below
+  // only run against an elemental or a bubble, and every other tick pays one mask read.
+  const schoolImmuneFoeOf = (f: Fighter): Fighter | null => {
+    const foe = ctx.foeOf?.(f);
+    if (!foe || foe === f) return null;
+    const masks = (foe.immunity?.schoolImmuneMask ?? 0) | (foe.immunity?.damageImmuneMask ?? 0)
+      | (foe.spec.schoolImmuneMask ?? 0);
+    return masks !== 0 ? foe : null;
+  };
+
+  // A focus that refuses the WHOLE offense kit (Vek'nilash to a frost mage) changes nothing: the
+  // caster holds where it stood, which is what a raid wants. Only a partial wall re-aims motion at
+  // what still lands. Cite: twinUppercut capability (casters at 30 yd take no Uppercut).
+  const immuneFoeWithAnOpening = (f: Fighter): Fighter | null => {
+    const foe = schoolImmuneFoeOf(f);
+    if (!foe) return null;
+    for (const s of rangedOffenseKit(f, (f.spec.weapon?.dmgMax ?? 0) > 0, rangedPlan(f)).list) {
+      if (!focusImmunityBlocksSpell(s, foe, 1)) return foe;
+    }
+    for (const s of shortOffenseList(f)) if (!focusImmunityBlocksSpell(s, foe, 1)) return foe;
+    return null;
+  };
+
+  // Reach of what can actually land: a shaman parked at Lightning Bolt's 40 yd from a Rock Elemental
+  // never came inside Flame Shock's 20.
+  const longestOffenseRangeYd = (f: Fighter): number => {
+    const kit = rangedOffenseKit(f, (f.spec.weapon?.dmgMax ?? 0) > 0, rangedPlan(f));
+    const foe = immuneFoeWithAnOpening(f);
+    if (!foe) return kit.maxRangeYd;
+    let r = 0;
+    for (const s of kit.list) {
+      if (focusImmunityBlocksSpell(s, foe, 1)) continue;
+      if ((s.rangeMax ?? 0) > r) r = s.rangeMax ?? 0;
+    }
+    return r;
+  };
 
   /** Judgement / Holy Shock — foe offense not in rangedOffenseKit (nuke/dot/shoot only). */
   type ShortOffenseKit = { len: number; list: SpellDef[] };
@@ -159,9 +194,12 @@ export function createMotionKit(deps: MotionKitDeps): MotionKit {
     const rangedAuto = rangedPlan(f);
     // Only cooldown/cost are live here; which spells even COUNT as ranged offense is a bake
     // constant, and re-deriving it walked the whole kit through roleOf per unit per tick.
+    // Immunity is live too: a Fireball the focus shrugs off held a fire mage at range forever.
+    const foe = immuneFoeWithAnOpening(f);
     for (const s of rangedOffenseKit(f, hasRealMelee, rangedAuto).list) {
       if (onCooldown(f, s)) continue;
       if (!canAfford(f, s)) continue;
+      if (foe && focusImmunityBlocksSpell(s, foe, 1)) continue;
       return true;
     }
     return false;

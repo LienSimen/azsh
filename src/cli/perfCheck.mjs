@@ -49,7 +49,7 @@ while (app.fight && n < 5000) {
   const a = now(); const ev = s.tick(); eng += now() - a;
   app.fight.logEvents(ev);
   const b = now(); app.render(); ren += now() - b;
-  if (s.ended) app.fight.finish();
+  if (s.ended) { app.fight.finish(); app.fight?.release(); } // no hold on the win: the timing stops at the end
   n++;
 }
 console.log(`fight: ${n} ticks, engine ${(eng / n).toFixed(2)} ms/tick, repaint ${(ren / n).toFixed(2)} ms/frame`);

@@ -1,4 +1,4 @@
-// The character create screen: race, class, gender, name and the five looks of the body on one form, the
+// The character create screen: faction, race, class, gender, name and the five looks of the body on one form, the
 // hero drawn in the starting gear beside it, and under the form a card of what they start with (the race
 // and the class in a sentence, racials, pools and attributes at level 1, spells, gear). Left and Right
 // change the row under the cursor; Enter on Race or Class opens a list with each choice drawn; Enter on
@@ -78,7 +78,12 @@ export function characterCreation(app, done, { onCancel } = {}) {
   };
   const preview = () => previewOf(st.race.id, st.cls, st.gender);
   const hero = (cls = st.cls) => ({ ...previewOf(st.race.id, cls, st.gender).char, name: st.name || 'Preview', appearance: st.look });
-  const setRace = (r) => { st.race = r; const cs = classesOf(r); if (!cs.includes(st.cls)) st.cls = cs[0]; st.look = clampAppearance(st.look, r.id, st.gender); };
+  const setRace = (r) => { st.race = r; lastRace[r.faction] = r; const cs = classesOf(r); if (!cs.includes(st.cls)) st.cls = cs[0]; st.look = clampAppearance(st.look, r.id, st.gender); };
+  // Faction comes first: Race cycles and lists only its races, and flipping back returns to the race last chosen there.
+  const factions = [...new Set(races.map((r) => r.faction))];
+  const racesOf = (f) => races.filter((r) => r.faction === f);
+  const lastRace = { [st.race.faction]: st.race };
+  const setFaction = (f) => setRace(lastRace[f] ?? racesOf(f)[0]);
   const setGender = (g) => { st.gender = g; st.look = clampAppearance(st.look, st.race.id, g); };
   const cycle = (list, cur, dir) => list[(list.indexOf(cur) + dir + list.length) % list.length];
   const genderName = () => (st.gender === 1 ? 'Female' : 'Male');
@@ -109,9 +114,10 @@ export function characterCreation(app, done, { onCancel } = {}) {
     done(newGameStateFromWorldBot(ds, pickRandomWorldBot(ds, seed), seed));
   };
 
-  // Enter on Race: every race listed with its body drawn; on Class: every class this race may be, drawn in its gear.
+  // Enter on Race: the faction's races listed with each body drawn; on Class: every class this race may be, drawn in its gear.
   const racePicker = () => {
-    const p = app.pick('Race', races.map((r) => ({
+    const list = racesOf(st.race.faction);
+    const p = app.pick('Race', list.map((r) => ({
       label: `${fit(r.name, 10)} ${dim(factionName(r))}`,
       detail: () => {
         const L = app.layout();
@@ -120,7 +126,7 @@ export function characterCreation(app, done, { onCancel } = {}) {
       },
       value: r,
     })), (r) => { setRace(r); app.render(); }, { hint: 'Enter: choose' });
-    p.cursor = races.indexOf(st.race);
+    p.cursor = list.indexOf(st.race);
   };
   const classPicker = () => {
     const classes = classesOf(st.race);
@@ -171,7 +177,8 @@ export function characterCreation(app, done, { onCancel } = {}) {
 
   view.rows = () => {
     const rows = [
-      field('race', 'Race', st.race.name, { cycle: (d) => setRace(cycle(races, st.race, d)), act: racePicker }),
+      field('faction', 'Faction', factionName(st.race), { cycle: (d) => setFaction(cycle(factions, st.race.faction, d)), act: () => { setFaction(cycle(factions, st.race.faction, 1)); app.render(); } }),
+      field('race', 'Race', st.race.name, { cycle: (d) => setRace(cycle(racesOf(st.race.faction), st.race, d)), act: racePicker }),
       field('class', 'Class', className(st.cls), { cycle: (d) => { st.cls = cycle(classesOf(st.race), st.cls, d); }, act: classPicker }),
       field('gender', 'Gender', genderName(), { cycle: () => setGender(st.gender === 1 ? 0 : 1), act: () => { setGender(st.gender === 1 ? 0 : 1); app.render(); } }),
       { id: 'name', text: `${fit('Name', 12)} ${st.name ? bold(st.name) : dim('Enter: type one   n: a random one')}`, act: askName },

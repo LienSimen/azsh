@@ -113,8 +113,17 @@ in, a caster stays at range.
 Hits rise from the chest, an auto-attack swing lunges the sprite, and a missile (a Fireball, an
 arrow; never a strike) crosses the gap as a glyph. Your cast bar sits centred under the floor and
 the keyed ability bar closes the scene; its slots never move, a cooldown or the cast in progress is
-all they say, and the slot of a spell just used flashes. Party fights and terminals under 90
-columns keep the list of unit frames. The 1.12 combat log streams into the log pane.
+all they say, and the slot of a spell just used flashes. The 1.12 combat log streams into the log pane.
+
+A party fight (companions along, a dungeon pull) is the same stage with every body small: the
+party down the left (you in your gear, the companions in theirs, the pets a size under), the pack
+down the right, and a narrow plate under each sprite with its role letter and name, its health as
+a percent, its power, and under that its cast bar, crowd control or "dead". Each column stands by
+its real distance to the other side, from the far edge to the lane at melee contact, and the
+closing goes to whoever walked it: the healer hangs back, a mage walks into range, the tank runs
+in, and a mob that runs onto the healer crosses the lane while the healer stays put. The sprites
+take the widest box the terminal affords and shrink with the crowd; past the smallest the floor
+counts who is out of frame. Terminals under 90 columns keep the list of unit frames.
 
 Your rotation plays by default.
 

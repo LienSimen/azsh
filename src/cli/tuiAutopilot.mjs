@@ -89,6 +89,7 @@ export function runPanelLines(app, ctl, W, height) {
   // Your frame stays on the same rows either way. No "Autopilot" label: the screen's shape says so.
   // A fight on draws its stage under the title (you left, the foe right, plates under their feet); when the
   // stage does not fit, the sprites take the sides (fightArt) and the frames keep the middle.
+  // A win holds its fight on the stage a moment (the fight's own hold): the foe at 0, the drops sliding in.
   const live = app.fight?.label === 'autopilot' && !ctl.watchFight ? app.fight : null;
   const stage = live ? live.stage(W, height - 1, { inline: true }) : null;
   if (stage) {
@@ -102,7 +103,8 @@ export function runPanelLines(app, ctl, W, height) {
   const right = fight ? `${fight.status} ` : ctl.paused ? `${red('PAUSED')} ` : '';
   const l0 = fit(` ${quest || dim(runWhat(app, ctl))}`, innerW - vis(right)) + right;
   const frame = fight ? fight.player : idlePlayerFrame(app, ctl.frames, innerW);
-  const middle = fight ? fight.fight : [nowLine(app, ctl, cfg), nextLine(app, ctl)];
+  const loot = live?.lootLine();
+  const middle = fight ? [...(loot ? [loot] : []), ...fight.fight] : [nowLine(app, ctl, cfg), nextLine(app, ctl)];
   const lines = [l0, ...frame, ...middle].slice(0, height).map((l) => cut(l, innerW));
   return flankArt(lines, me, foe, W, height);
 }

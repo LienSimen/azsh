@@ -49,7 +49,7 @@ const frame = () => term.text();
 const home = () => { let n = 0; while (app.stack.length && n++ < 10) term.press('escape'); };
 const show = (label) => { if (showFrames) console.log(`\n=== ${label} ===\n${frame()}`); };
 const rowIndex = (pred) => app.rowsOf(app.top()).findIndex((r) => !r.header && pred(r, strip(r.text)));
-/** Run a live fight to its end by hand. */
+/** Run a live fight to its end by hand, through the hold a win keeps on screen after it. */
 const finishFight = () => { let n = 0; while (app.fight && n < 3000) { app.fight.tick(); n++; } return n; };
 
 show('world');
@@ -273,7 +273,24 @@ const ticksBefore = app.log.filter((l) => /^\s*\d+\.\ds /.test(strip(l))).length
 term.press('return');
 check('Enter on the card starts the autopilot', !!app.auto && app.stack.length === 0);
 const autoCtl = app.auto;
-let steps = 0, liveFights = 0, fightTicks = 0;
+let steps = 0, liveFights = 0, fightTicks = 0, heldWin = false;
+/** The first win: the fight stays on the stage with the foe at 0 and the drops beside it, the planner waits,
+ *  and the screen moves on once the hold's ticks are spent. */
+const checkWinHold = () => {
+  const f = app.fight, h = f.holding;
+  const stageRows = () => { const rows = strip(frame()).split('\n'); return rows.slice(2, rows.findIndex((l) => /^── Log/.test(l))); };
+  check('a win holds the stage with the foe dead at 0', f.ended && stageRows().some((l) => /  dead\b/.test(l)) && stageRows().some((l) => / 0\/\d+/.test(l)));
+  const stepBefore = autoCtl.planner.step; autoCtl.step();
+  check('the planner waits out the hold', autoCtl.planner.step === stepBefore && app.fight === f);
+  if (h.loot.length) {
+    while (app.fight === f && f.holdMs() < h.stagger + 300) f.tick();
+    const name = ds.item(h.loot[0].item)?.name;
+    check(`what it dropped slides in on the stage (${name})`, app.fight === f && stageRows().some((l) => l.includes(name)));
+    show('autopilot win hold');
+  }
+  let n = 0; while (app.fight === f && n++ < 200) f.tick();
+  check(`the hold lets go on its own (${n} ticks)`, !app.fight && n <= h.ticks);
+};
 while (app.auto && steps < 60) {
   if (app.fight) {
     if (!liveFights) {
@@ -288,11 +305,14 @@ while (app.auto && steps < 60) {
       term.press('3'); check('a tab can be browsed during an autopilot fight, under the run strip', app.auto.browsing && !!app.fight && /Autopilot.*back to the run/.test(strip(frame()).split('\n')[3] ?? ''));
       term.press('w'); check('w returns to the panel with the fight still on', !app.auto.browsing && app.inlineFight());
     }
-    liveFights++; fightTicks += finishFight(); continue;
+    liveFights++;
+    if (!heldWin) { const f = app.fight; while (app.fight === f && !f.ended) { f.tick(); fightTicks++; } if (f.holding) { heldWin = true; checkWinHold(); } }
+    fightTicks += finishFight(); continue;
   }
   if (!app.auto.step()) break;
   steps++;
 }
+check('the autopilot won a fight to hold on', heldWin);
 show('autopilot');
 if (app.auto) {
   if (app.fight) { liveFights++; fightTicks += finishFight(); }
@@ -815,6 +835,28 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   for (let n = 1; n <= 2; n++) {
     app.top().cursor = rowIndex((r, t) => /◀ next/.test(t)); term.press('return');
     check(`stop ${n} starts a live fight with the party`, !!app.fight?.withSquad && app.fight.session.alliesView().length >= 4);
+    if (n === 1 && app.fight) {
+      // The party stage: every body on one floor, the party's plates on one row (role letter, name) left of the
+      // pack's, an HP percent under each, the foe you face marked, and a cast bar under a caster while it casts.
+      for (let k = 0; k < 8 && app.fight; k++) app.fight.tick();
+      show('party stage');
+      const rows = strip(frame()).split('\n');
+      const plateRow = rows.findIndex((l) => /\bT \S/.test(l) && /\bH \S/.test(l) && l.includes(app.ch.name));
+      check('the party stage puts the tank, the healer and you on one plate row', plateRow > 0);
+      const pct = (rows[plateRow + 1] ?? '').match(/\d+%/g) ?? [];
+      const bodies = 1 + app.fight.session.alliesView().length + 1; // you, the party, at least the foe you face
+      check(`an HP percent sits under every sprite (${pct.length} of ${bodies}+)`, pct.length >= bodies);
+      check('the pack stands right of the party with the faced foe marked', plateRow > 0 && rows[plateRow].indexOf('◀') > rows[plateRow].lastIndexOf(app.ch.name));
+      check('the party stage stands on a floor', /[▁▂_]{40}/.test(strip(frame())));
+      let cast = null;
+      for (let k = 0; k < 400 && app.fight && !cast; k++) {
+        app.fight.tick();
+        const s = app.fight.session;
+        cast = [...s.alliesView(), ...s.enemiesView()].find((v) => v.hp > 0 && v.casting && v.casting.endsAt - s.t >= 300) ?? null;
+      }
+      check('a cast shows as a bar under the caster', !cast || strip(frame()).includes(cast.casting.name.slice(0, 8)));
+      if (cast) show('party stage cast');
+    }
     finishFight();
     check(`stop ${n} is cleared and the run window comes back`, g.state.instance.defeated.length === n && app.top()?.id === 'dungeon');
   }
@@ -1861,11 +1903,16 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   characterCreation(app9, (state) => { created = state; }, { onCancel: () => { cancelled++; } });
   const row9 = (id) => app9.rowsOf(app9.top()).findIndex((r) => r.id === id);
   const text9 = () => term9.text();
-  check('the create screen opens on the race row with the hero drawn', app9.top().id === 'create' && app9.top().cursor === row9('race') && /Unnamed\s+Male Human Warrior/.test(text9()) && /Look/.test(text9()) && /New character/.test(text9()));
+  check('the create screen opens on the faction row with the hero drawn', app9.top().id === 'create' && app9.top().cursor === row9('faction') && row9('faction') < row9('race') && /Faction\s+Alliance/.test(text9()) && /Unnamed\s+Male Human Warrior/.test(text9()) && /Look/.test(text9()) && /New character/.test(text9()));
+  app9.top().cursor = row9('race'); term9.press('right');
+  check('Right on Race steps to the next race of the faction', /Race\s+Dwarf/.test(text9()));
+  app9.top().cursor = row9('faction'); term9.press('right');
+  check('Right on Faction switches to its first race', /Faction\s+Horde/.test(text9()) && /Race\s+Orc/.test(text9()) && /Orc · Horde/.test(text9()));
+  term9.press('left');
+  check('flipping back returns to the race last chosen there', /Faction\s+Alliance/.test(text9()) && /Race\s+Dwarf/.test(text9()));
   term9.press('right');
-  check('Right on Race steps to the next race', /Race\s+Orc/.test(text9()) && /Orc · Horde/.test(text9()));
-  term9.press('left', 'left');
-  check('Left wraps to the last race', /Race\s+Troll/.test(text9()));
+  app9.top().cursor = row9('race'); term9.press('left');
+  check('Left on Race wraps to the faction\'s last race', /Race\s+Troll/.test(text9()));
   // A troll cannot be a paladin or a druid: the class row only offers what the race may roll.
   app9.top().cursor = row9('class');
   const classes9 = new Set();

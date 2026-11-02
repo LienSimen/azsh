@@ -4,7 +4,7 @@ import { createInterface } from 'node:readline';
 import { stdin, stdout } from 'node:process';
 import { bootDataStore } from './bootData.mjs';
 import { FileSaveRepository } from './fileRepository.mjs';
-import { formatCombatLog, combatLogPlainText, POWER_MERGE_MS } from './combatLogFormat.ts';
+import { formatCombatLog, combatLogPlainText, dropLogRepeats, POWER_MERGE_MS } from './combatLogFormat.ts';
 import { createGame, newGameState } from '../engine/game.ts';
 import { toSave } from '../persistence/saveShape.ts';
 import { className, raceName } from '../domain/core/ids.ts';
@@ -237,7 +237,7 @@ export function createCommands({ g, ds, out, persist, slot, arrive, skipJourney 
     // the web client's combat log does, and drop a zero total (rage decay).
     let pend = null;
     const flush = () => { if (pend && pend.amount > 0) rows.push(line(pend.t, pend.remake(pend.amount))); pend = null; };
-    for (const ev of events) {
+    for (const ev of dropLogRepeats(events)) {
       const row = formatCombatLog(ev, n);
       if (!row) continue;
       if (row.merge) {

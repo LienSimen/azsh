@@ -6,9 +6,10 @@
 // rotation; a number key presses an ability over it for one GCD.
 import { bold, dim, cyan, yellow, green, red, gray, inverse, fit, vis, cut, bar, strip, brightBlue, itemText, orange } from './text.mjs';
 import { className } from '../domain/core/ids.ts';
-import { SIZES, youSize, foeSize, RANK_WORD, canvas, put, putLines, putRight, floorLine } from './tuiStage.mjs';
+import { SIZES, youSize, foeSize, canvas, put, putLines, floorLine, POWER_PAINT, POP_MS, POP_RISE_MS, LUNGE_MS, SHORT_BUFF_MS, ROLE_GLYPH, plateLines, auraRows, castSlot, auraText, auraTime, putMissiles, lootToasts, putLootToasts } from './tuiStage.mjs';
+import { partyStage } from './tuiPartyStage.mjs';
 import { combatDistanceYd, DEFAULT_OPEN_YD, MELEE_CONTACT_YD } from '../engine/combat/combatGeometry.ts';
-import { formatCombatLog, combatLogPlainText, POWER_MERGE_MS } from './combatLogFormat.ts';
+import { formatCombatLog, combatLogPlainText, dropLogRepeats, POWER_MERGE_MS } from './combatLogFormat.ts';
 import { impliedDest } from './combatLogFilter.ts';
 import { moneyText } from '../domain/economy/money.ts';
 import { maxHealth, maxPower } from '../domain/character/character.ts';
@@ -24,7 +25,8 @@ import { creatureArt, artWidth } from './modelArt.mjs';
 import { iconArt, iconsOn } from './iconArt.mjs';
 
 export const TICK_MS = 100; // one engine tick per 100 ms of real time, like the web client
-const POWER_PAINT = { mana: brightBlue, rage: red, energy: yellow, focus: yellow };
+// A win holds the fight on screen this long (real time), plus a beat for each drop as it slides in.
+const WIN_HOLD_MS = 1000, DROP_HOLD_MS = 450, DROP_STAGGER_MS = 220, WIN_HOLD_MAX_MS = 3500;
 
 /** Start a live fight. Returns `{ ok: true, ctl }` or `{ ok: false, reason }`. `onEnd(outcome)` runs after the
  *  fight resolves (outcome null when the player ran); `label` names who is driving (the autopilot). `begin` replaces
@@ -51,7 +53,7 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
     auto: true, paused: false, speed: app.fightSpeed ?? 1, pressed: null, pressedTicks: 0, follow: [], focus: null, macros: null, timer: null, pend: null, ended: false,
     frames: newFrameMemory(app), compact: false, squeeze: 0,
     names: sessionLogNames(session, { playerName: app.ch.name, enemyName: b.enemyName, spellName: (id) => app.ds.spell(id)?.name }),
-    hint() { return `${this.plain ? (app.farmEntry === creatureEntry ? 'r: stop repeating   ' : 'r: fight again after   ') : ''}1-0: your action bar   a: ${this.auto ? 'manual play' : 'auto-play'}${session.alliesView().length ? '   t: orders' : ''}   c: cancel a buff${app.g.state.instance ? '   p: pull +1' : ''}   space: ${this.paused ? 'resume' : 'pause'}   + -: speed ${this.speed}x   Tab: ${nextPaneId(app)}   l: log   ${this.label === 'autopilot' ? 'w, Esc: back to the run panel' : 'Esc: run away'}`; },
+    hint() { if (this.holding) return `Enter, Esc: go on   Tab: ${nextPaneId(app)}   l: log`; return `${this.plain ? (app.farmEntry === creatureEntry ? 'r: stop repeating   ' : 'r: fight again after   ') : ''}1-0: your action bar   a: ${this.auto ? 'manual play' : 'auto-play'}${session.alliesView().length ? '   t: orders' : ''}   c: cancel a buff${app.g.state.instance ? '   p: pull +1' : ''}   space: ${this.paused ? 'resume' : 'pause'}   + -: speed ${this.speed}x   Tab: ${nextPaneId(app)}   l: log   ${this.label === 'autopilot' ? 'w, Esc: back to the run panel' : 'Esc: run away'}`; },
     schedule() {
       if (this.timer) app.term.clearInterval(this.timer);
       this.timer = app.term.setInterval(() => this.tick(), Math.max(10, TICK_MS / this.speed));
@@ -59,6 +61,7 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
     stop() { if (this.timer) app.term.clearInterval(this.timer); this.timer = null; },
     /** One engine tick (the check script calls this by hand). */
     tick() {
+      if (this.holding && !this.paused) { if (++this.heldTicks >= this.holding.ticks) this.release(); app.renderSoon(); return; }
       if (this.ended || this.paused) return;
       let action;
       // A macro's later steps go out one per tick once the step before has left the queue.
@@ -81,6 +84,19 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       if (session.ended) this.finish();
       app.renderSoon();
     },
+    /** A win holds the fight on screen a moment before it gives the screen back: the foe at 0 on its plate and
+     *  what it dropped sliding in beside it (putLootToasts). The timer keeps ticking through it, so the hold is
+     *  counted in ticks: the speed keys and the check script drive it like the fight. */
+    holding: null, heldTicks: 0,
+    /** The stage's clock: the fight's own, running on through the hold so the last hits finish rising. */
+    clock() { return session.t + this.heldTicks * TICK_MS; },
+    /** Real milliseconds into the hold (the toasts' clock). */
+    holdMs() { return this.heldTicks * (TICK_MS / this.speed); },
+    /** The drops in one line, for the frames list when the stage does not fit. Null outside a hold or with none. */
+    lootLine() {
+      const drops = this.holding ? lootToasts(app, this.holding) : [];
+      return drops.length ? ` ${cyan('Loot')}  ${drops.map((d) => d.text).join(dim(' · '))}` : null;
+    },
     /** At 4x and up under the autopilot nobody reads the ticks: the log speaks in fights (the Victory line). */
     folded() { return this.label === 'autopilot' && this.speed >= 4; },
     logEvents(events) {
@@ -89,7 +105,7 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       if (this.folded()) return;
       const flush = () => { if (this.pend && this.pend.amount > 0) app.say(line(this.pend.t, this.pend.remake(this.pend.amount))); this.pend = null; };
       const line = (t, row) => `${dim((t / 1000).toFixed(1).padStart(5) + 's')} ${paintLog(row)}`;
-      for (const ev of events) {
+      for (const ev of dropLogRepeats(events)) {
         const row = formatCombatLog(ev, this.names);
         if (!row) continue;
         if (row.merge) {
@@ -104,15 +120,12 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       if (this.pend && session.t - this.pend.t0 >= POWER_MERGE_MS) flush();
     },
     finish() {
+      if (this.ended) return;
       this.ended = true;
-      this.stop();
       if (this.pend) { if (this.pend.amount > 0) app.say(`${dim((this.pend.t / 1000).toFixed(1).padStart(5) + 's')} ${paintLog(this.pend.remake(this.pend.amount))}`); this.pend = null; }
       // Auto-loot off: the corpse holds its drops and coin for the loot window. The autopilot always takes them.
       const hold = !this.resolve && this.label !== 'autopilot' && !autoLootOn(app);
       const r = this.resolve ? this.resolve(session) : app.g.resolveFight(session, hold ? { holdLoot: true } : undefined);
-      app.fight = null;
-      app.lastFight = this; // the meter and threat panes keep reading it between autopilot fights
-      app.stack = this.savedStack;
       this.after?.(r);
       const tag = r.outcome === 'win' ? green(bold('Victory')) : r.outcome === 'defeat' ? red(bold('Defeat')) : yellow(bold('Stalemate'));
       const bits = [`${(r.result.durationMs / 1000).toFixed(1)} s`, `HP ${app.hpText()}`];
@@ -126,6 +139,23 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       if (r.outcome === 'win') app.flashMsg(`${this.enemyName} dies.${r.xpGained ? `  +${r.xpGained} xp` : ''}`);
       // The lines above already tell the story; the engine's activity rows for this fight would repeat it.
       app.lastActivity = app.g.state.activity[0] ?? null;
+      this.done = { r, hold };
+      if (r.outcome !== 'win') { this.release(); return; }
+      // Real time: a second, a beat more for each drop as it slides in; at 4x and up it shortens with the speed.
+      const loot = hold ? [] : r.loot, copper = hold ? 0 : r.goldGained ?? 0;
+      const pace = Math.max(1, this.speed / 2), ms = Math.min(WIN_HOLD_MAX_MS, WIN_HOLD_MS + (loot.length + (copper ? 1 : 0)) * DROP_HOLD_MS) / pace;
+      this.holding = { loot, copper, until: ms, stagger: DROP_STAGGER_MS / pace, ticks: Math.max(1, Math.ceil(ms / (TICK_MS / this.speed))) };
+      app.renderSoon();
+    },
+    /** The fight is over and its hold too: the screen goes back to whoever opened the fight. */
+    release() {
+      if (!this.done || app.fight !== this) return;
+      const { r, hold } = this.done;
+      this.holding = null;
+      this.stop();
+      app.fight = null;
+      app.lastFight = this; // the meter and threat panes keep reading it between autopilot fights
+      app.stack = this.savedStack;
       if (hold) openLoot(app);
       app.afterAction();
       this.onEnd?.(r);
@@ -135,6 +165,7 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       }
     },
     flee() {
+      if (this.holding) { this.release(); return; }
       if (this.resolve) { session.forfeit('player'); for (let i = 0; i < 50 && !session.ended; i++) session.tick(); this.finish(); return; }
       this.ended = true;
       this.stop();
@@ -148,6 +179,11 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       this.onEnd?.(null);
     },
     key(k) {
+      // Over a win's hold Enter or Esc goes on at once; the panes, the log and the speed still answer.
+      if (this.holding) {
+        if (k === 'escape' || k === 'return') { this.release(); return; }
+        if (!['space', 'tab', 'shift-tab', 'l', 'pageup', 'pagedown', '+', '=', '-'].includes(k)) return;
+      }
       if (k === 'escape') { this.flee(); return; }
       if (k === 'space') { this.paused = !this.paused; app.render(); return; }
       if (k === 'a') { this.auto = !this.auto; session.aiPlayer = this.auto; app.say(dim(this.auto ? 'Auto-play on: your rotation plays.' : 'Auto-play off: you press every ability.')); app.render(); return; }
@@ -265,7 +301,7 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
      *  line, the enemies, then the party one line each, cut to `room` lines. `player` is the live player frame for
      *  the panel's own slot. w opens the full view (render) with the party frames and the ability bar. */
     inlineLines(W, room) {
-      const now = session.t;
+      const now = this.clock();
       // No head line: the panel's title names the quest and its counts, the enemy frame names the foe. What is
       // left of the head (the clock, paused, you play) goes on the title's right as `status`.
       const status = `${dim(`${(now / 1000).toFixed(1)}s`)}${this.auto ? '' : yellow('  you play')}${this.paused ? red('  PAUSED') : ''}`;
@@ -285,12 +321,15 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       }
       return { player, status, fight: fight.slice(0, Math.max(1, room)) };
     },
-    /** The duel on its stage (duelStage) when the scene fits: a fight without allies, 90 columns and up, with
-     *  room for the plates. Null otherwise, and the frames list draws instead. `inline` is the autopilot's run
-     *  panel, where the number keys browse tabs, so the ability bar shows its keys dim. */
+    /** The fight on its stage when the scene fits, 90 columns and up: a fight without allies on the duel stage
+     *  (duelStage), one with the party on the party stage (partyStage, every body small on one floor). Null when
+     *  the rows or the columns leave the sprites no room, and the frames list draws instead. `inline` is the
+     *  autopilot's run panel, where the number keys browse tabs, so the ability bar shows its keys dim. */
     stage(W, H, { inline = false } = {}) {
-      if (W < 90 || session.alliesView().length) return null;
-      return duelStage(app, this, W, H, { inline });
+      if (W < 90) return null;
+      const lines = session.alliesView().length ? partyStage(app, this, W, H, { inline }) : duelStage(app, this, W, H, { inline });
+      if (lines && this.holding) putLootToasts(app, lines, this.holding, W, this.holdMs());
+      return lines;
     },
     /** The full fight view: the head line, then the stage; or the frames between the sprites (the foe down the
      *  right, you in your gear down the left, fightArt) when the stage does not fit. */
@@ -298,7 +337,9 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       const stage = this.stage(W, H - 1);
       if (stage) return [this.headLines(W).head, ...stage];
       const { me, foe, innerW } = fightArt(app, this, W, H);
-      return flankArt(this.renderFrames(innerW, H), me, foe, W, H);
+      const frames = this.renderFrames(innerW, H), loot = this.lootLine();
+      if (loot) frames.splice(1, 0, loot);
+      return flankArt(frames.slice(0, H), me, foe, W, H);
     },
     renderFrames(W, H) {
       const lines = [];
@@ -350,7 +391,7 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       const lines = [];
       const abs = this.abilityBar();
       if (iconsOn()) {
-        const now = session.t, mem = this.frames, casting = session.playerView().casting;
+        const now = this.clock(), mem = this.frames, casting = session.playerView().casting;
         const rows = cols / 2, blank = Array.from({ length: rows }, () => ' '.repeat(cols)), gap = ' '.repeat(4);
         const nameW = 14, slotW = 4 + cols + 1 + nameW;
         const slot = (key, art, label, state) => [`${key} ${art[0]} ${fit(label, nameW)}`, `${gap}${art[1]} ${fit(state, nameW)}`, ...art.slice(2).map((l) => `${gap}${l}`)];
@@ -520,9 +561,8 @@ function newFrameMemory(app) {
   return { auraOrder: new Map([['player', app.playerAuraOrder]]), pops: new Map(), used: new Map(), lunge: new Map() };
 }
 
-const POP_MS = 1500, POP_W = 18; // a hit or heal stays beside the bars this long (fight time), in a slot this wide
+const POP_W = 18; // a hit or heal stays beside the bars for POP_MS (fight time), in a slot this wide
 const USED_FLASH_MS = 500; // the ability bar slot of a spell just cast stays inverted this long
-const LUNGE_MS = 250; // an auto-attack swing moves the sprite two columns toward its target this long
 const MISS_WORD = { miss: 'Miss', dodge: 'Dodge', parry: 'Parry', immune: 'Immune', deflect: 'Deflect', block: 'Block' };
 
 /** Damage and healing landing on each unit, newest first, for the numbers that pop up beside its bars; the
@@ -554,8 +594,6 @@ function popText(mem, key, now) {
   }
   return out;
 }
-
-const ROLE_GLYPH = { tank: cyan('T'), healer: green('H'), damage: red('D') };
 
 /** Two lines: name/level/HP/power, then a fixed cast slot + auras. `now` is the clock `casting` runs on. A party
  *  frame carries its role letter and target; `compact` keeps it to the first line with the cast in it. */
@@ -645,7 +683,6 @@ export function flankArt(lines, left, right, W, H) {
 const PLATE_PAD = 12; // columns a plate needs past its bar: the numbers after it
 const GAP = 2;        // columns between the stage's edge and a column, and between columns
 const LANE_MIN = 8;   // the gap kept open between the two sides for the glyphs that cross it
-const POP_RISE_MS = 400; // a pop climbs one row every this long
 
 /**
  * The duel on a stage W x H (the design page's §2): you down the left with your pet beside you, the foes
@@ -656,7 +693,7 @@ const POP_RISE_MS = 400; // a pop climbs one row every this long
  * the sprites no room (the frames list draws instead).
  */
 function duelStage(app, ctl, W, H, { inline }) {
-  const s = ctl.session, now = s.t, mem = ctl.frames;
+  const s = ctl.session, now = ctl.clock(), mem = ctl.frames;
   const pv = s.playerView(), pet = s.petView(), focus = s.enemyView();
   const icons = iconsOn();
   const barW = W >= 140 ? 30 : W >= 110 ? 24 : 18;
@@ -751,99 +788,15 @@ function duelStage(app, ctl, W, H, { inline }) {
       else put(c, col.x + col.plateW + 1 + i * (vis(text) + 1), zone, text);
     });
   }
-  // The engine's missiles in flight (spells with a travel speed: a Fireball, an arrow; never a strike or a
-  // seal): a glyph with a two-dot trail crossing the gap from launch to landing, the spell's name over it.
-  const colOf = (side) => cols.find((x) => x.key === side || (side === 'player' && x.isPlayer));
-  const laneRow = Math.max(0, zone - 1 - Math.floor(Math.min(artRows, 14) / 2));
-  for (const m of s.missilesInFlight?.() ?? []) {
-    if (now < m.launchAt || m.landAt <= m.launchAt) continue;
-    const from = colOf(m.casterSide), to = colOf(m.targetSide);
-    if (!from || !to || from === to) continue;
-    const edge = (col, side) => (side === 'r' ? (col.art ? col.ax + col.aw : col.x + col.plateW) + 1 : (col.art ? col.ax : col.x) - 1);
-    const rightward = from.x < to.x;
-    const a = edge(rightward ? from : to, 'r'), b = edge(rightward ? to : from, 'l');
-    const glyph = rightward ? `${dim('·  ·')}  ${yellow(bold('✦'))}` : `${yellow(bold('✦'))}  ${dim('·  ·')}`;
-    const run = Math.max(0, b - a - vis(glyph)), step = Math.floor(Math.min(1, (now - m.launchAt) / (m.landAt - m.launchAt)) * run);
-    const x = rightward ? a + step : b - vis(glyph) - step;
-    put(c, x, laneRow, glyph);
-    const name = app.ds.spell(m.spellId)?.name;
-    if (name && laneRow > 0) put(c, x + (rightward ? 2 : 0), laneRow - 1, dim(cut(name, Math.max(0, b - a))));
-  }
+  // The engine's missiles in flight cross the gap as glyphs (putMissiles), on a row through the sprites' chests.
+  putMissiles(c, s, cols, now, Math.max(0, zone - 1 - Math.floor(Math.min(artRows, 14) / 2)), (id) => app.ds.spell(id)?.name);
   c[floorRow] = floorLine(W, gray);
   if (barRows) putLines(c, 0, barTop, barLines);
-  return c.map((l) => fit(l, W));
-}
-
-/** A unit's plate: name, level and class or rank (the faced foe marked); HP; power. `small` keeps to the
- *  first two. Every line is `plateW` wide. */
-function plateLines(app, v, { isPlayer, focused, friend, small, dead, barW, plateW, rank = 0 }) {
-  const paint = dead ? gray : isPlayer ? green : friend ? cyan : focused ? red : yellow;
-  const tag = isPlayer ? dim(className(app.ch.cls)) : RANK_WORD[rank] ? orange(RANK_WORD[rank]) : '';
-  let head = `${paint(bold(v.name))}  ${dim(`L${v.level}`)}${tag ? `  ${tag}` : ''}${dead ? gray('  dead') : ''}`;
-  head = focused && !dead ? `${fit(head, plateW - 10)} ${dim('◀ target')}` : fit(head, plateW);
-  const hp = `${bar(v.hp, v.maxHp, barW, dead ? gray : v.hp / Math.max(1, v.maxHp) < 0.25 ? red : green)} ${(dead ? gray : (t) => t)(String(v.hp))}${dim(`/${v.maxHp}`)}`;
-  if (small) return [head, fit(hp, plateW)];
-  const pp = POWER_PAINT[v.powerType] ?? cyan;
-  const power = v.maxPower > 0 && !dead ? `${bar(v.power, v.maxPower, barW, pp)} ${pp(String(v.power))}${v.powerType !== 'mana' ? dim(` ${v.powerType}`) : ''}` : '';
-  return [head, fit(hp, plateW), fit(power, plateW)];
-}
-
-/** The aura strip under a plate: short buffs then debuffs in the order they first showed up. With icons
- *  three rows (the icon's two, then its time or stacks); without, one row of names. */
-function auraRows(app, mem, v, key, plateW, icons) {
-  if (!icons) return [cut(auraText(app, mem, v, key), plateW)];
-  const order = mem.auraOrder.get(key) ?? new Map();
-  mem.auraOrder.set(key, order);
-  const placed = (list) => {
-    for (const a of list) if (!order.has(a.spellId)) order.set(a.spellId, order.size);
-    return [...list].sort((a, b) => order.get(a.spellId) - order.get(b.spellId));
-  };
-  const short = v.buffs.filter((a) => a.remainingMs != null && a.remainingMs < SHORT_BUFF_MS);
-  const all = [...placed(short).slice(0, 6).map((a) => [a, green]), ...placed(v.debuffs).slice(0, 6).map((a) => [a, red])].slice(0, Math.floor((plateW + 1) / 5));
-  const rows = ['', '', ''];
-  for (const [a, paint] of all) {
-    const sp = app.ds.spell(a.spellId);
-    const art = iconArt(sp?.icon, 4);
-    const name = sp?.name ?? String(a.spellId);
-    rows[0] += `${art ? art[0] : paint(fit(name, 4))} `;
-    rows[1] += `${art ? art[1] : paint(fit(name.slice(4), 4))} `;
-    rows[2] += `${a.stacks > 1 ? yellow(fit(`x${a.stacks}`, 4)) : paint(fit(a.remainingMs != null ? auraTime(a.remainingMs).trim() : '', 4))} `;
-  }
-  return rows;
-}
-
-/** The cast slot's text: a cast bar, else crowd control, else stealth; empty when idle. */
-function castSlot(v, now) {
-  if (v.casting) {
-    const total = v.casting.endsAt - v.casting.startedAt;
-    const left = Math.max(0, v.casting.endsAt - now);
-    const prog = v.casting.channeled ? left / total : 1 - left / total;
-    return `${fit(yellow(v.casting.name), 14)} ${bar(prog, 1, 10, yellow)} ${dim(`${(left / 1000).toFixed(1)}s`)}`;
-  }
-  if (v.controlled) return red(v.controlled.control);
-  if (v.stealthed) return dim('stealthed');
-  return '';
-}
-
-const SHORT_BUFF_MS = 60_000; // a frame shows only buffs about to run out; the long ones are on the Character tab
-
-/** Short buffs green then debuffs red, in the order they first showed up, so a refreshed one keeps its place. */
-function auraText(app, mem, v, key) {
-  const order = mem.auraOrder.get(key) ?? new Map();
-  mem.auraOrder.set(key, order);
-  const placed = (list) => {
-    for (const a of list) if (!order.has(a.spellId)) order.set(a.spellId, order.size);
-    return [...list].sort((a, b) => order.get(a.spellId) - order.get(b.spellId));
-  };
-  const aura = (a, paint) => paint(`${app.ds.spell(a.spellId)?.name ?? a.spellId}${a.stacks > 1 ? ` x${a.stacks}` : ''}${a.remainingMs != null ? dim(` ${auraTime(a.remainingMs)}`) : ''}`);
-  const short = v.buffs.filter((a) => a.remainingMs != null && a.remainingMs < SHORT_BUFF_MS);
-  return [...placed(short).slice(0, 6).map((a) => aura(a, green)), ...placed(v.debuffs).slice(0, 6).map((a) => aura(a, red))].join('  ');
-}
-
-/** Aura time left at a fixed width: "  9s", " 12s", " 30m". */
-function auraTime(ms) {
-  const s = Math.ceil(ms / 1000);
-  return (s < 60 ? `${s}s` : `${Math.ceil(s / 60)}m`).padStart(3);
+  const out = c.map((l) => fit(l, W));
+  // The open lane between your side's sprites and the faced foe's, for what is drawn over the stage later
+  // (the drops after a win, putLootToasts).
+  if (foe) out.lane = { left: Math.max(...cols.filter((x) => x.isPlayer || x.friend).map((x) => (x.art ? x.ax + x.aw : x.x))), right: foe.art ? foe.ax : foe.x, rows: zone };
+  return out;
 }
 
 /** The player's frame between fights: one line of name, level and bars. No auras here, the fight shows those. */
