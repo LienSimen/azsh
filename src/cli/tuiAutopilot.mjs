@@ -87,8 +87,15 @@ export function runPanelLines(app, ctl, W, height) {
   // Steps, clock, pace and the stop limits are not progress: the pre-flight card and the Run pane have them.
   // A fight on takes the Now/Next slot with the foes and the party, and its clock sits on the title's right.
   // Your frame stays on the same rows either way. No "Autopilot" label: the screen's shape says so.
-  // While a fight is on the sprites take the sides (fightArt: the foe right, you left), the panel keeping the rest.
+  // A fight on draws its stage under the title (you left, the foe right, plates under their feet); when the
+  // stage does not fit, the sprites take the sides (fightArt) and the frames keep the middle.
   const live = app.fight?.label === 'autopilot' && !ctl.watchFight ? app.fight : null;
+  const stage = live ? live.stage(W, height - 1, { inline: true }) : null;
+  if (stage) {
+    const status = `${dim(`${(live.session.t / 1000).toFixed(1)}s`)}${live.auto ? '' : yellow('  you play')}${live.paused ? red('  PAUSED') : ''} `;
+    const quest = questProgress(app, ctl);
+    return [fit(` ${quest || dim(runWhat(app, ctl))}`, W - vis(status)) + status, ...stage];
+  }
   const { me, foe, innerW } = live ? fightArt(app, live, W, height) : { me: null, foe: null, innerW: W };
   const fight = live ? live.inlineLines(innerW, Math.max(2, height - 3)) : null;
   const quest = questProgress(app, ctl);

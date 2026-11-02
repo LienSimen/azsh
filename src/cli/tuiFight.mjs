@@ -1,8 +1,13 @@
 // Live combat and the animated autopilot for the windowed game. A fight is the engine's real-time
-// session (Game.beginFight) ticked every 100 ms, drawn as unit frames with a cast slot and auras. Auto-play
-// runs the character's rotation; a number key presses an ability over it for one GCD. The numbered ability
-// bar only shows in manual play, where you need it.
-import { bold, dim, cyan, yellow, green, red, gray, inverse, fit, vis, cut, bar, strip, brightBlue, itemText } from './text.mjs';
+// session (Game.beginFight) ticked every 100 ms. A duel (you, maybe your pet, the foes) is drawn on a stage
+// (duelStage): the sprites face each other, each unit's plate sits under its feet, hits rise from the chest,
+// your cast bar is centred under the floor and the keyed ability bar runs along the bottom. A party fight or
+// a narrow terminal falls back to the list of unit frames (renderFrames). Auto-play runs the character's
+// rotation; a number key presses an ability over it for one GCD.
+import { bold, dim, cyan, yellow, green, red, gray, inverse, fit, vis, cut, bar, strip, brightBlue, itemText, orange } from './text.mjs';
+import { className } from '../domain/core/ids.ts';
+import { SIZES, youSize, foeSize, RANK_WORD, canvas, put, putLines, putRight, putCentred, floorLine } from './tuiStage.mjs';
+import { combatDistanceYd, DEFAULT_OPEN_YD, MELEE_CONTACT_YD } from '../engine/combat/combatGeometry.ts';
 import { formatCombatLog, combatLogPlainText, POWER_MERGE_MS } from './combatLogFormat.ts';
 import { impliedDest } from './combatLogFilter.ts';
 import { moneyText } from '../domain/economy/money.ts';
@@ -16,6 +21,7 @@ import { ensureMeter, noteLoot, cycleFightPane, cycleMeterSort, toggleMeterSegme
 import { objectiveLines, playerArt } from './tuiViews.mjs';
 import { runPanelLines, endCard, stopText, stepBody } from './tuiAutopilot.mjs';
 import { creatureArt, artWidth } from './modelArt.mjs';
+import { iconArt, iconsOn } from './iconArt.mjs';
 
 export const TICK_MS = 100; // one engine tick per 100 ms of real time, like the web client
 const POWER_PAINT = { mana: brightBlue, rage: red, energy: yellow, focus: yellow };
@@ -45,7 +51,7 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
     auto: true, paused: false, speed: app.fightSpeed ?? 1, pressed: null, pressedTicks: 0, follow: [], focus: null, macros: null, timer: null, pend: null, ended: false,
     frames: newFrameMemory(app), compact: false, squeeze: 0,
     names: sessionLogNames(session, { playerName: app.ch.name, enemyName: b.enemyName, spellName: (id) => app.ds.spell(id)?.name }),
-    hint() { return `${this.plain ? (app.farmEntry === creatureEntry ? 'r: stop repeating   ' : 'r: fight again after   ') : ''}${this.auto ? 'a: manual play' : '1-0: your action bar   a: auto-play'}${session.alliesView().length ? '   t: orders' : ''}   c: cancel a buff${app.g.state.instance ? '   p: pull +1' : ''}   space: ${this.paused ? 'resume' : 'pause'}   + -: speed ${this.speed}x   Tab: ${nextPaneId(app)}   l: log   Esc: ${this.label === 'autopilot' ? 'back to the run' : 'run away'}`; },
+    hint() { return `${this.plain ? (app.farmEntry === creatureEntry ? 'r: stop repeating   ' : 'r: fight again after   ') : ''}1-0: your action bar   a: ${this.auto ? 'manual play' : 'auto-play'}${session.alliesView().length ? '   t: orders' : ''}   c: cancel a buff${app.g.state.instance ? '   p: pull +1' : ''}   space: ${this.paused ? 'resume' : 'pause'}   + -: speed ${this.speed}x   Tab: ${nextPaneId(app)}   l: log   ${this.label === 'autopilot' ? 'w, Esc: back to the run panel' : 'Esc: run away'}`; },
     schedule() {
       if (this.timer) app.term.clearInterval(this.timer);
       this.timer = app.term.setInterval(() => this.tick(), Math.max(10, TICK_MS / this.speed));
@@ -279,8 +285,18 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       }
       return { player, status, fight: fight.slice(0, Math.max(1, room)) };
     },
-    /** The frames between the sprites: the foe you face down the right, you in your gear down the left (fightArt). */
+    /** The duel on its stage (duelStage) when the scene fits: a fight without allies, 90 columns and up, with
+     *  room for the plates. Null otherwise, and the frames list draws instead. `inline` is the autopilot's run
+     *  panel, where the number keys browse tabs, so the ability bar shows its keys dim. */
+    stage(W, H, { inline = false } = {}) {
+      if (W < 90 || session.alliesView().length) return null;
+      return duelStage(app, this, W, H, { inline });
+    },
+    /** The full fight view: the head line, then the stage; or the frames between the sprites (the foe down the
+     *  right, you in your gear down the left, fightArt) when the stage does not fit. */
     render(W, H) {
+      const stage = this.stage(W, H - 1);
+      if (stage) return [this.headLines(W).head, ...stage];
       const { me, foe, innerW } = fightArt(app, this, W, H);
       return flankArt(this.renderFrames(innerW, H), me, foe, W, H);
     },
@@ -293,7 +309,9 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       const enemies = session.enemiesView();
       // Four companions and their pets do not fit two lines each: once the party outgrows the pane every
       // ally drops to one line for the rest of the fight, so frames never jump between the two shapes.
-      const need = 3 + 2 * (1 + (pet ? 1 : 0) + allies.length + enemies.length) + (this.auto ? 0 : 3);
+      // With icons a full frame is three lines (the aura icons and their times) and the ability bar two.
+      const fh = iconsOn() ? 3 : 2;
+      const need = 3 + fh * (1 + (pet ? 1 : 0) + allies.length + enemies.length) + (this.auto ? 0 : fh + 1);
       if (need > H) this.compact = true;
       const nameOfSide = (side) => (side === 'player' ? app.ch.name : [...allies, ...enemies].find((v) => v.side === side)?.name ?? (pet?.side === side ? pet.name : null));
       const party = [];
@@ -323,10 +341,44 @@ export function startFight(app, creatureEntry, { onEnd, label, begin, after, res
       lines.push(...foeLines, ...tail);
       return lines.slice(0, H);
     },
-    /** Ability bar (manual play only): numbered, dim when unusable, cooldown shown. */
-    abilityRows(W) {
+    /** The ability bar: numbered, dim when unusable. With icons each slot is `cols / 2` lines (a 4 or 6 pixel
+     *  icon) of a fixed width, so nothing on the bar moves between ticks: the key, the icon and the name, and
+     *  under the name only a cooldown (seconds), the cast in progress, or nothing. The slot of a spell just
+     *  used flashes. `live` false (the autopilot's panel, where digits browse tabs) keeps the keys dim and says
+     *  what takes them. Slots fold onto more rows when W is short. */
+    abilityRows(W, cols = 4, { live = true } = {}) {
       const lines = [];
       const abs = this.abilityBar();
+      if (iconsOn()) {
+        const now = session.t, mem = this.frames, casting = session.playerView().casting;
+        const rows = cols / 2, blank = Array.from({ length: rows }, () => ' '.repeat(cols)), gap = ' '.repeat(4);
+        const nameW = 14, slotW = 4 + cols + 1 + nameW;
+        const slot = (key, art, label, state) => [`${key} ${art[0]} ${fit(label, nameW)}`, `${gap}${art[1]} ${fit(state, nameW)}`, ...art.slice(2).map((l) => `${gap}${l}`)];
+        const cells = abs.map((ab) => {
+          const icon = ab.spell ? ab.spell.icon : ab.item != null ? app.ds.item(ab.item)?.icon : null;
+          const art = iconArt(icon, cols) ?? blank;
+          const id = ab.spell?.id;
+          const isCasting = id != null && casting?.spellId === id;
+          const flash = id != null && now - (mem.used?.get(id) ?? -Infinity) < USED_FLASH_MS;
+          const cd = ab.cooldownRemainingMs > 0 ? `${Math.ceil(ab.cooldownRemainingMs / 1000)}s` : '';
+          const state = isCasting ? yellow(`${(Math.max(0, casting.endsAt - now) / 1000).toFixed(1)}s`) : cd ? dim(`◔ ${cd}`) : '';
+          const name = cut(ab.label, nameW);
+          const label = flash || (this.pressed != null && this.pressed === id) ? inverse(name) : isCasting ? yellow(name) : ab.usable ? name : dim(name);
+          const key = live && ab.usable ? inverse(` ${ab.key} `) : dim(` ${ab.key} `);
+          return slot(key, art, label, state);
+        });
+        const items = session.items().filter((x) => x.usable);
+        if (items.length) cells.push(slot(live ? inverse(' 0 ') : dim(' 0 '), iconArt(items[0].item?.icon, cols) ?? blank, cut(itemText(items[0].item), nameW), dim(`x${items[0].count}`)));
+        if (!live) cells.push([dim('w: take the keys'), '', '']);
+        let row = Array.from({ length: rows }, () => ' ');
+        for (const cell of cells) {
+          const w = Math.max(slotW, ...cell.map(vis));
+          if (vis(row[0]) + w + 3 > W && row[0].trim()) { lines.push(...row); row = Array.from({ length: rows }, () => ' '); }
+          row = row.map((r, i) => `${r}${fit(cell[i] ?? '', w)}   `);
+        }
+        lines.push(...row);
+        return lines;
+      }
       let row = ' ';
       for (let i = 0; i < abs.length; i++) {
         const ab = abs[i];
@@ -465,16 +517,21 @@ const CAST_W = 30; // the cast/control slot on a frame's second line, so auras n
 function newFrameMemory(app) {
   // The player's own aura order carries across fights, so their frame never reshuffles.
   app.playerAuraOrder ??= new Map();
-  return { auraOrder: new Map([['player', app.playerAuraOrder]]), pops: new Map() };
+  return { auraOrder: new Map([['player', app.playerAuraOrder]]), pops: new Map(), used: new Map(), lunge: new Map() };
 }
 
 const POP_MS = 1500, POP_W = 18; // a hit or heal stays beside the bars this long (fight time), in a slot this wide
+const USED_FLASH_MS = 500; // the ability bar slot of a spell just cast stays inverted this long
+const LUNGE_MS = 250; // an auto-attack swing moves the sprite two columns toward its target this long
 const MISS_WORD = { miss: 'Miss', dodge: 'Dodge', parry: 'Parry', immune: 'Immune', deflect: 'Deflect', block: 'Block' };
 
-/** Damage and healing landing on each unit, newest first, for the numbers that pop up beside its bars. */
+/** Damage and healing landing on each unit, newest first, for the numbers that pop up beside its bars; the
+ *  player's casts, for the flash on the ability bar; and every melee swing, for the lunge. */
 function notePops(mem, events) {
   for (const ev of events) {
     let side, text;
+    if (ev.actor === 'player' && ev.spellId != null && (ev.kind === 'cast_start' || ev.kind === 'cast_finish' || ev.kind === 'spell_hit' || ev.kind === 'cast_self')) mem.used?.set(ev.spellId, ev.t);
+    if (ev.kind === 'melee' && ev.actor) mem.lunge?.set(ev.actor, ev.t); // only a weapon swing lunges; spells, strikes and thorns do not
     if (ev.kind === 'melee' || ev.kind === 'spell_hit' || ev.kind === 'dot_tick') {
       side = ev.target ?? impliedDest(ev.actor);
       if (ev.amount > 0) text = ev.result === 'crit' ? bold(red(`-${ev.amount}!`)) : red(`-${ev.amount}`);
@@ -525,8 +582,34 @@ function unitFrame(app, mem, v, W, now, isPlayer, focused = false, { compact = f
   // The second line is always there, cast slot first (a cast bar, else crowd control, else stealth, blank when
   // idle) and the auras after it, so gaining a buff or starting a cast never moves this frame or the ones below.
   const slot = castSlot(v, now);
+  if (iconsOn()) {
+    // Icons: a strip of 4x4 icons beside the cast slot, each one's time (or stacks) under it on a third line.
+    const [top, bottom] = auraIcons(app, mem, v, key);
+    return [cut(`${head}${after}`, W), cut(`   ${fit(slot, CAST_W)}  ${top}`, W), cut(`   ${' '.repeat(CAST_W)}  ${bottom}`, W)];
+  }
   const auras = auraText(app, mem, v, key);
   return [cut(`${head}${after}`, W), cut(`   ${fit(slot, CAST_W)}  ${auras}`, W)];
+}
+
+/** The auras auraText lists, as two lines: icons (a 4-letter stub when one has no art) and their times. */
+function auraIcons(app, mem, v, key) {
+  const order = mem.auraOrder.get(key) ?? new Map();
+  mem.auraOrder.set(key, order);
+  const placed = (list) => {
+    for (const a of list) if (!order.has(a.spellId)) order.set(a.spellId, order.size);
+    return [...list].sort((a, b) => order.get(a.spellId) - order.get(b.spellId));
+  };
+  const short = v.buffs.filter((a) => a.remainingMs != null && a.remainingMs < SHORT_BUFF_MS);
+  const all = [...placed(short).slice(0, 6).map((a) => [a, green]), ...placed(v.debuffs).slice(0, 6).map((a) => [a, red])];
+  let top = '', bottom = '';
+  for (const [a, paint] of all) {
+    const sp = app.ds.spell(a.spellId);
+    const art = iconArt(sp?.icon, 4);
+    const name = sp?.name ?? String(a.spellId);
+    top += `${art ? art[0] : paint(fit(name, 4))} `;
+    bottom += `${art ? (a.stacks > 1 ? yellow(fit(`x${a.stacks}`, 4)) : paint(fit(a.remainingMs != null ? auraTime(a.remainingMs).trim() : '', 4))) : paint(fit(name.slice(4), 4))} `;
+  }
+  return [top, bottom];
 }
 
 /** Columns an art column gets in a pane W wide: none under 90 columns, up to 28. */
@@ -555,6 +638,188 @@ export function flankArt(lines, left, right, W, H) {
   while (out.length < H) out.push('');
   const lt = Math.max(0, Math.floor((H - (left?.length ?? 0)) / 2)), rt = Math.max(0, Math.floor((H - (right?.length ?? 0)) / 2));
   return out.map((l, i) => `${left ? `${fit(left[i - lt] ?? '', lw)}  ` : ''}${fit(l, innerW)}${right ? `  ${right[i - rt] ?? ''}` : ''}`);
+}
+
+// ---- the stage ----------------------------------------------------------------------------------------
+
+const PLATE_PAD = 12; // columns a plate needs past its bar: the numbers after it
+const GAP = 2;        // columns between the stage's edge and a column, and between columns
+const LANE_MIN = 8;   // the gap kept open between the two sides for the glyphs that cross it
+const POP_RISE_MS = 400; // a pop climbs one row every this long
+
+/**
+ * The duel on a stage W x H (the design page's §2): you down the left with your pet beside you, the foes
+ * down the right with the one you face outermost. Under each sprite sits its plate (name, level, class or
+ * rank; HP; power), its state (a cast bar, crowd control, stealth) and its aura strip. Hits rise from the
+ * chest, a spell crosses the gap as a glyph, the floor runs under the plates, your cast bar is centred
+ * below it and the ability bar closes the scene. Returns H lines each W wide, or null when the rows leave
+ * the sprites no room (the frames list draws instead).
+ */
+function duelStage(app, ctl, W, H, { inline }) {
+  const s = ctl.session, now = s.t, mem = ctl.frames;
+  const pv = s.playerView(), pet = s.petView(), focus = s.enemyView();
+  const icons = iconsOn();
+  const barW = W >= 140 ? 30 : W >= 110 ? 24 : 18;
+  const plateW = barW + PLATE_PAD;
+  const auraH = icons ? 3 : 1;
+  // Rows the scene keeps whatever the sprites get: the plate (3), the state row, the auras and the floor.
+  // The cast row and the ability bar go when rows are short, the bar first and only under auto-play.
+  const barLines = ctl.abilityRows(W, W >= 140 ? 6 : 4, { live: !inline });
+  let barRows = barLines.length, castRow = 1;
+  const fixed = () => 3 + 1 + auraH + 1 + castRow + barRows;
+  if (H - fixed() < 4 && ctl.auto) barRows = 0;
+  if (H - fixed() < 4) castRow = 0;
+  const artRows = H - fixed();
+  if (artRows < 4) return null;
+  const rankOf = (v) => { const c = v.creatureEntry != null ? app.ds.creature(v.creatureEntry) : null; return c?.rank ?? c?.scaling?.rank ?? 0; };
+  const creatureLines = (v, c, r) => (v.creatureEntry != null ? creatureArt(app.ds.creature(v.creatureEntry)?.displayId, c, r) : null);
+  /** One column of the stage: the unit, its box, its art and its plate; placed by x later. */
+  const column = (v, key, size, artOf, o) => {
+    const box = SIZES[size];
+    const art = artOf(box[0], Math.min(box[1], artRows));
+    const pw = (o.barW ?? barW) + PLATE_PAD;
+    return { v, key, art, aw: artWidth(art), cw: Math.max(pw, art ? artWidth(art) : 0), plateW: pw, ...o, barW: o.barW ?? barW };
+  };
+  const cols = [];
+  const you = column(pv, 'player', youSize(W), (c, r) => playerArt(app, c, r)?.lines ?? null, { isPlayer: true });
+  const margin = Math.max(GAP, Math.floor(W / 16)); // the actors stand a little in from the edges
+  you.x = margin; cols.push(you);
+  let left = you.x + you.cw + GAP, right = W - margin, petCol = null;
+  if (pet) {
+    const c = column(pet, pet.side ?? pet.name, 'xs', (cc, r) => creatureLines(pet, cc, r), { friend: true, small: true, barW: 10 });
+    if (left + c.cw + LANE_MIN + plateW <= right) { c.x = left; left += c.cw + GAP; cols.push(c); petCol = c; }
+  }
+  // The other foes stand at the far edge. You and the foe you face stand where you really are: the engine
+  // keeps every unit's position in yards, so the gap between you is the real one, scaled from melee contact
+  // to the widest it has been this fight. Whoever walked closes it on screen: a melee character runs up to
+  // the mob (it stands where it was pulled), a mob chases the caster that hit it. Nobody slides who did not move.
+  let hidden = 0;
+  for (const e of s.enemiesView().filter((x) => x !== focus)) {
+    const c = column(e, e.side ?? e.name, 's', (cc, r) => creatureLines(e, cc, r), { small: true, barW: 12, rank: rankOf(e) });
+    if (right - c.cw - LANE_MIN - plateW < left) { hidden++; continue; }
+    c.x = right - c.cw; right = c.x - GAP; cols.push(c);
+  }
+  const foe = focus ? column(focus, focus.side ?? focus.name, foeSize(W, rankOf(focus)), (c, r) => creatureLines(focus, c, r), { focused: true, rank: rankOf(focus) }) : null;
+  if (foe) {
+    const near = left + LANE_MIN, far = Math.max(near, right - foe.cw);
+    const pP = s.unitPosYd?.('player'), pF = s.unitPosYd?.(focus.side);
+    const yd = combatDistanceYd(pP, pF);
+    mem.openYd = Math.max(mem.openYd ?? DEFAULT_OPEN_YD, yd ?? 0);
+    mem.openPos ??= new Map();
+    if (pP && !mem.openPos.has('player')) mem.openPos.set('player', { ...pP });
+    if (pF && !mem.openPos.has(foe.key)) mem.openPos.set(foe.key, { ...pF });
+    const walkedP = combatDistanceYd(mem.openPos.get('player'), pP) ?? 0, walkedF = combatDistanceYd(mem.openPos.get(foe.key), pF) ?? 0;
+    const share = walkedP + walkedF > 0 ? walkedP / (walkedP + walkedF) : 1; // your share of the closing; yours when nobody has walked yet
+    const frac = yd == null ? 1 : Math.max(0, Math.min(1, (yd - MELEE_CONTACT_YD) / Math.max(1, mem.openYd - MELEE_CONTACT_YD)));
+    const closing = Math.round((1 - frac) * (far - near)), yours = Math.round(closing * share);
+    for (const col of cols) if (col.isPlayer || col.friend) col.x += yours; // your pet walks beside you
+    foe.x = far - (closing - yours); foe.yd = yd;
+    // The pet has its own yards too: it runs out from your side to the foe and back. Its distance to the
+    // foe, from your gap down to melee contact, slides it from its place beside you to just in front of
+    // the foe's plate (the lane is at least LANE_MIN wide, so the two never overlap).
+    if (petCol && yd != null) {
+      const dPet = combatDistanceYd(s.unitPosYd?.(petCol.key), pF);
+      if (dPet != null) {
+        const out = Math.max(0, Math.min(1, (yd - dPet) / Math.max(1, yd - MELEE_CONTACT_YD)));
+        petCol.x += Math.round(out * Math.max(0, foe.x - GAP - (petCol.x + petCol.cw)));
+      }
+    }
+    cols.push(foe);
+  }
+  const zone = artRows, stateRow = zone + 3, auraTop = zone + 4, floorRow = auraTop + auraH, barTop = floorRow + 1 + castRow;
+  const c = canvas(W, H);
+  for (const col of cols) {
+    const v = col.v, dead = v.hp <= 0;
+    // The sprite stands on the plate, centred over it; the plate hangs under its feet. A swing lunges it two
+    // columns toward the other side for a moment.
+    if (col.art) {
+      const lunge = now - (mem.lunge?.get(col.key) ?? -Infinity) < LUNGE_MS ? (col.isPlayer || col.friend ? 2 : -2) : 0;
+      col.ax = col.x + Math.max(0, Math.floor((col.cw - col.aw) / 2)) + lunge; col.top = zone - col.art.length; putLines(c, col.ax, col.top, col.art);
+    }
+    putLines(c, col.x, zone, plateLines(app, v, { ...col, dead }));
+    const slot = col.isPlayer && castRow && v.casting ? '' : castSlot(v, now);
+    if (slot && !dead) put(c, col.x, stateRow, cut(slot, col.plateW));
+    else if (col === foe && hidden) put(c, col.x, stateRow, dim(`+${hidden} more in the fight`));
+    if (!col.small && !dead) putLines(c, col.x, auraTop, auraRows(app, mem, v, col.key, col.plateW, icons));
+    // Hits and heals rise from the chest, the newest lowest; without art they sit beside the name.
+    const pops = (mem.pops.get(col.key) ?? []).filter((p) => now - p.t < POP_MS);
+    pops.forEach((p, i) => {
+      const text = now - p.t > POP_MS / 2 ? dim(p.text) : p.text;
+      // On the sprite's inner shoulder, spilling toward the middle of the stage, so the body stays readable.
+      if (col.art) put(c, col.isPlayer || col.friend ? col.ax + col.aw - 1 : col.ax + 1 - vis(text), col.top + Math.floor(col.art.length / 3) - Math.floor((now - p.t) / POP_RISE_MS) - i, text);
+      else put(c, col.x + col.plateW + 1 + i * (vis(text) + 1), zone, text);
+    });
+  }
+  // The engine's missiles in flight (spells with a travel speed: a Fireball, an arrow; never a strike or a
+  // seal): a glyph with a two-dot trail crossing the gap from launch to landing, the spell's name over it.
+  const colOf = (side) => cols.find((x) => x.key === side || (side === 'player' && x.isPlayer));
+  const laneRow = Math.max(0, zone - 1 - Math.floor(Math.min(artRows, 14) / 2));
+  for (const m of s.missilesInFlight?.() ?? []) {
+    if (now < m.launchAt || m.landAt <= m.launchAt) continue;
+    const from = colOf(m.casterSide), to = colOf(m.targetSide);
+    if (!from || !to || from === to) continue;
+    const edge = (col, side) => (side === 'r' ? (col.art ? col.ax + col.aw : col.x + col.plateW) + 1 : (col.art ? col.ax : col.x) - 1);
+    const rightward = from.x < to.x;
+    const a = edge(rightward ? from : to, 'r'), b = edge(rightward ? to : from, 'l');
+    const glyph = rightward ? `${dim('·  ·')}  ${yellow(bold('✦'))}` : `${yellow(bold('✦'))}  ${dim('·  ·')}`;
+    const run = Math.max(0, b - a - vis(glyph)), step = Math.floor(Math.min(1, (now - m.launchAt) / (m.landAt - m.launchAt)) * run);
+    const x = rightward ? a + step : b - vis(glyph) - step;
+    put(c, x, laneRow, glyph);
+    const name = app.ds.spell(m.spellId)?.name;
+    if (name && laneRow > 0) put(c, x + (rightward ? 2 : 0), laneRow - 1, dim(cut(name, Math.max(0, b - a))));
+  }
+  c[floorRow] = floorLine(W, gray);
+  if (castRow && pv.casting && pv.hp > 0) putCentred(c, Math.floor(W / 2), floorRow + 1, castBarText(pv, now, Math.min(40, Math.max(16, Math.floor(W / 4)))));
+  if (barRows) putLines(c, 0, barTop, barLines);
+  return c.map((l) => fit(l, W));
+}
+
+/** A unit's plate: name, level and class or rank (the faced foe marked); HP; power. `small` keeps to the
+ *  first two. Every line is `plateW` wide. */
+function plateLines(app, v, { isPlayer, focused, friend, small, dead, barW, plateW, rank = 0 }) {
+  const paint = dead ? gray : isPlayer ? green : friend ? cyan : focused ? red : yellow;
+  const tag = isPlayer ? dim(className(app.ch.cls)) : RANK_WORD[rank] ? orange(RANK_WORD[rank]) : '';
+  let head = `${paint(bold(v.name))}  ${dim(`L${v.level}`)}${tag ? `  ${tag}` : ''}${dead ? gray('  dead') : ''}`;
+  head = focused && !dead ? `${fit(head, plateW - 10)} ${dim('◀ target')}` : fit(head, plateW);
+  const hp = `${bar(v.hp, v.maxHp, barW, dead ? gray : v.hp / Math.max(1, v.maxHp) < 0.25 ? red : green)} ${(dead ? gray : (t) => t)(String(v.hp))}${dim(`/${v.maxHp}`)}`;
+  if (small) return [head, fit(hp, plateW)];
+  const pp = POWER_PAINT[v.powerType] ?? cyan;
+  const power = v.maxPower > 0 && !dead ? `${bar(v.power, v.maxPower, barW, pp)} ${pp(String(v.power))}${v.powerType !== 'mana' ? dim(` ${v.powerType}`) : ''}` : '';
+  return [head, fit(hp, plateW), fit(power, plateW)];
+}
+
+/** Your cast as the bar centred under the floor: the name, a wide bar, the time left. A channel drains. */
+function castBarText(v, now, width) {
+  const total = v.casting.endsAt - v.casting.startedAt;
+  const left = Math.max(0, v.casting.endsAt - now);
+  const prog = total > 0 ? (v.casting.channeled ? left / total : 1 - left / total) : 1;
+  const filled = Math.round(Math.max(0, Math.min(1, prog)) * width);
+  const [on, off] = process.env.AZSH_ASCII ? ['=', '-'] : ['▰', '▱'];
+  return `${yellow(v.casting.name)}  ${yellow(on.repeat(filled))}${dim(off.repeat(width - filled))}  ${dim(`${(left / 1000).toFixed(1)}s`)}`;
+}
+
+/** The aura strip under a plate: short buffs then debuffs in the order they first showed up. With icons
+ *  three rows (the icon's two, then its time or stacks); without, one row of names. */
+function auraRows(app, mem, v, key, plateW, icons) {
+  if (!icons) return [cut(auraText(app, mem, v, key), plateW)];
+  const order = mem.auraOrder.get(key) ?? new Map();
+  mem.auraOrder.set(key, order);
+  const placed = (list) => {
+    for (const a of list) if (!order.has(a.spellId)) order.set(a.spellId, order.size);
+    return [...list].sort((a, b) => order.get(a.spellId) - order.get(b.spellId));
+  };
+  const short = v.buffs.filter((a) => a.remainingMs != null && a.remainingMs < SHORT_BUFF_MS);
+  const all = [...placed(short).slice(0, 6).map((a) => [a, green]), ...placed(v.debuffs).slice(0, 6).map((a) => [a, red])].slice(0, Math.floor((plateW + 1) / 5));
+  const rows = ['', '', ''];
+  for (const [a, paint] of all) {
+    const sp = app.ds.spell(a.spellId);
+    const art = iconArt(sp?.icon, 4);
+    const name = sp?.name ?? String(a.spellId);
+    rows[0] += `${art ? art[0] : paint(fit(name, 4))} `;
+    rows[1] += `${art ? art[1] : paint(fit(name.slice(4), 4))} `;
+    rows[2] += `${a.stacks > 1 ? yellow(fit(`x${a.stacks}`, 4)) : paint(fit(a.remainingMs != null ? auraTime(a.remainingMs).trim() : '', 4))} `;
+  }
+  return rows;
 }
 
 /** The cast slot's text: a cast bar, else crowd control, else stealth; empty when idle. */
@@ -591,17 +856,14 @@ function auraTime(ms) {
   return (s < 60 ? `${s}s` : `${Math.ceil(s / 60)}m`).padStart(3);
 }
 
-/** The player's frame from the character between fights, shaped like the in-fight one so it stays put. */
+/** The player's frame between fights: one line of name, level and bars. No auras here, the fight shows those. */
 export function idlePlayerFrame(app, mem, W) {
-  const ch = app.ch, ds = app.ds, now = Date.now();
-  const buffs = (ch.activeAuras ?? (ch.activeBuffs ?? []).map((spellId) => ({ spellId })))
-    .filter((a) => a.expiresAt == null || a.expiresAt > now)
-    .map((a) => ({ spellId: a.spellId, ...(a.expiresAt != null ? { remainingMs: a.expiresAt - now } : {}) }));
+  const ch = app.ch, ds = app.ds;
   const v = {
     name: ch.name, level: ch.level, hp: ch.health, maxHp: maxHealth(ch, ds), power: ch.power, maxPower: maxPower(ch, ds),
-    powerType: powerType(ch), casting: null, controlled: null, buffs, debuffs: [],
+    powerType: powerType(ch), casting: null, controlled: null, buffs: [], debuffs: [],
   };
-  return unitFrame(app, mem, v, W, 0, true);
+  return unitFrame(app, mem, v, W, 0, true, false, { compact: true });
 }
 
 export const AUTOPILOT_STEP_MS = 350;

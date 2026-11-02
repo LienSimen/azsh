@@ -1,6 +1,6 @@
 // The tabs and dialogs of the windowed game. A view is `{ id, title, hint, rows(app), keys, detail }`; a row is
 // `{ text, header?, act?, detail?, keys? }`. Views read the Game facade and DataStore; every change is a facade call.
-import { bold, dim, cyan, yellow, green, red, gray, magenta, brightBlue, brightYellow, qualityPaint, QUALITY, questText, wrapLines, fit, secondsText, plural } from './text.mjs';
+import { bold, dim, cyan, yellow, green, red, gray, magenta, brightBlue, brightYellow, qualityPaint, QUALITY, questText, wrapLines, fit, secondsText, plural, vis } from './text.mjs';
 import { ruleSentence, conditionsSentence, condSentence, PHASE_LABEL } from './rotationText.mjs';
 import { startFight, startAutopilot } from './tuiFight.mjs';
 import { className, raceName } from '../domain/core/ids.ts';
@@ -32,7 +32,7 @@ import { portalRows } from './tuiDungeon.mjs';
 import { conditionEditor, defaultConditionsForSpell, defaultItemRule } from './tuiRotationCond.mjs';
 import { allyIndexOfSide } from '../engine/core/events.ts';
 import { bulkDisenchantDialog, learnAllDialog } from './tuiBulk.mjs';
-import { gearExtraRows, durabilityText, repairOne, slotRepairLines, enchantLines } from './tuiGear.mjs';
+import { gearExtraRows, durabilityText, repairOne, repairAll, slotRepairLines, enchantLines } from './tuiGear.mjs';
 import { outfitterDialog } from './tuiOutfitter.mjs';
 import { castWithPicker } from './tuiEnchantTarget.mjs';
 import { settingsDialog } from './tuiSettings.mjs';
@@ -43,6 +43,9 @@ import { simLabDialog } from './tuiSimLab.mjs';
 import { autopilotSettingsDialog } from './tuiAutopilotSettings.mjs';
 import { preflightCard } from './tuiAutopilot.mjs';
 import { creatureArt } from './modelArt.mjs';
+import { withIcon, iconsOn } from './iconArt.mjs';
+import { paperdollGrid, paperdollPlan } from './tuiPaperdoll.mjs';
+import { talentGrid, talentPlan, talentTone, talentIcon } from './tuiTalentTree.mjs';
 import { paperdollArt } from './paperdoll.mjs';
 import { reputationDialog } from './tuiRep.mjs';
 import { honorDialog, honorRankLine } from './tuiHonor.mjs';
@@ -77,6 +80,10 @@ export function spellText(ds, sp) {
 }
 
 export function itemLines(app, item, extra = []) {
+  return withIcon(item?.icon, itemLinesText(app, item, extra));
+}
+
+function itemLinesText(app, item, extra = []) {
   if (!item) return ['Unknown item'];
   const out = [qualityPaint(item.quality)(bold(item.name))];
   const kind = [item.slot, item.typeName].filter(Boolean).join(' · ');
@@ -126,6 +133,10 @@ export function itemLines(app, item, extra = []) {
 }
 
 export function spellLines(app, sp, extra = []) {
+  return withIcon(sp?.icon, spellLinesText(app, sp, extra));
+}
+
+function spellLinesText(app, sp, extra = []) {
   if (!sp) return ['Unknown spell'];
   const out = [bold(sp.name) + (sp.rank ? dim(`  Rank ${sp.rank}`) : '')];
   const bits = [];
@@ -136,7 +147,7 @@ export function spellLines(app, sp, extra = []) {
   out.push(dim(bits.join('   ')));
   if (sp.reagents?.length) out.push(dim('Reagents: ' + sp.reagents.map((r) => `${app.itemLabel(r.item)}${r.count > 1 ? ` x${r.count}` : ''}`).join(', ')));
   const text = spellText(app.ds, sp);
-  if (text) out.push(...wrapLines(yellow(text), 60));
+  if (text) out.push(yellow(text)); // the pane wraps it, beside the icon while they share its rows
   const cd = app.g.spellCooldownRemaining(sp.id);
   if (cd > 0) out.push(red(`Cooldown: ${secondsText(cd)} left`));
   out.push(...extra);
@@ -164,6 +175,15 @@ export function creatureLines(app, c) {
   const art = L && c.displayId ? creatureArt(c.displayId, L.detailW - 2, L.mainH - out.length - 1) : null;
   if (art) out.push('', ...art);
   return out;
+}
+
+/** A person in the world: the text, then the NPC's creature drawn under it as large as the pane has room for. */
+export function npcLines(app, entry, text) {
+  const L = app.layout?.(), id = app.ds.creature(entry)?.displayId;
+  if (!L || !id) return text;
+  const w = L.detailW - 2, used = text.reduce((n, line) => n + (vis(line) > w ? wrapLines(line, w).length : 1), 0);
+  const art = creatureArt(id, w, L.mainH - used - 1);
+  return art ? [...text, '', ...art] : text;
 }
 
 export function questLines(app, q, qs) {
@@ -234,19 +254,19 @@ function worldView(app) {
       if (!z) return [{ text: 'You are nowhere.', header: true }];
       const rows = [...journeyRows(a), ...meetingStoneQueueRows(a), { text: `${z.name}  ${dim(`levels ${z.levelRange[0]}-${z.levelRange[1]}${z.faction ? `, ${z.faction}` : ''}`)}`, header: true }];
       const people = [];
-      for (const t of z.trainers ?? []) if (t.cls === ch.cls) { const d = ds.trainer(t.entry); if (d) people.push({ text: `${d.name} ${dim(`<${className(t.cls)} Trainer>`)}`, detail: () => [bold(d.name), `${className(t.cls)} trainer`, '', dim('Enter: see what you can learn')], act: () => a.push(trainerDialog(a, d)) }); }
+      for (const t of z.trainers ?? []) if (t.cls === ch.cls) { const d = ds.trainer(t.entry); if (d) people.push({ text: `${d.name} ${dim(`<${className(t.cls)} Trainer>`)}`, detail: () => npcLines(a, d.entry, [bold(d.name), `${className(t.cls)} trainer`, '', dim('Enter: see what you can learn')]), act: () => a.push(trainerDialog(a, d)) }); }
       const innEntries = new Set((z.innkeepers ?? []).map((i) => i.entry)); // innkeepers sell too, but list once, as the inn
-      for (const v of z.vendors ?? []) { const d = !innEntries.has(v) && ds.vendor(v); if (d) people.push({ text: `${d.name} ${dim(`<${d.subname ?? 'Vendor'}>`)}${d.canRepair ? dim('  repairs') : ''}`, detail: () => [bold(d.name), d.subname ?? 'Vendor', d.canRepair ? 'Repairs armor and weapons' : '', '', dim('Enter: browse wares')], act: () => a.push(vendorDialog(a, d)) }); }
-      for (const i of z.innkeepers ?? []) people.push({ text: `${i.name} ${dim('<Innkeeper>')}`, detail: () => [bold(i.name), 'Innkeeper', '', dim('Enter: browse wares, make this your home')], act: () => a.push(innDialog(a, i)) });
+      for (const v of z.vendors ?? []) { const d = !innEntries.has(v) && ds.vendor(v); if (d) people.push({ text: `${d.name} ${dim(`<${d.subname ?? 'Vendor'}>`)}${d.canRepair ? dim('  repairs') : ''}`, detail: () => npcLines(a, d.entry, [bold(d.name), d.subname ?? 'Vendor', ...(d.canRepair ? ['Repairs armor and weapons'] : []), '', dim('Enter: browse wares')]), act: () => a.push(vendorDialog(a, d)) }); }
+      for (const i of z.innkeepers ?? []) people.push({ text: `${i.name} ${dim('<Innkeeper>')}`, detail: () => npcLines(a, i.entry, [bold(i.name), 'Innkeeper', '', dim('Enter: browse wares, make this your home')]), act: () => a.push(innDialog(a, i)) });
       for (const p of z.profTrainers ?? []) {
         const d = ds.profTrainer(p);
         if (!d) continue;
         const prof = ds.profession(d.skill)?.name ?? d.skill;
         const sk = ch.skills[d.skill];
-        people.push({ text: `${d.name} ${dim(`<${prof} Trainer>`)}${sk ? dim(`  ${sk.current}/${sk.max}`) : ''}`, detail: () => [bold(d.name), `${prof} trainer`, sk ? `Your skill: ${sk.current}/${sk.max}` : `You do not know ${prof} yet.`, '', dim('Enter: ranks and recipes')], act: () => a.push(profTrainerDialog(a, d)) });
+        people.push({ text: `${d.name} ${dim(`<${prof} Trainer>`)}${sk ? dim(`  ${sk.current}/${sk.max}`) : ''}`, detail: () => npcLines(a, d.entry, [bold(d.name), `${prof} trainer`, sk ? `Your skill: ${sk.current}/${sk.max}` : `You do not know ${prof} yet.`, '', dim('Enter: ranks and recipes')]), act: () => a.push(profTrainerDialog(a, d)) });
       }
       people.push(...ridingRows(a));
-      for (const f of z.flightMasters ?? []) people.push({ text: `${f.name} ${dim('<Flight Master>')}`, detail: () => [bold(f.name), 'Flight master', '', dim('Enter: open the travel tab')], act: () => a.switchTab(7) });
+      for (const f of z.flightMasters ?? []) people.push({ text: `${f.name} ${dim('<Flight Master>')}`, detail: () => npcLines(a, f.entry, [bold(f.name), 'Flight master', '', dim('Enter: open the travel tab')]), act: () => a.switchTab(7) });
       // City services: the bank in capitals and banker towns, the auction house in capitals, the mailbox by every inn.
       const city = cityAccess(a);
       const services = [];
@@ -485,6 +505,7 @@ function bagsView(app) {
         const tag = s.wrappedItemEntry ? dim('  gift') : it?.slot ? dim(`  ${it.slot}`) : it?.consumable ? dim(`  ${it.consumable.effect}`) : verb === 'Open' ? dim('  open') : verb === 'Learn' ? dim('  learn') : it?.questItem ? dim('  quest') : '';
         rows.push({
           text: `${name}${s.count > 1 ? ` x${s.count}` : ''}${tag}${ups.has(s.item) ? green('  ▲') : ''}`, data: s,
+          icon: it?.icon, sub: dim(`${it?.typeName ?? ''}${it?.sellPrice ? `  sells ${moneyText(it.sellPrice * s.count)}` : ''}`),
           detail: () => itemLines(a, it, [
             '', dim(`Enter: ${verb ? verb.toLowerCase() : 'more'}   m: more${s.count > 1 ? '   /: split' : ''}   [ ]: move   d: destroy`),
             ...(a.vendor ? [dim(`s: sell to ${a.vendor.name}`)] : []),
@@ -556,12 +577,17 @@ function gearView(app) {
       } },
       x: { hint: 'take off', fn: (a, row) => { if (row?.data?.it) a.result(a.g.unequip(row.data.slot), `You take off ${row.data.it.name}.`); } },
       r: { hint: 'repair', fn: (a, row) => { if (row?.data?.it) repairOne(a, row.data.slot); } },
+      R: { hint: 'repair all', fn: (a) => repairAll(a) },
       o: { hint: 'outfits', fn: (a) => a.push(outfitterDialog(a)) },
     },
+    // Drawn as the character sheet (tuiPaperdoll.mjs) when colour is on and the window has room.
+    grid: (a, rows, w, h) => paperdollGrid(a, rows, w, h, (cols, lines) => playerArt(a, cols, lines)?.lines ?? null),
     rows(a) {
       const rows = [];
       const ups = upgradeList(a);
-      if (ups.length) {
+      const extras = gearExtraRows(a);
+      const sheet = paperdollPlan(a, extras.filter((r) => !r.header).length);
+      if (ups.length && !sheet) {
         rows.push({ text: `${green('▲')} Better gear for you (${ups.length})   ${dim('Enter: put on   u: put on all')}`, header: true });
         for (const u of ups) {
           const it = a.ds.item(u.entry), cur = u.currentEntry != null ? a.ds.item(u.currentEntry) : null;
@@ -574,18 +600,24 @@ function gearView(app) {
         }
         rows.push({ text: '', header: true });
       }
-      rows.push({ text: `What you wear   ${dim('Enter: pick from bags' + (cityAccess(a).bank ? ', bank' : '') + ' and companions   x: take off')}`, header: true });
+      if (!sheet) rows.push({ text: `What you wear   ${dim('Enter: pick from bags' + (cityAccess(a).bank ? ', bank' : '') + ' and companions   x: take off')}`, header: true });
       for (const slot of [...EQUIP_SLOTS, ...BAG_SLOTS]) {
         const it = wornItem(a, slot);
         const up = ups.some((u) => u.slot === slot);
         const dur = it ? durabilityText(a, slot) : '';
+        const kind = it ? [it.typeName, it.armor ? `${it.armor} armor` : '', it.weapon ? `${it.weapon.dmgMin}-${it.weapon.dmgMax}` : ''].filter(Boolean).join('  ') : '';
+        // The best piece waiting for this slot, said in the tooltip (the sheet has no upgrade rows).
+        const best = ups.filter((u) => u.slot === slot).sort((x, y) => y.delta - x.delta)[0];
+        const bestLines = best ? ['', green(`▲ Better: ${a.itemName(best.entry)} (+${Math.round(best.delta)})${best.holderId ? `, ${best.holderName} has it` : ''}`), dim('Enter: pick it   u: put on every upgrade')] : [];
         rows.push({
           text: `${fit(SLOT_LABEL[slot], 10)} ${it ? qualityPaint(it.quality)(it.name) : dim('—')}${up ? green('  ▲') : ''}${dur ? `  ${dur}` : ''}`, data: { slot, it },
-          detail: () => (it ? itemLines(a, it, [...enchantLines(a, a.ch, slot), '', ...(dur ? [`Durability ${dur}`] : []), dim('Enter: change   x: take off'), ...slotRepairLines(a, slot)]) : [dim(`Nothing in the ${SLOT_LABEL[slot]} slot.`), '', dim('Enter: pick something to wear')]),
+          icon: it?.icon, sub: it ? dim(`${fit('', 10)} ${kind}`) : undefined,
+          cell: { slot, it, up, dur, sub: dim(kind) },
+          detail: () => (it ? itemLines(a, it, [...enchantLines(a, a.ch, slot), '', ...(dur ? [`Durability ${dur}`] : []), dim('Enter: change   x: take off'), ...slotRepairLines(a, slot), ...bestLines]) : [bold(SLOT_LABEL[slot]), dim('Nothing worn here.'), '', dim('Enter: pick something to wear'), ...bestLines]),
           act: () => a.push(slotDialog(a, slot)),
         });
       }
-      rows.push(...gearExtraRows(a));
+      rows.push(...(sheet ? extras.filter((r) => !r.header).slice(0, sheet.extras) : extras));
       return rows;
     },
   };
@@ -653,6 +685,7 @@ function spellsView(app) {
         const cd = a.g.spellCooldownRemaining(sp.id);
         return {
           text: `${sp.name}${sp.rank ? dim(` (Rank ${sp.rank})`) : ''}${sp.cost ? dim(`  ${sp.cost} ${sp.powerType}`) : ''}${cd > 0 ? red(`  ${secondsText(cd)}`) : ''}`,
+          icon: sp.icon, sub: dim(`${sp.castTimeMs ? `${(sp.castTimeMs / 1000).toFixed(1)}s cast` : sp.channelMs ? 'channeled' : 'instant'}${sp.cooldownMs ? `  ${secondsText(sp.cooldownMs)} cooldown` : ''}`),
           detail: () => spellLines(a, sp),
           act: () => castWithPicker(a, sp.id),
         };
@@ -780,9 +813,13 @@ function rotationView(app) {
         rows.push({ text: '', header: true }, { text: PHASE_LABEL[phase], header: true });
         rules.forEach((rule, index) => {
           const conds = conditionsSentence(rule.conditions, names);
-          const text = `${rule.enabled ? green('✓') : dim('·')} ${rule.enabled ? ruleSentence(rule, names) : dim(ruleSentence(rule, names))}${conds !== 'always' ? dim(`  when ${conds}`) : ''}`;
+          // With icons a rule is two lines and the condition takes the second; without, it trails the sentence.
+          const icon = iconsOn() ? a.ds.spell(rule.action?.spellId ?? rule.before?.spellId)?.icon : undefined;
+          const when = conds !== 'always' ? dim(`when ${conds}`) : '';
+          const text = `${rule.enabled ? green('✓') : dim('·')} ${rule.enabled ? ruleSentence(rule, names) : dim(ruleSentence(rule, names))}${!icon && when ? `  ${when}` : ''}`;
           rows.push({
             text, data: { phase, index, rule },
+            icon, sub: when,
             detail: () => ruleLines(a, rule, names),
             act: () => ruleMenu(a, { phase, index, rule }),
           });
@@ -911,6 +948,9 @@ function pickSpec(app) {
 function talentsView(app) {
   return {
     id: 'talents', title: 'Talents', hint: 'Enter: spend a point',
+    // Drawn as the three trees (tuiTalentTree.mjs) when colour is on and they fit; a narrower tooltip makes room.
+    detailShare: 0.34,
+    grid: (a, rows, w, h) => talentGrid(a, rows, w, h),
     keys: {
       u: { hint: 'refund', fn: (a, row) => row?.data && a.result(a.g.refundTalent(row.data.id), `Refunded a point from ${row.data.name}.`) },
       R: { hint: 'respec', fn: (a) => { const cost = a.g.respecCost(); a.confirm(`Reset all talents for ${moneyText(cost) || 'free'}?`, () => a.result(a.g.respec(), 'Your talents are reset.')); } },
@@ -919,6 +959,16 @@ function talentsView(app) {
     rows(a) {
       const ch = a.ch;
       const free = availablePoints(ch);
+      if (talentPlan(a)) {
+        return a.ds.talentTrees(ch.cls).flatMap((tree, k) => [...tree.talents].sort((x, y) => x.tier - y.tier || x.col - y.col).map((t) => {
+          const rank = ch.talents?.[t.id] ?? 0;
+          return {
+            text: t.name, data: t, node: { tree: k, t, rank, tone: talentTone(ch, t, a.ds), icon: talentIcon(a.ds, t) },
+            detail: () => talentLines(a, t, rank, canSpend(ch, t.id, a.ds)),
+            act: () => a.result(a.g.spendTalent(t.id), `You learn ${t.name} (${(ch.talents?.[t.id] ?? 0) + 1}/${t.maxRank}).`),
+          };
+        }));
+      }
       const rows = [{ text: ch.level < 10 ? dim('Talents unlock at level 10.') : `${plural(free, 'point')} to spend`, header: true }];
       if (ch.level >= 10) rows.push({ text: `Builds  ${dim(`premade specs, saved loadouts, talent strings   ${myTalentLink(a) || 'nothing spent yet'}`)}`, detail: () => [bold('Talent builds'), '', 'Switch to a premade spec, a build you saved, or a pasted talent string. Spent points cost a respec.', '', dim('Enter (or B): open')], act: () => talentBuildsMenu(a) });
       for (const tree of a.ds.talentTrees(ch.cls)) {
@@ -930,6 +980,7 @@ function talentsView(app) {
           const paint = rank >= t.maxRank ? brightYellow : can.ok ? green : dim;
           rows.push({
             text: `${paint(t.name)} ${dim(`${rank}/${t.maxRank}`)}${t.prereq ? dim(`  needs ${a.ds.talent(t.prereq.talentId)?.name ?? '?'}`) : ''}`, data: t,
+            icon: talentIcon(a.ds, t), sub: dim(`tier ${t.tier + 1}`),
             detail: () => talentLines(a, t, rank, can),
             act: () => a.result(a.g.spendTalent(t.id), `You learn ${t.name} (${(ch.talents?.[t.id] ?? 0) + 1}/${t.maxRank}).`),
           });
@@ -941,9 +992,14 @@ function talentsView(app) {
 }
 
 function talentLines(app, t, rank, can) {
+  return withIcon(talentIcon(app.ds, t), talentLinesText(app, t, rank, can));
+}
+
+function talentLinesText(app, t, rank, can) {
   const out = [bold(t.name) + dim(`  tier ${t.tier + 1}, rank ${rank}/${t.maxRank}`)];
-  if (rank > 0) out.push('', cyan('Current rank'), ...wrapLines(t.ranks[rank - 1]?.description ?? '', 60));
-  if (rank < t.maxRank) out.push('', cyan(rank ? 'Next rank' : 'Rank 1'), ...wrapLines(t.ranks[rank]?.description ?? '', 60));
+  // The pane wraps the descriptions to its own width (beside the icon while they share its rows).
+  if (rank > 0) out.push('', cyan('Current rank'), t.ranks[rank - 1]?.description ?? '');
+  if (rank < t.maxRank) out.push('', cyan(rank ? 'Next rank' : 'Rank 1'), t.ranks[rank]?.description ?? '');
   out.push('', can.ok ? green('Enter to spend a point') : red(can.reason ?? 'Cannot spend here yet'));
   if (rank > 0 && canRefund(app.ch, t.id, app.ds).ok) out.push(dim('u refunds a point'));
   return out;
@@ -1175,6 +1231,7 @@ export function vendorDialog(app, vendor) {
           const usedBy = uses.get(o.itemEntry);
           rows.push({
             text: `${ok ? name : dim(name)}  ${yellow(price)}${o.stockRemaining != null ? dim(`  ${o.stockRemaining} left`) : ''}${it?.requiredLevel > a.ch.level ? red(`  L${it.requiredLevel}`) : ''}${usedBy ? cyan('  reagent') : ''}${why}`, data: o,
+            icon: it?.icon, sub: dim([it?.typeName, it?.slot].filter(Boolean).join(' · ')),
             detail: () => itemLines(a, it, ['', `Price: ${yellow(price)}`, ...(o.basePricePerPurchase !== o.pricePerPurchase ? [dim(`(${moneyText(o.basePricePerPurchase)} before reputation)`)] : []),
               ...(usedBy ? ['', cyan('Your party crafts with it'), ...usedBy.slice(0, 6).map((n) => `  ${n}`), ...(usedBy.length > 6 ? [dim(`  and ${usedBy.length - 6} more`)] : []), dim('Crafting buys it for you when you run short.')] : [])]),
             act: () => buy(a, o, 1),
@@ -1190,6 +1247,7 @@ export function vendorDialog(app, vendor) {
           const total = (it?.sellPrice ?? 0) * s.count;
           rows.push({
             text: `${qualityPaint(it?.quality)(it?.name ?? s.item)}${s.count > 1 ? ` x${s.count}` : ''}  ${total ? yellow(moneyText(total)) : dim('no value')}`, data: s,
+            icon: it?.icon, sub: dim(it?.typeName ?? ''),
             detail: () => itemLines(a, it, ['', dim('Enter: sell the stack (you can buy it back on the Buyback tab)   d: destroy')]),
             act: () => sellStack(a, slot),
           });
@@ -1253,6 +1311,7 @@ export function trainerDialog(app, trainer) {
         const can = ts.cost <= a.ch.gold;
         rows.push({
           text: `${can ? sp.name : dim(sp.name)}${sp.rank ? dim(` (Rank ${sp.rank})`) : ''}  ${yellow(moneyText(ts.cost) || 'free')}`, data: sp,
+          icon: sp.icon, sub: dim(`level ${ts.reqLevel}${sp.cost ? `  ${sp.cost} ${sp.powerType}` : ''}`),
           detail: () => spellLines(a, sp, ['', `Cost: ${yellow(moneyText(ts.cost) || 'free')}`]),
           act: () => a.result(a.g.learnFromTrainer(trainer.entry, sp.id), `You have learned ${sp.name}${sp.rank ? ` (Rank ${sp.rank})` : ''}.`),
         });

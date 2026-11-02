@@ -24,12 +24,12 @@ import { honorDialog, weeklyHonorPass } from './tuiHonor.mjs';
 import { devCommand } from './tuiDev.mjs';
 import { savePicker } from './tuiSaves.mjs';
 import { wikiDialog } from './tuiWiki.mjs';
-import { bold, dim, cyan, yellow, green, red, inverse, fit, vis, cut, bar, pct, wrapLines, brightYellow, magenta, brightBlue, strip, qualityPaint } from './text.mjs';
-import { createGame, newGameState, newGameStateFromWorldBot, pickRandomWorldBot } from '../engine/game.ts';
+import { bold, dim, cyan, yellow, green, red, inverse, fit, vis, cut, bar, pct, brightYellow, magenta, brightBlue, strip, qualityPaint } from './text.mjs';
+import { iconsOn, iconArt, iconBlank, wrapIconLines } from './iconArt.mjs';
+import { createGame } from '../engine/game.ts';
 import { toSave } from '../persistence/saveShape.ts';
 import { className, raceName } from '../domain/core/ids.ts';
-import { nativeDisplayId } from '../domain/character/displayForm.ts';
-import { creatureArt } from './modelArt.mjs';
+import { characterCreation } from './tuiCreate.mjs';
 import { moneyText, coinsText } from '../domain/economy/money.ts';
 import { maxHealth, maxPower } from '../domain/character/character.ts';
 import { powerType } from '../domain/character/characterStats.ts';
@@ -57,7 +57,7 @@ const HELP_LINES = [
   '  Enter on a creature starts a live fight; f fights it instantly. Enter on a quest, vendor, trainer or',
   '  exit opens it. a shows what the autopilot will do; Enter hands the character over: it quests and hunts',
   '  on its own and its panel shows what it is doing, what comes next and what will stop it. Its fights play',
-  '  live inside that panel (w watches one in the full fight view, Esc comes back). Esc stops the run, space',
+  '  live inside that panel (w takes the keys: 1-0 press the action bar; w or Esc hands them back). Esc stops the run, space',
   '  pauses it, 1-9 browse the tabs under a run strip, Tab cycles the bottom pane (the Run pane lists every',
   '  step). At 4x and up the log folds to one line a fight. For a CRT look, turn on your terminal\'s retro',
   '  effect (Windows Terminal: "experimental.retroTerminalEffect": true on the profile).',
@@ -74,7 +74,8 @@ const HELP_LINES = [
   'Gear and bags',
   '  Gear tab: Enter on a slot lists everything in your bags (and the bank, in a bank town) that fits it.',
   '  ▲ marks an upgrade the equipment helper found; u puts on every upgrade at once, x takes a piece off.',
-  '  r repairs one piece; o opens the Outfitter (gear sets). :outfit <name> wears a set from anywhere.',
+  '  r repairs one piece, R everything; o opens the Outfitter (gear sets). :outfit <name> wears a set from anywhere.',
+  '  In a big enough window the Gear tab is a character sheet (the Talents tab the three trees): Up and Down walk the icons in order, Shift+arrows move across them.',
   '  Bags tab: Enter uses, equips, opens, unwraps or learns; m lists every verb for the stack. s sells to the open',
   '  vendor, j sells junk, b opens the bank, d destroys, S sorts, / splits a stack, [ ] move it, A uses the whole stack.',
   '  D lists every green, blue or epic the group can disenchant; L lists every book someone can learn. G runs it.',
@@ -88,7 +89,7 @@ const HELP_LINES = [
   '  t gives a companion an order: attack a target, cast one ability, or hold ground (the fight waits).',
   '  c cancels one of your buffs (also from the Character tab, out of a fight).',
   '  r (in a fight you started with Enter) fights the same creature again after each win, until r again or Esc.',
-  '  The numbered ability bar shows in manual play (a); auto-play keeps the screen to the unit frames.',
+  '  The ability bar runs along the bottom of the stage with its cooldowns; a takes the keys off the rotation.',
   '',
   'Professions and Companions',
   '  Professions: Enter on a profession opens its recipe book. Enter makes one, A makes all you can, N asks',
@@ -281,7 +282,7 @@ export class App {
     }
     if (this.fight && !this.inlineFight()) {
       // The full fight view. Under the autopilot Esc goes back to the run panel; the fight plays on.
-      if (k === 'escape' && this.auto && this.fight.label === 'autopilot') { this.auto.watchFight = false; this.render(); return; }
+      if ((k === 'escape' || k === 'w') && this.auto && this.fight.label === 'autopilot') { this.auto.watchFight = false; this.render(); return; }
       this.fight.key(k); return;
     }
     if (this.auto) {
@@ -318,7 +319,7 @@ export class App {
       if (k === 'left') { auto.browsing = true; this.switchTab((this.tab + this.tabs.length - 1) % this.tabs.length); return; }
       return;
     }
-    if (!this.g) return this.viewKey(k);
+    if (!this.g) { if (!this.viewKey(k) && k === 'escape' && this.stack.length > 1) this.pop(); return; }
     if (k === ':') { this.prompt(':', (line) => this.runCommand(line)); return; }
     if (k === '?') { this.push(this.helpView()); return; }
     if (k === 'l' && this.top()?.id !== 'log' && !this.top()?.keys?.l) { this.openLog(); return; }
@@ -356,11 +357,20 @@ export class App {
     if (row?.keys?.[k]) { row.keys[k](this, row); this.afterAction(); return true; }
     if (view.keys?.[k]) { view.keys[k].fn(this, row); this.afterAction(); return true; }
     if (view.onKey?.(this, k, row)) { this.afterAction(); return true; }
+    // A view drawn as an icon grid (the paperdoll, the talent trees): Up and Down still walk its rows in order
+    // and Left and Right still change tabs; Shift+arrows move on the picture in two dimensions.
+    const gridDir = { 'shift-up': 'up', 'shift-down': 'down', 'shift-left': 'left', 'shift-right': 'right' }[k];
+    if (view.gridNav && gridDir) {
+      const to = view.gridNav(gridDir, view.cursor);
+      if (to != null) view.cursor = to;
+      this.render();
+      return true;
+    }
     switch (k) {
       case 'up': case 'k': this.moveCursor(view, rows, -1); return true;
       case 'down': case 'j': this.moveCursor(view, rows, +1); return true;
       case 'home': view.cursor = Math.max(0, rows.findIndex((r) => !r.header)); view.scroll = 0; this.render(); return true;
-      case 'end': { let i = rows.length - 1; while (i > 0 && rows[i].header) i--; view.cursor = i; this.ensureVisible(view, rows); view.scroll = Math.max(0, rows.length - this.layout().mainH); this.render(); return true; }
+      case 'end': { let i = rows.length - 1; while (i > 0 && rows[i].header) i--; view.cursor = i; this.ensureVisible(view, rows); const L = this.layout(); view.scroll = this.maxScrollOf(rows, L.mainH, this.listWOf(view, L)); this.render(); return true; }
       case 'pageup': case 'pagedown': this.pageView(view, rows, k === 'pageup' ? -1 : +1); return true;
       case 'return': case 'space': if (row && !row.header && row.act) { row.act(this, row); this.afterAction(); } return true;
       default: return false;
@@ -373,30 +383,48 @@ export class App {
     if (i >= 0 && i < rows.length) { view.cursor = i; this.ensureVisible(view, rows); }
     else {
       // No selectable row that way: scroll the pane instead so long text can be read.
-      const maxScroll = Math.max(0, rows.length - this.layout().mainH);
+      const L = this.layout();
+      const maxScroll = this.maxScrollOf(rows, L.mainH, this.listWOf(view, L));
       view.scroll = Math.max(0, Math.min(maxScroll, view.scroll + delta));
     }
     this.render();
   }
   /** Scroll the pane by a page; the cursor follows onto a selectable row inside the new window when there is one. */
   pageView(view, rows, dir) {
-    const h = this.layout().mainH;
-    const maxScroll = Math.max(0, rows.length - h);
+    const L = this.layout(), h = L.mainH, listW = this.listWOf(view, L);
+    const maxScroll = this.maxScrollOf(rows, h, listW);
     view.scroll = Math.max(0, Math.min(maxScroll, (view.scroll ?? 0) + dir * Math.max(1, h - 1)));
-    const inWindow = (i) => i >= view.scroll && i < view.scroll + h;
+    const end = this.windowEnd(rows, view.scroll, h, listW);
+    const inWindow = (i) => i >= view.scroll && i < end;
     if (!inWindow(view.cursor)) {
-      const from = dir > 0 ? view.scroll : view.scroll + h - 1;
+      const from = dir > 0 ? view.scroll : end - 1;
       let i = from;
-      while (i >= view.scroll && i < view.scroll + h && rows[i]?.header) i += dir;
+      while (i >= view.scroll && i < end && rows[i]?.header) i += dir;
       if (inWindow(i) && rows[i] && !rows[i].header) view.cursor = i;
     }
     this.render();
   }
   ensureVisible(view, rows) {
-    const h = this.layout().mainH;
+    const L = this.layout(), h = L.mainH, listW = this.listWOf(view, L);
     if (view.cursor < view.scroll) view.scroll = view.cursor;
-    if (view.cursor >= view.scroll + h) view.scroll = view.cursor - h + 1;
-    view.scroll = Math.max(0, Math.min(view.scroll, Math.max(0, rows.length - h)));
+    while (view.scroll < view.cursor && this.windowEnd(rows, view.scroll, h, listW) <= view.cursor) view.scroll++;
+    view.scroll = Math.max(0, Math.min(view.scroll, this.maxScrollOf(rows, h, listW)));
+  }
+  /** The list's width in a layout: the whole pane when the view has no detail column. */
+  listWOf(view, L) { return L.detailW > 0 && !view.noDetail ? L.listW : L.W; }
+  /** Lines a row takes: two for a row with an icon when icons draw and the list has room for them. */
+  rowH(r, listW) { return r.icon && listW >= 40 && iconsOn() ? 2 : 1; }
+  /** The first row a window of `h` lines from `scroll` does not show (rows fit whole). */
+  windowEnd(rows, scroll, h, listW) {
+    let used = 0, i = scroll;
+    while (i < rows.length && used + this.rowH(rows[i], listW) <= h) { used += this.rowH(rows[i], listW); i++; }
+    return Math.max(i, scroll + 1);
+  }
+  /** The largest scroll that still fills the window from the end. */
+  maxScrollOf(rows, h, listW) {
+    let used = 0, s = rows.length;
+    while (s > 0 && used + this.rowH(rows[s - 1], listW) <= h) { used += this.rowH(rows[s - 1], listW); s--; }
+    return s;
   }
   rowsOf(view) {
     const rows = view.rows(this) ?? [];
@@ -485,10 +513,11 @@ export class App {
 
   layout() {
     const W = this.term.cols, H = this.term.rows;
-    const logH = Math.max(5, Math.min(12, Math.floor(H * 0.3)));
+    const logH = this.g ? Math.max(5, Math.min(12, Math.floor(H * 0.3))) : 3;
     const top = this.compactHeader() ? 2 : 4 + (this.showsRunStrip() ? 1 : 0); // title, bars, tabs, (the run strip), rule; a run keeps only XP
     const mainH = H - top - 1 - logH - 1;
-    const detailW = W >= 90 ? Math.floor(W * 0.4) : 0;
+    // A view can ask for a narrower detail pane (the talent trees want three side by side).
+    const detailW = W >= 90 ? Math.floor(W * (this.top()?.detailShare ?? 0.4)) : 0;
     const listW = detailW ? W - detailW - 1 : W;
     return { W, H, logH, top, mainH, listW, detailW };
   }
@@ -522,7 +551,8 @@ export class App {
 
   headerLines(L) {
     if (!this.g) {
-      return [bold(' azsh') + dim('  Azeroth shell. WoW Classic 1.12 via CMaNGOS data.'), '', '', dim('─'.repeat(L.W))];
+      const crumbs = this.stack.map((v) => bold(v.title ?? '')).join(dim(' › '));
+      return [bold(' azsh') + dim('  Azeroth shell. WoW Classic 1.12 via CMaNGOS data.'), crumbs ? cut(` ${crumbs}`, L.W) : '', '', dim('─'.repeat(L.W))];
     }
     // Watching a run, the name, bars and tabs go: the panel has your frame, and the XP line is what a run is for.
     if (this.compactHeader()) return [runHeaderLine(this, L.W), dim('─'.repeat(L.W))];
@@ -573,12 +603,25 @@ export class App {
     const rows = this.rowsOf(view);
     const showDetail = L.detailW > 0 && !view.noDetail;
     const listW = showDetail ? L.listW : L.W;
-    const maxScroll = Math.max(0, rows.length - L.mainH);
+    const maxScroll = this.maxScrollOf(rows, L.mainH, listW);
     view.scroll = Math.max(0, Math.min(view.scroll ?? 0, maxScroll));
-    const listLines = [];
-    for (let i = view.scroll; i < Math.min(rows.length, view.scroll + L.mainH); i++) {
+    // A grid view draws its own list side when it fits (null when it does not, and the rows list as usual).
+    const grid = view.grid?.(this, rows, listW, L.mainH) ?? null;
+    view.gridNav = grid?.nav ?? null;
+    const listLines = grid ? grid.lines.slice(0, L.mainH) : [];
+    const end = grid ? rows.length : this.windowEnd(rows, view.scroll, L.mainH, listW);
+    for (let i = grid ? end : view.scroll; i < end; i++) {
       const r = rows[i];
       const sel = i === view.cursor && !r.header;
+      // A row with an icon is two lines: the icon's cells down the left, the text beside the top row and
+      // the row's `sub` (a kind, a cost) beside the bottom one. The icon keeps its own colours when selected.
+      if (this.rowH(r, listW) === 2) {
+        const art = iconArt(r.icon, 4) ?? iconBlank(4);
+        const w = listW - 6;
+        const t1 = fit(` ${r.text}`, w), t2 = fit(` ${r.sub ?? ''}`, w);
+        listLines.push(`${sel ? '▶' : ' '}${art[0]}${sel ? inverse(t1) : t1}`, ` ${art[1]}${sel ? inverse(t2) : t2}`);
+        continue;
+      }
       // A header row is a cyan title; a plain one (a card's line of text) keeps its own paint.
       let text = r.header ? (!r.text ? '' : r.plain ? r.text : cyan(bold(r.text))) : ` ${r.text}`;
       text = fit(sel ? `${'▶'}${text.slice(1)}` : text, listW - 1);
@@ -586,14 +629,14 @@ export class App {
     }
     // A cursor row scrolled out of view is echoed on the last line so Enter is never a mystery.
     const cursorRow = rows[view.cursor];
-    if (cursorRow && !cursorRow.header && (view.cursor < view.scroll || view.cursor >= view.scroll + L.mainH) && listLines.length === L.mainH) {
+    if (!grid && cursorRow && !cursorRow.header && (view.cursor < view.scroll || view.cursor >= end) && listLines.length === L.mainH) {
       listLines[L.mainH - 1] = inverse(fit(` ${view.cursor < view.scroll ? '▲' : '▼'} ${cursorRow.text}`, listW - 1));
     }
     if (!rows.length && view.empty) listLines.push(dim(` ${view.empty}`));
     let detailLines = [];
     if (showDetail) {
       const d = cursorRow?.detail?.(this, cursorRow) ?? view.detail?.(this, cursorRow) ?? [];
-      for (const line of d) detailLines.push(...(vis(line) > L.detailW - 2 ? wrapLines(line, L.detailW - 2) : [line]));
+      detailLines = wrapIconLines(d, L.detailW - 2);
       if (detailLines.length > L.mainH) detailLines = detailLines.slice(0, L.mainH - 1).concat(dim('…'));
     }
     for (let i = 0; i < L.mainH; i++) {
@@ -621,11 +664,12 @@ export class App {
       const f = this.inlineFight() ? this.fight : null;
       const pace = f ? f.speed : this.fightSpeed;
       const bags = fightPane(this) === 'bags' && !this.auto.browsing ? 'Up Down: pick an item   Enter: use it   ' : '';
-      return ` ${dim(`${bags}Esc: stop   space: ${(f ? f.paused : this.auto.paused) ? 'resume' : 'pause'}   + -: pace ${pace}x   l: log   ${this.auto.browsing ? 'w: watch the run' : `${f ? 'w: watch this fight   a: play it yourself   ' : ''}Tab: ${nextPaneId(this)}   1-9: look at a tab`}`)}`;
+      return ` ${dim(`${bags}Esc: stop   space: ${(f ? f.paused : this.auto.paused) ? 'resume' : 'pause'}   + -: pace ${pace}x   l: log   ${this.auto.browsing ? 'w: watch the run' : `${f ? 'w: take the keys (1-0: action bar)   a: play it yourself   ' : ''}Tab: ${nextPaneId(this)}   1-9: look at a tab`}`)}`;
     }
     // The view's own keys fill the line while they fit; the way out and ? always stay. What does not fit is on ?.
     const view = this.top();
     const head = viewKeyHints(view);
+    if (!this.g) return ` ${dim(cut([...new Set([...head, ...(this.stack.length > 1 ? ['Esc: back'] : [])])].join('   '), L.W - 2))}`;
     const tail = [...(view?.id !== 'log' ? ['l: log'] : []), this.stack.length ? 'Esc: back' : this.auto ? 'Esc: back to the run   1-9: tabs' : '1-9: tabs'];
     const room = L.W - 2 - vis([...tail, '?: more keys'].join('   ')) - 3;
     const shown = [];
@@ -674,46 +718,10 @@ export async function runTui({ term = new RealTerm(), argv = [] } = {}) {
     app.startGame(state, `${state.char.name.toLowerCase()}-${Date.now().toString(36)}`, Date.now(), true);
     void app.persist();
     app.render();
-  });
+  }, { onCancel: saves.length ? reopenPicker : null });
   if (saves.length && !argv.includes('--new')) await reopenPicker();
   else createFlow();
   return new Promise((resolve) => { app.onQuit = resolve; });
 }
 
-export function characterCreation(app, done) {
-  const ds = app.ds;
-  const races = ds.races();
-  // A random world bot: a whole character at its own level, geared, with its name (phonecraft's dev roll).
-  const randomBot = { label: `${dim('Random character')}  ${dim('a world bot at its own level')}`, value: 'random' };
-  // The body of the race (and later the gender) under the cursor, under the text, as large as the pane allows.
-  const withBody = (text, raceId, gender) => {
-    const L = app.layout();
-    const art = creatureArt(nativeDisplayId(raceId, gender), L.detailW - 2, L.mainH - text.length - 1);
-    return art ? [...text, '', ...art] : text;
-  };
-  app.pick('Choose a race', [...races.map((r) => ({
-    label: `${r.name.padEnd(10)} ${dim(r.faction)}`,
-    detail: () => withBody([bold(r.name), r.faction, `Starts in ${ds.zone(r.startZone)?.name ?? r.startZone}`, '', dim('Classes: ') + r.classes.filter((c) => ds.createInfo(r.id, c)).map(className).join(', ')], r.id, 0),
-    value: r,
-  })), randomBot], (race) => {
-    if (race === 'random') {
-      const seed = (Date.now() ^ (Math.random() * 0x7fffffff)) >>> 0;
-      const bot = pickRandomWorldBot(ds, seed);
-      done(newGameStateFromWorldBot(ds, bot, seed));
-      return;
-    }
-    const classes = race.classes.filter((c) => ds.createInfo(race.id, c));
-    app.pick(`${race.name}: choose a class`, classes.map((c) => ({ label: className(c), value: c })), (cls) => {
-      const genders = [{ label: 'Male', value: 0 }, { label: 'Female', value: 1 }].map((g) => ({ ...g, detail: () => withBody([bold(`${g.label} ${race.name}`)], race.id, g.value) }));
-      app.pick('Gender', genders, (gender) => {
-        const askName = () => app.prompt('Name (2-12 letters): ', (raw) => {
-          const name = raw.trim();
-          if (!/^[A-Za-z]{2,12}$/.test(name)) { app.flashMsg('Letters only, 2 to 12 of them.'); askName(); return; }
-          const seed = (Date.now() ^ (Math.random() * 0x7fffffff)) >>> 0;
-          done(newGameState(ds, race.id, cls, name[0].toUpperCase() + name.slice(1).toLowerCase(), seed, gender));
-        });
-        askName();
-      });
-    });
-  });
-}
+export { characterCreation } from './tuiCreate.mjs';

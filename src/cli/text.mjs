@@ -16,8 +16,10 @@ export const orange = sgr('38;5;208');
 export const QUALITY = ['poor', 'common', 'uncommon', 'rare', 'epic', 'legendary', 'artifact'];
 // The client's item quality colours (24-bit): grey poor, white common, green uncommon, blue rare,
 // purple epic, orange legendary, light gold artifact.
-const rgb = (r, g, b) => sgr(`38;2;${r};${g};${b}`);
-const QUALITY_PAINT = [rgb(157, 157, 157), rgb(255, 255, 255), rgb(30, 255, 0), rgb(0, 112, 221), rgb(163, 53, 238), rgb(255, 128, 0), rgb(230, 204, 128)];
+const QUALITY_RGB = [[157, 157, 157], [255, 255, 255], [30, 255, 0], [0, 112, 221], [163, 53, 238], [255, 128, 0], [230, 204, 128]];
+const QUALITY_PAINT = QUALITY_RGB.map(([r, g, b]) => sgr(`38;2;${r};${g};${b}`));
+/** The quality colour as a bare SGR code, for a painter that builds its own escapes (an icon frame). */
+export function qualityCodes(quality) { const [r, g, b] = QUALITY_RGB[quality ?? 1] ?? QUALITY_RGB[1]; return `38;2;${r};${g};${b}`; }
 /** An item name in its 1.12 quality colour. */
 export function qualityPaint(quality) { return QUALITY_PAINT[quality ?? 1] ?? white; }
 /** An item record's name in its quality colour; `fallback` when the record is missing. */

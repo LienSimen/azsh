@@ -34,9 +34,11 @@ function screen() {
 }
 const waitFor = async (re, ms = 8000) => { const t = Date.now(); while (Date.now() - t < ms) { if (re.test(screen())) return true; await sleep(100); } return false; };
 
-check('race picker appears', await waitFor(/Human/));
-await key('\r'); await key('\r'); await key('\r');              // first race, first class, Male
+check('the create screen appears', await waitFor(/Race\s+Human/));
+await key('\x1b[B'); await key('\x1b[B'); await key('\x1b[B'); // Human Warrior, Male: down to Name
+await key('\r');                                                 // Enter types one
 for (const ch of 'Pipetest') await key(ch, 20);
+await key('\r');                                                 // named: the cursor lands on Create
 await key('\r', 1000);
 check('world tab after character creation', /Pipetest L1/.test(screen()) && /Quests/.test(screen()));
 await key('6', 400);

@@ -268,6 +268,7 @@ export function recipeBook(app, crafterId, skill) {
         const name = DIFF_PAINT[diffOf(cr, skill, r)](r.name);
         rows.push({
           text: `${fit(name + (who.length ? green(' ▲') : ''), W)} ${craftChip(chk)}`, data: { recipe: r, chk, cr },
+          icon: prod?.icon, sub: dim((r.reagents ?? []).map((x) => `${a.ds.item(x.item)?.name ?? x.item}${x.count > 1 ? ` x${x.count}` : ''}`).join(', ')),
           detail: () => recipeDetail(a, cr, r, chk, who),
           act: () => (chk.ok ? craftMany(a, cr, r, 1) : a.say(red(chk.reason ?? `Cannot make ${prod?.name ?? r.name}.`))),
         });

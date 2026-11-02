@@ -1,7 +1,7 @@
 // The Companions tab: your party and bench, hiring at an inn, one page per companion (role, gear, bags,
 // professions) and their gathering trips, and the squad mode that decides who fights beside you. A trimmed
 // port of phonecraft's companionsPanel.ts, companionMissionsDesk.ts and squadModePicker.ts.
-import { bold, dim, cyan, yellow, green, red, qualityPaint, fit, plural, itemText } from './text.mjs';
+import { bold, dim, cyan, yellow, green, red, qualityPaint, fit, plural, itemText, vis, wrapLines } from './text.mjs';
 import { itemLines } from './tuiViews.mjs';
 import { recipeBook, openSendGoods, companionsOf } from './tuiProfessions.mjs';
 import { SQUAD_MODES, SQUAD_MODE_LABEL, squadModeOf, setSquadMode } from './squad.mjs';
@@ -77,7 +77,15 @@ function statLines(app, char) {
 
 function statRows(app, char, note) {
   const lines = statLines(app, char);
-  return lines.map((l) => ({ text: l.trim(), detail: () => [bold('Stats'), '', ...lines, '', dim(note)] }));
+  return lines.map((l) => ({ text: l.trim(), detail: () => withArt(app, char, [bold('Stats'), '', ...lines, '', dim(note)]) }));
+}
+
+/** The text, then `subject` (a companion, a candidate's body, any { race, gender, name, equipped }) drawn in their gear under it when the pane has room. */
+function withArt(app, subject, text) {
+  const L = app.layout(), w = L.detailW - 2;
+  const used = text.reduce((n, line) => n + (vis(line) > w ? wrapLines(line, w).length : 1), 0); // as the pane wraps them
+  const art = paperdollArt(subject, w, L.mainH - used - 1);
+  return art ? [...text, '', ...art] : text;
 }
 
 function wornLines(app, gear) {
@@ -135,11 +143,7 @@ export function companionsView(app) {
       const rows = [H(`Party ${squad.length}/${MAX_COMPANIONS}   ${dim(`trip energy ${energy}/${MAX_COMPANION_ENERGY}`)}   ${yellow(moneyText(a.ch.gold) || '0c')}`), squadModeRow(a)];
       const row = (c) => ({
         text: `${fit(c.name, 12)} ${fit(dim(`L${companionLevel(c, a.ch.level)} ${className(c.cls)}`), 12)} ${fit(roleText(c.role), 6)} ${c.mission ? yellow('away ') : ''}${profTags(compProfLines(a, c))}`,
-        detail: () => {
-          const text = [...compLines(a, c), '', dim('Enter: open their page')];
-          const L = a.layout(), art = paperdollArt(c, L.detailW - 2, L.mainH - text.length - 1); // them in their gear
-          return art ? [...text, '', ...art] : text;
-        },
+        detail: () => withArt(a, c, [...compLines(a, c), '', dim('Enter: open their page')]), // them in their gear
         act: () => a.push(companionDialog(a, c.id)),
       });
       if (!squad.length && !bench.length) rows.push(H(''), H(dim('  You travel alone. Innkeepers hire out companions: they fight beside you, carry and craft.')));
@@ -254,7 +258,7 @@ function hireDialog(app, results) {
         rows.push({
           text: `${fit(b.name, 12)} ${fit(dim(`L${b.level} ${className(b.cls)}`), 12)} ${fit(c.specRole ? roleText(c.specRole) : '', 6)} ${fit(hireText(a, c, true), 7)} ${profTags(candProfLines(c))}`,
           data: b.id,
-          detail: () => [...candLines(a, c), '', dim('Enter: their page   h: hire')],
+          detail: () => withArt(a, candCharacter(a, c), [...candLines(a, c), '', dim('Enter: their page   h: hire')]),
           act: () => a.push(candidateDialog(a, b.id)),
         });
       }
@@ -271,7 +275,7 @@ function candidateDialog(app, botId) {
     rows(a) {
       const c = findCand(a, botId);
       if (!c) { setTimeout(() => { if (a.top()?.id === viewId) a.pop(); }, 0); return [H('They are no longer looking for work.')]; }
-      const b = c.bot, ds = a.ds;
+      const b = c.bot, ds = a.ds, body = candCharacter(a, c);
       const rows = [H(`${bold(b.name)}  ${dim(`L${b.level} ${raceName(b.race)} ${className(b.cls)}`)}  ${c.specName ?? ''}  ${hireText(a, c)}`), H('')];
 
       // Hire: their spec's role first; any role works, it rebuilds talents and rotation.
@@ -280,9 +284,9 @@ function candidateDialog(app, botId) {
       for (const role of roles) {
         rows.push({
           text: `Hire as ${roleText(role)} for ${hireText(a, c)}${role === c.specRole ? dim('  their spec') : ''}`,
-          detail: () => [bold(`Hire ${b.name} as ${role}`), '', `Cost: ${hireText(a, c)}   you have ${yellow(moneyText(a.ch.gold) || '0c')}`,
+          detail: () => withArt(a, body, [bold(`Hire ${b.name} as ${role}`), `Cost: ${hireText(a, c)}   you have ${yellow(moneyText(a.ch.gold) || '0c')}`,
             role === c.specRole ? dim(`They already play ${c.specName}.`) : dim('They respec for the role: talents and rotation rebuild for free.'),
-            (a.g.state.squad ?? []).length >= MAX_COMPANIONS ? yellow('Your party is full: they start on the bench.') : '', '', dim('A released hire refunds the price.')],
+            ...((a.g.state.squad ?? []).length >= MAX_COMPANIONS ? [yellow('Your party is full: they start on the bench.')] : []), dim('A released hire refunds the price.')]),
           act: () => { if (hireAs(a, c, role)) a.pop(); },
         });
       }
@@ -298,7 +302,7 @@ function candidateDialog(app, botId) {
         });
       }
 
-      rows.push(H(''), H('Stats'), ...statRows(a, candCharacter(a, c), 'With the gear they arrive in, on their own spec.'));
+      rows.push(H(''), H('Stats'), ...statRows(a, body, 'With the gear they arrive in, on their own spec.'));
 
       rows.push(H(''), H(`Wearing ${dim(c.gearProfile ? `${gearProfileLabel(c.gearProfile)} kit` : '')}`));
       for (const slot of EQUIP_SLOTS) {
@@ -335,15 +339,16 @@ export function companionDialog(app, id) {
         rows.push({ text: yellow(awayText(a, comp)), detail: () => missionStatusLines(a, comp), act: () => a.push(missionDialog(a, id, comp.mission.skill)) });
       }
       rows.push(H(''));
-      rows.push({ text: `Role: ${roleText(comp.role)}`, detail: () => [bold('Role'), '', 'Tank, healer or damage. Changing it is free and rebuilds their talents and rotation for the role.'],
+      const note = (title, ...lines) => withArt(a, comp, [bold(title), '', ...lines]);
+      rows.push({ text: `Role: ${roleText(comp.role)}`, detail: () => note('Role', 'Tank, healer or damage. Changing it is free and rebuilds their talents and rotation for the role.'),
         act: () => a.pick(`${comp.name}: what role?`, SQUAD_ROLES.map((r) => ({ label: roleText(r), value: r })), (r) => a.result(g.setCompanionRole(id, r), `${comp.name} is now your ${r}.`)) });
       rows.push(seated
-        ? { text: 'Move to the bench', detail: () => [bold('Bench'), '', 'They stay yours with their gear, level and bags, and come back free from any inn or right here.'], act: () => a.result(g.dismissCompanion(id), `${comp.name} waits on the bench.`) }
-        : { text: green('Seat in the party'), detail: () => [bold('Party'), '', `Up to ${MAX_COMPANIONS} companions travel with you.`], act: () => a.result(g.activateCompanion(id), `${comp.name} joins the party.`) });
-      rows.push({ text: 'Put on their best gear', detail: () => [bold('Best gear'), '', 'Strict upgrades from their own bags first, then from yours. What you hand over becomes theirs.'], act: () => { const r = g.equipCompanionBest(id); a.result(r, r.equipped ? `${comp.name} puts on ${plural(r.equipped, 'piece')}.` : `${comp.name} already wears the best they can.`); } });
-      rows.push({ text: 'Give them something from your bags…', detail: () => [bold('Give'), '', 'Anything you hand over is theirs. A Plans or Pattern they can use is learned on the spot.'], act: () => giveDialog(a, id) });
+        ? { text: 'Move to the bench', detail: () => note('Bench', 'They stay yours with their gear, level and bags, and come back free from any inn or right here.'), act: () => a.result(g.dismissCompanion(id), `${comp.name} waits on the bench.`) }
+        : { text: green('Seat in the party'), detail: () => note('Party', `Up to ${MAX_COMPANIONS} companions travel with you.`), act: () => a.result(g.activateCompanion(id), `${comp.name} joins the party.`) });
+      rows.push({ text: 'Put on their best gear', detail: () => note('Best gear', 'Strict upgrades from their own bags first, then from yours. What you hand over becomes theirs.'), act: () => { const r = g.equipCompanionBest(id); a.result(r, r.equipped ? `${comp.name} puts on ${plural(r.equipped, 'piece')}.` : `${comp.name} already wears the best they can.`); } });
+      rows.push({ text: 'Give them something from your bags…', detail: () => note('Give', 'Anything you hand over is theirs. A Plans or Pattern they can use is learned on the spot.'), act: () => giveDialog(a, id) });
       rows.push(...teachRow(a, comp));
-      rows.push({ text: 'Action bars…', detail: () => [bold('Action bars'), '', 'Their kit: what they can fire when you take them over, and the bag items their autopilot preps with.'], act: () => a.push(barsDialog(a, (x) => companionBarsOwner(x, findComp(x, id)))) });
+      rows.push({ text: 'Action bars…', detail: () => note('Action bars', 'Their kit: what they can fire when you take them over, and the bag items their autopilot preps with.'), act: () => a.push(barsDialog(a, (x) => companionBarsOwner(x, findComp(x, id)))) });
       rows.push(...settingsRows(a, comp));
       rows.push(...petRows(a, comp));
       rows.push(...questRows(a, comp));
@@ -387,7 +392,7 @@ export function companionDialog(app, id) {
       rows.push(...bagRows(a, comp, bagCapacity(companionCharacter(comp, lvl, ds), ds)));
       rows.push(...bankRows(a, comp));
 
-      rows.push(H(''), { text: red(`Release ${comp.name} for good`), detail: () => [bold('Release'), '', 'They leave your roster for good. You get the hire price back. Their bags and gear go with them.'],
+      rows.push(H(''), { text: red(`Release ${comp.name} for good`), detail: () => note('Release', 'They leave your roster for good. You get the hire price back. Their bags and gear go with them.'),
         act: () => a.confirm(`Release ${comp.name} for good? Their bags and gear go with them.`, () => { const r = g.releaseCompanions({ ids: [id] }); if (a.result(r, `${comp.name} leaves.${r.refundCopper ? ` You get ${moneyText(r.refundCopper)} back.` : ''}`)) a.popTo('__none__'); }) });
       return rows;
     },

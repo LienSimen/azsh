@@ -41,6 +41,14 @@ them the same way. It is truecolour half-block art baked from the game's models;
 | `:` | the command line: every verb of the line game (`:rest 120`, `:auto 50 farm kobold`, `:help`) |
 | `?` | the key list |
 
+**New character** is one form: Race, Class, Gender, Name, then the body's own looks (skin, face, hair
+style and colour, facial hair; horns and tusks where the race has them). `Left` `Right` change the row
+under the cursor, `Enter` on Race or Class opens the list with each choice drawn, `Enter` on Name types
+one (`n` rolls one from the world's name pool, `r` rolls a look). The hero stands beside the form in
+the starting gear as you change them, and under the form a card says what the race and the class are
+and what a level 1 starts with: pools, attributes, racials, spells and gear. `Random character` rolls
+a world bot instead, at its own level, geared and named. `Esc` goes back to the character list.
+
 **World** lists the quests on offer (`!` when you can take one, `?` when one is ready to hand in),
 the people here, the exits and every creature you can hunt, coloured by level like the client.
 `Enter` on a creature starts a live fight; `f` resolves it instantly; `a` starts the autopilot.
@@ -48,12 +56,19 @@ The autopilot accepts quests, picks targets, rests and hands in on its own, one 
 third of a second, and every fight it picks plays out live on screen with the same frames and
 combat log as a fight you started yourself. Between fights it keeps its own panel (your frame and
 what it is doing) instead of flashing back to the tabs; `1`-`9` looks at a tab, `w` goes back to
-watching. `Esc` stops it; `Esc` during one of its fights runs away and stops it.
+watching. In a fight `w` takes the keys so `1`-`0` press the action bar; `w` or `Esc` hands them back. `Esc` stops it; `Esc` during one of its fights runs away and stops it.
 
-**Fights** run on the engine's real-time session, ticking every 100 ms: unit frames with health,
-power, a fixed cast slot and auras that hold their place. Your rotation plays by default; press a
-number to fire that ability over it, `a` to take full control (the numbered ability bar shows in
-manual play), `Space` to pause, `+`/`-` to run the fight faster or slower, `Esc` to run away. The 1.12 combat log streams into the log pane.
+**Fights** run on the engine's real-time session, ticking every 100 ms, on a stage: your sprite
+down the left, the foe down the right (its size says its rank), each with a plate under its feet (name,
+level, class or rank, health, power), its cast or crowd control under that and its aura icons under
+that. The foe stands at its real distance (the engine keeps positions in yards): a melee foe closes in,
+a caster stays at range. Hits rise from the chest, an auto-attack swing lunges the sprite, a missile (a Fireball, an
+arrow; never a strike) crosses the gap as a glyph, your cast bar sits centred under the floor and the
+keyed ability bar closes the scene; its slots never move, a cooldown or the cast in progress is all they
+say, and the slot of a spell just used flashes. Party fights and terminals
+under 90 columns keep the list of unit frames. Your rotation plays by default; press a number to fire
+that ability over it, `a` to take full control, `Space` to pause, `+`/`-` to run the fight faster or
+slower, `Esc` to run away. The 1.12 combat log streams into the log pane.
 
 **Rotation** is what auto-play casts for you: the same rule list the web editor edits, phase by
 phase, every rule as a sentence. Rules are read top to bottom each tick and the first one whose
@@ -145,6 +160,7 @@ npm run check:perf   # timings, not pass/fail: module import, boot stages, heap,
 npm run data:pack    # gzip the bake after a data refresh; data:unpack reverses it
 npm run art:bake     # rebuild src/data/model-art.bin.gz from phonecraft's creature renders (needs ffmpeg)
 npm run art:gear     # rebuild src/data/gear-art.bin.gz from phonecraft's paperdoll bake (needs Python with Pillow)
+npm run art:icons    # rebuild src/data/icon-art.bin.gz from phonecraft's spell and item icons (needs ffmpeg)
 ```
 
 What is not ported, and why, is the "Not porting" list in `PORT-PLAN.md`.

@@ -52,6 +52,15 @@ export function repairOne(app, slot) {
   app.result(r, r.ok ? `${q.vendorName} repairs it for ${moneyText(r.spent)}.` : '');
 }
 
+/** Enter on Repair all, or R on the Gear tab: mend everything you wear at the repairer the quote prices against. */
+export function repairAll(app) {
+  const q = app.g.repairQuote();
+  if (!q.cost) { app.flashMsg('Nothing needs repair.'); return; }
+  if (!q.vendorName) { app.flashMsg('Nobody here repairs.'); return; }
+  const r = app.g.repairAll(q.vendorEntry ?? undefined);
+  app.result(r, r.ok ? `Repaired for ${moneyText(r.spent)}.` : '');
+}
+
 export function slotRepairLines(app, slot) {
   const cost = repairCostSlot(app.ch, slot, (e) => app.ds.item(e));
   if (!cost) return [];
@@ -125,12 +134,7 @@ export function gearExtraRows(app) {
   rows.push({
     text: `Repair all  ${q.cost ? yellow(moneyText(q.cost)) : dim('nothing to mend')}${q.cost ? dim(q.vendorName ? `  at ${q.vendorName}` : '  nobody here repairs') : ''}`,
     detail: () => [bold('Repair'), '', q.cost ? `Mending everything you wear costs ${moneyText(q.cost)}.` : 'Everything you wear is in good shape.', q.vendorName ? dim(`Priced at ${q.vendorName}.`) : dim('A smith or general goods vendor repairs.'), '', dim('Enter: repair all   r on a slot: repair one piece')],
-    act: (a) => {
-      if (!q.cost) { a.flashMsg('Nothing needs repair.'); return; }
-      if (!q.vendorName) { a.flashMsg('Nobody here repairs.'); return; }
-      const r = a.g.repairAll(q.vendorEntry ?? undefined);
-      a.result(r, r.ok ? `Repaired for ${moneyText(r.spent)}.` : '');
-    },
+    act: (a) => repairAll(a),
   });
   const weapon = rangedWeapon(app);
   const hasAmmo = app.g.state.inventory.stacks.some((s) => isAmmoItem(app.ds.item(s.item)));

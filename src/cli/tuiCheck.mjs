@@ -12,6 +12,7 @@ import { defaultConditionsForSpell } from './tuiRotationCond.mjs';
 import { creatureArt, hasArt } from './modelArt.mjs';
 import { nativeDisplayId } from '../domain/character/displayForm.ts';
 import { paperdollLayers, paperdollArt } from './paperdoll.mjs';
+import { iconsOn, withIcon, wrapIconLines } from './iconArt.mjs';
 import { addItem, countItem } from '../domain/items/inventory.ts';
 import { moneyText as moneyTextOf } from '../domain/economy/money.ts';
 import { offeredQuests } from '../quests/quests.ts';
@@ -52,13 +53,22 @@ show('world');
 check('header shows the character', frame().includes('Tuitest') && frame().includes('Elwynn Forest'));
 check('world lists creatures', rowIndex((r, s) => r.data?.creature && /Kobold/.test(s)) >= 0);
 {
+  // The People rows draw their NPC: the art pack bakes every vendor, trainer and innkeeper a zone lists.
+  const vendor = rowIndex((r, s) => /<General Supplies>/.test(s));
+  const saved = app.top().cursor;
+  app.top().cursor = vendor; app.render();
+  check('a vendor row draws the merchant beside their title', vendor >= 0 && /[▀▄]/.test(frame()));
+  app.top().cursor = saved; app.render();
+}
+{
   const rs = app.rowsOf(app.top()).filter((r) => r.header).map((r) => strip(r.text));
   check('world lists quests last, after creatures', rs.indexOf('Quests') > rs.findIndex((s) => s.startsWith('Creatures')));
 }
 
 // Tabs 2..9 and 0 all render without throwing; Left/Right and Esc move between them.
 for (const k of ['2', '3', '4', '5', '6', '7', '8', '9', '0']) { term.press(k); show(`tab ${k}`); }
-check('rotation tab shows rules', (term.press('6'), /Combat \(checked/.test(frame())));
+// Rules are two lines each with their icons, so the Combat phase can start past the first window.
+check('rotation tab shows rules', (term.press('6'), /Combat \(checked/.test(frame()) || (term.press('pagedown'), /Combat \(checked/.test(frame()))));
 check('talents tab renders', (term.press('7'), /Talents unlock|point/.test(frame())));
 check('0 opens the tenth tab', (term.press('0'), app.tab === 9));
 const lastTab = app.tabs.length - 1;
@@ -68,6 +78,43 @@ check('the character tab draws your body', !hasArt(nativeDisplayId(app.ch.race, 
   // Starting gear is a shirt, pants, boots and a weapon or two: at least three of them have an appearance overlay.
   const p = paperdollLayers(app.ch);
   check('your starting gear stacks on your body', !p || (p.layers.filter((l) => /^\d/.test(l.key)).length >= 3 && !!paperdollArt(app.ch, 20, 12)));
+}
+if (iconsOn()) {
+  // A big window: the Gear tab is the character sheet and the Talents tab the three trees, both icon grids
+  // the arrows walk in two dimensions. At the usual 110x34 both list instead (the checks above).
+  const [cols, rows] = [term.cols, term.rows];
+  term.cols = 160; term.rows = 54;
+  const slot = () => app.rowsOf(app.top())[app.top().cursor]?.cell?.slot;
+  const rowIndexOfSlot = (s) => app.rowsOf(app.top()).findIndex((r) => r.cell?.slot === s);
+  app.switchTab(3);
+  check('a big window draws the Gear tab as the sheet', !!app.top().gridNav && /Equipment/.test(frame()) && /Head/.test(frame()));
+  app.top().cursor = 0; app.render();
+  term.press('shift-right');
+  const across = slot();
+  term.press('shift-left', 'shift-down', 'shift-down', 'shift-down', 'shift-down', 'shift-down', 'shift-down', 'shift-down');
+  const below = slot();
+  term.press('down');
+  check('Shift+arrows walk the sheet: head across to hands, down the left to the main hand', across === 'hands' && below === 'mainhand' && slot() === 'offhand');
+  term.press('right');
+  check('Right still changes the tab on the sheet', app.tab === 4);
+  app.switchTab(3);
+  app.top().cursor = rowIndexOfSlot('mainhand');
+  term.press('return');
+  check('Enter on a sheet slot opens its picker', app.top().id === 'slot-mainhand');
+  home();
+  app.switchTab(6);
+  const names = app.ds.talentTrees(app.ch.cls).map((t) => t.name);
+  check('the Talents tab draws every tree side by side', !!app.top().gridNav && names.every((n) => frame().includes(n)));
+  app.top().cursor = 0; app.render();
+  const first = app.rowsOf(app.top())[0].node;
+  term.press('shift-right');
+  const next = app.rowsOf(app.top())[app.top().cursor].node;
+  check('Shift+Right walks to the next talent on the tier', next.tree === first.tree && next.t.tier === first.t.tier && next.t.col > first.t.col && frame().includes(next.t.name));
+  term.cols = cols; term.rows = rows;
+  app.switchTab(lastTab);
+  // A tooltip's long sentence wraps beside its icon while they share rows, not back under the art.
+  const tip = wrapIconLines(withIcon('ability_rogue_ambush', ['Ambush', 'Ambush the target, causing 250% weapon damage plus 230 to the target. Must be stealthed and behind the target.']), 36);
+  check('tooltip text wraps beside its icon', tip.slice(0, 4).every((l) => l.startsWith('\x1b[38;2;')) && tip.length > 4);
 }
 {
   const charRows = app.rowsOf(app.top()).map((r) => strip(r.text)).join('|');
@@ -151,7 +198,10 @@ show('fight start');
 }
 const barName = app.fight?.abilityBar()[0]?.spell.name;
 const hasBar = () => barName && frame().split('\n').some((l) => /^\s*1\s/.test(strip(l)) && strip(l).includes(barName));
-check('auto-play hides the ability bar', !hasBar());
+// The duel stage keeps the ability bar on under auto-play too (its cooldowns are worth watching), with the
+// plates under the sprites' feet: your name, level and class, then the bars; and a floor under it all.
+check('auto-play shows the stage with the ability bar', hasBar() && new RegExp(`^\\s+${app.ch.name}  L\\d+  Warrior`, 'm').test(strip(frame())));
+check('the stage stands on a floor', /[▁▂_]{40}/.test(strip(frame())));
 let ticks = 0;
 let paneFrames = null;
 while (app.fight && ticks < 3000) {
@@ -229,7 +279,7 @@ while (app.auto && steps < 60) {
       check('the run panel shows the foe beside the fight', !hasArt(ds.creature(app.fight.enemyEntry)?.displayId) || /[▀▄]/.test(frame()));
       check('the fight draws inside the run panel, without a head line of its own', app.inlineFight() && app.compactHeader() && / ◀ /.test(strip(frame())) && !/^ Fighting /m.test(strip(frame())));
       check('a run keeps only the XP line for a header', app.compactHeader() && /^ XP /.test(strip(frame())) && !/1 World/.test(strip(frame())));
-      check('your frame sits in the panel, once', (strip(frame()).match(new RegExp(`^ ${app.ch.name} L\\d+ +[█░#-]`, 'mg')) ?? []).length === 1);
+      check('your plate sits on the stage, once', (strip(frame()).match(new RegExp(`^\\s+${app.ch.name}  L\\d+  `, 'mg')) ?? []).length === 1);
       term.press('w'); check('w opens the full fight view', !!app.auto.watchFight && !app.inlineFight() && /^ Fighting /m.test(strip(frame())));
       term.press('escape'); check('Esc comes back to the run panel without running', !!app.fight && !!app.auto && app.inlineFight());
       term.press('3'); check('a tab can be browsed during an autopilot fight, under the run strip', app.auto.browsing && !!app.fight && /Autopilot.*back to the run/.test(strip(frame()).split('\n')[3] ?? ''));
@@ -586,7 +636,9 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
     term.press('return'); show('candidate page');
     check('Enter opens the candidate page', app.top().id.startsWith('cand-'));
     check('the candidate page lists professions and stats', app.rowsOf(app.top()).some((r) => r.header && strip(r.text) === 'Professions') && rowIndex((r, t) => /^Health \d+/.test(t)) >= 0);
-    app.top().cursor = rowIndex((r, t) => /^Hire as/.test(t)); term.press('return'); show('after hire');
+    app.top().cursor = rowIndex((r, t) => /^Hire as/.test(t)); app.render();
+    check('the hire row draws the candidate in their gear beside the cost', !hasArt(nativeDisplayId(human.id, 0)) || /[▀▄]/.test(frame()));
+    term.press('return'); show('after hire');
     check('hiring returns to the hire list, not the tab', app.top()?.id === 'hire');
     term.press('escape'); check('Esc closes the hire list', app.stack.length === 0);
     const comp = (g.state.squad ?? [])[0];
@@ -595,6 +647,7 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
       const row = rowIndex((r, t) => t.startsWith(comp.name));
       app.top().cursor = row; term.press('return'); show('companion page');
       check('Enter opens their page', app.top().id === `comp-${comp.id}`);
+      check('their page draws them beside the Role note', !hasArt(nativeDisplayId(comp.race, comp.gender)) || /[▀▄]/.test(frame()));
       // Make room for Tailoring: drop one primary when they hold two.
       const lines = g.companionProfessionsOf(comp.id)?.lines ?? [];
       const primaries = lines.filter((l) => l.kind !== 'secondary');
@@ -1801,9 +1854,44 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   const app9 = new App({ term: term9, ds, repo });
   term9.open();
   const { characterCreation } = await import('./tui.mjs');
-  let created = null;
-  characterCreation(app9, (state) => { created = state; });
-  app9.top().cursor = app9.rowsOf(app9.top()).length - 1; term9.press('return');
+  let created = null, cancelled = 0;
+  characterCreation(app9, (state) => { created = state; }, { onCancel: () => { cancelled++; } });
+  const row9 = (id) => app9.rowsOf(app9.top()).findIndex((r) => r.id === id);
+  const text9 = () => term9.text();
+  check('the create screen opens on the race row with the hero drawn', app9.top().id === 'create' && app9.top().cursor === row9('race') && /Unnamed\s+Male Human Warrior/.test(text9()) && /Look/.test(text9()) && /New character/.test(text9()));
+  term9.press('right');
+  check('Right on Race steps to the next race', /Race\s+Orc/.test(text9()) && /Orc · Horde/.test(text9()));
+  term9.press('left', 'left');
+  check('Left wraps to the last race', /Race\s+Troll/.test(text9()));
+  // A troll cannot be a paladin or a druid: the class row only offers what the race may roll.
+  app9.top().cursor = row9('class');
+  const classes9 = new Set();
+  for (let i = 0; i < 12; i++) { term9.press('right'); classes9.add(text9().match(/Class\s+(\w+)/)[1]); }
+  check('Class cycles through the troll classes only', classes9.has('Hunter') && classes9.has('Shaman') && !classes9.has('Paladin') && !classes9.has('Druid'));
+  term9.press('return');
+  check('Enter on Class opens the class list over the screen', app9.top().title === 'Class' && app9.stack.length === 2 && /Hunter/.test(text9()));
+  term9.press('escape');
+  check('Esc closes the list before a game is open', app9.top().id === 'create' && app9.stack.length === 1);
+  app9.top().cursor = row9('gender'); term9.press('right');
+  check('Right on Gender flips it', /Gender\s+Female/.test(text9()) && /Female Troll/.test(text9()));
+  app9.top().cursor = row9('skin');
+  const skin9 = text9().match(/Skin Color\s+(\d+) of/)[1]; term9.press('right');
+  check('Right on a look row changes it', text9().match(/Skin Color\s+(\d+) of/)[1] !== skin9);
+  app9.top().cursor = row9('create'); term9.press('return');
+  check('Create without a name asks for one and moves to the Name row', !created && app9.top().cursor === row9('name') && /Give them a name/.test(text9()));
+  term9.press('n');
+  check('n rolls a random name', /Name\s+[A-Z][a-z]+/.test(text9()));
+  app9.top().cursor = row9('name'); term9.press('return'); term9.type('x1');
+  check('a bad name is refused', !!app9.cmd && /Letters only/.test(text9()));
+  term9.type('thrallina');
+  check('typing a name lands on the Create row', !app9.cmd && app9.top().cursor === row9('create') && /Create Thrallina, Female Troll/.test(text9()));
+  term9.press('return');
+  check('Enter on Create makes the character as chosen', created?.char?.name === 'Thrallina' && created.char.race === 8 && created.char.gender === 1 && created.char.level === 1 && created.char.appearance != null);
+  created = null; app9.stack = [];
+  characterCreation(app9, (state) => { created = state; }, { onCancel: () => { cancelled++; } });
+  term9.press('escape');
+  check('Esc on the create screen goes back to the character list', cancelled === 1);
+  app9.top().cursor = row9('random'); term9.press('return');
   check('the create screen rolls a random world bot', !!created?.char?.name && created.char.level >= 1);
   term9.close?.();
   home();

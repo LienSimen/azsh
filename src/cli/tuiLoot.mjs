@@ -77,6 +77,7 @@ export function lootDialog(app) {
       L.rows.forEach((r, i) => {
         rows.push({
           text: `${rowName(a, r)}${r.count > 1 ? ` x${r.count}` : ''}${r.blocked ? red('  bags full') : ''}`,
+          icon: a.ds.item(r.item)?.icon, sub: dim(a.ds.item(r.item)?.typeName ?? ''),
           detail: () => itemLines(a, a.ds.item(r.item), r.blocked ? ['', red('No room in your bags for this.')] : []),
           act: (a2) => {
             const res = a2.g.takeLoot(i);

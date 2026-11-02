@@ -7,7 +7,7 @@ import { activeStealthAura } from '../domain/character/buildCombatant.ts';
 import { pickpocketLootKey, canRestockPickpocket } from '../domain/professions/pickpocket.ts';
 import { moneyText } from '../domain/economy/money.ts';
 import { vendorPriceMultiplierFor, trainerSpellCost } from '../engine/game/vendorOffers.ts';
-import { questDialog } from './tuiViews.mjs';
+import { questDialog, npcLines } from './tuiViews.mjs';
 import { mailDialog } from './tuiCity.mjs';
 import { autoLootOn, openLoot, takeAll } from './tuiLoot.mjs';
 import { zoneGameObjects, zoneGoListedForPlayer, makeGoPlayerVisibility, questReferencedGoEntries, questTargets } from '../world/world.ts';
@@ -130,7 +130,7 @@ export function ridingRows(app) {
     const name = app.ds.creature(entry)?.name ?? `Riding Instructor (${entry})`;
     return {
       text: `${name} ${dim('<Riding Instructor>')}${app.ch.ridingSkill ? dim(`  you ride at ${app.ch.ridingSkill}`) : ''}`,
-      detail: () => [bold(name), 'Riding instructor', `Your riding: ${app.ch.ridingSkill ?? 0}`, '', dim('Enter: learn to ride')],
+      detail: () => npcLines(app, entry, [bold(name), 'Riding instructor', `Your riding: ${app.ch.ridingSkill ?? 0}`, '', dim('Enter: learn to ride')]),
       act: (a) => ridingDialog(a, entry),
     };
   });

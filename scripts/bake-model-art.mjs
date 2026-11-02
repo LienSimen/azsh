@@ -5,7 +5,8 @@
 //   node scripts/bake-model-art.mjs [--src D:/projects/phonecraft/public/portraits/creature]
 //                                   [--bodies D:/projects/phonecraft/datadump/paperdoll-renders/base] [--all]
 //
-// Default: every display id a huntable, dungeon, quest or raid creature uses. --all bakes every display id
+// Default: every display id a huntable, dungeon, quest or raid creature uses, and every person a zone lists
+// (trainers, vendors, innkeepers, flight masters, riding instructors). --all bakes every display id
 // in the creature table. The sixteen player bodies (phonecraft's paperdoll bases, 512 px) go in under their
 // native CreatureDisplayInfo ids (displayForm.ts NATIVE_DISPLAY), so a character draws like any creature.
 // Each sprite is cropped to its opaque box and area-sampled to at most 28x56 px.
@@ -43,7 +44,12 @@ function wantedDisplayIds() {
   const byEntry = new Map(creatures.map((c) => [c.entry, c]));
   if (args.includes('--all')) return new Set(creatures.map((c) => c.displayId).filter(Boolean));
   const entries = new Set();
-  for (const z of rows(table('zones.json.gz'))) for (const e of z.huntable ?? []) entries.add(e);
+  for (const z of rows(table('zones.json.gz'))) {
+    for (const e of z.huntable ?? []) entries.add(e);
+    // The People of the World tab: each row draws its NPC. Trainers, innkeepers and flight masters are { entry }.
+    for (const k of ['trainers', 'innkeepers', 'flightMasters']) for (const n of z[k] ?? []) entries.add(n.entry);
+    for (const k of ['vendors', 'profTrainers', 'ridingTrainers', 'weaponTrainers', 'petTrainers']) for (const e of z[k] ?? []) entries.add(typeof e === 'object' ? e.entry : e);
+  }
   for (const m of JSON.stringify(table('dungeonSpawns.json.gz')).matchAll(/"(?:entry|creatureEntry|creature)":(\d+)/g)) entries.add(+m[1]);
   for (const q of rows(table('quests.json.gz'))) for (const k of q.killTargets ?? []) entries.add(k.creatureEntry);
   for (const f of ['dungeonPacks.json.gz', 'dungeonCensus.json.gz', 'creaturePatrolPacks.json.gz', 'creatureAggroGroups.json.gz', 'alteracValley.json.gz']) {

@@ -41,6 +41,7 @@
     "data:unpack": "node scripts/pack-data.mjs --unpack",
     "art:bake": "node scripts/bake-model-art.mjs",
     "art:gear": "python scripts/bake-gear-art.py",
+    "art:icons": "node scripts/bake-icon-art.mjs",
     "build:exe": "node scripts/build-exe.mjs",
     "check:tui": "node --import ./src/cli/register.mjs src/cli/tuiCheck.mjs",
     "check:pipe": "node scripts/tui-pipe-check.mjs",
