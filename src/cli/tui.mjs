@@ -9,7 +9,7 @@ import { createCommands } from './repl.mjs';
 import { makeTabs, deathView } from './tuiViews.mjs';
 import { cityAccess, bankDialog, auctionDialog, mailDialog } from './tuiCity.mjs';
 import { startFight, startAutopilot } from './tuiFight.mjs';
-import { openRun } from './tuiDungeon.mjs';
+import { openRun, runCleared, holdRunLonger } from './tuiDungeon.mjs';
 import { openLoot } from './tuiLoot.mjs';
 import { fightPaneRule, fightPaneLines, cycleFightPane, nextPaneId, fightPane } from './tuiFightPanes.mjs';
 import { MemoryPrefs, FilePrefs } from './prefs.mjs';
@@ -191,10 +191,11 @@ export class App {
     this.tabs = makeTabs(this);
     this.stack = [];
     this.lastActivity = g.state.activity[0] ?? null;
+    this.inRunId = g.state.instance?.dungeonId ?? null; // holdRunLonger's last seen run, per character
     this.say(bold(`Welcome${isNew ? '' : ' back'}, ${g.state.char.name}.`) + dim('  Press ? for the keys.'));
     if (awayMs >= 60_000) this.offlineRest(Math.floor(awayMs / 1000));
     weeklyHonorPass(this); // a maintenance day passed while away scores that week
-    if (g.state.instance) openRun(this);
+    if (g.state.instance && !runCleared(this)) openRun(this);
     openLoot(this); // an opened bag item's remainder is still claimable after a reload
     if (!this.term.isTTY) return;
     // Out-of-combat regeneration ticks in real time, like standing still in the world.
@@ -500,6 +501,7 @@ export class App {
   /** After any state-changing key: pull activity, save, repaint. */
   afterAction() {
     journeyTick(this);
+    holdRunLonger(this);
     this.flushActivity();
     if (this.g) void this.persist();
     if (this.g && this.isDead() && this.top()?.id !== 'death' && !this.fight) this.push(deathView(this));
@@ -621,7 +623,7 @@ export class App {
   headerLines(L) {
     if (!this.g) {
       const crumbs = this.stack.map((v) => bold(v.title ?? '')).join(dim(' › '));
-      return [bold(' azsh') + dim('  Azeroth shell. WoW Classic 1.12 via CMaNGOS data.'), crumbs ? cut(` ${crumbs}`, L.W) : '', '', dim('─'.repeat(L.W))];
+      return [bold(' azsh') + dim('  Azeroth Shell'), crumbs ? cut(` ${crumbs}`, L.W) : '', '', dim('─'.repeat(L.W))];
     }
     // Watching a run, the name, bars and tabs go: the panel has your frame, and the XP line is what a run is for.
     if (this.compactHeader()) return [runHeaderLine(this, L.W), dim('─'.repeat(L.W))];
@@ -769,7 +771,7 @@ export class App {
 export async function runTui({ term = new RealTerm(), argv = [] } = {}) {
   term.open();
   // The tables take a second or two to load: say so, stage by stage, instead of leaving the screen blank.
-  const loading = (stage) => term.draw([bold(' azsh') + dim('  Azeroth shell. WoW Classic 1.12 via CMaNGOS data.'), '', dim(`  Loading ${stage}…`)]);
+  const loading = (stage) => term.draw([bold(' azsh') + dim('  Azeroth Shell'), '', dim(`  Loading ${stage}…`)]);
   loading('the game');
   await new Promise((r) => setImmediate(r)); // the first frame leaves before the synchronous load holds the loop
   const ds = bootDataStore(loading);

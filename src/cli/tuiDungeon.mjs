@@ -27,7 +27,7 @@ import { isSkippableBeginFailure } from '../engine/game/types.ts';
 import {
   instancePortals, routeEncounterList, routeEncounterIdList, encounterOf, isCleared, isUnlocked, nextEncounter,
   isComplete, requiredFlags, hasFlag, routeBossProgress, applyEncounterCleared, autoAdvanceRouteGates,
-  itemDropsInsideInstance, lockRemainingMs, restoreSavedRun, canEnter,
+  itemDropsInsideInstance, lockRemainingMs, restoreSavedRun, canEnter, NORMAL_INSTANCE_RESET_TIME_MS,
 } from '../world/instances.ts';
 import { instanceObjectPins, lootObjectPins, objectGatesFor } from '../world/instanceObjects.ts';
 import { dungeonNpcsForMap } from '../data/dungeonSpawns.ts';
@@ -46,6 +46,12 @@ const runDef = (app) => (app.g.state.instance ? app.ds.instance(app.g.state.inst
 const hasOwned = (app) => (entry) => countItem(ownedInventory(app.g.state.inventory, app.g.state.keyring), entry) > 0;
 const bagCapacityOf = (app) => bagCapacity(app.ch, app.ds);
 const isRaid = (def) => (def.maxPlayers ?? 5) > 5;
+
+/** Inside a run whose every required stop is down: nothing left but the way out. */
+export function runCleared(app) {
+  const def = runDef(app);
+  return !!def && isComplete(def, app.g.state.instance);
+}
 
 /** Bodies in a stop: the pack's counts, or the primary alone. */
 function packSize(enc) {
@@ -70,36 +76,72 @@ function lockText(app, def, now = Date.now()) {
   const lock = lockRemainingMs(g.state.lockouts ?? {}, def.id, now);
   if (held) {
     const left = (g.state.instanceSaves?.[def.id]?.expiresAtMs ?? now) - now;
+    if (isComplete(def, held)) return green(`cleared, resets in ${secondsText(left)}`);
     return yellow(`your run is held, ${held.defeated.length} cleared, ${secondsText(left)} left`);
   }
   if (lock > 0) return red(`saved, ${secondsText(lock)} left`);
   return '';
 }
 
-/** World tab rows: the instance portals in this zone. */
+/** World tab rows: the instance portals in this zone, the one you are in among them. */
 export function portalRows(app) {
   const g = app.g, ds = app.ds, ch = app.ch;
-  const rows = [];
-  if (g.state.instance) {
-    const def = runDef(app);
-    rows.push(H(''), H('Dungeon'), { text: `${green('▶')} Back into ${bold(def?.name ?? g.state.instance.dungeonId)}`, detail: () => [bold(def?.name ?? ''), 'You are inside this dungeon.', '', dim('Enter: the run window')], act: () => openRun(app) });
-    return rows;
-  }
+  const inside = runDef(app);
   const portals = instancePortals(ds, ch.zoneId).filter((d) => !d.id.startsWith('alterac'));
-  if (!portals.length) return rows;
-  rows.push(H(''), H(`Dungeons (${portals.length})`));
+  // The run you are in is listed even when its door is in another zone.
+  if (inside && !portals.some((d) => d.id === inside.id)) portals.unshift(inside);
+  if (!portals.length) return [];
+  const rows = [H(''), H(`Dungeons (${portals.length})`)];
   for (const def of portals) {
+    const range = dim(`L${def.levelRange[0]}-${def.levelRange[1]}${isRaid(def) ? `  ${def.maxPlayers}-man raid` : ''}`);
+    if (def.id === inside?.id) {
+      rows.push({ text: `${cyan(def.name)} ${range}  ${green('▶ you are in it')}`, data: { dungeon: def }, detail: () => portalLines(app, def), act: () => openRun(app) });
+      continue;
+    }
     const chk = entryCheck(app, def);
     const low = !chk.ok && !restoreSavedRun(g.state.instanceSaves, def.id, Date.now());
     const lock = lockText(app, def);
     rows.push({
-      text: `${low ? dim(def.name) : cyan(def.name)} ${dim(`L${def.levelRange[0]}-${def.levelRange[1]}${isRaid(def) ? `  ${def.maxPlayers}-man raid` : ''}`)}${low && !lock ? red(`  ${chk.reason ?? `requires ${def.minLevel}`}`) : ''}${lock ? `  ${lock}` : ''}`,
+      text: `${low ? dim(def.name) : cyan(def.name)} ${range}${low && !lock ? red(`  ${chk.reason ?? `requires ${def.minLevel}`}`) : ''}${lock ? `  ${lock}` : ''}`,
       data: { dungeon: def },
       detail: () => portalLines(app, def),
-      act: () => app.push(entryDialog(app, def)),
+      act: () => goToDungeon(app, def),
     });
   }
   return rows;
+}
+
+/** Enter on a portal: out of the run you are in (it is held), then straight back into a run you left
+ *  half done, or the entry card for a fresh one. */
+function goToDungeon(app, def) {
+  if (app.g.state.instance) {
+    const was = runDef(app);
+    if (!app.result(app.g.leaveInstance(Date.now()), `You leave ${was?.name ?? 'the dungeon'}.`)) return;
+    app.dungeonPulls = [];
+    app.floor = null;
+    app.stack = [];
+  }
+  const held = restoreSavedRun(app.g.state.instanceSaves, def.id, Date.now());
+  if (held && !isComplete(def, held)) enter(app, def, { routeDensity: held.routeDensity ?? DEFAULT_ROUTE_DENSITY, asRaid: isRaid(def), door: null });
+  else app.push(entryDialog(app, def));
+}
+
+// A 5-man you walk out of stays as you left it for two hours here, not the engine's 30 minutes
+// (NORMAL_INSTANCE_RESET_TIME): time to hearth, sell, repair and come back. Raids keep their lockout.
+const RUN_HOLD_MS = 2 * 60 * 60 * 1000;
+
+/** After every action: when the run you were in is gone (leave, hearth, taxi, another door), stretch its hold. */
+export function holdRunLonger(app) {
+  const g = app.g;
+  if (!g) { app.inRunId = null; return; }
+  const was = app.inRunId, now = g.state.instance?.dungeonId ?? null;
+  app.inRunId = now;
+  if (!was || was === now) return;
+  const def = app.ds.instance(was), save = g.state.instanceSaves?.[was];
+  if (!def || def.lockoutMs > 0 || !save) return;
+  g.state.instanceSaves = { ...g.state.instanceSaves, [was]: { ...save, expiresAtMs: save.expiresAtMs - NORMAL_INSTANCE_RESET_TIME_MS + RUN_HOLD_MS } };
+  const i = g.state.activity.findIndex((l, j) => j < 5 && l.endsWith('It resets in 30 minutes.'));
+  if (i >= 0) g.state.activity[i] = g.state.activity[i].replace('30 minutes', '2 hours');
 }
 
 function portalLines(app, def) {
@@ -125,8 +167,10 @@ export function entryDialog(app, def) {
       const squad = g.state.squad ?? [];
       const rows = [H(`${bold(def.name)}  ${dim(`L${def.levelRange[0]}-${def.levelRange[1]}`)}  ${lockText(a, def)}`), H('')];
       const held = restoreSavedRun(g.state.instanceSaves, def.id, Date.now());
-      if (held) rows.push(H(yellow(`Your earlier run is held: ${held.defeated.length} stops cleared. Entering continues it.`)), H(''));
-      rows.push({ text: green(held ? 'Go back in' : 'Enter the dungeon'), detail: () => [bold('Enter'), '', `${opts.routeDensity === 'full' ? 'Every pack on the way' : 'Bosses and what guards them'}; ${opts.asRaid ? 'as a raid, the bench comes too' : `you and ${plural(squad.length, 'companion')}`}.`], act: () => enter(a, def, opts) });
+      const heldDone = held && isComplete(def, held);
+      if (heldDone) rows.push(H(green('You cleared it. The halls stay empty until it resets.')), H(''));
+      else if (held) rows.push(H(yellow(`Your earlier run is held: ${held.defeated.length} stops cleared. Entering continues it.`)), H(''));
+      rows.push({ text: heldDone ? dim('Go back in (nothing left to fight)') : green(held ? 'Go back in' : 'Enter the dungeon'), detail: () => [bold('Enter'), '', `${opts.routeDensity === 'full' ? 'Every pack on the way' : 'Bosses and what guards them'}; ${opts.asRaid ? 'as a raid, the bench comes too' : `you and ${plural(squad.length, 'companion')}`}.`], act: () => enter(a, def, opts) });
       const pace = (d) => ({ text: `Route: ${cyan(d === 'full' ? 'Full' : 'Bosses')}`, detail: () => [bold('Route density'), '', 'Bosses: the bosses and the packs that stand in their way.', 'Full: every pack in the dungeon.', '', dim('Enter: switch')], act: () => { opts.routeDensity = opts.routeDensity === 'full' ? 'bosses' : 'full'; } });
       rows.push(pace(opts.routeDensity));
       if (doors.length) { const all = [null, ...doors]; rows.push({ text: `Door: ${cyan(opts.door?.name ?? 'Main entrance')}`, detail: () => [bold('Which door'), '', 'Some instances have more than one way in; each starts you at its own end of the route.', ...doors.map((d) => `  ${d.name}`), '', dim('Enter: next door')], act: () => { opts.door = all[(all.indexOf(opts.door) + 1) % all.length]; } }); }
@@ -407,7 +451,7 @@ export function runView(app) {
       }
       for (const o of objects.get('_') ?? []) rows.push({ ...objectRow(a, def, o), data: { object: o } });
       rows.push(H(''), { text: `Walk the floor  ${dim('go anywhere; patrols and packs you pass pull on their own (W)')}`, detail: () => [bold('The floor'), '', 'Instead of picking stops, walk the dungeon on its nav mesh. Patrols walk their routes, and whatever sees you on the way pulls.'], act: () => openFloor(a) });
-      rows.push({ text: dim('Leave the dungeon'), detail: () => [bold('Leave'), '', isRaid(def) ? 'A raid holds your progress until the lockout resets.' : 'A 5-man holds your progress for 30 minutes.'], act: () => leaveRun(a) });
+      rows.push({ text: dim('Leave the dungeon'), detail: () => [bold('Leave'), '', isRaid(def) ? 'A raid holds your progress until the lockout resets.' : 'A 5-man holds your progress for 2 hours.'], act: () => leaveRun(a) });
       return rows;
     },
   };

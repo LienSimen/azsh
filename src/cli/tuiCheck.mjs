@@ -871,7 +871,7 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
 // ---- dungeons: the Deadmines as a text run ------------------------------------------------------------------
 {
   const g = app.g;
-  const { hasFlag } = await import('../world/instances.ts');
+  const { hasFlag, isComplete } = await import('../world/instances.ts');
   g.state.char.level = 20; g.state.char.gold = 10_000_000;
   const bag = ds.items().find((i) => i.slot === 'bag' && i.itemClass !== 11 && (i.bagSlots ?? 0) >= 10 && (i.requiredLevel ?? 1) <= 20 && !i.allowClass?.length);
   for (let i = 0; i < 4; i++) { g.state.inventory = addItem(g.state.inventory, bag.entry, 1, 1); g.equip(bag.entry); }
@@ -942,12 +942,22 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   check('finish instantly ends on the run report', app.top()?.id === 'run-summary' && /Run report|Cleared|Partial|Wiped/.test(strip(frame())) && (app.dungeonPulls?.length ?? 0) > 2);
   term.press('escape');
   const cleared = g.state.instance.defeated.length;
+  const allDown = isComplete(ds.instance('deadmines'), g.state.instance);
+  {
+    const { portalRows } = await import('./tuiDungeon.mjs');
+    const texts = portalRows(app).map((r) => strip(r.text));
+    check('inside a run, the World tab still lists the zone\'s dungeons, the one you are in marked', texts.some((t) => /The Deadmines .*you are in it/.test(t)) && !texts.some((t) => /Back into/.test(t)));
+  }
   term.press('L');
   check('L leaves and the run is held', !g.state.instance && !!g.state.instanceSaves?.deadmines);
-  check('the portal row shows the held run', /your run is held/.test(strip(frame())));
+  check('a 5-man holds the run for two hours', Math.abs(g.state.instanceSaves.deadmines.expiresAtMs - Date.now() - 2 * 3600_000) < 60_000);
+  check('the portal row shows the held run', allDown ? /cleared, resets in/.test(strip(frame())) : /your run is held/.test(strip(frame())));
   app.top().cursor = rowIndex((r) => r.data?.dungeon?.id === 'deadmines'); term.press('return');
-  check('the entry card offers to go back in', /Go back in/.test(strip(frame())));
-  app.top().cursor = rowIndex((r, t) => /^Go back in/.test(t)); term.press('return');
+  if (allDown) {
+    check('the entry card of a cleared run offers to go back in', /Go back in/.test(strip(frame())) && /You cleared it/.test(strip(frame())));
+    app.top().cursor = rowIndex((r, t) => /^Go back in/.test(t)); term.press('return');
+  }
+  check('a held run is walked straight back into', g.state.instance?.dungeonId === 'deadmines');
   check('going back in keeps the cleared stops', g.state.instance?.defeated.length === cleared);
   term.press('R'); term.press('return');
   check('R resets the run', g.state.instance?.defeated.length === 0);
