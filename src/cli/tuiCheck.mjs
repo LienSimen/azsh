@@ -1351,6 +1351,39 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   home();
 }
 
+// Destroy several: X marks stacks and G destroys them after a yes; Q opens on the quest leftovers, already marked.
+{
+  const g = app.g;
+  const { isRepeatableQuest, leftoverQuestItems } = await import('../domain/quests/questlog.ts');
+  // Two grey items the bags do not already hold, so one stack each.
+  const [linen, wool] = ds.allItems().filter((it) => it.quality === 0 && !it.slot && (it.stackable ?? 1) > 1 && countItem(g.state.inventory, it.entry) === 0).slice(0, 2);
+  g.state.inventory = addItem(addItem(g.state.inventory, linen.entry, 3, 20), wool.entry, 2, 20);
+  home(); app.switchTab(2); term.press('X'); show('destroy several');
+  check('X opens Destroy with nothing marked', app.top().id === 'destroy-many' && /Nothing marked/.test(strip(frame())));
+  for (const name of [linen.name, wool.name]) { app.top().cursor = rowIndex((r, t) => t.includes(name)); term.press('return'); }
+  check('Enter marks two stacks', /2 stacks .* marked/.test(strip(frame())));
+  term.press('G');
+  check('G asks first', app.top().id === 'pick' && /Destroy 2 stacks/.test(strip(frame())));
+  term.press('return');
+  check('a yes destroys both marked stacks', countItem(g.state.inventory, linen.entry) === 0 && countItem(g.state.inventory, wool.entry) === 0 && app.top().id === 'destroy-many');
+  term.press('escape');
+  const open = new Set(g.state.questlog.quests.map((x) => x.entry));
+  const q = ds.quests().find((d) => !isRepeatableQuest(d) && !open.has(d.entry) && d.itemTargets?.some((t) => ds.item(t.item)?.questItem) && !ds.quests().some((o) => o !== d && o.itemTargets?.some((t) => t.item === d.itemTargets[0].item)));
+  const relic = q && q.itemTargets.find((t) => ds.item(t.item)?.questItem).item;
+  if (relic) {
+    g.state.questlog.quests.push({ entry: q.entry, status: 'turnedIn', kills: {}, objects: {} });
+    g.state.inventory = addItem(g.state.inventory, relic, 1, 20);
+    const left = leftoverQuestItems(g.state.questlog, g.state.inventory, (e) => ds.quest(e), (e) => ds.item(e), ds.quests());
+    check('the turned-in quest leaves its item behind', left.some((r) => r.item === relic));
+    term.press('Q'); show('quest leftovers');
+    check('Q lists the leftover, marked', app.top().id === 'destroy-many' && rowIndex((r, t) => t.startsWith('✗') && t.includes(ds.item(relic).name)) > 0);
+    term.press('G'); term.press('return');
+    check('G and a yes destroy it', countItem(g.state.inventory, relic) === 0);
+    term.press('escape');
+  } else check('the data has a finished quest with a quest item to leave behind', false);
+  home();
+}
+
 // Gear upkeep: durability on the slots, repair one piece, repair all, load ammo, auto consumables.
 {
   const g = app.g;

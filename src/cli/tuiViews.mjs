@@ -36,7 +36,7 @@ import { petWorldRows, petDialog, hasPetClass } from './tuiPet.mjs';
 import { portalRows } from './tuiDungeon.mjs';
 import { conditionEditor, defaultConditionsForSpell, defaultItemRule } from './tuiRotationCond.mjs';
 import { allyIndexOfSide } from '../engine/core/events.ts';
-import { bulkDisenchantDialog, learnAllDialog } from './tuiBulk.mjs';
+import { bulkDisenchantDialog, learnAllDialog, destroyManyDialog } from './tuiBulk.mjs';
 import { gearExtraRows, durabilityText, repairOne, repairAll, slotRepairLines, enchantLines } from './tuiGear.mjs';
 import { outfitterDialog } from './tuiOutfitter.mjs';
 import { castWithPicker } from './tuiEnchantTarget.mjs';
@@ -574,6 +574,8 @@ function bagsView(app) {
       S: { hint: 'sort', fn: (a) => sortBags(a) },
       D: { hint: 'disenchant all', fn: (a) => a.push(bulkDisenchantDialog(a)) },
       L: { hint: 'learn all', fn: (a) => a.push(learnAllDialog(a)) },
+      X: { hint: 'destroy several', fn: (a) => a.push(destroyManyDialog(a)) },
+      Q: { hint: 'destroy quest leftovers', fn: (a) => a.push(destroyManyDialog(a, 'quest')) },
       A: { fn: onStack(useAll) },
       '/': { fn: onStack(splitStack) },
       '[': { fn: onStack((a, i) => moveStack(a, i, -1)) },

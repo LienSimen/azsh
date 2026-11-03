@@ -356,8 +356,8 @@ Still open:
       party vault take with a count (`takeFromPartyStorage(entry, qty)`).
 - [ ] S  Vendor: sell junk for every companion at once (`sellCompanionJunk` per id); sort bank, companion bags
       and bank and the party vault (`sortContainer` scopes).
-- [ ] S  Bags: destroy leftover quest items from finished quests (`leftoverQuestItems`); mark several stacks
-      and destroy them together.
+- [x] S  Bags: destroy leftover quest items from finished quests (`leftoverQuestItems`); mark several stacks
+      and destroy them together. Done: `Q` and `X` on the Bags tab (`tuiBulk.mjs` destroyManyDialog).
 - [ ] S  Outfitter: wear an outfit for the whole party (`wearOutfitByName(name, { party: true })`); put an outfit
       on an action-bar slot (`setOutfitActionSlot`); create an empty outfit and a stat outfit for the party; hide
       rename on special-occasion outfits (`specialId`; **engine**: `renameOutfit` does not refuse it).

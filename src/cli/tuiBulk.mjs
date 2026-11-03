@@ -1,13 +1,14 @@
-// The two bulk bag verbs from phonecraft's bag bar (panels/bagBulkPanel.ts, app/appInteractBulkBags.ts): break
-// down a quality band, and read every recipe, formula and book in the bags onto whoever can take it. Both list
-// first; Enter switches a row off or on, G runs what is on. Rows a quest still needs or that are still an upgrade
+// The bulk bag verbs from phonecraft's bag bar (panels/bagBulkPanel.ts, app/appInteractBulkBags.ts): break
+// down a quality band, read every recipe, formula and book in the bags onto whoever can take it, and destroy
+// several stacks at once (the trash skull's multi-select, and the leftover-quest-items sweep). All list first;
+// Enter switches a row off or on, G runs what is on. Rows a quest still needs or that are still an upgrade
 // start off. p switches between your bags and the whole party's. The runs go through the same engine verbs a
 // single press uses, so a bulk pass never accepts what one-at-a-time would refuse.
 import { bold, dim, yellow, green, red, qualityPaint, plural, itemText } from './text.mjs';
 import { planBulkDisenchant, resolveRosterEnchanters, activeBulkDisenchantRows, bulkDisenchantRowKey } from '../domain/professions/partyDisenchant.ts';
 import { companionsForUpgradeGuard, partyUpgradeEntries, playerEquipOptsFrom } from '../domain/professions/autoDisenchant.ts';
 import { planLearnAllFromBags, activeLearnAllRows } from '../domain/professions/learnAllRecipes.ts';
-import { questNeededItems } from '../domain/quests/questlog.ts';
+import { questNeededItems, leftoverQuestItems } from '../domain/quests/questlog.ts';
 import { itemTeachIntent } from '../domain/items/itemTeaches.ts';
 import { learnOnCompanionPool } from '../domain/spells/learnOnTargets.ts';
 
@@ -159,4 +160,82 @@ function runLearnAll(app, state) {
   if (!learned) { app.say(red(firstRefusal || 'Nothing could be learned.')); return; }
   const spare = rows.reduce((n, r) => n + r.spare, 0);
   app.say(green(`Learned ${plural(learned, 'book')}.`) + (spare ? dim(`  ${spare} duplicate${spare === 1 ? '' : 's'} left to sell.`) : '') + (firstRefusal ? yellow(`  One refused: ${firstRefusal}.`) : ''));
+}
+
+const DESTROY_TABS = [['all', 'Everything'], ['quest', 'Leftover quest items']];
+
+/** Every stack in scope with its owner, plus the quests a leftover one belonged to (turned in, not repeatable,
+ * not wanted by an open quest: phonecraft's leftoverQuestItems). */
+function destroyCandidates(app, scope) {
+  const st = app.g.state, out = [];
+  for (const { inventory, owner } of bagsInScope(app.g, scope)) {
+    const left = new Map(leftoverQuestItems(st.questlog, inventory, (e) => app.ds.quest(e), (e) => app.ds.item(e), app.ds.quests()).map((r) => [r.slot, r.quests]));
+    inventory.stacks.forEach((stack, slot) => { if (stack) out.push({ stack, owner, quests: left.get(slot) ?? null }); });
+  }
+  return out;
+}
+
+/** Destroy several stacks at once: the trash skull's multi-select from phonecraft's bags (bagsPanel.ts
+ * destroySelectMode) and its leftover-quest-items sweep in one list. Marks are the stack objects themselves,
+ * so a slot shifting under a destroy never lands on the wrong item. */
+export function destroyManyDialog(app, tab = 'all', scope = 'player') {
+  const state = { tab, scope, marked: new Set() };
+  const shown = (a) => destroyCandidates(a, state.scope).filter((c) => state.tab === 'all' || c.quests);
+  const markLeftovers = (a) => { for (const c of destroyCandidates(a, state.scope)) if (c.quests) state.marked.add(c.stack); };
+  if (tab === 'quest') markLeftovers(app);
+  return {
+    id: 'destroy-many', title: 'Destroy', hint: 'Enter: mark / unmark',
+    keys: {
+      G: { hint: 'destroy', fn: (a) => confirmDestroyMany(a, state) },
+      tab: { hint: 'everything / quest leftovers', fn: (a) => { state.tab = state.tab === 'all' ? 'quest' : 'all'; a.top().cursor = 0; } },
+      a: { hint: 'mark all shown', fn: (a) => { for (const c of shown(a)) state.marked.add(c.stack); } },
+      c: { hint: 'clear', fn: () => state.marked.clear() },
+      p: { hint: 'yours / party', fn: (a) => { state.scope = state.scope === 'party' ? 'player' : 'party'; state.marked.clear(); if (state.tab === 'quest') markLeftovers(a); } },
+    },
+    rows(a) {
+      const all = destroyCandidates(a, state.scope);
+      const rows = state.tab === 'all' ? all : all.filter((c) => c.quests);
+      const on = all.filter((c) => state.marked.has(c.stack));
+      const tabs = DESTROY_TABS.map(([t, label]) => (t === state.tab ? bold(`[${label}]`) : dim(label))).join('  ');
+      const out = [H(`${tabs}   ${dim(state.scope === 'party' ? 'the party\'s bags' : 'your bags')}`), H(on.length ? red(`${plural(on.length, 'stack')} (${plural(on.reduce((n, c) => n + c.stack.count, 0), 'item')}) marked. G: destroy`) : dim('Nothing marked. Enter marks a stack, a marks every one shown.')), H('')];
+      if (!rows.length) out.push(H(dim(state.tab === 'quest' ? '  No quest items left over from quests you have turned in.' : '  The bags are empty.')));
+      for (const c of rows) {
+        const it = a.ds.item(c.stack.item);
+        const isOn = state.marked.has(c.stack);
+        const from = c.quests ? c.quests.map((q) => q.title).join(', ') : '';
+        out.push({
+          text: `${isOn ? red('✗') : dim('·')} ${qualityPaint(it?.quality)(it?.name ?? c.stack.item)}${c.stack.count > 1 ? ` x${c.stack.count}` : ''}${c.owner ? dim(`  ${c.owner.name}'s bags`) : ''}${from ? dim(`  ${from}`) : ''}`,
+          detail: () => [bold(itemText(it, '')), ...(from ? ['', dim(`Left over from ${from}.`)] : []), '', dim(isOn ? 'Enter: keep it' : 'Enter: mark it to destroy')],
+          act: () => { if (isOn) state.marked.delete(c.stack); else state.marked.add(c.stack); },
+        });
+      }
+      return out;
+    },
+  };
+}
+
+function confirmDestroyMany(app, state) {
+  // Slots resolved now, before anything splices: highest first per owner, as phonecraft's doDiscardSelected.
+  const targets = [];
+  for (const { inventory, owner } of bagsInScope(app.g, state.scope)) {
+    inventory.stacks.forEach((s, slot) => { if (state.marked.has(s)) targets.push({ owner: owner?.id, slot, item: s.item, count: s.count }); });
+  }
+  if (!targets.length) { app.flashMsg('Nothing marked.'); return; }
+  const pieces = targets.reduce((n, t) => n + t.count, 0);
+  const what = targets.length === 1 ? `${app.itemLabel(targets[0].item)}${pieces > 1 ? ` x${pieces}` : ''}` : `${plural(targets.length, 'stack')} (${plural(pieces, 'item')})`;
+  app.confirm(`Destroy ${what}? This cannot be undone.`, () => {
+    const g = app.g;
+    let stacks = 0, gone = 0, firstRefusal = '';
+    targets.sort((a, b) => (a.owner ?? '').localeCompare(b.owner ?? '') || b.slot - a.slot);
+    for (const t of targets) {
+      const bags = t.owner ? bagsInScope(g, 'party').find((b) => b.owner.id === t.owner)?.inventory : g.state.inventory;
+      if (bags?.stacks[t.slot]?.item !== t.item) continue;
+      const r = t.owner ? g.discardCompanionBagStack(t.owner, t.slot) : g.discardBagStack(t.slot);
+      if (!r.ok) { firstRefusal ||= r.reason ?? 'Cannot destroy'; continue; }
+      stacks++; gone += r.discarded;
+    }
+    state.marked.clear();
+    if (!stacks) { app.say(red(firstRefusal || 'Nothing was destroyed.')); return; }
+    app.say(green(stacks === 1 ? `Destroyed ${what}.` : `Destroyed ${plural(stacks, 'stack')} (${plural(gone, 'item')}).`) + (firstRefusal ? yellow(`  One refused: ${firstRefusal}.`) : ''));
+  });
 }

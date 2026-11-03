@@ -84,6 +84,7 @@ const HELP_LINES = [
   '  Bags tab: Enter uses, equips, opens, unwraps or learns; m lists every verb for the stack. s sells to the open',
   '  vendor, j sells junk, b opens the bank, d destroys, S sorts, / splits a stack, [ ] move it, A uses the whole stack.',
   '  D lists every green, blue or epic the group can disenchant; L lists every book someone can learn. G runs it.',
+  '  X marks several stacks to destroy at once; Q marks the quest items left over from quests you turned in. G destroys.',
   '  :dev item|quest|recipe|prof skips the rules (testing). New character offers a random world bot.',
   '  Settings tab (or :settings) sets auto-loot, the upgrade helper, auto-disenchant, the junk rules and which nodes get gathered.',
   '  Spells tab: b edits your action bars, m your macros. :macro <name> runs one; a macro on bar 1 fires by its key in a fight.',
