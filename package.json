@@ -32,7 +32,8 @@
     "!src/data/gear-art-hd/",
     "!src/data/*.only.bin.br",
     "!src/data/gear-art-hd.only/",
-    "docs/"
+    "docs/",
+    "CHANGELOG.md"
   ],
   "engines": {
     "node": ">=22.18"
