@@ -167,6 +167,7 @@ import {
   creditSquadGoEnder,
   creditSquadKill,
   creditSquadLogs,
+  giveSquadQuestItem,
 } from './squadQuestShare.ts';
 import { applyGoSpellcasterCast } from './applyGoSpellcasterCast.ts';
 import { moneyMarked } from '../../domain/economy/money.ts';
@@ -1558,6 +1559,9 @@ export function createProfessionsModule(
       const yielded: LootDrop[] = goLootTable.length
         ? mergeLootDrops(Array.from({ length: miningTaps }, () => rollLoot(goLootTable, rng, goLootCtx)).flat())
         : [];
+      // Each companion on the quest takes their own copy, as kill loot and dungeon chests already do.
+      // Without it a quest item from an object never reached them and their copy could not finish.
+      for (const y of yielded) giveSquadQuestItem(state, ds, y.item, y.count);
       // HOLD: the object keeps its contents until the player clicks them (the loot window rolls
       // each item's identity as it fills, so taking never re-rolls a suffix).
       let heldLoot: PendingLoot | undefined;

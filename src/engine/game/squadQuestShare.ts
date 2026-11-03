@@ -206,6 +206,10 @@ function isPermanentQuestRefusal(reason: string | undefined): boolean {
   return !!reason && (reason.startsWith('Not a quest for ') || reason === 'Unknown quest');
 }
 
+function isUnfinishedTurnIn(reason: string | undefined): boolean {
+  return reason === 'Quest is not complete' || reason === 'Quest failed';
+}
+
 export function shareSquadAccept(
   state: GameState,
   ds: DataStore,
@@ -237,7 +241,15 @@ export function shareSquadTurnIn(
     if (!r.ok) {
       // Only for one who HAS the quest — a companion who never took it was named at accept.
       const held = getQuest(companionQuestLog(comp), entry);
-      if (held && held.status !== 'turnedIn') feed?.(`${comp.name} cannot hand it in: ${r.reason}.`);
+      if (!held || held.status === 'turnedIn') continue;
+      // The party moves on once the player hands in, so a copy that never finished (its item never
+      // reached their bags) would sit in their log for good and fill it. Bags full keeps the quest.
+      if (isUnfinishedTurnIn(r.reason)) {
+        comp.questLog = abandonQuest(companionQuestLog(comp), entry);
+        feed?.(`${comp.name} never finished it and drops it.`);
+      } else {
+        feed?.(`${comp.name} cannot hand it in: ${r.reason}.`);
+      }
       continue;
     }
     if ((r.money ?? 0) > 0) state.char = { ...state.char, gold: state.char.gold + (r.money ?? 0) };

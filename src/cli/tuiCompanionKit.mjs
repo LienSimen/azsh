@@ -9,6 +9,7 @@ import { className } from '../domain/core/ids.ts';
 import { companionLevel, companionCharacter } from '../domain/bots/squad.ts';
 import { listTameablePets, unlockedWarlockDemons, WARLOCK_DEMONS, WARLOCK_DEMON_UNLOCK } from '../domain/bots/botPet.ts';
 import { petKnownSpells, petAutocastOn } from '../domain/pet/pet.ts';
+import { MAX_QUEST_SLOTS } from '../domain/quests/questlog.ts';
 import { SHARE_CATEGORIES, SHARE_CATEGORY_LABEL, SHARE_GROUPS } from '../domain/bots/consumableShare.ts';
 
 const H = (text) => ({ text, header: true });
@@ -114,7 +115,23 @@ export function questRows(app, comp) {
   const offers = g.companionQuestOffers(id);
   const log = (comp.questLog?.quests ?? []).filter((q) => q.status !== 'turnedIn');
   if (!offers.length && !log.length) return [];
-  const rows = [H(''), H(`Their quests ${dim(`${log.length} in the log`)}`)];
+  // Ones you already handed in: their copy never completed (the items never reached their bags), so it
+  // only holds a slot now.
+  const yoursDone = new Set(g.state.questlog.quests.filter((q) => q.status === 'turnedIn').map((q) => q.entry));
+  const stale = log.filter((qs) => qs.status !== 'complete' && yoursDone.has(qs.entry));
+  const rows = [H(''), H(`Their quests ${dim(`${log.length}/${MAX_QUEST_SLOTS} in the log   x: abandon`)}`)];
+  if (stale.length) {
+    const titles = stale.map((qs) => ds.quest(qs.entry)?.title ?? qs.entry);
+    rows.push({
+      text: yellow(`Drop the ${plural(stale.length, 'quest')} you already handed in`),
+      detail: () => [bold('Handed in without them'), '', 'You turned these in, but their copy never completed, usually because the quest item never reached their bags. They hold log slots, and a full log refuses shared quests.', '', ...titles.map((t) => `  ${t}`)],
+      act: () => app.confirm(`${comp.name} abandons ${plural(stale.length, 'quest')}: ${titles.join(', ')}?`, () => {
+        let n = 0;
+        for (const qs of stale) if (g.abandonCompanionQuest(id, qs.entry).ok) n++;
+        app.say(dim(`${comp.name} abandons ${plural(n, 'quest')}.`));
+      }),
+    });
+  }
   for (const o of offers) {
     rows.push({
       text: o.kind === 'turn-in' ? `${green('?')} Hand in ${o.title}` : `${yellow('!')} Take ${o.title}${o.itemEntry ? dim(`  from ${app.itemLabel(o.itemEntry)}`) : ''}`,
@@ -130,7 +147,8 @@ export function questRows(app, comp) {
   }
   for (const qs of log) {
     const q = ds.quest(qs.entry);
-    rows.push({ text: `  ${q?.title ?? qs.entry} ${qs.status === 'complete' ? green('(Complete)') : ''}`, detail: () => [bold(q?.title ?? ''), '', dim('x: abandon')], keys: { x: (a) => a.confirm(`${comp.name} abandons ${q?.title}?`, () => a.result(g.abandonCompanionQuest(id, qs.entry), `${comp.name} abandons ${q?.title}.`)) } });
+    const done = qs.status === 'complete' ? green('(Complete)') : yoursDone.has(qs.entry) ? dim('(you handed it in)') : '';
+    rows.push({ text: `  ${q?.title ?? qs.entry} ${done}`, detail: () => [bold(q?.title ?? ''), '', dim('x: abandon')], keys: { x: (a) => a.confirm(`${comp.name} abandons ${q?.title}?`, () => a.result(g.abandonCompanionQuest(id, qs.entry), `${comp.name} abandons ${q?.title}.`)) } });
   }
   return rows;
 }
