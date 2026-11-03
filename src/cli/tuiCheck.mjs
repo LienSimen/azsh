@@ -107,6 +107,11 @@ check('the stats page draws your body', !hasArt(nativeDisplayId(app.ch.race, app
   check('a costume aura draws its model', costumed);
   check('out of form you are in your gear again', drawn(view({ form: 0 })) === paperdollArt(app.ch, 20, 12)?.join('\n'));
 }
+{
+  // What a fight turns into or brings in is drawn too: Dathrohan's morph to Balnazzar, a shaman's totem, a
+  // witch doctor's ward. None is spawned anywhere, so the bake follows each kit. Cite: bake-model-art.mjs addFightCreatures.
+  check('a boss morph, a totem and a ward have art', [10813, 3903, 3560].every((e) => hasArt(app.ds.creature(e)?.displayId)));
+}
 if (iconsOn()) {
   // A big window: the Gear tab is the character sheet and the Talents tab the three trees, both icon grids
   // the arrows walk in two dimensions. At the usual 110x34 both list instead (the checks above).

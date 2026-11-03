@@ -5,7 +5,8 @@
 //   node scripts/bake-model-art.mjs [--src D:/projects/phonecraft/public/portraits/creature]
 //                                   [--bodies D:/projects/phonecraft/datadump/paperdoll-renders/base] [--all] [--hd] [--worn]
 //
-// Default: every display id a huntable, dungeon, quest or raid creature uses, and every person a zone lists
+// Default: every display id a huntable, dungeon, quest or raid creature uses, what those turn into or summon
+// mid-fight (a boss morph, a totem, an add), and every person a zone lists
 // (trainers, vendors, innkeepers, flight masters, riding instructors). --all bakes every display id
 // in the creature table. The sixteen player bodies (phonecraft's paperdoll bases, 512 px) go in under their
 // native CreatureDisplayInfo ids (displayForm.ts NATIVE_DISPLAY), so a character draws like any creature.
@@ -50,7 +51,40 @@ const PARALLEL = 8;
 const table = (f) => JSON.parse(gunzipSync(readFileSync(join(ROOT, 'src/data/tables', f))).toString('utf8'));
 const rows = (t) => (Array.isArray(t) ? t : Object.values(t));
 
-function wantedDisplayIds() {
+// Summon effects whose misc value is the creature brought in: SUMMON, SUMMON_WILD, SUMMON_GUARDIAN,
+// SUMMON_PET, SUMMON_POSSESSED, SUMMON_TOTEM, the four totem slots, SUMMON_CRITTER, SUMMON_DEMON.
+const SUMMON_EFFECTS = new Set([28, 41, 42, 56, 73, 74, 87, 88, 89, 90, 97, 112]);
+
+// What a fight can turn `entries` into or bring in, added to `entries` until nothing new turns up: a
+// ScriptDev morph (Dathrohan's UpdateEntry to Balnazzar), a summon an EventAI or ScriptDev action names,
+// and the creature behind a summon spell the kit casts. Each one is drawn the moment it appears, and none
+// of them is spawned or listed anywhere, so without this they fight invisible. Builds each spec the way a
+// pull does (combatEnemySpec.ts) and reads every creature and spell it names.
+async function addFightCreatures(entries) {
+  await import('../src/cli/register.mjs'); // the engine imports .json.gz tables
+  const { bootDataStore } = await import('../src/cli/bootData.mjs');
+  const { buildEnemySpecFromCreature } = await import('../src/engine/game/combatEnemySpec.ts');
+  const { resolveCreatureDefForCombat } = await import('../src/data/dungeons/boss-eventai.ts');
+  const { mulberry32 } = await import('../src/engine/core/rng.ts');
+  const ds = bootDataStore();
+  const before = entries.size, queue = [...entries];
+  const add = (e) => { if (e > 0 && !entries.has(e) && ds.creature(e)) { entries.add(e); queue.push(e); } };
+  for (let e = queue.shift(); e != null; e = queue.shift()) {
+    const def = resolveCreatureDefForCombat(e, (id) => ds.creature(id));
+    if (!def) continue;
+    let spec;
+    try { spec = JSON.stringify(buildEnemySpecFromCreature(ds, def, mulberry32(1)).spec); } catch { continue; }
+    for (const m of spec.matchAll(/"(?:creatureEntry|entry)":(\d+)/g)) add(+m[1]);
+    for (const m of spec.matchAll(/"spellId":(\d+)/g)) {
+      const sp = ds.spell(+m[1]);
+      for (const r of sp?.rawEffects ?? []) if (SUMMON_EFFECTS.has(r.effect | 0)) add(r.miscValue | 0);
+      for (const ef of sp?.effects ?? []) if (ef.creatureEntry) add(ef.creatureEntry);
+    }
+  }
+  console.error(`${entries.size - before} more a fight morphs into or summons`);
+}
+
+async function wantedDisplayIds() {
   const creatures = rows(table('creatures.json.gz'));
   const byEntry = new Map(creatures.map((c) => [c.entry, c]));
   if (args.includes('--all')) return new Set(creatures.map((c) => c.displayId).filter(Boolean));
@@ -66,6 +100,7 @@ function wantedDisplayIds() {
   for (const f of ['dungeonPacks.json.gz', 'dungeonCensus.json.gz', 'creaturePatrolPacks.json.gz', 'creatureAggroGroups.json.gz', 'alteracValley.json.gz']) {
     try { for (const m of JSON.stringify(table(f)).matchAll(/"(?:entry|creatureEntry|creature|boss)":(\d+)/g)) entries.add(+m[1]); } catch { /* optional */ }
   }
+  await addFightCreatures(entries);
   const ids = new Set();
   for (const e of entries) { const c = byEntry.get(e); if (c?.displayId) ids.add(c.displayId); }
   console.error(`${entries.size} creature entries reachable, ${ids.size} display ids`);
@@ -179,7 +214,7 @@ async function bake(id, file) {
 const jobs = new Map();
 const worn = await wornDisplayIds();
 console.error(`${worn.size} models a player can wear (forms, costumes, transforms)`);
-for (const id of WORN ? worn : new Set([...wantedDisplayIds(), ...worn])) jobs.set(id, join(SRC, `${id}.webp`));
+for (const id of WORN ? worn : new Set([...await wantedDisplayIds(), ...worn])) jobs.set(id, join(SRC, `${id}.webp`));
 if (!WORN) for (const [id, slug] of Object.entries(PLAYER_BODIES)) jobs.set(+id, join(BODIES, `${slug}.png`));
 const parts = [];
 let missing = 0, done = 0;
