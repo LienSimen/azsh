@@ -4,13 +4,16 @@ What changed in each release of `azeroth-shell` on npm. Update with `npm install
 
 ## Unreleased
 
+## 0.4.0 — 2026-11-03
+
 - Bags: `X` destroys several stacks at once, and `Q` destroys every quest item left over from quests you handed in.
 - Dungeons: a 5-man you leave is held for two hours (it was 30 minutes). On the World tab, Enter on a run you
   left half done takes you straight back in. The tab also lists the zone's dungeons while you are inside one,
-  and a cleared run says so.
+  and a cleared run says so. Picking another dungeon from inside one leaves the current run, which is held.
 - Companions get their own copy of a quest item that comes from an object. If their copy never finished, they
   drop it when you hand the quest in, so it no longer fills their log. Their quest list offers to drop old ones.
 - Art for what a fight turns into or brings in: boss morphs, totems, wards and adds were invisible before.
+- The title line reads "Azeroth Shell".
 
 ## 0.3.0 — 2026-11-03
 
