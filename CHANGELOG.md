@@ -4,6 +4,8 @@ What changed in each release of `azeroth-shell` on npm. Update with `npm install
 
 ## Unreleased
 
+## 0.5.0 — 2026-11-04
+
 - Walk the floor (W in a 5-man's run window): instead of picking stops, you walk the party through the
   dungeon. Patrols walk their routes, and whatever sees you on the way pulls. A map of the rooms around you
   sits beside the list, showing you, the foes and patrols, the bosses, your path and where you are headed. m
