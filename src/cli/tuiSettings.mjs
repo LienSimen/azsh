@@ -1,4 +1,4 @@
-// The Settings window (phonecraft panels/settingsPanel.ts, Loot tab): auto-loot, the equipment helper, automatic
+// The Settings window (the web client's settingsPanel.ts, Loot tab): auto-loot, the equipment helper, automatic
 // disenchanting, the junk rules (what gets sold or destroyed on its own) and which gathering nodes the autopilot
 // takes. Enter flips or cycles a row. "Every character" settings live in ~/.azsh/prefs.json through the
 // createGame hooks; "this character" settings live in the save.
@@ -72,7 +72,7 @@ export function settingsDialog(app) {
         act: (a2) => {
           const next = nextPace(pace);
           a2.prefs.set('travelPace', next);
-          // Switching to instant lands a trip already underway, as phonecraft does.
+          // Switching to instant lands a trip already underway, as the web client does.
           if (next === 'instant' && g.state.char.journey) a2.arriveNow();
         },
       });

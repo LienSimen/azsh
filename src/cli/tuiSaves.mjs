@@ -1,4 +1,4 @@
-// The character picker and what you can do to a save from it (phonecraft's save slots panel): play, back up,
+// The character picker and what you can do to a save from it (the web client's save slots panel): play, back up,
 // restore a backup, export to a file, import one, delete. Saves are files under ~/.azsh/saves; backups sit
 // beside them in backups/. A delete or a restore always leaves a backup of what it replaced.
 import { bold, dim, green, red, yellow, cyan } from './text.mjs';
@@ -22,24 +22,12 @@ export async function savePicker(app, { onPlay, onNew }) {
   // Each hero stands in their gear under their line: the saves are read once here for the character they hold.
   const chars = new Map();
   for (const m of saves) { try { chars.set(m.slot, (await repo.load(m.slot))?.state?.char ?? null); } catch { /* unreadable: no sprite */ } }
-  // A hero's first drawing unpacks their body's art and can take a moment, so paging past them draws only
-  // the text: the art waits until the cursor rests on them. One drawn once comes back at once.
-  const drawn = new Set();
-  let settle = null;
-  const restingOn = (m) => {
-    if (drawn.has(m.slot)) return true;
-    clearTimeout(settle);
-    settle = setTimeout(() => {
-      if (app.top() !== view || options[view.cursor]?.value.meta?.slot !== m.slot) return;
-      drawn.add(m.slot); app.render();
-    }, 250);
-    return false;
-  };
+  // A hero's first drawing unpacks their body's art and can take a moment; paging past them draws only the
+  // text, as in every detail pane (tui.mjs detailArt).
   const options = saves.map((m) => ({
     label: `${bold(m.name)}  ${dim(`L${m.level} ${className(m.cls)}`)}${busy(m) ? `  ${yellow('open in another terminal')}` : ''}`,
     detail: () => {
       const text = [bold(m.name), `Level ${m.level} ${className(m.cls)}`, dim(`last played ${when(m.updatedAt)}`), '', dim('Enter: play   m: back up, restore, export, delete')];
-      if (!restingOn(m)) return text;
       const ch = chars.get(m.slot), L = app.layout();
       const art = ch ? paperdollArt(ch, L.detailW - 2, L.mainH - text.length - 1) : null;
       return art ? [...text, '', ...art] : text;

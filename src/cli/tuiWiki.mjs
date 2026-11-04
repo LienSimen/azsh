@@ -1,7 +1,7 @@
-// The wiki (phonecraft ui/wiki): look anything up in the data the game runs on. / searches every catalog
+// The wiki (the web client's ui/wiki): look anything up in the data the game runs on. / searches every catalog
 // (items, spells, quests, NPCs, talents, recipes, zones, dungeons, objects, factions); Tab narrows to one kind.
 // A page lists what links to it (where an item drops, who sells it, which quest rewards it, who teaches a spell)
-// as rows: Enter follows a link, Esc goes back. Search and sources are phonecraft's own pure indexes.
+// as rows: Enter follows a link, Esc goes back. Search and sources are the web client's own pure indexes.
 import { bold, dim, yellow, green, red, cyan, qualityPaint, wrapLines, coinText } from './text.mjs';
 import { itemLines, spellLines, creatureLines, rewardLines } from './tuiViews.mjs';
 import { wikiIndex, wikiTokens, wikiSearch, WIKI_KINDS, WIKI_KIND_LABEL, WIKI_KIND_ONE } from './wikiIndex.ts';

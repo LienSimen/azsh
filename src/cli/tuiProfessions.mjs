@@ -1,8 +1,8 @@
 // The Professions tab and its dialogs: a recipe book per crafter and profession (you or a companion), the
 // party book with everything anyone can make, the enchanter's bench, profession trainers, gathering, and
-// Send goods. Ported from phonecraft's professionsPanel.ts and the vendorPanel.ts send-goods overlay.
-// A craft buys short vendor reagents (vials, thread, flux) from your purse on the way: the buy-in phonecraft
-// shows as a coin chip on Create. Views only read; every change is a Game facade call.
+// Send goods. Ported from the web client's professionsPanel.ts and the vendorPanel.ts send-goods overlay.
+// A craft buys short vendor reagents (vials, thread, flux) from your purse on the way: the buy-in
+// the web client shows as a coin chip on Create. Views only read; every change is a Game facade call.
 import { bold, dim, cyan, yellow, green, red, gray, orange, qualityPaint, fit, plural, secondsText, wrapLines, itemText, coinText } from './text.mjs';
 import { itemLines } from './tuiViews.mjs';
 import { missionDialog, companionDialog } from './tuiCompanions.mjs';
@@ -91,7 +91,7 @@ function diffOf(cr, line, curve) { const sk = cr.char.skills[line]; return sk ? 
 function buyList(app, buys) { return buys.map((b) => `${app.itemLabel(b.item)} x${b.units}`).join(', '); }
 
 // canCraft with the vendor buy-in folded in: ok with a cost when only vendor goods are short, and `max` is
-// how many one "make all" would run (bags plus purse). Same fold as phonecraft's craftCheck.
+// how many one "make all" would run (bags plus purse). Same fold as the web client's craftCheck.
 function craftCheck(app, cr, r, env) {
   if (cr.comp?.mission) return { ok: false, reason: `${cr.name} is away`, cost: 0, buys: [], max: 0 };
   const rem = recipeCooldownRemainingMs(r, cr.cds, Date.now());
@@ -391,11 +391,13 @@ function applyEnchant(app, cr, e) {
 
 /** The enchanter's bench: known formulas (Enter applies one to you or a party member) and what to disenchant. */
 function enchantBench(app, crafterId) {
-  let id = crafterId;
+  let id = crafterId, haveOnly = false, search = '';
   const current = () => crafterOf(app, id) ?? crafterOf(app, null);
   const view = {
     id: 'book-enchanting', title: 'Enchanting', hint: 'Enter: apply / disenchant',
     keys: {
+      h: { hint: 'have mats', fn: (a) => { haveOnly = !haveOnly; view.cursor = 0; view.scroll = 0; a.flashMsg(haveOnly ? 'Showing only what you can enchant now.' : 'Showing every known formula.'); } },
+      '/': { hint: 'search', fn: (a) => { if (search) { search = ''; a.flashMsg('Search cleared.'); return; } a.prompt('Search formulas: ', (t) => { search = t.toLowerCase(); view.cursor = 0; view.scroll = 0; a.render(); }); } },
       c: { hint: 'enchanter', fn: (a) => {
         const opts = crafters(a, 'enchanting').map((cr) => ({ label: `${cr.name}  ${dim(`${cr.char.skills.enchanting?.current ?? 0}/${cr.char.skills.enchanting?.max ?? 0}`)}`, value: cr.id }));
         if (opts.length < 2) { a.flashMsg('Nobody else in your party knows Enchanting.'); return; }
@@ -406,14 +408,21 @@ function enchantBench(app, crafterId) {
       const cr = current(), ds = a.ds;
       const sk = cr.char.skills.enchanting;
       const env = craftEnv(a);
-      const rows = [H(`${bold(cr.name)}  Enchanting ${sk ? `${sk.current}/${sk.max}` : dim('untrained')}   ${dim(`rod: ${bestRodTier(cr.inv, ds, env.tools) ? rodNameForTier(bestRodTier(cr.inv, ds, env.tools), ds) : 'none'}`)}   ${coinText(a.ch.gold)}`), H(dim('c: switch enchanter'))];
+      const rows = [H(`${bold(cr.name)}  Enchanting ${sk ? `${sk.current}/${sk.max}` : dim('untrained')}   ${dim(`rod: ${bestRodTier(cr.inv, ds, env.tools) ? rodNameForTier(bestRodTier(cr.inv, ds, env.tools), ds) : 'none'}`)}   ${coinText(a.ch.gold)}`)];
+      const filters = [haveOnly && 'only what you can enchant', search && `matching "${search}"`].filter(Boolean);
+      rows.push(H(dim(filters.length ? `Showing ${filters.join(', ')}.` : 'c: switch enchanter   h: only what you can enchant   /: search')));
       const known = new Set(cr.char.knownEnchants ?? []);
-      const formulas = ds.enchants().filter((e) => known.has(e.id)).sort((x, y) => y.orange - x.orange || x.name.localeCompare(y.name));
+      let formulas = ds.enchants().filter((e) => known.has(e.id));
+      const total = formulas.length;
+      if (search) formulas = formulas.filter((e) => e.name.toLowerCase().includes(search) || e.slots.some((s) => s.toLowerCase().includes(search)));
+      formulas.sort((x, y) => y.orange - x.orange || x.name.localeCompare(y.name));
+      const checks = formulas.map((e) => ({ e, chk: enchantCheck(a, cr, e, env) }));
+      const shown = haveOnly ? checks.filter((x) => x.chk.ok) : checks;
       const W = Math.max(20, Math.min(34, a.layout().listW - 31));
-      rows.push(H(''), H(`Formulas (${formulas.length})`));
-      if (!formulas.length) rows.push(H(dim('  No formulas known. The enchanting trainer teaches them.')));
-      for (const e of formulas) {
-        const chk = enchantCheck(a, cr, e, env);
+      rows.push(H(''), H(`Formulas (${shown.length}${shown.length !== total ? ` of ${total}` : ''})`));
+      if (!total) rows.push(H(dim('  No formulas known. The enchanting trainer teaches them.')));
+      else if (!shown.length) rows.push(H(dim(haveOnly ? '  Nothing you have the mats for. h shows every formula.' : '  No formula matches.')));
+      for (const { e, chk } of shown) {
         rows.push({
           text: `${fit(DIFF_PAINT[diffOf(cr, 'enchanting', e)](e.name.replace(/^Enchant\s+/, '')), W)} ${chk.ok ? green('ready') + (chk.cost ? yellow(`  buys ${coinText(chk.cost)}`) : '') : (chk.short ? dim : red)(chk.reason)}`,
           detail: () => [bold(e.name), dim(`goes on: ${e.slots.join(', ')}   ${rodNameForTier(e.minRodTier, ds)}`), '', ...reagentLines(a, e.reagents, [], cr.inv), '',

@@ -1,4 +1,4 @@
-// Terminal preferences that are not part of a character: auto-loot and the like. Phonecraft keeps these in
+// Terminal preferences that are not part of a character: auto-loot and the like. The web client keeps these in
 // the browser's settings store, so they are per device here too: one JSON file next to the saves.
 import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync } from 'node:fs';
 import { homedir } from 'node:os';

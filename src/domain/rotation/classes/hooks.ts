@@ -43,6 +43,10 @@ export interface ClassRotationHooks {
   // gate (first pass).
   afterSuggestion?(ctx: FinalizeContext): void;
 
+  // A known spell another known spell replaces, so the shared injects must not add it back.
+  // Paladin: Divine Protection once Divine Shield is trained (shared Forbearance). Default: none.
+  supersededSpell?(spell: SpellDef, ctx: FinalizeContext): boolean;
+
   // After role-bucket tail + shared interrupt hoist. Hunter Auto Shot primary, mage PoM, paladin
   // re-finalize, etc.
   afterFallback?(ctx: FinalizeContext): void;

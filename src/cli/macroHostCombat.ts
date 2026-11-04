@@ -19,7 +19,7 @@ import {
   type MacroAura, type MacroDef, type MacroPlan, type MacroSnapshot,
   type MacroUnitRef, type MacroUnitSnap, type MacroWornItem,
 } from '../domain/macro/index.ts';
-// Copied from phonecraft src/ui/macros/macroHostCombat.ts; only this type came from its action bar model.
+// Copied from the web client's macroHostCombat.ts; only this type came from its action bar model.
 export interface ActionBarMacroInfo {
   name: string;
   icon?: string;

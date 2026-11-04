@@ -1,4 +1,4 @@
-// The world map on the Travel tab: phonecraft's combined Azeroth terrain map (the picture every zone's
+// The world map on the Travel tab: the combined Azeroth terrain map (the picture every zone's
 // `mapPos` is measured on; scripts/bake-world-map.mjs) drawn in the detail pane with pins for where you
 // stand, the zone under the cursor and the route a journey takes between them. On the road the pin walks its
 // leg. Two packs, like the creature art: src/data/world-map.bin.gz as truecolour half-block cells (two map

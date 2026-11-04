@@ -27,7 +27,7 @@ import {
   SPELL_FORTITUDE_R1,
   SPELL_LESSER_HEAL_R2,
 } from '../scriptdev/npcsSpecial.ts';
-import { huntableCreatures, zoneVendors, findVendorSelling } from '../../world/world.ts';
+import { huntableCreatures, zoneVendors, findVendorSelling, pullEliteRank } from '../../world/world.ts';
 import { buyCostCopper } from '../economy/trading.ts';
 import {
   corpseUseFightEntries,
@@ -954,7 +954,8 @@ function fightStep(
     if (isScriptCreditOnlyTarget(ds, kt.creatureEntry, state.questlog)) continue;
     // Named kill target is the quest — fight it even when it is not on zone.huntable.
     const cr = ds.creature(kt.creatureEntry);
-    if (cr) killable.push({ entry: kt.creatureEntry, level: creatureFarmLevel(cr), chance: 0, rank: creatureFarmRank(cr) });
+    // Ranked by the pull, not the template: a linked elite that joins makes it an elite fight.
+    if (cr) killable.push({ entry: kt.creatureEntry, level: creatureFarmLevel(cr), chance: 0, rank: pullEliteRank(ds, state.char.zoneId, kt.creatureEntry) });
   }
   if (killable.length > 0) {
     // Several unmet kill objectives: rotate among the near-equal ones that are actually here, so a
@@ -994,7 +995,7 @@ function fightStep(
       if (ch <= 0 || ch < floor) continue;
       const prev = byEntry.get(c.entry);
       if (!prev || ch > prev.chance) {
-        byEntry.set(c.entry, { entry: c.entry, level: c.level, chance: ch, rank: creatureFarmRank(c) });
+        byEntry.set(c.entry, { entry: c.entry, level: c.level, chance: ch, rank: pullEliteRank(ds, state.char.zoneId, c.entry) });
       }
     }
   }
@@ -1016,7 +1017,7 @@ function fightStep(
       const c = itemChanceOnCreature(ds, ce, it.item, snap);
       if (c >= dropperNoiseFloor(ds, it.item, snap)) ch = Math.max(ch, c);
     }
-    farmScored.push({ ce, chance: ch, level: creatureFarmLevel(cr), rank: creatureFarmRank(cr) });
+    farmScored.push({ ce, chance: ch, level: creatureFarmLevel(cr), rank: pullEliteRank(ds, state.char.zoneId, ce) });
   }
   const farmDrop = farmScored.filter((s) => s.chance > 0);
   const farmPool = farmDrop.length > 0

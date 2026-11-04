@@ -15,7 +15,7 @@ import { freeSlots } from '../domain/items/inventory.ts';
 import { bagCapacity } from '../domain/items/equipment.ts';
 import {
   huntableCreatures, zoneNodes, neighbourZones, questTargets,
-  creatureAttackDistance, creatureAggroOnSight, zoneHasSpatialSpawns,
+  creatureAttackDistance, creatureAggroOnSight, zoneHasSpatialSpawns, pullEliteRank,
 } from '../world/world.ts';
 import {
   bagQuestStarts,
@@ -26,7 +26,6 @@ import {
   compareQuestDroppers,
   pickQuestDropper,
   dropperPickSalt,
-  creatureFarmRank,
   dropperNoiseFloorFor,
 } from '../quests/quests.ts';
 import { itemStartGateMet } from '../domain/quests/questlog.ts';
@@ -372,7 +371,8 @@ export function buildView(
         forQuest: questKill || questDropChance > 0,
         questKill,
         questDropChance,
-        rank: creatureFarmRank(c),
+        // The pull's rank, not the template's: a normal mob whose linked elite joins it is an elite pull.
+        rank: pullEliteRank(ds, char.zoneId, c.entry),
         attackDistance: creatureAttackDistance(c, char.level),
         aggroOnSight: creatureAggroOnSight(c),
         spatialReady,

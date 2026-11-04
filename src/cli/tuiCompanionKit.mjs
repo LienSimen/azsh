@@ -1,6 +1,6 @@
 // The rest of a companion's page and the party-wide companion dialogs: spec, talent link, AoE, off-heal and xp
 // lock; their pet; their quests; their bags and bank; the tavern duel; consumable sharing, the party vault
-// and the hire search. Ports of phonecraft companionsPanel.ts, companionKitPanel.ts and consumableSharePanel.ts.
+// and the hire search. Ports of the web client's companionsPanel, companionKitPanel and consumableSharePanel.
 import { bold, dim, cyan, yellow, green, red, qualityPaint, fit, plural, itemText, coinText } from './text.mjs';
 import { itemLines, noteSale } from './tuiViews.mjs';
 import { companionUseWithPicker } from './tuiEnchantTarget.mjs';

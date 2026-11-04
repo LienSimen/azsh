@@ -1,6 +1,6 @@
 // The Companions tab: your party and bench, hiring at an inn, one page per companion (role, gear, bags,
 // professions) and their gathering trips, and the squad mode that decides who fights beside you. A trimmed
-// port of phonecraft's companionsPanel.ts, companionMissionsDesk.ts and squadModePicker.ts.
+// port of the web client's companionsPanel.ts, companionMissionsDesk.ts and squadModePicker.ts.
 import { bold, dim, cyan, yellow, green, red, inverse, qualityPaint, fit, cut, plural, itemText, vis, wrapLines, coinText, coin } from './text.mjs';
 import { miniIcon } from './iconArt.mjs';
 import { paperdollGrid, paperdollPlan } from './tuiPaperdoll.mjs';
@@ -135,7 +135,7 @@ export function companionsView(app) {
     const r = a.g.applySquadUpgrades();
     a.result(r, `Your companions put on ${plural(r.equipped ?? 0, 'upgrade')}.`);
   };
-  return {
+  const view = {
     id: 'companions', title: 'Companions', hint: 'Enter: open',
     keys: {
       g: { hint: 'send goods', fn: (a) => openSendGoods(a) },
@@ -157,26 +157,29 @@ export function companionsView(app) {
       });
       if (!squad.length && !bench.length) rows.push(H(''), H(dim('  You travel alone. Innkeepers hire out companions: they fight beside you, carry and craft.')));
       rows.push(...squad.map(row));
-      if (bench.length) rows.push(H(''), H(`Bench (${bench.length})`), ...bench.map(row));
+      // Hire and Everyone sit above the bench, which can run long. Their counts (the inn's pool, every upgrade
+      // for everyone: ~30 ms with a full bench) wait for the cursor to rest (App.atRest), so paging is not slowed.
       const inn = g.innkeeperHere();
       rows.push(H(''), H('Hire'));
       if (inn) {
-        const n = hirePool(a).list.length;
-        rows.push({ text: `Hire a companion at ${inn.name} ${dim(`(${plural(n, 'face')})`)}`, detail: () => [bold(inn.name), 'Innkeeper', '', `${plural(n, 'adventurer')} of your faction looking for work, every level, sorted by role and kit. A hire joins at their own level in their own gear; a bench companion comes back free.`], act: () => a.push(hireDialog(a)) });
+        const n = a.atRest(view, 'hireFaces', () => hirePool(a).list.length);
+        rows.push({ text: `Hire a companion at ${inn.name} ${dim(n == null ? '(…)' : `(${plural(n, 'face')})`)}`, detail: () => [bold(inn.name), 'Innkeeper', '', `${n == null ? 'Adventurers' : plural(n, 'adventurer')} of your faction looking for work, every level, sorted by role and kit. A hire joins at their own level in their own gear; a bench companion comes back free.`], act: () => a.push(hireDialog(a)) });
       } else rows.push(H(dim('  No inn here. Companions are hired from innkeepers (Goldshire, Razor Hill, every capital).')));
       if (squad.length || bench.length) {
-        const ups = g.squadUpgradePlan().length;
+        const ups = a.atRest(view, 'squadUpgrades', () => g.squadUpgradePlan().length);
         const back = countDoneMissions(squad, g.state.botRoster, Date.now());
         rows.push(H(''), H('Everyone'));
-        rows.push({ text: `Put on every upgrade ${ups ? green(`(${ups})`) : dim('(none)')} ${dim('u')}`, detail: () => [bold('Gear everyone'), '', 'Each companion, party and bench, takes the best piece for them out of their own bags, your bags and your bank. Shared items go to whoever gains the most.'], act: () => gearAll(a) });
+        rows.push({ text: `Put on every upgrade ${ups ? green(`(${ups})`) : dim(ups == null ? '(…)' : '(none)')} ${dim('u')}`, detail: () => [bold('Gear everyone'), '', 'Each companion, party and bench, takes the best piece for them out of their own bags, your bags and your bank. Shared items go to whoever gains the most.'], act: () => gearAll(a) });
         rows.push({ text: `Send trade goods and upgrades ${dim('g')}`, detail: () => [bold('Send goods'), '', 'Ore, herbs, leather and cloth go to the companions whose recipes use them; you review the list first.'], act: () => openSendGoods(a) });
         rows.push({ text: `Share consumables ${dim('s')}`, detail: () => [bold('Share consumables'), '', 'Potions, elixirs, food buffs, coats, devices, bandages, ammo and reagents from your bags, split to whoever gains the most, or by your rules.'], act: () => a.push(shareDialog(a)) });
         rows.push({ text: `Party storage ${dim('v')}`, detail: () => [bold('Party storage'), '', 'Everything your companions carry and bank, by item. Take any of it back.'], act: () => a.push(vaultDialog(a)) });
         rows.push({ text: `Collect finished trips ${back ? green(`(${back} back)`) : dim('(none back)')} ${dim('c')}`, detail: () => [bold('Gathering trips'), '', `Energy ${energy}/${MAX_COMPANION_ENERGY}, refills at ${new Date(energyResetsAtMs(Date.now())).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`], act: () => collectAll(a) });
       }
+      if (bench.length) rows.push(H(''), H(`Bench (${bench.length})`), ...bench.map(row));
       return rows;
     },
   };
+  return view;
 }
 
 /** Solo, elite support or party: the three autopilot knobs every world fight reads. */

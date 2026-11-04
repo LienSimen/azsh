@@ -284,6 +284,8 @@ export interface FightOutcome {
   leveledTo: number[];
   /** Bodies that died and were paid — a defeat that took half the pull with it is not zero. */
   killCount: number;
+  /** resolveFight liveChain: the encounter goes on with this foe (beginChainedPhase opens it). */
+  nextPhase?: { creatureEntry: number; name: string };
 }
 export interface BeginFight {
   session: CombatSession;
@@ -502,8 +504,12 @@ export interface Game {
     /** What each corpse's death script summoned. The floor owns where the body lands. */
     summons: FloorDeathSummon[];
   }>;
-  /** Apply the outcome of a (live or auto) fight: vitals, loot, gold, quest credit, xp. */
-  resolveFight(session: CombatSession, opts?: { holdLoot?: boolean }): FightOutcome;
+  /** Apply the outcome of a (live or auto) fight: vitals, loot, gold, quest credit, xp. `liveChain`: a
+   *  won encounter phase with another after it returns `nextPhase` for beginChainedPhase instead of
+   *  running that phase to the end. */
+  resolveFight(session: CombatSession, opts?: { holdLoot?: boolean; liveChain?: boolean }): FightOutcome;
+  /** Open the encounter phase a liveChain resolve handed back. */
+  beginChainedPhase(): ActionResult<BeginFight>;
   // Plan and depart a wall-clock journey to `zoneId` (multi-leg; the destination need not be a
   // neighbour). Fares prepay at departure and position derives from `now` via journeyTick.
   travelTo(zoneId: string, nowMs?: number): ActionResult<{ travelMs: number; totalSeconds: number; totalCopper: number }>;

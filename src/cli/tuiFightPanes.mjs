@@ -1,5 +1,5 @@
 // The bottom pane of a live fight: Tab cycles it between the combat log, a damage meter, the threat table
-// and the loot taken so far. The log is the game's own log (tui.mjs); the meter is phonecraft's DPSMate
+// and the loot taken so far. The log is the game's own log (tui.mjs); the meter is the engine's DPSMate
 // aggregator fed every tick's events; threat reads the engine's ThreatManager through the session; loot is a
 // session-long tally of what the "You receive" lines handed over. The choice sticks between fights.
 import { bold, dim, cyan, yellow, green, red, inverse, fit, vis, cut, bar, pct, coinText } from './text.mjs';

@@ -154,6 +154,9 @@ export type ScriptDevAction =
       /** Add `value` to the current store (default 1). Cite: temple_of_ahnqiraj.cpp:240 ++m_uiBugTrioDeathCount. */
       increment?: boolean;
       gate?: ScriptDevDataGate;
+      // Write it through to the run so the next pull is seeded with it. A pull ends without an evade, so
+      // an aggro IN_PROGRESS is otherwise forgotten on a wipe or a flee.
+      persist?: boolean;
       cite: string;
     }
   | {

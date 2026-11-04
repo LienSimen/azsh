@@ -396,11 +396,11 @@ Data and art bakes:
 
 ```sh
 npm run data:pack    # gzip the bake after a data refresh; data:unpack reverses it
-npm run art:bake     # rebuild src/data/model-art.bin.gz from phonecraft's creature renders (needs ffmpeg)
-npm run art:gear     # rebuild src/data/gear-art.bin.gz from phonecraft's paperdoll bake (needs Python with Pillow)
-npm run art:icons    # rebuild src/data/icon-art.bin.gz from phonecraft's spell and item icons (needs ffmpeg)
+npm run art:bake     # rebuild src/data/model-art.bin.gz from the creature renders (needs ffmpeg)
+npm run art:gear     # rebuild src/data/gear-art.bin.gz from the paperdoll bake (needs Python with Pillow)
+npm run art:icons    # rebuild src/data/icon-art.bin.gz from the spell and item icons (needs ffmpeg)
 npm run art:map      # rebuild the Travel tab's world map, src/data/world-map.bin.gz and world-map-sixel.bin.br,
-                     # from phonecraft's combined Azeroth terrain map (needs ffmpeg)
+                     # from the combined Azeroth terrain map (needs ffmpeg)
 npm run art:hd       # rebuild the full-size art sixel draws: model-art-hd.bin.br, icon-art-hd.bin.br and
                      # gear-art-hd/<body>.bin.br (needs ffmpeg, and Python with Pillow for the gear)
 ```

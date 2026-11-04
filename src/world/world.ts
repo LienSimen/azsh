@@ -22,7 +22,7 @@ import { scriptDevByGo } from '../domain/scriptdev/index.ts';
 import { canAttackCreature, canInteractWithCreature } from '../domain/creature/faction.ts';
 import { unitCannotBeAttacked } from '../domain/creature/unitFlags.ts';
 import { isScriptCreditOnlyTarget } from '../domain/quests/questScriptCredit.ts';
-import { offeredQuests } from '../quests/quests.ts';
+import { creatureFarmRank, offeredQuests } from '../quests/quests.ts';
 import {
   getCreatureAttackDistance,
   isNoAggroOnSight,
@@ -478,6 +478,28 @@ export function packAssistForPull(
     spawns,
     worldSpawnCounts,
   );
+}
+
+const pullRankCache = new WeakMap<DataStore, Map<string, number>>();
+
+/**
+ * CREATURE_ELITE_* of the hardest body a pull of `entry` brings: its own rank, raised by the pack
+ * assist that joins it. Twilight Marauder 15542 is rank 0 but its linking row drags Morna 15541
+ * (rank 1) into every pull, so a farm ranking off the template alone rotated an elite into a
+ * "normal" pool. Cached per (zone, entry): packAssistForPull walks every zone's spawns.
+ */
+export function pullEliteRank(ds: DataStore, zoneId: string, entry: number): number {
+  let byKey = pullRankCache.get(ds);
+  if (!byKey) { byKey = new Map(); pullRankCache.set(ds, byKey); }
+  const key = `${zoneId}|${entry}`;
+  const hit = byKey.get(key);
+  if (hit != null) return hit;
+  let rank = creatureFarmRank(ds.creature(entry));
+  for (const h of packAssistForPull(ds, zoneId, entry)) {
+    rank = Math.max(rank, creatureFarmRank(ds.creature(h.entry)));
+  }
+  byKey.set(key, rank);
+  return rank;
 }
 
 // GuardAI.cpp:72 — idle IsGuard neighbors within 20 yd of a pulled guard/civilian. Victim is the player (no

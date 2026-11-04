@@ -1,4 +1,4 @@
-// :dev, phonecraft's dev panel as verbs: give an item, finish a quest, learn a recipe, learn a profession to its
+// :dev, the web client's dev panel as verbs: give an item, finish a quest, learn a recipe, learn a profession to its
 // cap. They skip the game's rules on purpose; the engine logs what they did like anything else.
 import { dim, green, red, yellow, pick } from './text.mjs';
 

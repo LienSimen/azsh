@@ -1,4 +1,4 @@
-// Plain-English rendering of rotation rules and conditions for the terminal. Ported from phonecraft's
+// Plain-English rendering of rotation rules and conditions for the terminal. Ported from the web client's
 // src/ui/rotation/rotationEditorSentence.ts so a rule reads the same sentence here as in the web editor.
 import { CREATURE_TYPE, SHAPESHIFT_FORM } from '../data/schema.ts';
 import { DISPEL_TYPE } from '../domain/spells/dispel.ts';

@@ -1,4 +1,4 @@
-// The loot window (phonecraft's LootFrame): what a corpse, chest or opened container is still holding. The engine
+// The loot window (the web client's LootFrame): what a corpse, chest or opened container is still holding. The engine
 // keeps the haul in `state.pendingLoot`; Enter takes one row into the bags, a takes everything that fits, Esc
 // closes it (outdoor leftovers are gone then, an opened bag item keeps its remainder). With auto-loot on (the
 // default) fights never hold their loot and this window does not open.
@@ -26,10 +26,30 @@ function toggleAutoLoot(app) {
   app.say(dim(on ? 'Auto-loot on: fights put their loot straight into your bags.' : 'Auto-loot off: a corpse opens the loot window and you take what you want.'));
 }
 
+// Out of a fight nothing waits on the toasts, so they stay up longer than a win's hold (tuiFight WIN_HOLD_MS).
+const TOAST_MS = 2500, TOAST_DROP_MS = 450, TOAST_STAGGER_MS = 220, TOAST_MAX_MS = 6000, TOAST_FRAME_MS = 80;
+
+/** What a chest, node or opened bag item just gave, as the toasts a won fight slides in beside the corpse
+ *  (putLootToasts), over whatever screen it was looted from. tui.mjs render() draws `app.lootToast`. */
+export function toastLoot(app, taken = [], copper = 0) {
+  const loot = taken.filter((t) => t.item != null);
+  if (!loot.length && !copper) return;
+  const until = Math.min(TOAST_MAX_MS, TOAST_MS + (loot.length + (copper ? 1 : 0)) * TOAST_DROP_MS);
+  app.lootToast = { loot, copper, until, stagger: TOAST_STAGGER_MS, start: Date.now() };
+  app.term.clearInterval(app.lootToastTimer);
+  app.lootToastTimer = app.term.setInterval(() => {
+    if (app.closed || !app.lootToast || Date.now() - app.lootToast.start > app.lootToast.until) {
+      app.term.clearInterval(app.lootToastTimer); app.lootToastTimer = null; app.lootToast = null;
+    }
+    if (!app.closed) app.renderSoon();
+  }, TOAST_FRAME_MS);
+}
+
 export function takeAll(app) {
   const r = app.g.takeAllLoot();
   if (!app.result(r)) return;
   noteLoot(app, r.taken, r.copper);
+  toastLoot(app, r.taken, r.copper);
   for (const t of r.taken) app.say(`  ${yellow('You receive')} ${app.itemLabel(t.item)}${t.count > 1 ? ` x${t.count}` : ''}`);
   if (r.copper) app.say(`  ${yellow('You loot')} ${coinText(r.copper)}`);
   if (r.remaining) app.say(red(`  ${r.remaining} left in there: your bags are full.`));

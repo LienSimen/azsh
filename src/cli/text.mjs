@@ -42,7 +42,7 @@ export function coinText(copper, zero) {
 }
 
 const GENDER_TOKEN = /\$[Gg]\s*([^:]*):([^;]*);/g;
-/** $N name, $C class, $R race, $B break, $G male:female; (SharedDefines.h:26). Same codes as phonecraft questText. */
+/** $N name, $C class, $R race, $B break, $G male:female; (SharedDefines.h:26). Same codes as the web client. */
 export function questText(raw, ch) {
   return String(raw ?? '')
     .replace(GENDER_TOKEN, (_m, male, female) => (ch.gender === 1 ? female : male))

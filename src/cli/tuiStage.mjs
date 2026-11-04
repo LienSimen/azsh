@@ -96,11 +96,11 @@ export function floorLine(W, paint) {
 
 /** A unit's plate: name, level and class or rank (the faced foe marked); HP; power. `small` keeps to the
  *  first two. Every line is `plateW` wide. */
-export function plateLines(app, v, { isPlayer, focused, friend, small, dead, barW, plateW, rank = 0 }) {
-  const paint = dead ? gray : isPlayer ? green : friend ? cyan : focused ? red : yellow;
+export function plateLines(app, v, { isPlayer, focused, picked, friend, small, dead, barW, plateW, rank = 0 }) {
+  const paint = dead ? gray : isPlayer ? green : friend || picked ? cyan : focused ? red : yellow;
   const tag = isPlayer ? dim(className(app.ch.cls)) : RANK_WORD[rank] ? orange(RANK_WORD[rank]) : '';
   let head = `${paint(bold(v.name))}  ${dim(`L${v.level}`)}${tag ? `  ${tag}` : ''}${dead ? gray('  dead') : ''}`;
-  head = focused && !dead ? `${fit(head, plateW - 10)} ${dim('◀ target')}` : fit(head, plateW);
+  head = picked && !dead ? `${fit(head, plateW - 10)} ${cyan('◁ Enter')}` : focused && !dead ? `${fit(head, plateW - 10)} ${dim('◀ target')}` : fit(head, plateW);
   const hp = `${bar(v.hp, v.maxHp, barW, dead ? gray : v.hp / Math.max(1, v.maxHp) < 0.25 ? red : green)} ${(dead ? gray : (t) => t)(String(v.hp))}${dim(`/${v.maxHp}`)}`;
   if (small) return [head, fit(hp, plateW)];
   const pp = POWER_PAINT[v.powerType] ?? cyan;
@@ -121,10 +121,10 @@ export function shortNum(n) {
  * red), the HP bar with its percent, the power bar with its figure (blank for a unit without power or dead).
  * The bars are what the plate is for, so nothing else squeezes in; the level and the rank go when `w` is short.
  */
-export function narrowPlate(app, v, { isPlayer, focused, friend, dead, role, rank = 0, w }) {
-  const paint = dead ? gray : isPlayer ? green : friend ? cyan : focused ? red : yellow;
+export function narrowPlate(app, v, { isPlayer, focused, picked, friend, dead, role, rank = 0, w }) {
+  const paint = dead ? gray : isPlayer ? green : friend || picked ? cyan : focused ? red : yellow;
   const tag = friend || isPlayer ? `${ROLE_GLYPH[role] ?? dim('·')} ` : '';
-  const after = dead ? '' : focused ? red(' ◀') : RANK_WORD[rank] && w >= 18 ? `  ${orange(RANK_WORD[rank])}` : w >= 16 ? `  ${dim(`L${v.level}`)}` : '';
+  const after = dead ? '' : picked ? cyan(' ◁') : focused ? red(' ◀') : RANK_WORD[rank] && w >= 18 ? `  ${orange(RANK_WORD[rank])}` : w >= 16 ? `  ${dim(`L${v.level}`)}` : '';
   const room = w - vis(tag) - vis(after);
   const head = `${tag}${paint(bold(cut(v.name, Math.max(1, room))))}${after}`;
   const hp = `${bar(v.hp, v.maxHp, w - 4, dead ? gray : v.hp / Math.max(1, v.maxHp) < 0.25 ? red : green)}${(dead ? gray : (t) => t)(fit(`${Math.round((100 * v.hp) / Math.max(1, v.maxHp))}%`, 4, true))}`;
@@ -302,7 +302,7 @@ export function putPopsAbove(c, col, pops, now, zone) {
 
 // ---- the drops after a win -------------------------------------------------------------------------
 
-const TOAST_IN_MS = 200;  // a drop slides in from the right over this long (phonecraft's loot toast fades in)
+const TOAST_IN_MS = 200;  // a drop slides in from the right over this long (the web client's loot toast fades in)
 const TOAST_SLIDE = 6;    // columns it slides
 const TOAST_OUT_MS = 400; // and the stack greys out over the last this long of the hold
 const POP_GAP = 7;        // columns left for the last hit's number between the stack and the corpse
@@ -318,21 +318,23 @@ export function lootToasts(app, hold) {
 
 /** The drops as toasts stacked on the right, like loot in combat text. Each slides out from the right a beat
  *  after the one above, icon beside the name, and the stack greys out as the hold ends. Drawn over `lines`
- *  (the stage) above the plates, so the 0 under the foe's feet stays in view. */
-export function putLootToasts(app, lines, hold, W, now) {
+ *  (the stage) above the plates, so the 0 under the foe's feet stays in view. `corner`: on a card in the
+ *  bottom right instead (a chest looted from a list, whose detail pane has its title at the top). */
+export function putLootToasts(app, lines, hold, W, now, { corner = false } = {}) {
   const drops = lootToasts(app, hold);
   if (!drops.length) return;
-  const icons = iconsOn(), rowH = icons ? 2 : 1, top = 1;
+  const icons = iconsOn(), rowH = icons ? 2 : 1;
   const textW = Math.min(28, Math.max(...drops.map((d) => vis(d.text))));
-  const boxW = (icons ? 5 : 2) + textW, lane = lines.lane;
-  const room = Math.max(1, Math.floor(((lane?.rows ?? Math.floor(lines.length * 0.55)) - top) / rowH));
+  const boxW = (icons ? 5 : 2) + textW, lane = corner ? null : lines.lane;
+  const room = Math.max(1, Math.floor((corner ? lines.length - 2 : (lane?.rows ?? Math.floor(lines.length * 0.55)) - 1) / rowH));
   const shown = drops.length > room ? [...drops.slice(0, room - 1), { more: drops.length - room + 1 }] : drops;
+  const top = corner ? lines.length - shown.length * rowH : 1;
   // Where: the duel's open lane against the corpse, clear of the killing blow's number still rising off its
   // shoulder; else open ground on the stage's right half (not under sixel, whose pictures are blank cells in
   // the text); else the right edge on a cleared card. A win leaves only corpses on the right, so the card
   // covers the dead, never the party.
   const fits = (gap) => lane && lane.right - lane.left - 3 - gap >= boxW;
-  const open = fits(POP_GAP) ? lane.right - 1 - POP_GAP - boxW : fits(0) ? lane.right - 1 - boxW : sixelOn() ? -1 : openGround(lines, boxW, shown.length * rowH, top, W);
+  const open = corner ? -1 : fits(POP_GAP) ? lane.right - 1 - POP_GAP - boxW : fits(0) ? lane.right - 1 - boxW : sixelOn() ? -1 : openGround(lines, boxW, shown.length * rowH, top, W);
   const card = open < 0, x0 = card ? W - boxW - 2 : open;
   const fading = now > hold.until - TOAST_OUT_MS;
   shown.forEach((d, i) => {

@@ -1,4 +1,4 @@
-// Autopilot settings (phonecraft rotation/rotationEditorAuto.ts and autopilot/runDials.ts): every AutopilotConfig
+// Autopilot settings (the web client's rotationEditorAuto.ts and runDials.ts): every AutopilotConfig
 // field a player sets, as one form. Enter flips a switch, steps through a choice, or asks for a number. The raid
 // plan fields are left to the raid screens that own them.
 import { bold, dim, green, cyan } from './text.mjs';

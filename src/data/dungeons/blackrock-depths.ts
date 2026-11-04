@@ -367,7 +367,7 @@ export function angerforgeAlarmsByMs(msInAlarmPhase: number): number {
 // Survey E8 Flamelash — pull inject ScriptDev; continuous spirit schedule helpers below. Cite:
 // boss_ambassador_flamelash.cpp:81-91 Aggro; :127-137 spirit timers; h:13 MAX_DWARF_RUNES.
 export const BRD_FLAMELASH = {
-  /** Cite: boss_ambassador_flamelash.cpp:88-91 SummonCreature NPC_FIREGUARD_DESTROYER ×4. */
+  /** Cite: boss_ambassador_flamelash.cpp:88-91 SummonCreature NPC_FIREGUARD_DESTROYER ×4 (door; a return pull only). */
   destroyerEntry: ENTRY.fireguardDestroyer,
   destroyerCount: 4,
   spiritEntry: ENTRY.burningSpirit,
@@ -1185,7 +1185,7 @@ function buildHandSpine(): EncounterDef[] {
       ENTRY.ambassadorFlamelash,
       BOSS_SPELLS.ambassadorFlamelash,
       undefined,
-      'Ambassador Flamelash: Fireblast + 4×8911 + 7×9178 pull (ScriptDev); flamelashSpiritsExpectedByMs for 15–30s stream.',
+      'Ambassador Flamelash: Fireblast + 7×9178 pull, +4×8911 on a return after a wipe or flee (ScriptDev); flamelashSpiritsExpectedByMs for 15–30s stream.',
     ),
   );
 

@@ -15,7 +15,7 @@ import { startFight } from './tuiFight.mjs';
 import { strip, vis, wrapLines, coinText } from './text.mjs';
 import { visibleBars } from './tuiBars.mjs';
 import { defaultConditionsForSpell } from './tuiRotationCond.mjs';
-import { creatureArt, hasArt, artWidth } from './modelArt.mjs';
+import { creatureArt, objectArt, hasArt, artWidth } from './modelArt.mjs';
 import { nativeDisplayId } from '../domain/character/displayForm.ts';
 import { paperdollLayers, paperdollArt } from './paperdoll.mjs';
 import { playerArt, questDialog } from './tuiViews.mjs';
@@ -111,6 +111,7 @@ check('the stats page draws your body', !hasArt(nativeDisplayId(app.ch.race, app
   // What a fight turns into or brings in is drawn too: Dathrohan's morph to Balnazzar, a shaman's totem, a
   // witch doctor's ward. None is spawned anywhere, so the bake follows each kit. Cite: bake-model-art.mjs addFightCreatures.
   check('a boss morph, a totem and a ward have art', [10813, 3903, 3560].every((e) => hasArt(app.ds.creature(e)?.displayId)));
+  check("an EventAI death summon has art (Halycon's Gizrul)", hasArt(app.ds.creature(10268)?.displayId));
 }
 if (iconsOn()) {
   // A big window: the Gear tab is the character sheet and the Talents tab the three trees, both icon grids
@@ -231,12 +232,18 @@ show('fight start');
   const foeDisplay = ds.creature(app.fight?.enemyEntry)?.displayId;
   check('the fight shows the foe beside the frames', !hasArt(foeDisplay) || /[▀▄]/.test(frame()));
 }
-const barName = app.fight?.abilityBar()[0]?.spell.name;
-const hasBar = () => barName && frame().split('\n').some((l) => /^\s*1\s/.test(strip(l)) && strip(l).includes(barName));
+// The bar's key row (each slot's number, its cooldown beside it) drawn somewhere in the frame.
+const hasBar = () => { const keys = strip(app.fight?.abilityRows(200)[0] ?? '').trim(); return /^1\b/.test(keys) && strip(frame()).includes(keys); };
 // The duel stage keeps the ability bar on under auto-play too (its cooldowns are worth watching), with the
 // plates under the sprites' feet: your name, level and class, then the bars; and a floor under it all.
 check('auto-play shows the stage with the ability bar', hasBar() && new RegExp(`^\\s+${app.ch.name}  L\\d+  Warrior`, 'm').test(strip(frame())));
 check('the stage stands on a floor', /[▁▂_]{40}/.test(strip(frame())));
+{
+  // A slot that waits only on the GCD (or a cast) draws as a ready one, or the whole bar blinks with every cast.
+  const f = app.fight, bar = f.abilityBar;
+  const drawn = (reason) => { f.abilityBar = () => bar.call(f).map((a, i) => (i === 0 ? { ...a, usable: !reason, reason } : a)); const out = f.abilityRows(200).join('\n'); f.abilityBar = bar; return out; };
+  check('the GCD greys no slot on the ability bar', ['gcd', 'casting', 'channeling'].every((r) => drawn(r) === drawn(undefined)) && drawn('rage') !== drawn(undefined));
+}
 let ticks = 0;
 let paneFrames = null;
 while (app.fight && ticks < 3000) {
@@ -435,6 +442,30 @@ if (doRow >= 0) {
   const st = app.g.state.questlog.quests.find((q) => q.entry === doEntry)?.status;
   check(`Do Quest finished the quest (${st} after ${n} steps)`, st === 'turnedIn' || st === 'complete');
   if (app.auto) app.auto.stop();
+}
+
+// Blacklist: b on the quest log and the quest page's row set a quest aside, and it survives a settings write
+// and a save and reload (it used to live only in memory).
+{
+  const { toSave, migrate } = await import('../persistence/saveShape.ts');
+  home(); term.press('2');
+  const blRow = rowIndex((r) => r.data?.qs?.status === 'active');
+  if (blRow >= 0) {
+    const entry = app.rowsOf(app.top())[blRow].data.q.entry;
+    app.cmds.questBlacklist.clear();
+    app.top().cursor = blRow; term.press('b');
+    check('b on the quest log blacklists the quest', app.cmds.questBlacklist.has(entry) && /\(blacklisted\)/.test(strip(app.rowsOf(app.top())[blRow].text)));
+    app.g.setAutopilotConfig({ ...app.g.autopilotConfig(), questLevelAbove: 4 });
+    app.cmds.keepQuestBlacklist();
+    const back = migrate(JSON.parse(JSON.stringify(toSave('tuitest', app.g.snapshot(), Date.now()))));
+    const app2 = new App({ term: new HeadlessTerm(110, 34), ds, repo });
+    app2.startGame(back.state, 'blcheck', Date.now(), false);
+    check('the blacklist survives a settings write and a reload', app2.cmds.questBlacklist.has(entry) && app2.g.autopilotConfig().questLevelAbove === 4);
+    const page = questDialog(app, app.ds.quest(entry), 'log');
+    const off = app.rowsOf(page).find((r) => strip(r.text) === 'Take it off the blacklist');
+    off?.act();
+    check('the quest page takes it off the blacklist', !!off && !app.cmds.questBlacklist.has(entry));
+  } else check('the quest log has an active quest to blacklist', false);
 }
 
 // Rotation editing through the menu: toggle a rule, add one, give it a condition, delete it.
@@ -876,7 +907,7 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
 // ---- dungeons: the Deadmines as a text run ------------------------------------------------------------------
 {
   const g = app.g;
-  const { hasFlag, isComplete } = await import('../world/instances.ts');
+  const { hasFlag, isComplete, routeEncounterIdList } = await import('../world/instances.ts');
   g.state.char.level = 20; g.state.char.gold = 10_000_000;
   const bag = ds.items().find((i) => i.slot === 'bag' && i.itemClass !== 11 && (i.bagSlots ?? 0) >= 10 && (i.requiredLevel ?? 1) <= 20 && !i.allowClass?.length);
   for (let i = 0; i < 4; i++) { g.state.inventory = addItem(g.state.inventory, bag.entry, 1, 1); g.equip(bag.entry); }
@@ -894,9 +925,26 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   term.press('return');
   app.top().cursor = rowIndex((r, t) => /^Enter the dungeon/.test(t)); term.press('return'); show('run window');
   check('entering opens the run window', app.top()?.id === 'dungeon' && g.state.instance?.dungeonId === 'deadmines' && /Rhahk'Zor/.test(strip(frame())));
+  let picksChecked = false;
   for (let n = 1; n <= 2; n++) {
     app.top().cursor = rowIndex((r, t) => /◀ next/.test(t)); term.press('return');
     check(`stop ${n} starts a live fight with the party`, !!app.fight?.withSquad && app.fight.session.alliesView().length >= 4);
+    // ← → walk a pick along the pack, Enter makes it your target, Esc drops the pick without running.
+    {
+      const f = app.fight, foes = f?.pickable() ?? [];
+      if (app.fight && !picksChecked && foes.length >= 2) {
+        picksChecked = true;
+        const was = f.session.enemyView().side;
+        term.press('right');
+        const picked = f.pick;
+        check('→ picks a foe other than the one you face, marked on its plate', !!picked && picked !== was && strip(frame()).includes('◁'));
+        term.press('escape');
+        check('Esc drops the pick and stays in the fight', app.fight === f && f.pick === null);
+        term.press('left'); const target = f.pick; term.press('return');
+        check('Enter on a pick makes it your target', !!target && f.session.enemyView().side === target && f.pick === null);
+      }
+      if (n === 2 && !picksChecked) check('a Deadmines pull has a pack to pick from', false);
+    }
     if (n === 1 && app.fight) {
       // The party stage: every body on one floor, the party's plates on one row (role letter, name) left of the
       // pack's, an HP percent under each, the foe you face marked, and a cast bar under a caster while it casts.
@@ -933,8 +981,15 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   }
   show('run window after two stops');
   const chest = rowIndex((r) => r.data?.object?.kind === 'chest' && r.data.object.pin.name === 'Defias Gunpowder');
-  app.top().cursor = chest; term.press('return');
+  app.top().cursor = chest; app.render();
+  const chestPin = app.rowsOf(app.top())[chest]?.data?.object?.pin;
+  check('a chest row draws the chest in the detail pane', !objectArt(chestPin?.displayId, 20, 10) || /[▀▄]/.test(frame()));
+  term.press('return');
   check('the Defias Gunpowder chest gives the gunpowder', countItem(g.state.inventory, 5397) === 1);
+  check('opening a chest by hand slides what it gave in as loot toasts', !!app.lootToast?.loot.some((d) => d.item === 5397));
+  app.lootToast.start = Date.now() - 1500; app.render(); show('chest loot toast');
+  check('the toast names the gunpowder over the run window', frame().includes(ds.item(5397).name));
+  app.lootToast = null;
   const cannon = rowIndex((r) => r.data?.object?.kind === 'gate');
   app.top().cursor = cannon; term.press('return');
   check('the Defias Cannon opens the iron-clad door', hasFlag(g.state.instance, 'deadmines-iron-clad-door'));
@@ -946,6 +1001,21 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   term.press('F'); term.press('return'); show('run report');
   check('finish instantly ends on the run report', app.top()?.id === 'run-summary' && /Run report|Cleared|Partial|Wiped/.test(strip(frame())) && (app.dungeonPulls?.length ?? 0) > 2);
   term.press('escape');
+  {
+    const secRows = () => app.rowsOf(app.top()).filter((r) => r.data?.section);
+    const stopCount = () => app.rowsOf(app.top()).filter((r) => r.data?.stop).length;
+    const shut = secRows().filter((r) => /^▸/.test(strip(r.text)));
+    show('run window, sections past a dead boss folded');
+    check(`a section folds on its own once its boss is down, trash and all (${shut.length} of ${secRows().length})`, app.top()?.id === 'dungeon' && secRows().length > 1 && shut.length > 0);
+    const i = rowIndex((r, t) => !!r.data?.section && /^▸/.test(t));
+    const before = stopCount();
+    app.top().cursor = i; term.press('return');
+    check('Enter on a folded section opens it and keeps the cursor there', stopCount() > before && app.top().cursor === i);
+    term.press('e');
+    const allOpen = secRows().every((r) => /^▾/.test(strip(r.text)));
+    term.press('e');
+    check('e opens every section while one is folded, then folds them all, no stop left showing', allOpen && secRows().every((r) => /^▸/.test(strip(r.text))) && stopCount() === 0);
+  }
   const cleared = g.state.instance.defeated.length;
   const allDown = isComplete(ds.instance('deadmines'), g.state.instance);
   {
@@ -966,6 +1036,31 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   check('going back in keeps the cleared stops', g.state.instance?.defeated.length === cleared);
   term.press('R'); term.press('return');
   check('R resets the run', g.state.instance?.defeated.length === 0);
+  // Finish instantly on a boss it cannot beat: Captain Greenskin gates nothing, so the run leaves him and goes on.
+  {
+    const realResolve = g.resolveFight;
+    g.resolveFight = (session, opts) => {
+      const was = g.state.instance;
+      const r = realResolve.call(g, session, opts);
+      if (!g.state.instance?.defeated.includes('captain-greenskin') || was?.defeated.includes('captain-greenskin')) return r;
+      g.state.instance = was;
+      return { ...r, outcome: 'defeat' };
+    };
+    const route = routeEncounterIdList(ds.instance('deadmines'), g.state.instance);
+    const after = route.slice(route.indexOf('captain-greenskin') + 1);
+    g.regenTick(600, true);
+    term.press('F'); term.press('return'); show('run report, a boss left standing');
+    g.resolveFight = realResolve;
+    const tries = (app.dungeonPulls ?? []).filter((p) => p.encounterId === 'captain-greenskin');
+    const lastTry = app.dungeonPulls.lastIndexOf(tries.at(-1));
+    const wonPast = app.dungeonPulls.slice(lastTry + 1).filter((p) => p.outcome === 'win');
+    check(`finish instantly leaves a boss it cannot beat after ${tries.length} try and goes on (${wonPast.length} won after)`,
+      tries.length === 1 && !g.state.instance.defeated.includes('captain-greenskin') && wonPast.length > 0 && after.some((id) => g.state.instance.defeated.includes(id)));
+    check('the run report names the boss it could not beat', app.top()?.id === 'run-summary' && /Could not beat Captain Greenskin/.test(strip(frame())));
+    term.press('escape');
+    term.press('R'); term.press('return');
+    app.dungeonPulls = [];
+  }
   // The continuous floor (2i): walk the Deadmines on its nav mesh; what sees you on the way pulls.
   {
     const { loadNavMesh, stepFloor, navMeshDir } = await import('./tuiFloor.mjs');
@@ -975,6 +1070,14 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
       term.press('W'); show('the floor');
       check('W opens the floor with the stops by distance', app.top()?.id === 'floor' && /Where to/.test(strip(frame())));
       const f = app.floor;
+      const thingsAt = () => { const rows = app.top().rows(app); const ti = rows.findIndex((r) => r.header && /Things to use/.test(strip(r.text))); return { rows, ti }; };
+      {
+        const { rows, ti } = thingsAt();
+        check('the floor lists things to use, a map of the mesh above each', ti >= 0 && !!rows[ti + 1]?.act && rows[ti + 1].detail(app, rows[ti + 1]).some((l) => strip(l).includes('@')));
+        term.press('m');
+        check('m shows the floor map', app.top()?.id === 'floor-map' && strip(frame()).includes('@') && /north up/.test(strip(frame())));
+        term.press('escape');
+      }
       const at0 = { x: f.world.party.x, y: f.world.party.y };
       app.top().cursor = rowIndex((r) => r.data === undefined && !!r.keys?.P); term.press('return');
       check('Enter on a stop starts the walk', f.walking && !!f.target);
@@ -985,12 +1088,22 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
       const before = g.state.instance.defeated.length;
       finishFight();
       check('a won floor pull clears its stop and its bodies', g.state.instance.defeated.length === before + 1 && f.world.clearedGuids.length > 0 && app.top()?.id === 'floor');
+      {
+        // Nobody left to pull on the way: Enter on the nearest thing you can use walks there and uses it.
+        const { rows, ti } = thingsAt();
+        const at = rows.findIndex((r, i) => i > ti && !r.header && !/needs|locked/.test(strip(r.text)));
+        for (const e of f.world.entities) if (!e.party) e.state = 'skipped'; // the grid still holds them; skipped bodies never pull
+        app.top().cursor = at; term.press('return');
+        for (let i = 0; i < 3000 && f.walking; i++) stepFloor(app, f);
+        check('Enter on a thing walks there and uses it', at > ti && !f.walking && (app.top()?.id !== 'floor' || app.log.slice(-8).some((l) => /You (open|mine|pick)/.test(strip(l)))));
+        while (app.top()?.id !== 'floor' && app.stack.length) term.press('escape');
+      }
       term.press('escape');
       term.press('R'); term.press('return');
       check('a reset forgets the floor too', !app.floor && g.state.instance?.defeated.length === 0);
     } else {
       term.press('W');
-      check(`no mesh at ${navMeshDir()}: W says so and the run stays sequential`, app.top()?.id === 'dungeon' && /nav mesh/.test(app.flash?.text ?? ''));
+      check(`no mesh at ${navMeshDir()}: W says so and the run stays sequential`, app.top()?.id === 'dungeon' && /no floor to walk/.test(app.flash?.text ?? ''));
     }
   }
   term.press('L');
@@ -1191,7 +1304,7 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   term2.close?.();
 }
 
-// ---- what phonecraft's World tab, quest card and bag menu offer: weapon masters, ring picker, hearth, quest steps --
+// ---- what the client's World tab, quest card and bag menu offer: weapon masters, ring picker, hearth, quest steps --
 {
   const term2 = new HeadlessTerm(110, 34);
   const app2 = new App({ term: term2, ds, repo });
@@ -1409,6 +1522,7 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   app.render(); show('gear with a worn piece');
   const slotRow = rowIndex((r) => r.data?.slot === worn);
   check('a worn-down slot shows its durability', / 1\/\d+/.test(strip(app.rowsOf(app.top())[slotRow].text)));
+  check('the header corner shows gear durability beside the gold', /Dur \d+%/.test(strip(frame()).split('\n')[0]) && !/Dur 100%/.test(strip(frame()).split('\n')[0]));
   const quote = g.repairQuote();
   check('the Repair all row prices the bill', rowIndex((r, t) => t.startsWith('Repair all') && t.includes(strip(coinText(quote.cost)))) > 0);
   if (quote.vendorName) {
@@ -1816,6 +1930,15 @@ check('b in Bags outside a bank town only flashes', app.stack.length === 0);
   home(); term.press('1');
   const chest = rowIndex((r) => r.data?.object?.name === 'Battered Chest');
   check('Elwynn lists objects with a chest', chest > 0);
+  app.top().cursor = chest; app.render(); show('chest row');
+  check('the Battered Chest row draws the chest in the detail pane', !objectArt(259, 20, 10) || /[▀▄]/.test(frame()));
+  if (objectArt(310, 9, 5)) {
+    const { holdNewArt } = await import('./sixel.mjs');
+    const held = holdNewArt(() => objectArt(310, 11, 7));
+    check('a picture not made before is held back while the cursor moves', held.value === null && held.missed);
+    objectArt(310, 11, 7);
+    check('one made before is drawn at once', !!holdNewArt(() => objectArt(310, 11, 7)).value);
+  }
   app.prefs.set('autoLoot', false);
   app.top().cursor = chest; term.press('return'); show('chest opened');
   check('Enter on a chest opens it', app.top()?.id === 'loot' || app.log.some((l) => /Battered Chest/.test(strip(l))));
@@ -2510,6 +2633,20 @@ check('help closed', app.stack.length === 0);
   }
   check('a dungeon stop buffs, then drinks back before the pull', hasAI() && openPct[0] >= 0.9);
   check('the next stop rests back up too', openPct[1] >= 0.9);
+  // Sneed's Shredder ejects Sneed: the next phase opens on the stage. It was run to its end the moment the
+  // Shredder fell, so Sneed appeared and died in the same frame.
+  {
+    const shredder = dm.encounters.find((e) => e.id === 'sneeds-shredder');
+    gB.regenTick(600, true);
+    pullStop(appB, dm, shredder, { floor: true });
+    const ticks = new Map();
+    for (let n = 0; n < 20000 && appB.fight; n++) {
+      if (!appB.fight.ended) ticks.set(appB.fight.enemyEntry, (ticks.get(appB.fight.enemyEntry) ?? 0) + 1);
+      appB.fight.tick();
+    }
+    check(`Sneed comes out of his Shredder and is fought on the stage (${ticks.get(643) ?? 0} ticks)`, ticks.has(642) && (ticks.get(643) ?? 0) > 20);
+    check('the Shredder stop clears once Sneed is down', gB.state.instance.defeated.includes('sneeds-shredder'));
+  }
 }
 
 // A foe that resets ends the fight. The engine keeps the session open with the mob passive at full HP and the

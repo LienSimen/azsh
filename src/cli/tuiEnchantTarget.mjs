@@ -1,7 +1,7 @@
 // The "apply to which slot?" picker behind an armor kit, a scope, an arcanum, a poison, a sharpening stone and a
 // shaman weapon imbue. The engine refuses with `needsTarget` when no slot is named, and its `slots` are already
 // filtered for that wearer, so nothing here re-derives eligibility: every offered row came from the engine, and
-// a refused slot rides along greyed out with its reason. Phonecraft's panels/enchantTargetPicker.ts is the
+// a refused slot rides along greyed out with its reason. The web client's enchantTargetPicker.ts is the
 // reference.
 import { dim, qualityPaint, itemText } from './text.mjs';
 import { itemLines } from './tuiViews.mjs';

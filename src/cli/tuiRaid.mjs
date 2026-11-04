@@ -1,4 +1,4 @@
-// Who walks into an instance and how the paladins bless them. The roster picker is phonecraft's
+// Who walks into an instance and how the paladins bless them. The roster picker is the web client's
 // instanceRosterPicker.ts (picks from every companion you own, Fill matches the instance template), the
 // lineup is the 10/20/40 raid group, and the board is the PallyPower grid (engine/game/paladinBoard.ts).
 import { bold, dim, cyan, green, yellow, fit, plural, wrapLines } from './text.mjs';

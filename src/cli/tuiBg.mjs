@@ -1,5 +1,5 @@
 // Warsong Gulch and Arathi Basin as a text match, from the Honor window. The map, rules, roster and strategy layer
-// are phonecraft's own (domain/bg: BgWorld, installWsg / installAb, bgRoster, BgMatch); what is not ported is
+// are the engine's own (domain/bg: BgWorld, installWsg / installAb, bgRoster, BgMatch); what is not ported is
 // bgScreen.ts's whole-match combat session. Here the world resolves its own engagements (BgMatch's attrition
 // resolver, flat damage and healing per body), so a fight is watched, but the field is yours to play: a strip map
 // of the gulch above the scoreboard, orders for your own seat by place (our flag room, mid, their graveyard, a
@@ -30,7 +30,7 @@ const COUNTDOWN_MS = 10_000;
 // Vanilla 1.12 had no clock and a double turtle could run for hours; patch 2.3 put 25 minutes on the
 // gulch, which is what an unattended match here needs to reach a result. A tied clock goes to kills.
 const MATCH_MAX_MS = 25 * 60_000;
-// The job boards phonecraft deals seats from (bgScreen.ts:140-151).
+// The job boards the web client deals seats from (bgScreen.ts:140-151).
 const WSG_ROLES = ['flag-carrier', 'fc-escort', 'offense', 'defense', 'defense', 'mid', 'offense', 'fc-escort', 'mid', 'flex'];
 const AB_ROLES = ['node-assault', 'node-assault', 'node-defense', 'node-assault', 'node-defense'];
 const ROLE_TEXT = {

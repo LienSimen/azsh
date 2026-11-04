@@ -12,7 +12,7 @@ import { pendingCorpseUseItem } from '../domain/quests/questCorpseUse.ts';
 import { pendingScriptItemUse } from '../domain/quests/questScriptItemUse.ts';
 import { pickpocketLootKey, canRestockPickpocket } from '../domain/professions/pickpocket.ts';
 import { vendorPriceMultiplierFor, trainerSpellCost } from '../engine/game/vendorOffers.ts';
-import { questDialog, npcLines } from './tuiViews.mjs';
+import { questDialog, npcLines, objectLines } from './tuiViews.mjs';
 import { mailDialog } from './tuiCity.mjs';
 import { withWorldMap } from './tuiMap.mjs';
 import { autoLootOn, openLoot, takeAll } from './tuiLoot.mjs';
@@ -61,7 +61,7 @@ export function pickPocketTag(app, creature) {
 }
 
 // ---- taming ----------------------------------------------------------------------------------------------
-// The facade's tamePet is ungated, so the row gates it as phonecraft's worldView does: a hunter who has learned
+// The facade's tamePet is ungated, so the row gates it as the web client's worldView does: a hunter who has learned
 // Tame Beast (the pet quest's reward) and has no pet out. While a Taming the Beast quest is open, its rod takes
 // the place of the tame on the beast it names (useQuestItemOnTarget credits it). Ref worldView.ts:155.
 
@@ -246,7 +246,7 @@ export function toggleMount(app, entry) {
 }
 
 // ---- world objects ---------------------------------------------------------------------------------
-// Chests, books, signposts, quest objects and banners in this zone (phonecraft worldView.ts goList). Herb and
+// Chests, books, signposts, quest objects and banners in this zone (the web client's worldView.ts goList). Herb and
 // ore nodes stay on the gathering rows. Enter on one is interactObject; a quest object offers its quests first.
 
 function zoneObjectList(app) {
@@ -289,7 +289,7 @@ export function objectRows(app) {
     const state = avail.kind === 'consumed' ? dim('  gone') : avail.kind === 'restock' ? dim(`  back in ${Math.ceil((avail.readyAtMs - Date.now()) / 1000)}s`) : dim(`  ${verb.toLowerCase()}`);
     rows.push({
       text: `${tag}${go.name}${state}`, data: { object: go },
-      detail: () => [
+      detail: () => objectLines(app, go.displayId, [
         bold(go.name), '',
         ...(offer ? [
           ...offer.acceptable.map((q) => yellow(`! ${app.ds.quest(q)?.title}`)),
@@ -297,7 +297,7 @@ export function objectRows(app) {
           ...offer.incomplete.map((q) => dim(`? ${app.ds.quest(q)?.title} (in progress)`)),
         ] : []),
         '', dim(`Enter: ${verb.toLowerCase()}`),
-      ],
+      ]),
       act: (a) => useObject(a, go),
     });
   }
@@ -414,7 +414,7 @@ export function meetingStoneQueueRows(app) {
 // ---- outdoor PvP ---------------------------------------------------------------------------------------
 // Eastern Plaguelands' four towers and Silithus' silithyst count, read from the world states. Read only for now:
 // the banners are GameObject type 29 (capture point), which useGameObject has no case for, so interactObject
-// refuses before its OutdoorPvPEP capture hook runs. That is a phonecraft engine fix.
+// refuses before its OutdoorPvPEP capture hook runs. That is an engine fix.
 
 const EP_TOWERS = [
   ['Northpass Tower', GO_TOWER_BANNER_NORTHPASS, WORLD_STATE_EP_NORTHPASS_ALLIANCE, WORLD_STATE_EP_NORTHPASS_HORDE],

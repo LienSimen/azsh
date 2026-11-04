@@ -114,7 +114,11 @@ export const iconBlank = (cols = 4) => Array.from({ length: cols / 2 }, () => ' 
  * wrapIconLines and keep the text beside the icon instead of wrapping under it.
  */
 export function withIcon(name, lines, cols = 8) {
-  const art = iconArt(name, cols);
+  return besideArt(iconArt(name, cols), lines);
+}
+
+/** `lines` with any icon-sized `art` (lines of equal width: an object's sprite) beside their head, as withIcon. */
+export function besideArt(art, lines) {
   if (!art) return lines;
   const out = [];
   for (let i = 0; i < Math.max(art.length, lines.length); i++) out.push(i < art.length ? `${art[i]} ${lines[i] ?? ''}` : lines[i]);

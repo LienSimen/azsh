@@ -1,5 +1,5 @@
 // Your pet (hunter, warlock): the page with command, react, food and abilities; the stable; the pet trainer.
-// Ports phonecraft playChrome.ts's feed modal, render/petBar.ts, panels/stablePanel.ts and the pet trainer rows.
+// Ports the web client's playChrome.ts feed modal, petBar.ts, stablePanel.ts and the pet trainer rows.
 import { bold, dim, cyan, yellow, green, red, itemText, coinText } from './text.mjs';
 import { itemLines, spellLines } from './tuiViews.mjs';
 import { LOYALTY_NAMES, HAPPINESS_MAX, petHasHappiness, petKnownSpells, petAutocastOn } from '../domain/pet/pet.ts';

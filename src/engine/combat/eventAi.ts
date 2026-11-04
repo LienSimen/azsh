@@ -1319,6 +1319,7 @@ export function installEventAi(ctx: CombatContext, deps: EventAiDeps): void {
           : (act.value | 0);
         instanceData.set(field, next);
         push({ t, kind: 'instance_data', field, value: next });
+        if (act.persist) emitSimEffect(ctx, { kind: 'instanceData', store: new Map(instanceData), openDoors: [] });
       } else if (act.kind === 'yell') {
         // if (urand(0, N)) return — skip unless the roll is 0. Cite: boss_vaelastrasz.cpp:141-144.
         if (act.urandInclusiveMax != null && rng.int(0, act.urandInclusiveMax | 0) !== 0) continue;

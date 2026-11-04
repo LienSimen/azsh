@@ -1,5 +1,5 @@
 // Bag housekeeping for the Bags tab: what Enter does to a stack (equip, open, unwrap, learn, use), the item menu
-// behind m with every other verb (use all, split, wrap, move, destroy), sorting, and the keyring. Phonecraft's
+// behind m with every other verb (use all, split, wrap, move, destroy), sorting, and the keyring. The web client's
 // held-item menu (panels/heldItemMenu.ts) is the reference; every verb is a Game facade call.
 import { bold, dim, yellow, green, red, qualityPaint, itemText } from './text.mjs';
 import { autoLootOn, openLoot, takeAll } from './tuiLoot.mjs';
@@ -18,7 +18,7 @@ import { questDialog, landOnTab } from './tuiViews.mjs';
 import { useItemWithPicker, isPermanentEnchantItem } from './tuiEnchantTarget.mjs';
 import { bagQuestStartState } from '../quests/quests.ts';
 
-const HEARTHSTONE_ITEM_ENTRY = 6948; // phonecraft src/ui/map/travelUi.ts
+const HEARTHSTONE_ITEM_ENTRY = 6948; // as the web client's travelUi.ts
 
 const stacks = (app) => app.g.state.inventory.stacks;
 const hasLoot = (app) => (entry) => app.ds.lootTable(`item:${entry}`).length > 0;
@@ -75,7 +75,7 @@ export function useStack(app, slot) {
 }
 
 /** Equip from the bags. With both rings, both trinkets or both hands full it asks which to replace rather than
- * overwrite the first (phonecraft equipSlotPicker.ts); an empty one of the pair still fills by itself. */
+ * overwrite the first (the web client's equipSlotPicker.ts); an empty one of the pair still fills by itself. */
 function equipFromBags(app, it) {
   const done = (r) => app.result(r, r.ok ? (it.slot === 'bag' ? `You equip ${itemText(it)} as ${SLOT_LABEL[r.slot] ?? r.slot}.` : `You equip ${itemText(it)}.`) : '');
   const ch = app.ch, slots = equipSlotPickTargets(ch, it, { canDualWield: knows(app.g.state.spellbook, DUAL_WIELD_SPELL_ID) });
@@ -92,10 +92,26 @@ function disenchantOption(app, slot, s, it) {
   if (!groupHasEnchanting(enchanters)) return null;
   const chk = partyDisenchantCheck(s.item, g.state.inventory, app.ds, enchanters);
   if (!chk.ok) return chk.kind === 'skill' ? { label: `Disenchant  ${dim(chk.reason)}`, value: () => app.flashMsg(chk.reason) } : null;
-  return { label: `Disenchant${chk.who.kind === 'companion' ? dim(`  ${chk.who.name}, Enchanting ${chk.who.skill}`) : ''}`, value: () => {
+  return { label: `Disenchant  ${dim('e')}${chk.who.kind === 'companion' ? dim(`  ${chk.who.name}, Enchanting ${chk.who.skill}`) : ''}`, value: () => {
     const r = g.disenchantStack(slot);
     if (app.result(r)) app.say(green(`${r.worker ? `${r.worker} breaks down` : 'You break down'} ${itemText(it)}: ${r.yielded.map((y) => `${app.itemLabel(y.item)}${y.count > 1 ? ` x${y.count}` : ''}`).join(', ') || 'nothing'}.`) + (r.skillUp != null && !r.worker ? dim(`  Enchanting ${r.skillUp}`) : ''));
   } };
+}
+
+/** e on a stack: the item menu's Disenchant without the menu; blues and up ask first. */
+export function canDisenchantStack(app, slot) {
+  const s = stacks(app)[slot];
+  return !!(s && disenchantOption(app, slot, s, app.ds.item(s.item)));
+}
+
+export function disenchantStackKey(app, slot) {
+  const s = stacks(app)[slot];
+  if (!s) return;
+  const it = app.ds.item(s.item);
+  const de = disenchantOption(app, slot, s, it);
+  if (!de) { app.flashMsg(!it || !isDisenchantable(it) || it.quality < 2 || !disenchantRuleFor(it, app.ds) ? 'That does not disenchant.' : 'Nobody in your group has Enchanting.'); return; }
+  if (it.quality >= 3) app.confirm(`Disenchant ${itemText(it)}?`, de.value);
+  else de.value();
 }
 
 /** Open a clam, crate or lockbox into the loot window; auto-loot takes what fits straight away. */
@@ -121,7 +137,7 @@ function wrapWith(app, paperSlot) {
   });
 }
 
-/** Use (or open) the whole stack at once. Food, drink, buffs and books are left out, as phonecraft does. */
+/** Use (or open) the whole stack at once. Food, drink, buffs and books are left out, as the web client does. */
 export function useAll(app, slot) {
   const s = stacks(app)[slot];
   if (!s) return;

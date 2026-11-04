@@ -235,6 +235,52 @@ function isProtectionBlessing(sp: SpellDef | undefined): boolean {
   return auraHolderIsCastTarget(sp);
 }
 
+// Divine Shield / Divine Protection: the caster's own bubble.
+function isSelfBubble(sp: SpellDef | undefined): boolean {
+  if (!sp || sp.mechanic !== 'invulnerability') return false;
+  if ((sp.id | 0) === FORBEARANCE_ID) return false;
+  return !auraHolderIsCastTarget(sp);
+}
+
+// One self-bubble. Both leave Forbearance, so whichever fires first locks the other out, and every
+// band from 20 lists Divine Protection (recovery < 25%, combat < 35%) ahead of Divine Shield: a
+// paladin who trained Shield at 34 never cast it. The newest one known is the bubble.
+// Cite: spell 642 Divine Shield spellLevel 34, 5573 Divine Protection rank 2 spellLevel 18.
+function bestSelfBubble(known: readonly SpellDef[]): SpellDef | undefined {
+  return known
+    .filter((sp) => isSelfBubble(sp))
+    .sort((a, b) => (b.spellLevel ?? 0) - (a.spellLevel ?? 0) || (b.rank ?? 0) - (a.rank ?? 0))[0];
+}
+
+function isSupersededSelfBubble(sp: SpellDef | undefined, known: readonly SpellDef[]): boolean {
+  if (!isSelfBubble(sp)) return false;
+  const best = bestSelfBubble(known);
+  return best != null && best.name !== sp!.name;
+}
+
+// An older bubble's rows go, or turn into the newest when the band named nothing else.
+function finalizePaladinSelfBubble(ctx: FinalizeContext): void {
+  const best = bestSelfBubble(ctx.known);
+  if (!best) return;
+  const defOf = (id: number): SpellDef | undefined => ctx.knownById.get(id) ?? ctx.ds.spell(id);
+  const familyOf = (r: RotationRule): 'best' | 'older' | null => {
+    if (r.action.kind !== 'spell') return null;
+    const def = defOf(r.action.spellId);
+    if (!isSelfBubble(def)) return null;
+    return def!.name === best.name ? 'best' : 'older';
+  };
+  const phases = Object.keys(ctx.phases) as RotationPhase[];
+  const hasBest = phases.some((p) => ctx.phases[p].some((r) => familyOf(r) === 'best'));
+  for (const p of phases) {
+    if (!ctx.phases[p].some((r) => familyOf(r) === 'older')) continue;
+    ctx.phases[p] = ctx.phases[p].flatMap((r) => {
+      if (familyOf(r) !== 'older') return [r];
+      return hasBest ? [] : [{ ...r, action: { ...r.action, spellId: best.id } as RotationRule['action'] }];
+    });
+    rebuildPhaseUsed(ctx, p);
+  }
+}
+
 const allyCond = (
   metric: 'healthPct' | 'buffPresent',
   op: '<' | '==',
@@ -284,6 +330,9 @@ function finalizePaladinProtection(ctx: FinalizeContext): void {
 }
 
 export const paladinHooks: ClassRotationHooks = {
+  supersededSpell(spell, ctx) {
+    return isSupersededSelfBubble(spell, ctx.known);
+  },
   afterSuggestion(ctx) {
     finalizePaladinPhases(ctx);
     finalizePaladinHoJ(ctx);
@@ -295,6 +344,7 @@ export const paladinHooks: ClassRotationHooks = {
     finalizePaladinHoJ(ctx);
     finalizePaladinBlessingAndAura(ctx);
     finalizePaladinProtection(ctx);
+    finalizePaladinSelfBubble(ctx);
     // Seal and Judgement cost the Holy paladin nothing; Exorcism / Holy Wrath / Consecration do.
     if (/^holy$/i.test(ctx.spec)) gateSupportDamageRows(ctx);
   },

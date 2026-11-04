@@ -14,7 +14,7 @@ const H = (text) => ({ text, header: true });
 /** "38/45" with a colour once it runs low, or '' for a slot that does not wear. */
 /** The enchants on a worn piece: the permanent one (armor kit, scope, profession enchant), then a live weapon
  *  coat with its time left. `who` is the wearer's character record (yours, or a companion's built one), whose
- *  legacy enchant maps still carry what an older save applied. Phonecraft's itemTooltipEnchant.ts. */
+ *  legacy enchant maps still carry what an older save applied. As the web client's itemTooltipEnchant.ts. */
 export function enchantLines(app, who, slot, now = Date.now()) {
   const inst = equippedInstance(who?.equipped?.[slot]);
   const perm = (inst?.permEnchantId ?? who?.enchants?.[slot]) || 0;
@@ -39,6 +39,23 @@ export function durabilityText(app, slot) {
   const cur = currentDurability(app.ch, slot, it), max = maxDurability(it);
   const paint = cur <= 0 ? red : cur / max <= 0.25 ? yellow : dim;
   return paint(`${cur}/${max}`);
+}
+
+/** "Dur 87%" across everything worn that wears, yellow once a piece is at a quarter or less and red once one
+ *  breaks (the paper-doll alert bands), or '' when nothing worn wears. */
+export function gearDurabilityText(app) {
+  let cur = 0, max = 0, worst = 1;
+  for (const slot of Object.keys(app.ch.equipped ?? {})) {
+    const entry = equippedEntry(app.ch.equipped[slot]);
+    const it = entry != null ? app.ds.item(entry) : null;
+    const m = it ? maxDurability(it) : 0;
+    if (m <= 0) continue;
+    const c = currentDurability(app.ch, slot, it);
+    cur += c; max += m; worst = Math.min(worst, c / m);
+  }
+  if (!max) return '';
+  const paint = worst <= 0 ? red : worst <= 0.25 ? yellow : dim;
+  return paint(`Dur ${Math.floor((cur / max) * 100)}%`);
 }
 
 /** r on a slot row: mend that one piece at the repairer the quote prices against. */

@@ -1,4 +1,4 @@
-// The Honor window (phonecraft panels/honorPanel.ts): your PvP rank and title, kills and honor for today,
+// The Honor window (the web client's honorPanel.ts): your PvP rank and title, kills and honor for today,
 // yesterday, this week and last week, honor points, lifetime, when the week's standings are posted, and a City
 // Defender's free capital teleports, and the arena brackets. The weekly pass (rank points from the week's
 // standing) runs on load.

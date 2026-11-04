@@ -137,6 +137,7 @@ import { primarySpec } from './spec.ts';
 import {
   applyClassAfterFallback,
   applyClassAfterSuggestion,
+  getClassHooks,
   spellAllowedInRoleBucketFallback,
   type FinalizeContext,
 } from './classes/index.ts';
@@ -2441,9 +2442,11 @@ export function ensureKnownDefensiveAndReactCombat(ctx: FinalizeContext): void {
   const resolve = (id: number): SpellDef | null | undefined =>
     ctx.knownById.get(id) ?? ctx.ds.spell(id);
 
+  const superseded = getClassHooks(ctx.classKey).supersededSpell;
   for (const s of ctx.known) {
     // Forms are never panic injects (mechanic_immunity on Bear/Cat/Travel fooled isSelfDefensive).
     if (isFormSpell(s) || formIdFromLabel(s.name) != null) continue;
+    if (superseded?.(s, ctx)) continue;
     // Bursts first: Death Wish and Recklessness carry fear immunity, so the defensive branch
     // below would otherwise claim them and stamp the low-health gate this replaces.
     if (isOffensiveBurstCooldown(s, resolve)) {

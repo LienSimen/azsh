@@ -205,12 +205,36 @@ let nextId = 0;
 /** The sixel string, size in cells and transparent `holes` of a placed image, by the id its markers carry. */
 export const imageOf = (id) => images.get(id) ?? null;
 
+// While a list's cursor is still moving, the detail pane draws only the pictures it has made before: a new
+// one (a sprite to unpack, a sixel to encode and send) waits until the cursor rests (tui.mjs mainLines), so
+// paging down a list never stalls on art for rows it is only passing. Icons are cheap and always drawn.
+let held = null;
+
+/** Run `fn` with new pictures held back: `{ value, missed }`, `missed` when one was held. */
+export function holdNewArt(fn) {
+  const was = held;
+  held = { missed: false };
+  try { const value = fn(); return { value, missed: held.missed }; } finally { held = was; }
+}
+
+/** A new picture is about to be made: true to go ahead, false (and noted) while they are held. */
+export function mayMakeArt() {
+  if (!held) return true;
+  held.missed = true;
+  return false;
+}
+
+/** Is a holdNewArt pass running? */
+export const holdingArt = () => !!held;
+
 /** The id of the image under `key`, built by `make()` -> { cols, rows, rgba, holes? } (cols x rows cells of
- *  pixels, `holes` the cells left transparent) the first time; null when `make` has nothing. */
-function imageId(key, make) {
+ *  pixels, `holes` the cells left transparent) the first time; null when `make` has nothing, or while new
+ *  pictures are held (`always`: an icon, made regardless). */
+function imageId(key, make, always = false) {
   key = `${key}|${cellW}x${cellH}`;
   const hit = byKey.get(key);
   if (hit != null && images.has(hit)) return hit;
+  if (!always && !mayMakeArt()) return null;
   const img = make();
   if (!img) return null;
   const id = nextId++;
@@ -314,6 +338,6 @@ export function sixelIconCells(name, cols, tone = '', holes = []) {
       for (let x = h.x * cellW; x < (h.x + h.w) * cellW; x++) rgba[(y * pw + x) * 4 + 3] = 0;
     }
     return { cols, rows, rgba, holes };
-  });
+  }, true);
   return id == null ? null : placeholderCells(id);
 }

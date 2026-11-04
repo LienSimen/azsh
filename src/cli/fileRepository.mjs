@@ -1,5 +1,5 @@
 // SaveRepository on disk: one JSON file per slot under the saves dir (default ~/.azsh/saves).
-// Same seam as phonecraft's MemorySaveRepository: migrate() on load, summarize() for list().
+// Same seam as the engine's MemorySaveRepository: migrate() on load, summarize() for list().
 // Two terminals may play two characters at once; a <slot>.lock file (holder's pid) keeps the same character
 // from being opened twice, since each process would otherwise overwrite the other's progress on every save.
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync, unlinkSync, renameSync } from 'node:fs';

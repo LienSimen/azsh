@@ -19,11 +19,15 @@
 // src/data/model-art-worn.bin.br. It ships in the package, so a form or costume draws sharp under sixel
 // even when the downloaded hd pack (pinned to a release) predates it; sixel.mjs reads it where that one has no sprite.
 //
+// --go bakes phonecraft's gameobject renders (public/portraits/go/<GameObjectDisplayInfo id>.webp: chests, ore
+// veins, signs, braziers) the same way into src/data/go-art.bin.gz, every render there. GO display ids are their own
+// namespace, so they get their own pack (modelArt.mjs objectArt).
+//
 // Pack: "AZART" u8 version u32 count, then per sprite u32 displayId u8 w u8 h u8 palLen, palLen*3 palette
 // bytes, w*h palette indices (0 = transparent, n = palette[n-1]).
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { gunzipSync, gzipSync, brotliCompressSync, constants as zlibConstants } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -32,11 +36,12 @@ const run = promisify(execFile);
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
 const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; };
-const SRC = opt('--src', 'D:/projects/phonecraft/public/portraits/creature');
+const GO = args.includes('--go');
+const SRC = opt('--src', `D:/projects/phonecraft/public/portraits/${GO ? 'go' : 'creature'}`);
 const BODIES = opt('--bodies', 'D:/projects/phonecraft/datadump/paperdoll-renders/base');
 const WORN = args.includes('--worn');
 const HD = WORN || args.includes('--hd');
-const OUT = join(ROOT, WORN ? 'src/data/model-art-worn.bin.br' : HD ? 'src/data/model-art-hd.bin.br' : 'src/data/model-art.bin.gz');
+const OUT = join(ROOT, GO ? 'src/data/go-art.bin.gz' : WORN ? 'src/data/model-art-worn.bin.br' : HD ? 'src/data/model-art-hd.bin.br' : 'src/data/model-art.bin.gz');
 // Native display id -> paperdoll base body (race-gender). Cite: displayForm.ts NATIVE_DISPLAY, gender 0 = male.
 const PLAYER_BODIES = {
   49: 'human-male', 50: 'human-female', 51: 'orc-male', 52: 'orc-female', 53: 'dwarf-male', 54: 'dwarf-female',
@@ -75,6 +80,9 @@ async function addFightCreatures(entries) {
     let spec;
     try { spec = JSON.stringify(buildEnemySpecFromCreature(ds, def, mulberry32(1)).spec); } catch { continue; }
     for (const m of spec.matchAll(/"(?:creatureEntry|entry)":(\d+)/g)) add(+m[1]);
+    // An EventAI action names its creature in param1: MORPH_TO_ENTRY_OR_MODEL 3, SUMMON 12, SUMMON_ID 32 (Halycon's
+    // death brings in Gizrul), UPDATE_TEMPLATE 36. Cite: creatureAiConstants.ts.
+    for (const m of spec.matchAll(/"type":(?:3|12|32|36),"param1":(\d+)/g)) add(+m[1]);
     for (const m of spec.matchAll(/"spellId":(\d+)/g)) {
       const sp = ds.spell(+m[1]);
       for (const r of sp?.rawEffects ?? []) if (SUMMON_EFFECTS.has(r.effect | 0)) add(r.miscValue | 0);
@@ -212,10 +220,11 @@ async function bake(id, file) {
 
 // One job per display id; a player body wins over a creature render with the same id.
 const jobs = new Map();
-const worn = await wornDisplayIds();
-console.error(`${worn.size} models a player can wear (forms, costumes, transforms)`);
-for (const id of WORN ? worn : new Set([...await wantedDisplayIds(), ...worn])) jobs.set(id, join(SRC, `${id}.webp`));
-if (!WORN) for (const [id, slug] of Object.entries(PLAYER_BODIES)) jobs.set(+id, join(BODIES, `${slug}.png`));
+const worn = GO ? new Set() : await wornDisplayIds();
+if (!GO) console.error(`${worn.size} models a player can wear (forms, costumes, transforms)`);
+if (GO) for (const f of readdirSync(SRC)) { const id = Number(f.replace(/\.webp$/, '')); if (f.endsWith('.webp') && id > 0) jobs.set(id, join(SRC, f)); }
+else for (const id of WORN ? worn : new Set([...await wantedDisplayIds(), ...worn])) jobs.set(id, join(SRC, `${id}.webp`));
+if (!WORN && !GO) for (const [id, slug] of Object.entries(PLAYER_BODIES)) jobs.set(+id, join(BODIES, `${slug}.png`));
 const parts = [];
 let missing = 0, done = 0;
 const queue = [...jobs.entries()];

@@ -1,4 +1,4 @@
-// The bulk bag verbs from phonecraft's bag bar (panels/bagBulkPanel.ts, app/appInteractBulkBags.ts): break
+// The bulk bag verbs from the web client's bag bar (panels/bagBulkPanel.ts, app/appInteractBulkBags.ts): break
 // down a quality band, read every recipe, formula and book in the bags onto whoever can take it, and destroy
 // several stacks at once (the trash skull's multi-select, and the leftover-quest-items sweep). All list first;
 // Enter switches a row off or on, G runs what is on. Rows a quest still needs or that are still an upgrade
@@ -165,7 +165,7 @@ function runLearnAll(app, state) {
 const DESTROY_TABS = [['all', 'Everything'], ['quest', 'Leftover quest items']];
 
 /** Every stack in scope with its owner, plus the quests a leftover one belonged to (turned in, not repeatable,
- * not wanted by an open quest: phonecraft's leftoverQuestItems). */
+ * not wanted by an open quest: the web client's leftoverQuestItems). */
 function destroyCandidates(app, scope) {
   const st = app.g.state, out = [];
   for (const { inventory, owner } of bagsInScope(app.g, scope)) {
@@ -175,7 +175,7 @@ function destroyCandidates(app, scope) {
   return out;
 }
 
-/** Destroy several stacks at once: the trash skull's multi-select from phonecraft's bags (bagsPanel.ts
+/** Destroy several stacks at once: the trash skull's multi-select from the web client's bags (bagsPanel.ts
  * destroySelectMode) and its leftover-quest-items sweep in one list. Marks are the stack objects themselves,
  * so a slot shifting under a destroy never lands on the wrong item. */
 export function destroyManyDialog(app, tab = 'all', scope = 'player') {
@@ -215,7 +215,7 @@ export function destroyManyDialog(app, tab = 'all', scope = 'player') {
 }
 
 function confirmDestroyMany(app, state) {
-  // Slots resolved now, before anything splices: highest first per owner, as phonecraft's doDiscardSelected.
+  // Slots resolved now, before anything splices: highest first per owner, as the web client's doDiscardSelected.
   const targets = [];
   for (const { inventory, owner } of bagsInScope(app.g, state.scope)) {
     inventory.stacks.forEach((s, slot) => { if (state.marked.has(s)) targets.push({ owner: owner?.id, slot, item: s.item, count: s.count }); });

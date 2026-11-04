@@ -970,8 +970,13 @@ export function installCrowdControl(ctx: CombatContext): void {
       expiresAt: until,
       ...(heartbeat ? { heartbeat } : {}),
     });
-    // The sheep regenerates. Keyed on the SPELL's Mechanic, exactly as the C++ boost is.
-    if (spell.mechanic === 'polymorph' || eff.mechanic === 'polymorph') {
+    // The sheep regenerates. Keyed on the SPELL's Mechanic, exactly as the C++ boost is. The bake labels
+    // every MOD_CONFUSE 'polymorph', so a baked spell only counts with a real EffectMechanic 17: Jandice's
+    // Spread 17774 (mechanic 0) healed her to full on every hide. Hand-built fixtures keep the label.
+    const polyMechanic = spell.rawEffects
+      ? spell.rawEffects.some((r) => (r.mechanic ?? 0) === MECHANIC.POLYMORPH)
+      : eff.mechanic === 'polymorph';
+    if (spell.mechanic === 'polymorph' || polyMechanic) {
       applyPolymorphHeal(src, tgt, until);
     }
     ctx.push({ t: ctx.t, kind: 'control', target: tgt.side, control, applied: true, name: spell.name });

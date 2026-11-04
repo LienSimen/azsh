@@ -1,15 +1,17 @@
 // Dungeons as a text run. A dungeon is an ordered route of encounters (world/instances.ts); a room is the run of
 // stops that share a roomName (dungeonRouteOrder.ts roomSequence). The run window lists the rooms with their
-// stops, gates, chests and NPCs; Enter on an unlocked stop fights it live with the squad. Ports phonecraft
+// stops, gates, chests and NPCs; Enter on an unlocked stop fights it live with the squad. Ports the web client's
 // instanceView.ts (the entry card), liveDungeonHeadless.ts (pulls, gates, rest, Finish instantly) and the
 // floor's object clicks (liveObjectLoot.ts) onto the sequential route.
 import { bold, dim, cyan, yellow, green, red, gray, qualityPaint, fit, plural, secondsText, wrapLines, itemText, coinText } from './text.mjs';
-import { openFloor } from './tuiFloor.mjs';
+import { openFloor, loadNavMesh } from './tuiFloor.mjs';
 import { startFight } from './tuiFight.mjs';
 import { noteLoot } from './tuiFightPanes.mjs';
+import { autoLootOn, openLoot, takeAll, toastLoot } from './tuiLoot.mjs';
 import { prePull } from './squad.mjs';
 import { prepOoc, prepText } from './oocPrep.mjs';
-import { questDialog } from './tuiViews.mjs';
+import { questDialog, objectLines } from './tuiViews.mjs';
+import { bookDialog } from './tuiWorld.mjs';
 import { nextDoQuestStep } from '../domain/quests/doQuest.ts';
 import { maxHealth } from '../domain/character/character.ts';
 import { bagCapacity } from '../domain/items/equipment.ts';
@@ -29,13 +31,14 @@ import {
   isComplete, requiredFlags, hasFlag, routeBossProgress, applyEncounterCleared, autoAdvanceRouteGates,
   itemDropsInsideInstance, lockRemainingMs, restoreSavedRun, canEnter, NORMAL_INSTANCE_RESET_TIME_MS,
 } from '../world/instances.ts';
-import { instanceObjectPins, lootObjectPins, objectGatesFor } from '../world/instanceObjects.ts';
+import { instanceObjectPins, lootObjectPins, objectGatesFor, textObjectPins } from '../world/instanceObjects.ts';
+import { firstPageForGo } from '../data/pageTexts.ts';
 import { dungeonNpcsForMap } from '../data/dungeonSpawns.ts';
 import { extraEntrancesForInstance } from '../data/dungeons/pack-from-clusters.ts';
 import { buildEntryLockInputs } from '../domain/run/canEnterContext.ts';
 import { getDungeonGameObject } from '../data/dungeonGameObjects.ts';
 import { countRouteTrash, selectRouteEncounters, DEFAULT_ROUTE_DENSITY, DEFAULT_PULL_FUSION } from '../world/dungeonRoute.ts';
-import { WIPE_RETRY_PER_PULL, WIPE_CAP_PER_RUN } from '../world/dungeonPreset.ts';
+import { WIPE_CAP_PER_RUN } from '../world/dungeonPreset.ts';
 import { rosterDialog, lineupDialog, paladinDialog, partyHasPaladin, walkingIn, lineupSize } from './tuiRaid.mjs';
 
 const H = (text) => ({ text, header: true });
@@ -239,9 +242,16 @@ function roomsOf(def, run) {
 }
 
 /** Who opens a flag: the gate object that sets it (by its baked name), or the stop whose clear sets it. */
-function flagSource(app, def, flag) {
+/** The def's encounters with the run's route versions in their place, budget-split sub-pulls included. */
+function encountersWithRoute(def, run) {
+  const route = routeEncounterList(def, run), ids = new Set(route.map((e) => e.id));
+  return [...route, ...def.encounters.filter((e) => !ids.has(e.id))];
+}
+
+/** What sets a flag, by name: the gate object, else the stop whose clear sets it. */
+export function flagSource(app, def, run, flag) {
   for (const gate of objectGatesFor(def)) if (gate.setsFlag === flag) return app.ds.gameObject(gate.goEntry)?.name ?? `the ${gate.enc.name} gate`;
-  for (const enc of def.encounters) if ((enc.events ?? []).some((e) => e.kind === 'setsFlag' && e.flag === flag)) return enc.name;
+  for (const enc of encountersWithRoute(def, run)) if ((enc.events ?? []).some((e) => e.kind === 'setsFlag' && e.flag === flag)) return enc.name;
   return flag;
 }
 
@@ -254,7 +264,7 @@ function stopText(app, def, run, enc, next) {
   const st = stopState(def, run, enc);
   const n = packSize(enc);
   const name = st === 'cleared' ? gray(enc.name) : st === 'locked' ? dim(enc.name) : enc.kind === 'boss' ? red(bold(enc.name)) : enc.name;
-  const tail = st === 'cleared' ? green('  ✓') : st === 'locked' ? dim(`  locked: ${requiredFlags(enc).filter((f) => !hasFlag(run, f)).map((f) => flagSource(app, def, f)).join(', ')}`) : enc.id === next?.id ? yellow('  ◀ next') : '';
+  const tail = st === 'cleared' ? green('  ✓') : st === 'locked' ? dim(`  locked: ${requiredFlags(enc).filter((f) => !hasFlag(run, f)).map((f) => flagSource(app, def, run, f)).join(', ')}`) : enc.id === next?.id ? yellow('  ◀ next') : '';
   return `${KIND_GLYPH[enc.kind] ?? dim('·')} ${name}${n > 1 ? dim(` x${n}`) : ''}${enc.optional ? dim('  optional') : ''}${tail}`;
 }
 
@@ -263,7 +273,7 @@ function stopLines(app, def, run, enc) {
   const out = [bold(enc.name), dim(`${enc.kind}${enc.roomName ? `, ${enc.roomName}` : ''}${enc.optional ? ', optional' : ''}`)];
   const st = stopState(def, run, enc);
   if (st === 'cleared') out.push(green('Cleared'));
-  if (st === 'locked') for (const f of requiredFlags(enc).filter((x) => !hasFlag(run, x))) out.push(red(`Locked until ${flagSource(app, def, f)}`));
+  if (st === 'locked') for (const f of requiredFlags(enc).filter((x) => !hasFlag(run, x))) out.push(red(`Locked until ${flagSource(app, def, run, f)}`));
   if (enc.intro) out.push('', ...wrapLines(yellow(enc.intro), 56));
   const members = (enc.pack?.length ? enc.pack : [{ creatureEntry: enc.creatureEntry, count: 1 }]);
   out.push('', cyan('Pack'));
@@ -273,7 +283,7 @@ function stopLines(app, def, run, enc) {
   }
   if (enc.bossSpells?.length) out.push('', cyan('Abilities'), ...enc.bossSpells.slice(0, 8).map((id) => `  ${ds.spell(id)?.name ?? id}`));
   const sets = (enc.events ?? []).filter((e) => e.kind === 'setsFlag');
-  if (sets.length) out.push('', dim(`Clearing it opens: ${def.encounters.filter((x) => requiredFlags(x).some((f) => sets.some((s) => s.flag === f))).map((x) => x.name).join(', ') || 'the way on'}`));
+  if (sets.length) out.push('', dim(`Clearing it opens: ${encountersWithRoute(def, run).filter((x) => requiredFlags(x).some((f) => sets.some((s) => s.flag === f))).map((x) => x.name).join(', ') || 'the way on'}`));
   if (st === 'open') out.push('', dim('Enter: pull it'));
   return out;
 }
@@ -302,7 +312,12 @@ function roomObjects(app, def, run) {
     seenGate.add(key);
     add(p.x, p.y, { kind: 'gate', pin: p });
   }
-  for (const p of lootObjectPins(def, run, { hasItem: has })) add(p.x, p.y, { kind: 'chest', pin: p });
+  for (const p of lootObjectPins(def, run, { hasItem: has })) {
+    // A vein or a herb is a chest with a skill lock; it lists as what it is and asks for the skill.
+    const node = app.ds.gatherNode(p.goEntry);
+    add(p.x, p.y, node?.skill === 'mining' ? { kind: 'ore', pin: p, node } : node?.skill === 'herbalism' ? { kind: 'herb', pin: p, node } : { kind: 'chest', pin: p });
+  }
+  for (const p of textObjectPins(def, run)) if (firstPageForGo(p.goEntry)) add(p.x, p.y, { kind: 'book', pin: p });
   for (const s of dungeonNpcsForMap(def.mapId)) {
     const quests = npcQuests(app, s.entry);
     if (!quests.offer.length && !quests.turnIn.length && !quests.escort.length) continue;
@@ -310,6 +325,34 @@ function roomObjects(app, def, run) {
   }
   return byStop;
 }
+
+/** Every object and quest NPC on the map with where it stands, for the floor. */
+export function floorObjects(app, def, run) {
+  const out = [];
+  for (const list of roomObjects(app, def, run).values()) {
+    for (const o of list) {
+      const at = o.pin ?? o.spawn;
+      out.push({ ...o, x: at.x, y: at.y, z: at.z, name: o.pin?.name ?? o.spawn.name ?? app.ds.creature(o.spawn.entry)?.name ?? `npc ${o.spawn.entry}` });
+    }
+  }
+  return out;
+}
+
+/** Still something to do there: unopened, unpicked, a gate still shut, a book, someone with a quest. */
+export const floorObjectOpen = (o) => (o.kind === 'gate' ? o.pin.state !== 'used' : o.pin && o.kind !== 'book' ? o.pin.state !== 'looted' : true);
+
+const GATHER_SKILL = { mining: 'Mining', herbalism: 'Herbalism' };
+
+/** What a vein or herb still asks of you: the profession, or more of it. Null when you can work it. */
+function gatherNeed(app, node) {
+  const name = GATHER_SKILL[node.skill];
+  const have = app.ch.skills?.[node.skill];
+  if (!have) return name;
+  return (have.current ?? 0) < node.orange ? `${name} ${node.orange}` : null;
+}
+
+/** You cannot use it yet: a key you lack, or a profession. */
+export const floorObjectBlocked = (app, o) => o.pin?.state === 'needsItem' || (!!o.node && !!gatherNeed(app, o.node));
 
 /** Quests an NPC offers, takes back or is escorted in, from the quest relations on each QuestDef. */
 function npcQuests(app, entry) {
@@ -332,28 +375,51 @@ function buildNpcQuestIndex(ds) {
   return idx;
 }
 
-/** Open a chest and take what it holds (GO loot lands in the loot window; this takes it all). */
-function openChest(app, pin) {
+/** Open a chest. GO loot lands in the loot window: by hand it goes the way a corpse's does (auto-loot takes what
+ *  fits and the drops slide in, else the window opens); the route opening a key chest (`take`) takes it all. */
+function openChest(app, pin, { take = false, verb = 'open' } = {}) {
   const r = app.g.lootInstanceObject(pin.guid);
   if (!app.result(r)) return false;
+  app.say(`You ${verb} ${pin.name}.${r.loot.length ? '' : ' It is empty.'}`);
+  if (!take) {
+    if (autoLootOn(app)) takeAll(app);
+    openLoot(app);
+    return true;
+  }
   const took = app.g.takeAllLoot();
-  app.say(`You open ${pin.name}.${r.loot.length ? '' : ' It is empty.'}`);
-  if (took.ok) noteLoot(app, took.taken, took.copper);
+  if (took.ok) { noteLoot(app, took.taken, took.copper); toastLoot(app, took.taken, took.copper); }
   for (const d of took.ok ? took.taken : []) app.say(`  ${yellow('You receive')} ${app.itemLabel(d.item)}${d.count > 1 ? ` x${d.count}` : ''}`);
   if (took.ok && took.copper) app.say(`  ${yellow('You receive')} ${coinText(took.copper)}`);
   if (took.ok && took.remaining) app.say(red(`  ${plural(took.remaining, 'item')} did not fit in your bags.`));
   return true;
 }
 
-function objectRow(app, def, o) {
+export function objectRow(app, def, o) {
   const ds = app.ds;
+  if (o.kind === 'ore' || o.kind === 'herb') {
+    const p = o.pin, need = gatherNeed(app, o.node), done = p.state === 'looted';
+    const verb = o.kind === 'ore' ? 'mine' : 'pick';
+    return {
+      text: `${o.kind === 'ore' ? yellow('◆') : green('♣')} ${done ? gray(p.name) : p.name}${done ? dim(o.kind === 'ore' ? '  mined' : '  picked') : need ? red(`  needs ${need}`) : ''}`,
+      detail: () => objectLines(app, p.displayId, [bold(p.name), `${GATHER_SKILL[o.node.skill]} ${o.node.orange}`, '', done ? dim('Already worked.') : need ? red(`You need ${need}.`) : dim(`Enter: ${verb} it`)]),
+      act: () => { if (need) { app.flashMsg(`You need ${need} for ${p.name}.`); return; } openChest(app, p, { verb }); },
+    };
+  }
+  if (o.kind === 'book') {
+    const p = o.pin;
+    return {
+      text: `${cyan('≡')} ${p.name}`,
+      detail: () => objectLines(app, p.displayId, [bold(p.name), 'Something to read.', '', dim('Enter: read it')]),
+      act: () => app.push(bookDialog(app, p.name, firstPageForGo(p.goEntry))),
+    };
+  }
   if (o.kind === 'gate') {
     const p = o.pin;
     const need = p.requiredItem != null ? app.itemLabel(p.requiredItem) : null;
     const state = p.state === 'used' ? green('  open') : p.state === 'needsItem' ? red(`  needs ${need}`) : yellow('  use it');
     return {
       text: `${dim('◇')} ${p.name}${state}`,
-      detail: () => [bold(p.name), `Opens the way to ${p.encounterName}.`, need ? `Needs ${need}.` : '', '', p.state === 'used' ? dim('Already open.') : dim('Enter: use it')],
+      detail: () => objectLines(app, p.displayId, [bold(p.name), `Opens the way to ${p.encounterName}.`, need ? `Needs ${need}.` : '', '', p.state === 'used' ? dim('Already open.') : dim('Enter: use it')]),
       act: () => {
         const r = app.g.useInstanceObject(p.goEntry);
         if (!app.result(r)) return;
@@ -366,7 +432,7 @@ function objectRow(app, def, o) {
     const need = p.requiredItem != null ? app.itemLabel(p.requiredItem) : null;
     return {
       text: `${dim('▣')} ${p.state === 'looted' ? gray(p.name) : p.name}${p.state === 'looted' ? dim('  empty') : p.state === 'needsItem' ? red(`  locked, needs ${need}`) : ''}`,
-      detail: () => [bold(p.name), p.state === 'looted' ? 'You have emptied it.' : need ? `Opens with ${need}.` : 'It can be opened.', '', dim('Enter: open it')],
+      detail: () => objectLines(app, p.displayId, [bold(p.name), p.state === 'looted' ? 'You have emptied it.' : need ? `Opens with ${need}.` : 'It can be opened.', '', dim('Enter: open it')]),
       act: () => openChest(app, p),
     };
   }
@@ -413,10 +479,43 @@ function partyLines(app) {
 }
 const hpTag = (hp, max) => (hp <= 0 ? red('dead') : (hp / max < 0.5 ? yellow : green)(`${Math.round((hp / Math.max(1, max)) * 100)}%`));
 
+/** Route stops cut into sections, each the way to a boss and the boss: everything after the boss before it, up
+ *  to and with it. What is left past the last boss is a section of its own. Optional bosses ride inside one.
+ *  Rooms (roomName) cannot fold: a route zigzags through them, Wailing Caverns is 54 of them, a boss often alone. */
+function sectionsOf(def, run) {
+  const out = [];
+  let cur = null;
+  for (const enc of routeEncounterList(def, run)) {
+    if (!cur) out.push(cur = { boss: null, stops: [] });
+    cur.stops.push(enc);
+    if (enc.kind === 'boss' && enc.optional !== true) { cur.boss = enc; cur = null; }
+  }
+  return out;
+}
+
+/** A section folds on its own once its boss is down (or, past the last boss, once it is all cleared). The
+ *  player's own Enter on the section row wins until that default changes (R resets), then the default is back. */
+function sectionFolds(app, def, run, sections) {
+  const own = (app.sectionFold ??= {})[def.id] ??= new Map(); // per dungeon, so a held run comes back folded as you left it
+  return sections.map((sec, i) => {
+    const key = `${i}:${sec.boss?.id ?? 'end'}`;
+    const cleared = sec.stops.every((s) => isCleared(run, s.id));
+    const auto = sec.boss ? isCleared(run, sec.boss.id) : cleared;
+    const mine = own.get(key);
+    if (mine && mine.basis !== auto) own.delete(key);
+    const shut = mine && mine.basis === auto ? mine.shut : auto;
+    return { sec, key, cleared, auto, shut, set: (s) => own.set(key, { shut: s, basis: auto }) };
+  });
+}
+
+/** In a folded section only what still wants a hand stays listed: a chest not emptied, a gate not opened, a quest NPC. */
+const stillToDo = (o) => o.kind !== 'book' && floorObjectOpen(o);
+
 export function runView(app) {
-  return {
-    id: 'dungeon', title: runDef(app)?.name ?? 'Dungeon', hint: 'Enter: pull / use',
+  const view = {
+    id: 'dungeon', title: runDef(app)?.name ?? 'Dungeon', hint: 'Enter: pull / use / fold a section',
     keys: {
+      e: { hint: 'fold / open all', fn: () => { const f = view.folds ?? []; const open = f.some((x) => x.shut); for (const x of f) x.set(!open); view.byHand = true; } },
       z: { hint: 'rest', fn: (a) => restBetween(a, 30) },
       W: { hint: 'walk the floor', fn: (a) => openFloor(a) },
       F: { hint: 'finish instantly', fn: (a) => a.confirm('Run every remaining stop now, without watching?', () => finishInstantly(a)) },
@@ -437,24 +536,48 @@ export function runView(app) {
       const rows = [H(`${bold(def.name)}   ${dim('room')} ${cyan(here?.name ?? '')}   ${dim(`${done}/${required.length} cleared, bosses ${boss.down}/${boss.total}`)}${isComplete(def, run) ? green('   cleared!') : ''}`)];
       rows.push(...partyLines(a).map(H));
       const objects = roomObjects(a, def, run);
-      for (const room of rooms) {
-        const cleared = room.stops.every((s) => isCleared(run, s.id));
-        rows.push(H(''), H(`${room.name}${cleared ? green('  ✓') : ''}${room === here ? dim('  you are here') : ''}`));
-        for (const enc of room.stops) {
-          rows.push({
+      const folds = view.folds = sectionFolds(a, def, run, sectionsOf(def, run));
+      let lastBoss = null;
+      for (const f of folds) {
+        const { sec, cleared, shut } = f;
+        const left = sec.stops.filter((s) => !isCleared(run, s.id)).length;
+        const title = sec.boss ? sec.boss.name : lastBoss ? `Past ${lastBoss.name}` : def.name;
+        const where = sec.boss?.roomName ?? '';
+        lastBoss = sec.boss ?? lastBoss;
+        const hasNext = sec.stops.some((s) => s.id === next?.id);
+        rows.push(H(''), {
+          text: `${shut ? '▸' : '▾'} ${sec.boss ? bold(title) : title}${cleared ? green('  ✓') : ''}${where ? dim(`  ${where}`) : ''}${shut ? dim(`  ${plural(sec.stops.length, 'stop')}${left ? `, ${left} left` : ''}`) : ''}${shut && hasNext ? yellow('  ◀ next') : ''}`,
+          data: { section: f.key },
+          detail: () => [bold(title), dim(`${plural(sec.stops.length, 'stop')}, ${left} left`), '', ...sec.stops.slice(0, 24).map((s) => `  ${stopText(a, def, run, s, next)}`), ...(sec.stops.length > 24 ? [dim(`  and ${sec.stops.length - 24} more`)] : []), '', dim(shut ? 'Enter: open the section' : 'Enter: fold the section   e: fold or open them all')],
+          act: () => { f.set(!shut); view.byHand = true; },
+        });
+        for (const enc of sec.stops) {
+          if (!shut) rows.push({
             text: `  ${stopText(a, def, run, enc, next)}`, data: { stop: enc },
             detail: () => stopLines(a, def, run, enc),
             act: () => pullStop(a, def, enc),
           });
-          for (const o of objects.get(enc.id) ?? []) { const r = objectRow(a, def, o); rows.push({ ...r, text: `    ${r.text}`, data: { object: o } }); }
+          for (const o of (objects.get(enc.id) ?? []).filter((x) => !shut || stillToDo(x))) { const r = objectRow(a, def, o); rows.push({ ...r, text: `    ${r.text}`, data: { object: o } }); }
         }
       }
       for (const o of objects.get('_') ?? []) rows.push({ ...objectRow(a, def, o), data: { object: o } });
-      rows.push(H(''), { text: `Walk the floor  ${dim('go anywhere; patrols and packs you pass pull on their own (W)')}`, detail: () => [bold('The floor'), '', 'Instead of picking stops, walk the dungeon on its nav mesh. Patrols walk their routes, and whatever sees you on the way pulls.'], act: () => openFloor(a) });
+      // The floor walks the dungeon's nav mesh; a raid ships none, so there is nothing to offer.
+      if (loadNavMesh(def)) rows.push(H(''), { text: `Walk the floor  ${dim('go anywhere; patrols and packs you pass pull on their own (W)')}`, detail: () => [bold('The floor'), '', 'Instead of picking stops, walk the dungeon on its nav mesh. Patrols walk their routes, and whatever sees you on the way pulls.'], act: () => openFloor(a) });
       rows.push({ text: dim('Leave the dungeon'), detail: () => [bold('Leave'), '', isRaid(def) ? 'A raid holds your progress until the lockout resets.' : 'A 5-man holds your progress for 2 hours.'], act: () => leaveRun(a) });
+      // Walking in, or a section folding on its own after a kill: the cursor goes to the next stop (or the
+      // first open one showing, when the next is trash left in a folded section), not to whatever row slid under
+      // its old index. A fold by hand leaves it on the section row.
+      const sig = folds.map((x) => (x.shut ? 1 : 0)).join('');
+      if (sig !== view.foldSig && !view.byHand) {
+        let at = rows.findIndex((r) => r.data?.stop && r.data.stop.id === next?.id);
+        if (at < 0) at = rows.findIndex((r) => r.data?.stop && stopState(def, run, r.data.stop) === 'open');
+        if (at >= 0) { view.cursor = at; a.ensureVisible(view, rows); }
+      }
+      view.foldSig = sig; view.byHand = false;
       return rows;
     },
   };
+  return view;
 }
 
 // ---- pulls ---------------------------------------------------------------------------------------------
@@ -469,19 +592,32 @@ export function pullStop(app, def, enc, { floor = false, ready = !floor, onDone,
   if (!floor && !isUnlocked(def, run, enc.id)) { app.flashMsg(`${enc.name} is locked.`); return; }
   if (ready) readyUp(app);
   for (const l of prePull(app.g, app.ds, app.cmds.buffPace)) app.say(cyan(l));
+  const f = pullPhase(app, def, enc, enc.creatureEntry, () => app.g.beginEncounter(def.id, enc.id, { withSquad: true, ...(floor ? { continuousFloor: true } : {}) }), { onDone, onTick });
+  if (f.ok && enc.intro) app.say(yellow(enc.intro));
+}
+
+/** One phase of a stop's fight. A win the encounter chains on from (Sneed's Shredder ejecting Sneed) opens the next
+ *  phase on the stage, on the floor the last one fought on; `onDone` waits for the last phase. */
+function pullPhase(app, def, enc, creatureEntry, open, { onDone, onTick }) {
   let playerMax = 0, session = null;
-  const f = startFight(app, enc.creatureEntry, {
-    label: enc.kind === 'boss' ? 'boss' : undefined, onTick,
-    begin: () => { const b = app.g.beginEncounter(def.id, enc.id, { withSquad: true, ...(floor ? { continuousFloor: true } : {}) }); if (b.ok) { playerMax = b.playerMax; session = b.session; } return b; },
-    after: (r) => { recordPull(app, def, enc, r, playerMax, session, app.dungeonDowntime ?? 0); app.dungeonDowntime = 0; },
+  return startFight(app, creatureEntry, {
+    label: enc.kind === 'boss' ? 'boss' : undefined, onTick, chain: true,
+    begin: () => { const b = open(); if (b.ok) { playerMax = b.playerMax; session = b.session; } return b; },
+    after: (r) => { recordPull(app, def, enc, r, playerMax, session, app.dungeonDowntime ?? 0, creatureEntry); app.dungeonDowntime = 0; },
     onEnd: (r) => {
+      if (r?.nextPhase) {
+        const floor = app.lastFight?.floor;
+        app.say(yellow(bold(`${r.nextPhase.name} appears!`)));
+        const next = pullPhase(app, def, enc, r.nextPhase.creatureEntry, () => app.g.beginChainedPhase(), { onDone, onTick });
+        if (next.ok) { if (floor) app.fight.floor = floor; return; }
+        app.say(red(`${r.nextPhase.name} could not be fought: ${next.reason}`));
+      }
       onDone?.(r);
       if (!r) return;
       if (r.outcome === 'defeat') app.say(red('The party wipes. Rest, then try again.'));
       if (app.g.state.instance && isComplete(def, app.g.state.instance)) app.say(green(bold(`${def.name} is cleared.`)));
     },
   });
-  if (f.ok && enc.intro) app.say(yellow(enc.intro));
 }
 
 /** Companion kill xp and reputation for a dungeon win (the engine leaves encounter xp to the run driver). */
@@ -504,11 +640,13 @@ function guardianOwners(app, session) {
   return owners;
 }
 
-function recordPull(app, def, enc, r, playerMax, session, downtimeSec) {
+function recordPull(app, def, enc, r, playerMax, session, downtimeSec, creatureEntry = enc.creatureEntry) {
   const won = r.outcome === 'win';
-  if (won) grantSquadKillXp(app, enc.creatureEntry);
+  if (won) grantSquadKillXp(app, creatureEntry);
+  // A later phase of the stop (Sneed out of his Shredder) is its own row, under the foe it was.
+  const name = creatureEntry === enc.creatureEntry ? enc.name : app.ds.creature(creatureEntry)?.name ?? enc.name;
   (app.dungeonPulls ??= []).push({
-    encounterId: enc.id, name: enc.name, kind: enc.kind === 'boss' ? 'boss' : 'trash',
+    encounterId: enc.id, name, kind: enc.kind === 'boss' ? 'boss' : 'trash',
     outcome: r.outcome, durationMs: r.result.durationMs, xpGained: r.xpGained, goldGained: r.goldGained, loot: r.loot,
     endHpPct: playerMax > 0 ? Math.max(0, r.result.player.hp) / playerMax : 0, downtimeSec,
     memberStats: memberStatsFromEvents(r.result.events, {
@@ -573,7 +711,7 @@ function openKeyedGates(app, def) {
     if (gate.state !== 'needsItem' || gate.requiredItem == null) continue;
     const chest = lootObjectPins(def, g.state.instance, { hasItem: has }).find((p) => p.state === 'ready' && holds(p.guid, gate.requiredItem));
     if (!chest) continue;
-    openChest(app, chest);
+    openChest(app, chest, { take: true });
     for (let i = 0; i < 5 && has(gate.requiredItem); i++) {
       const u = g.useInstanceObject(gate.goEntry);
       if (!u.ok) break;
@@ -583,22 +721,33 @@ function openKeyedGates(app, def) {
   return opened;
 }
 
-/** F: every remaining stop resolves headlessly, the squad in, resting between pulls; then the summary. */
+/** The next stop Finish instantly goes for: nextEncounter's pick, passing over the stops it gave up on. The route
+ *  order is an itinerary, not a lock, so a boss the party cannot beat leaves everything its flags do not gate. */
+function nextStop(def, run, skip) {
+  const open = routeEncounterList(def, run).find((e) => !isCleared(run, e.id) && !skip.has(e.id) && e.optional !== true && isUnlocked(def, run, e.id));
+  if (open) return open;
+  const opener = nextEncounter(def, run); // an optional key-dropper that opens a sealed stop
+  return opener && !skip.has(opener.id) ? opener : undefined;
+}
+
+/** F: every remaining stop resolves headlessly, the squad in, resting between pulls; then the summary. A stop
+ *  that beats the party once is left standing and the run goes on to what it can still reach. */
 export function finishInstantly(app) {
   const g = app.g, ds = app.ds;
   const def = runDef(app);
   if (!def) return;
   let stopReason;
-  const tries = new Map();
+  const givenUp = new Map(); // encounter id -> name
   let wipes = 0;
   for (let guard = 0; guard < 300; guard++) {
     autoFireGates(app);
     const inst = g.state.instance;
     if (!inst) break;
-    const enc = nextEncounter(def, inst);
+    const enc = nextStop(def, inst, givenUp);
     if (!enc) {
       if (isComplete(def, inst)) break;
       if (openKeyedGates(app, def)) continue;
+      if (givenUp.size) { stopReason = `Could not beat ${[...givenUp.values()].join(', ')}; went on to everything else in reach.`; break; }
       const stuck = instanceObjectPins(def, inst, { hasItem: hasOwned(app) }).find((p) => p.state === 'needsItem');
       stopReason = stuck ? `${stuck.name} needs ${app.itemLabel(stuck.requiredItem)}${(app.g.state.inventory.stacks.length >= bagCapacityOf(app)) ? ' (your bags are full)' : ''}.` : 'No unlocked stop left: a door or a key is missing.';
       break;
@@ -617,13 +766,14 @@ export function finishInstantly(app) {
     app.say(`${r.outcome === 'win' ? green('✓') : red('✗')} ${enc.name}  ${dim(`${(r.result.durationMs / 1000).toFixed(1)} s${r.xpGained ? `  +${r.xpGained} xp` : ''}`)}`);
     noteLoot(app, r.loot, r.goldGained);
     for (const d of r.loot) app.say(`    ${yellow('You receive')} ${app.itemLabel(d.item)}${d.count > 1 ? ` x${d.count}` : ''}`);
-    // runFullDungeon's rule: a pull that wipes or times out is tried again, WIPE_RETRY_PER_PULL times, WIPE_CAP_PER_RUN wipes a run.
+    // One try a stop: a pull that wipes or times out is passed over rather than pulled again, so a stop the party
+    // cannot beat costs one repair bill, not runFullDungeon's WIPE_RETRY_PER_PULL. WIPE_CAP_PER_RUN still ends a run.
     if (r.outcome !== 'win') {
-      const n = (tries.get(enc.id) ?? 0) + 1;
-      tries.set(enc.id, n);
       if (r.outcome === 'defeat') wipes++;
-      if (n >= WIPE_RETRY_PER_PULL || wipes >= WIPE_CAP_PER_RUN) { stopReason = `${r.outcome === 'defeat' ? 'Party wiped' : 'Combat timed out'} on ${enc.name} (${plural(n, 'attempt')})`; break; }
-      app.say(dim(`  ${r.outcome === 'defeat' ? 'Wipe' : 'Timed out'}: the party runs back and pulls again (attempt ${n + 1} of ${WIPE_RETRY_PER_PULL}).`));
+      const why = `${r.outcome === 'defeat' ? 'Party wiped' : 'Combat timed out'} on ${enc.name}`;
+      if (wipes >= WIPE_CAP_PER_RUN) { stopReason = `${why}, ${plural(wipes, 'wipe')} this run`; break; }
+      givenUp.set(enc.id, enc.name);
+      app.say(yellow(`  ${why}: leaving it and going on.`));
     }
   }
   const summary = runSummary(app, def, stopReason);

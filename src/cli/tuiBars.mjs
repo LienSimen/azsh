@@ -1,6 +1,6 @@
 // Action bars: the player's own (spells, bag items, macros, keybinds), a companion's kit bars (spells from their
 // kit, items from their bags), and the global bar (items and outfits fired outside a fight). One editor over an
-// owner, like phonecraft hudActionBarPaint.ts and companionKitPanel.ts share actionBarModel.ts.
+// owner, like the web client's hudActionBarPaint.ts and companionKitPanel.ts share actionBarModel.ts.
 import { bold, dim, cyan, green, yellow, red, fit } from './text.mjs';
 import { spellLines, itemLines } from './tuiViews.mjs';
 import { knownUsableSpells } from '../domain/character/characterSpells.ts';
@@ -18,7 +18,7 @@ export function slotContent(bar, i) {
   return null;
 }
 
-/** The player's bars as they show right now: bar 1 is paged by form (stance, shapeshift, stealth), like phonecraft. */
+/** The player's bars as they show right now: bar 1 is paged by form (stance, shapeshift, stealth). */
 export function visibleBars(g) {
   return actionBarsForForm(g.state.actionBars ?? [], g.state.primaryBarPages, (g.state.char.form ?? 0) | 0);
 }

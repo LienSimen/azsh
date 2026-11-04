@@ -4,11 +4,13 @@
 // pulls, so a patrol can catch you between packs and a pack beside the path joins in. A pull that belongs to a
 // route stop is that stop's fight (beginEncounter with continuousFloor); a body no stop owns is a fight of its own.
 //
-// All of it is phonecraft's world layer (world/continuousDungeon.ts, engine/game/tickDungeonPatrolScripts.ts) over
-// the server nav mesh. The meshes are not in this repo: they are read from a phonecraft checkout
-// (PHONECRAFT, default ../../code/phonecraft, public/maps/bake/<slug>.navmesh.bin) or AZSH_NAVMESH_DIR. Without
-// one the run window keeps its sequential route. Stratholme's Baron Run (the 45 minutes, Ysida, Barthilas, Aurius,
-// the gates you walk through) runs on phonecraft's own module (liveStratUndead.ts).
+// All of it is the engine's world layer (world/continuousDungeon.ts, engine/game/tickDungeonPatrolScripts.ts) over
+// the server nav mesh. The 5-man meshes ship in src/data/navmesh (npm run navmesh:bake); a raid's is read from
+// AZSH_NAVMESH_DIR. Without one the run window keeps its sequential route. Stratholme's Baron Run (the 45 minutes,
+// Ysida, Barthilas, Aurius, the gates you walk through) runs on the engine's own module (liveStratUndead.ts).
+//
+// The floor view draws a map of the mesh around you (tuiFloorMap.mjs) and lists the chests, veins, herbs, books, gates
+// and quest NPCs nearest you: Enter walks there and uses it on arrival.
 //
 // Events (2j) run on liveGauntletEscort.ts the same way: the Ring of Law, the Tomb of the Seven, the Stadium, Solakar's
 // eggs, Mograine and Whitemane, Gandling's portals, the Zul'Farrak stairs, Gor'shak's cell, Willix and the other
@@ -19,9 +21,13 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { brotliDecompressSync } from 'node:zlib';
 import { bold, dim, yellow, green, red, cyan, fit } from './text.mjs';
 import { startFight } from './tuiFight.mjs';
-import { pullStop, restBetween, readyUp } from './tuiDungeon.mjs';
+import { pullStop, restBetween, readyUp, flagSource } from './tuiDungeon.mjs';
+import { floorObjects, floorObjectOpen, floorObjectBlocked, objectRow } from './tuiDungeon.mjs';
+import { withMap, floorMapView } from './tuiFloorMap.mjs';
+import { GO_INTERACT_YD } from '../world/instanceObjects.ts';
 import { prePull } from './squad.mjs';
 import { decodeNavMesh, registerNavMeshForMap, navMeshForMap } from '../domain/nav/navmesh.ts';
 import { bakeSlugForInstance } from '../world/bakeSlug.ts';
@@ -47,14 +53,30 @@ const TICK_MS = 100;
 const NEAR_YD = 45;
 const QUEST_SCAN_MS = 1500;
 const FOLLOW_YD = 8;
+// The mesh stops short of a chest against a wall; this near the end of the walk still reaches it.
+const OBJECT_REACH_YD = 8;
 // After a failed event the party is still standing where it arms; give them a minute to rest first.
 const EVENT_HOLD_MS = 60_000;
+// What you ran from leaves you be until you walk clear of it (or two minutes pass), so you can rest or go round.
+const CALM_YD = 40;
+const CALM_MS = 120_000;
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
-/** Where the server nav meshes are read from. */
+// The 5-man meshes ship brotli'd (npm run navmesh:bake); the rest come from navMeshDir().
+const BUNDLED = join(ROOT, 'src', 'data', 'navmesh');
+
+/** A folder of raw <slug>.navmesh.bin meshes (AZSH_NAVMESH_DIR) that wins over the bundled ones, or null. */
 export function navMeshDir() {
-  if (process.env.AZSH_NAVMESH_DIR) return process.env.AZSH_NAVMESH_DIR;
-  return join(process.env.PHONECRAFT ?? join(ROOT, '..', '..', 'code', 'phonecraft'), 'public', 'maps', 'bake');
+  return process.env.AZSH_NAVMESH_DIR || null;
+}
+
+/** This mesh's bytes: from the env's folder first, else the bundled copy. */
+function navMeshBytes(slug) {
+  const dir = navMeshDir();
+  const file = dir && join(dir, `${slug}.navmesh.bin`);
+  if (file && existsSync(file)) return { file, bytes: readFileSync(file) };
+  const br = join(BUNDLED, `${slug}.navmesh.bin.br`);
+  return existsSync(br) ? { file: br, bytes: brotliDecompressSync(readFileSync(br)) } : null;
 }
 
 /** Register the mesh for this instance's map, once. True when the floor can be walked. */
@@ -62,10 +84,12 @@ export function loadNavMesh(def) {
   if (navMeshForMap(def.mapId)) return true;
   const slug = bakeSlugForInstance(def.id);
   if (!slug) return false;
-  const file = join(navMeshDir(), `${slug}.navmesh.bin`);
-  if (!existsSync(file)) return false;
-  try { registerNavMeshForMap(def.mapId, decodeNavMesh(new Uint8Array(readFileSync(file))), file); return true; }
-  catch { return false; }
+  try {
+    const got = navMeshBytes(slug);
+    if (!got) return false;
+    registerNavMeshForMap(def.mapId, decodeNavMesh(new Uint8Array(got.bytes)), got.file);
+    return true;
+  } catch { return false; }
 }
 
 /** Level, detection radius and reaction from the creature template (the spawn bake carries none of them). */
@@ -100,14 +124,14 @@ function floorFor(app, def) {
     skipEntry: (entry) => !bossEntries.has(entry) && isTechnicalTriggerCreature(app.ds.creature(entry)),
   });
   stampTemplates(app, world.entities);
-  const f = { dungeonId: run.dungeonId, enteredAt, def, world, runMs: 0, patrolIndex: new Map(), target: null, walking: false, follow: true, speed: 1, timer: null, script: null, questScanMs: -Infinity, waiting: [], eventHoldUntil: 0,
+  const f = { dungeonId: run.dungeonId, enteredAt, def, world, runMs: 0, patrolIndex: new Map(), target: null, walking: false, follow: true, speed: 1, timer: null, script: null, questScanMs: -Infinity, waiting: [], eventHoldUntil: 0, calm: new Map(),
     rng: mulberry32(((app.g.state.rngSeed ?? 1) ^ 0x9e3779b9) >>> 0) };
   f.script = scriptContext(app, f);
   app.floor = f;
   return f;
 }
 
-/** The slice of phonecraft's live controller context the Stratholme and event modules read, over this floor. */
+/** The slice of the live controller context the Stratholme and event modules read, over this floor. */
 function scriptContext(app, f) {
   const ctx = {
     game: app.g, ds: app.ds, def: f.def, continuous: f.world, stopped: false,
@@ -183,6 +207,11 @@ export function stepFloor(app, f) {
     if (r.arrived) { f.walking = false; if (arrive(app, f)) return true; }
   }
   const skip = eventGuids(app, f);
+  for (const [gd, until] of f.calm) {
+    const e = f.world.entities.find((x) => x.guid === gd);
+    if (!e || f.runMs >= until || partyDistTo(f.world, e.x, e.y, e.z) > CALM_YD) f.calm.delete(gd);
+    else skip.add(gd);
+  }
   const seen = entitiesInAggroRange(f.world, app.ch.level).filter((e) => !skip.has(e.guid));
   if (!seen.length) return false;
   f.walking = false;
@@ -222,7 +251,7 @@ function tickScripts(app, f) {
   return !fighting && !!app.fight;
 }
 
-/** What phonecraft starts on quest accept, read off the log instead: an escort, Celebras's ritual. */
+/** What the web client starts on quest accept, read off the log instead: an escort, Celebras's ritual. */
 function questStarts(app, f) {
   if (f.runMs - f.questScanMs < QUEST_SCAN_MS) return;
   f.questScanMs = f.runMs;
@@ -274,6 +303,14 @@ function creditCleared(app, f) {
 
 /** At the target. Beside a friendly boss you went to on purpose, that is the challenge (Doom'rel, Ribbly, Bly). */
 function arrive(app, f) {
+  if (f.goal) {
+    // Walked to an object: use it, if the mesh brought you within reach of it.
+    const g = f.goal;
+    f.goal = null;
+    if (partyDistTo(f.world, g.x, g.y, g.z) <= OBJECT_REACH_YD) g.act(app);
+    else app.flashMsg(`You cannot get close enough to ${g.name}.`);
+    return false;
+  }
   const enc = f.target ? f.def.encounters.find((e) => e.id === f.target) : null;
   if (!enc) return false;
   app.say(dim(`You reach ${enc.name}.`));
@@ -358,7 +395,10 @@ function settle(app, f, r) {
   const engaged = f.world.entities.filter((e) => e.state === 'engaged').map((e) => e.guid);
   if (r?.outcome === 'win') remember(app, f, engaged);
   else {
-    for (const e of f.world.entities) if (e.state === 'engaged') e.state = 'alive';
+    for (const e of f.world.entities) if (e.state === 'engaged') { e.state = 'alive'; f.calm.set(e.guid, f.runMs + CALM_MS); }
+    // And whatever else stands in sight of where you ran from: it would pull on the very next step otherwise.
+    for (const e of entitiesInAggroRange(f.world, app.ch.level)) f.calm.set(e.guid, f.runMs + CALM_MS);
+    if (!r && f.calm.size) app.say(dim('They let you go. Walk clear of them, or rest; they come for you again if you linger past two minutes.'));
     f.world.engagedGuids = [];
     if (f.script.gauntlet) failEvent(app, f);
   }
@@ -401,7 +441,21 @@ function pullSeen(app, f, seen) {
 
 function reopen(app) {
   const f = app.floor;
-  if (f && app.top()?.id !== 'floor' && app.g.state.instance) app.push(floorView(app, f));
+  if (f && !app.top()?.floor && app.g.state.instance) app.push(floorView(app, f));
+}
+
+/** Walk the party to an object or NPC and use it there; one in reach is used where you stand. */
+function walkToObject(app, f, o, row) {
+  const g = { x: o.x, y: o.y, z: o.z, name: o.name, act: (a) => row.act(a) };
+  if (partyDistTo(f.world, o.x, o.y, o.z) <= GO_INTERACT_YD) { g.act(app); return; }
+  readyUp(app);
+  const r = setMoveOrder(f.world, { x: o.x, y: o.y, z: o.z }, f.def.mapId);
+  if (!r) { app.flashMsg(`There is no way to ${o.name} from here.`); return; }
+  f.goal = g;
+  f.target = null;
+  f.walking = true;
+  f.follow = false;
+  app.say(dim(`You head for ${o.name}, ${Math.round(r.pathYd)} yards.`));
 }
 
 /** Walk the party to a stop's spot. */
@@ -412,6 +466,7 @@ export function walkTo(app, f, enc) {
   readyUp(app);
   const r = setMoveOrder(f.world, dest, f.def.mapId);
   f.target = enc.id;
+  f.goal = null;
   f.walking = true;
   f.follow = false;
   app.say(dim(`You head for ${enc.name}${r ? `, ${Math.round(r.pathYd)} yards` : ''}.`));
@@ -433,7 +488,7 @@ export function openFloor(app) {
   const def = app.ds.instance(run.dungeonId);
   if (!def) return;
   if (!loadNavMesh(def)) {
-    app.flashMsg(`No nav mesh for ${def.name} at ${navMeshDir()}. Set PHONECRAFT or AZSH_NAVMESH_DIR.`);
+    app.flashMsg(`${def.name} has no floor to walk; pick stops instead.`);
     return;
   }
   const f = floorFor(app, def);
@@ -463,16 +518,17 @@ function floorView(app, f) {
   const startTimer = (a) => {
     if (f.timer) return;
     f.timer = a.term.setInterval(() => {
-      if (a.top()?.id !== 'floor' || a.fight) return;
+      if (a.top()?.floor !== f || a.fight) return;
       for (let i = 0; i < f.speed; i++) if (stepFloor(a, f)) break;
       a.renderSoon();
     }, TICK_MS);
   };
   const view = {
     id: 'floor', title: 'Floor', hint: 'Enter: walk there   P: pull or start it from here   f: follow the escort', noDetail: false, floor: f,
-    onClose: (a) => { if (f.timer) a.term.clearInterval(f.timer); f.timer = null; f.walking = false; },
+    onClose: (a) => { if (f.timer) a.term.clearInterval(f.timer); f.timer = null; f.walking = false; f.goal = null; },
     keys: {
-      space: { hint: 'stop', fn: () => { f.walking = false; f.follow = false; f.world.movePath = []; } },
+      space: { hint: 'stop', fn: () => { f.walking = false; f.follow = false; f.goal = null; f.world.movePath = []; } },
+      m: { hint: 'map', fn: (a) => a.push(floorMapView(a, f, () => view.objects ?? [])) },
       z: { hint: 'rest', fn: (a) => { restBetween(a, 30); f.runMs += 30_000; } },
       f: { fn: (a) => { f.follow = !f.follow; a.flashMsg(f.follow ? 'You keep up with the escort.' : 'You stop following.'); } },
       '+': { hint: 'faster', fn: () => { f.speed = Math.min(8, f.speed * 2); } },
@@ -484,7 +540,9 @@ function floorView(app, f) {
       if (!run) return [H(dim('You are out of the dungeon.'))];
       const w = f.world, def = f.def;
       const target = f.target ? def.encounters.find((e) => e.id === f.target) : null;
-      const status = f.walking && target ? `walking to ${target.name}` : f.walking ? 'walking' : 'standing';
+      const status = f.walking && target ? `walking to ${target.name}` : f.walking && f.goal ? `walking to ${f.goal.name}` : f.walking ? 'walking' : 'standing';
+      // Chests, veins, herbs, books, gates and quest NPCs: drawn on the map, the nearest listed to walk to.
+      const objects = view.objects = floorObjects(a, def, run).filter(floorObjectOpen);
       const rows = [H(`${bold(def.name)}   ${dim(`${status}, ${Math.round(w.walkedYd)} yd walked${f.speed !== 1 ? `, ${f.speed}x` : ''}`)}`), ...eventRows(a, f), H('')];
       // Ahead: every stop not yet cleared, nearest first.
       const ahead = def.encounters.filter((e) => e.origin && e.kind !== 'entrance' && e.kind !== 'exit' && !isCleared(run, e.id))
@@ -496,11 +554,24 @@ function floorView(app, f) {
         const need = requiredFlags(e).filter((fl) => !hasFlag(run, fl));
         rows.push({
           text: `  ${waves ? yellow('W') : e.kind === 'boss' ? red('B') : dim('·')} ${fit(e.name, 30)} ${dim(`${Math.round(d)} yd`)}${f.target === e.id && f.walking ? yellow('  ◀ going') : ''}`,
-          detail: () => [bold(e.name), dim(`${e.kind}, ${Math.round(d)} yards away`), '',
-            ...(waves ? [`An event in ${waves.length} waves.`, dim(need.length ? `Not set off yet: ${need.join(', ')}.` : `It starts when you come within ${GAUNTLET_START_YD} yards.`), ''] : []),
-            dim('Enter: walk there. Anything that sees you on the way pulls.'), dim(waves ? 'P: start it from here' : 'P: pull it from here')],
+          detail: () => withMap(a, f, view, e.origin, [bold(e.name), dim(`${e.kind}, ${Math.round(d)} yards away`), '',
+            ...(waves ? [`An event in ${waves.length} waves.`, dim(need.length ? `Not set off yet: ${need.map((fl) => flagSource(a, def, run, fl)).join(', ')}.` : `It starts when you come within ${GAUNTLET_START_YD} yards.`), ''] : []),
+            dim('Enter: walk there. Anything that sees you on the way pulls.'), dim(waves ? 'P: start it from here' : 'P: pull it from here')]),
           keys: { P: (a2) => pullFromHere(a2, f, e) },
           act: (a2) => walkTo(a2, f, e),
+        });
+      }
+      // What you can use now comes first; a cell door wanting a key you lack goes to the end.
+      const things = objects.map((o) => ({ o, d: partyDistTo(w, o.x, o.y, o.z), shut: floorObjectBlocked(a, o) }))
+        .sort((x, y) => x.shut - y.shut || x.d - y.d);
+      rows.push(H(''), H(cyan('Things to use')));
+      if (!things.length) rows.push(H(dim('  Nothing left to open, pick or read.')));
+      for (const { o, d } of things.slice(0, 15)) {
+        const row = objectRow(a, def, o);
+        rows.push({
+          text: `  ${fit(row.text, 34)} ${dim(`${Math.round(d)} yd`)}${f.goal?.x === o.x && f.goal?.y === o.y && f.walking ? yellow('  ◀ going') : ''}`,
+          detail: () => withMap(a, f, view, o, [...row.detail(), '', dim(d <= GO_INTERACT_YD ? 'It is in reach.' : 'Enter walks you there first; anything that sees you on the way pulls.')]),
+          act: (a2) => walkToObject(a2, f, o, row),
         });
       }
       // Near you: what stands or walks within sight distance, and how close it lets you come.

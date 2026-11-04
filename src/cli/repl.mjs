@@ -28,7 +28,7 @@ const QUALITY = ['poor', 'common', 'uncommon', 'rare', 'epic', 'legendary', 'art
 const WRAP = 78;
 
 const GENDER_TOKEN = /\$[Gg]\s*([^:]*):([^;]*);/g;
-/** $N name, $C class, $R race, $B break, $G male:female; (SharedDefines.h:26). Same codes as phonecraft questText. */
+/** $N name, $C class, $R race, $B break, $G male:female; (SharedDefines.h:26). Same codes as the web client. */
 function questText(raw, ch) {
   return String(raw ?? '')
     .replace(GENDER_TOKEN, (_m, male, female) => (ch.gender === 1 ? female : male))
@@ -140,14 +140,14 @@ export async function main(argv = []) {
   // Wall clock, like the TUI: both write the same saves, and a fight-chain stamp reads hours off there.
   const g = createGame(ds, state, { travelPace: 'instant', wallWorldClock: true });
   if (g.state.char.journey) g.completeJourneyNow();
-  // Real createInfo has no starting weapon (ETL gap KI-003); phonecraft's harness.mjs hands one over too.
+  // Real createInfo has no starting weapon (ETL gap KI-003); the engine's QA harness hands one over too.
   if (!save && g.state.char.equipped.mainhand == null) {
     const weapon = ds.allItems().find((i) => i.slot === 'mainhand' && i.requiredLevel <= 1);
     if (weapon) { g.state.inventory = addItem(g.state.inventory, weapon.entry, 1, 1); g.equip(weapon.entry); }
   }
 
-  const persist = async () => { await repo.save(toSave(slot, g.snapshot(), Date.now(), createdAt)); };
-  const { commands, flushActivity, isDead, hp, pw, zoneHere } = createCommands({ g, ds, out: console.log, persist, slot });
+  const persist = async () => { keepQuestBlacklist(); await repo.save(toSave(slot, g.snapshot(), Date.now(), createdAt)); };
+  const { commands, flushActivity, isDead, hp, pw, zoneHere, keepQuestBlacklist } = createCommands({ g, ds, out: console.log, persist, slot });
 
   const prompt = () => {
     const ch = g.state.char;
@@ -208,8 +208,14 @@ export function createCommands({ g, ds, out, persist, slot, arrive, skipJourney 
   const onTheRoad = (to) => { const st = g.journeyStatus(); out(`You set off for ${bold(to)}.  ${dim(st ? `${Math.ceil(st.progress.remainingSeconds)} s to go` : '')}`); };
   let logOn = true;
   let curVendor = null;
-  // Quests the world autopilot gave up on this session; later runs skip them too.
-  const questBlacklist = new Set();
+  // Quests the world autopilot skips: the ones it gave up on and the ones you set aside. They ride the save
+  // under state.autopilot.questBlacklist (migrate passes that block through raw); keepQuestBlacklist() writes
+  // them back before each save, because a settings write normalizes the block and drops the key.
+  const questBlacklist = new Set((g.state.autopilot?.questBlacklist ?? []).filter(Number.isInteger));
+  const keepQuestBlacklist = () => {
+    const ap = g.state.autopilot;
+    if (questBlacklist.size || ap?.questBlacklist) g.state.autopilot = { ...ap, questBlacklist: [...questBlacklist] };
+  };
   let lastActivity = g.state.activity[0];
   // Party-buff pacing for squad pulls, and the one-shot "hire companions" hint.
   const buffPace = {};
@@ -598,7 +604,7 @@ export function createCommands({ g, ds, out, persist, slot, arrive, skipJourney 
     // to the next one instead of ending the run. Do Quest is an explicit pick, so it clears that quest's entry.
     const skipping = mode.kind === 'quest' && !mode.pin;
     if (quest != null) questBlacklist.delete(quest);
-    const sets = { blockedAccepts: new Set(), blockedSpeaks: new Set(), blockedObjects: new Set(), blockedTurnins: new Set(), blockedUses: new Set(), blockedFights: new Set(), blockedTravels: new Set(), blockedQuests: new Set(skipping ? questBlacklist : []) };
+    const sets = { blockedAccepts: new Set(), blockedSpeaks: new Set(), blockedObjects: new Set(), blockedTurnins: new Set(), blockedUses: new Set(), blockedFights: new Set(), blockedTravels: new Set(), blockedQuests: new Set() };
     const prog = { elapsedMs: 0, recovering: false, consecutiveDefeats: 0, questDefeats: new Map(), ...sets };
     const cfg = g.autopilotConfig();
     const nm = (id) => ds.quest(id)?.title ?? `quest ${id}`;
@@ -615,7 +621,7 @@ export function createCommands({ g, ds, out, persist, slot, arrive, skipJourney 
       prog.consecutiveDefeats = 0;
       return yellow(`skipping ${nm(entry)}: ${why}`);
     };
-    // A fight's outcome feeds the planner's defeat streak and recovery latch (phonecraft autopilotController).
+    // A fight's outcome feeds the planner's defeat streak and recovery latch (the web client's autopilotController).
     // A quest is dropped once it has cost QUEST_SKIP_DEFEATS deaths this run (fewer than the run-wide
     // maxConsecutiveDefeats stop, so one hopeless quest is abandoned before it ends the whole run).
     const settle = (r, step) => {
@@ -638,6 +644,9 @@ export function createCommands({ g, ds, out, persist, slot, arrive, skipJourney 
       let line = '';
       try {
         if (clock) prog.elapsedMs = clock();
+        // The blacklist is read each step, so a quest set aside mid-run (b on the quest log) is dropped at once;
+        // one that has left the log (abandoned) is not taken again either.
+        if (skipping) for (const e of questBlacklist) { sets.blockedQuests.add(e); sets.blockedAccepts.add(e); }
         step = planStep(g.state, ds, mode, cfg, prog);
         // The planner parks quests it cannot finish on its own; those join the blacklist too, so the
         // run panel stops offering them as next and later runs skip them from the first step.
@@ -734,5 +743,5 @@ export function createCommands({ g, ds, out, persist, slot, arrive, skipJourney 
     logOn = wasLog;
     out(ap.summary());
   }
-  return { commands, HELP, runAutopilot, createAutopilot, questBlacklist, buffPace, flushActivity, printLog, isDead, hp, pw, zoneHere, getVendor: () => curVendor, setVendor: (v) => { curVendor = v; } };
+  return { commands, HELP, runAutopilot, createAutopilot, questBlacklist, keepQuestBlacklist, buffPace, flushActivity, printLog, isDead, hp, pw, zoneHere, getVendor: () => curVendor, setVendor: (v) => { curVendor = v; } };
 }

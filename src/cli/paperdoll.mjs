@@ -1,5 +1,5 @@
 // A character (you, a companion, a saved hero) as layers on the gear pack: skin, face, facial hair and hair
-// from the appearance, then every equipped item's appearance overlay in phonecraft's draw order
+// from the appearance, then every equipped item's appearance overlay in the web client's draw order
 // (src/ui/core/paperdollSprite.ts). The pixels are modelArt.mjs's; this file only decides what stacks.
 import { clampAppearance, deterministicAppearance, DEFAULT_APPEARANCE, bodySlug, hairStyleHiddenByHelm } from '../domain/character/appearance.ts';
 import { equippedEntry } from '../domain/items/itemInstance.ts';

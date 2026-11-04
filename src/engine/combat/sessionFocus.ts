@@ -30,6 +30,8 @@ export function installSessionFocus(ctx: CombatContext, deps: SessionFocusDeps):
     player, enemies, pet, allies, totems, cfg, rng,
   } = ctx;
 
+  let displacedFocus: Fighter | null = null;
+
   // Resolve the player's focus to a living legal hostile, keeping a sticky one while it is valid and
   // otherwise preferring native enemies over charmed bodies. On the endless floor, never stick a passive.
   const ensurePlayerFocus = (): Fighter => {
@@ -40,6 +42,22 @@ export function installSessionFocus(ctx: CombatContext, deps: SessionFocusDeps):
         ?? (pet && !dead(pet) && !ctx.isCharmed(pet) ? pet : null)
         ?? player;
     let playerFocus = ctx.playerFocusFighter;
+    // A focus pushed off by an untargetable hide comes back once it can be hit again. Jandice's 8 s
+    // Spread left the player on her illusions for the rest of the fight. A click elsewhere forgets it.
+    if (displacedFocus) {
+      const clickedAway = ctx.explicitEnemyFocus != null && playerFocus.side === ctx.explicitEnemyFocus
+        && playerFocus !== displacedFocus;
+      if (dead(displacedFocus) || clickedAway) {
+        displacedFocus = null;
+      } else if (
+        !ctx.isUnattackable(displacedFocus)
+        && ctx.factionOfFighter(displacedFocus) !== ctx.factionOfFighter(freeViewer)
+      ) {
+        playerFocus = displacedFocus;
+        ctx.playerFocusFighter = displacedFocus;
+        displacedFocus = null;
+      }
+    }
     // A focus that CANNOT be killed loses its stickiness the moment something killable is in the pull.
     // On Majordomo the sticky branch returned the boss all fight and the reselect never ran.
     const stickyIsWasted = ctx.isUnkillableEnemy?.(playerFocus) === true
@@ -104,6 +122,9 @@ export function installSessionFocus(ctx: CombatContext, deps: SessionFocusDeps):
       if (charmed) next = charmed;
     }
     if (next) {
+      if (!displacedFocus && !dead(playerFocus) && ctx.isUnattackable(playerFocus) && isEnemySide(playerFocus.side)) {
+        displacedFocus = playerFocus;
+      }
       playerFocus = next;
       ctx.playerFocusFighter = next;
       if (ctx.explicitEnemyFocus != null && next.side !== ctx.explicitEnemyFocus) {

@@ -1,4 +1,4 @@
-// Boots the DataStore from disk. Same attach order as phonecraft's src/dev/qa/harness.mjs
+// Boots the DataStore from disk. Same attach order as the engine's QA harness.mjs
 // bootDataStore(), with every table readable as .json or .json.gz (scripts/pack-data.mjs).
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';

@@ -1,4 +1,4 @@
-// The reputation window (phonecraft panels/reputationPanel.ts): every faction you know, grouped by its parent,
+// The reputation window (the web client's reputationPanel.ts): every faction you know, grouped by its parent,
 // with your standing inside the rank. Enter on one: watch it on the xp bar, declare war or peace, or park it at
 // the bottom (inactive). The engine refuses what the client would (forced peace, hidden factions).
 import { bold, dim, yellow, green, red, cyan, brightBlue, magenta, fit, bar } from './text.mjs';

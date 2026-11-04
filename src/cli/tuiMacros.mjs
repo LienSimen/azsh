@@ -1,4 +1,4 @@
-// Macros (phonecraft's MacroFrame): your own and account-wide macros, a line-by-line editor, the template list,
+// Macros (the web client's MacroFrame): your own and account-wide macros, a line-by-line editor, the template list,
 // and a run out of combat through the world host. In a fight a macro on bar 1 fires through the combat host
 // (tuiFight.mjs), so both go through the same planner (domain/macro) and the same calls a key press makes.
 import { bold, dim, yellow, green, red, cyan } from './text.mjs';

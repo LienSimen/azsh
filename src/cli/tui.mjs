@@ -18,6 +18,7 @@ import { autopilotSettingsDialog } from './tuiAutopilotSettings.mjs';
 import { runStripLine, runHeaderLine, bagsPaneKey } from './tuiAutopilot.mjs';
 import { macrosDialog, runMacro } from './tuiMacros.mjs';
 import { outfitterDialog } from './tuiOutfitter.mjs';
+import { gearDurabilityText } from './tuiGear.mjs';
 import { journeyHeader, journeyTick } from './tuiWorld.mjs';
 import { reputationDialog } from './tuiRep.mjs';
 import { honorDialog, weeklyHonorPass } from './tuiHonor.mjs';
@@ -32,12 +33,14 @@ import { className, raceName } from '../domain/core/ids.ts';
 import { characterCreation } from './tuiCreate.mjs';
 import { missingHdBytes, downloadHdArt, downloadDir } from './hdArt.mjs';
 import { forgetHdArt } from './modelArt.mjs';
-import { sixelOn } from './sixel.mjs';
+import { sixelOn, holdNewArt } from './sixel.mjs';
+import { putLootToasts } from './tuiStage.mjs';
 import { coinsText } from '../domain/economy/money.ts';
 import { maxHealth, maxPower } from '../domain/character/character.ts';
 import { powerType } from '../domain/character/characterStats.ts';
 import { addItem } from '../domain/items/inventory.ts';
 
+const ART_REST_MS = 250; // a detail pane's new picture waits this long for the cursor to rest (detailArt)
 const POWER_PAINT = { mana: brightBlue, rage: red, energy: yellow, focus: yellow };
 /** Digit key → tab index: 1-9 are the first nine, 0 the tenth. */
 const digitTab = (k) => (k === '0' ? 9 : Number(k) - 1);
@@ -83,7 +86,7 @@ const HELP_LINES = [
   '  In a big enough window the Character tab is a paperdoll (the Talents tab the three trees): Up and Down walk the icons in order, Shift+arrows move across them.',
   '  Bags tab: Enter uses, equips, opens, unwraps or learns; m lists every verb for the stack. s sells to the open',
   '  vendor, j sells junk, b opens the bank, d destroys, S sorts, / splits a stack, [ ] move it, A uses the whole stack.',
-  '  D lists every green, blue or epic the group can disenchant; L lists every book someone can learn. G runs it.',
+  '  e disenchants the one stack (blues and up ask first); D lists every green, blue or epic the group can disenchant; L lists every book someone can learn. G runs it.',
   '  X marks several stacks to destroy at once; Q marks the quest items left over from quests you turned in. G destroys.',
   '  :dev item|quest|recipe|prof skips the rules (testing). New character offers a random world bot.',
   '  Settings tab (or :settings) sets auto-loot, the upgrade helper, auto-disenchant, the junk rules and which nodes get gathered.',
@@ -92,6 +95,7 @@ const HELP_LINES = [
   '',
   'In a fight',
   '  1-9 press an ability    a toggle auto-play    space pause    + - speed    l log    Esc run away',
+  '  ← → pick a foe and Enter makes it your target (Esc drops the pick)',
   '  t gives a companion an order: attack a target, cast one ability, or hold ground (the fight waits).',
   '  c cancels one of your buffs (also from s on the Character tab, out of a fight).',
   '  r (in a fight you started with Enter) fights the same creature again after each win, until r again or Esc.',
@@ -121,10 +125,13 @@ export class App {
     this.vendor = null;
     this.fight = null; this.auto = null; this.fightSpeed = 1;
     this.fightPane = 'log'; this.meterSort = 'damage'; this.meter = null; this.lootTally = null; // the fight's bottom pane
+    this.lootToast = null; this.lootToastTimer = null; // what a chest or node just gave (tuiLoot toastLoot)
     this.cmd = null;
     this.closed = false;
     this.timers = [];
     this.lastPaint = 0; this.paintTimer = null; // renderSoon holds timer-driven repaints to the Screen refresh setting
+    this.restOn = null; this.restAt = 0; this.restTimer = null; // where the cursor last stopped and when (detailArt)
+    this.restMemo = new Map(); // atRest's figures, by key
     this.lastActivity = null;
     term.onKey = (k) => { try { this.onKey(k); } catch (err) { this.say(red(`Error: ${err.message}`)); if (process.env.AZSH_DEBUG) this.say(dim(String(err.stack).split('\n').slice(1, 4).join(' '))); this.render(); } };
     term.onResize = () => this.render();
@@ -176,13 +183,13 @@ export class App {
     if (!held.ok) { this.say(red(`${state.char.name} is open in another terminal (pid ${held.pid}). Close it there first.`)); return false; }
     this.slot = slot; this.createdAt = createdAt ?? Date.now();
     const awayMs = updatedAt > 0 ? Math.max(0, Date.now() - updatedAt) : 0;
-    // Travel pace is a setting (instant by default, like phonecraft); `skipping` lets Arrive now land a trip at any pace.
+    // Travel pace is a setting (instant by default); `skipping` lets Arrive now land a trip at any pace.
     // wallWorldClock: aura and cooldown stamps on Date.now(), the clock every screen reads. Without it they ride the
     // fight chain, which runs hours ahead once fights resolve faster than real time (Forbearance showing 8h).
     const g = createGame(this.ds, state, { travelPace: () => (this.skipping ? 'instant' : this.prefs.get('travelPace') ?? 'instant'), offlineTimeMs: awayMs, wallWorldClock: true, ...globalSettingsOpts(this.prefs) });
     this.g = g;
     if (g.state.char.journey) { if (this.prefs.get('travelPace') === 'instant') this.arriveNow(); else g.journeyTick(); }
-    // Real createInfo has no starting weapon (ETL gap KI-003); phonecraft's harness hands one over too.
+    // Real createInfo has no starting weapon (ETL gap KI-003); the engine's QA harness hands one over too.
     if (isNew && g.state.char.equipped.mainhand == null) {
       const weapon = this.ds.allItems().find((i) => i.slot === 'mainhand' && i.requiredLevel <= 1);
       if (weapon) { g.state.inventory = addItem(g.state.inventory, weapon.entry, 1, 1); g.equip(weapon.entry); }
@@ -220,6 +227,7 @@ export class App {
 
   async persist() {
     if (!this.g) return;
+    this.cmds?.keepQuestBlacklist();
     try { await this.repo.save(toSave(this.slot, this.g.snapshot(), Date.now(), this.createdAt)); }
     catch (err) { this.say(red(`save failed: ${err.message}`)); }
   }
@@ -233,7 +241,7 @@ export class App {
     if (this.closed) return;
     this.closed = true;
     for (const t of this.timers) this.term.clearInterval(t);
-    clearTimeout(this.paintTimer);
+    clearTimeout(this.paintTimer); clearTimeout(this.restTimer);
     this.fight?.stop?.(); this.auto?.stop?.();
     await this.persist();
     if (this.slot != null) this.repo.unlock?.(this.slot);
@@ -254,7 +262,7 @@ export class App {
     this.say(dim(`Saved ${this.g.state.char.name}.`));
     this.g = null; this.slot = null; this.cmds = null; this.vendor = null;
     this.tabs = []; this.tab = 0; this.stack = [];
-    this.meter = null; this.lootTally = null; this.lastActivity = null;
+    this.meter = null; this.lootTally = null; this.lootToast = null; this.lastActivity = null; this.restMemo.clear();
     await this.toPicker?.();
     this.render();
   }
@@ -500,6 +508,7 @@ export class App {
 
   /** After any state-changing key: pull activity, save, repaint. */
   afterAction() {
+    this.restMemo.clear();
     journeyTick(this);
     holdRunLonger(this);
     this.flushActivity();
@@ -610,7 +619,12 @@ export class App {
     lines.push(...this.headerLines(L));
     if (this.fight && !this.stack.length && !this.inlineFight()) lines.push(...this.fight.render(L.W, L.mainH));
     else if (this.auto && !this.auto.browsing && !this.stack.length) lines.push(...this.auto.render(L.W, L.mainH));
-    else lines.push(...this.mainLines(L));
+    else {
+      // A chest or node just looted: its drops slide in over the right of the screen, like a won fight's.
+      const main = this.mainLines(L), t = this.lootToast, at = t ? Date.now() - t.start : 0;
+      if (t && at <= t.until) putLootToasts(this, main, t, L.W, at, { corner: true });
+      lines.push(...main);
+    }
     while (lines.length < L.top + L.mainH) lines.push('');
     lines.length = L.top + L.mainH;
     // In a fight the rule carries the pane tabs (Tab: log, meter, threat, loot) and the pane draws below it.
@@ -632,7 +646,8 @@ export class App {
     const dead = this.isDead() ? red(bold('  DEAD')) : ch.mountedItem != null ? dim('  mounted') : '';
     const title = ` ${bold(ch.name)} ${dim(`L${ch.level} ${raceName(ch.race)} ${className(ch.cls)}`)}${dead}`;
     const road = journeyHeader(this);
-    const right = `${road ? yellow(road) : cyan(z?.name ?? ch.zoneId)}  ${coinText(ch.gold)} `;
+    const dur = gearDurabilityText(this);
+    const right = `${road ? yellow(road) : cyan(z?.name ?? ch.zoneId)}  ${dur ? `${dur}  ` : ''}${coinText(ch.gold)} `;
     const l0 = fit(title, L.W - vis(right)) + right;
     // In a fight the bars follow the live session, so the header is the player's frame and no panel needs another.
     const live = this.fight?.session?.playerView?.() ?? null;
@@ -710,7 +725,7 @@ export class App {
     if (!rows.length && view.empty) listLines.push(dim(` ${view.empty}`));
     let detailLines = [];
     if (showDetail) {
-      const d = cursorRow?.detail?.(this, cursorRow) ?? view.detail?.(this, cursorRow) ?? [];
+      const d = this.detailArt(view, () => cursorRow?.detail?.(this, cursorRow) ?? view.detail?.(this, cursorRow) ?? []);
       detailLines = wrapIconLines(d, L.detailW - 2);
       // A view's foot (the Character tab's stats) sits at the bottom of the pane when the tooltip keeps room above it.
       const foot = view.detailFoot ? wrapIconLines(view.detailFoot(this, L.detailW - 2), L.detailW - 2) : [];
@@ -723,6 +738,42 @@ export class App {
       out.push(showDetail ? `${left}${dim('│')} ${fit(detailLines[i] ?? '', L.detailW - 2)}` : left);
     }
     return out;
+  }
+
+  /** The detail pane's lines from `draw`, holding back pictures not made before while the cursor is still
+   *  moving (sixel.mjs holdNewArt): paging down a list draws only text and art already seen, and the pane gets
+   *  its picture once the cursor has rested ART_REST_MS on a row. Not headless, where nothing would repaint. */
+  detailArt(view, draw) {
+    const wait = this.restLeft(view);
+    if (!wait) return draw();
+    const { value, missed } = holdNewArt(draw);
+    if (missed) this.repaintAtRest(wait);
+    return value;
+  }
+
+  /** Ms until the cursor has rested ART_REST_MS on its row in `view`; 0 once it has, and always headless. */
+  restLeft(view) {
+    const on = `${this.stack.length}|${this.tab}|${view.id ?? view.title}|${view.cursor}`;
+    if (on !== this.restOn) { this.restOn = on; this.restAt = Date.now(); }
+    return this.term.isTTY ? Math.max(0, this.restAt + ART_REST_MS - Date.now()) : 0;
+  }
+
+  repaintAtRest(wait) {
+    clearTimeout(this.restTimer);
+    this.restTimer = setTimeout(() => { this.restTimer = null; if (!this.closed) this.render(); }, wait);
+  }
+
+  /** A costly figure on a list row (Companions' upgrade count), made by `make()` once the cursor rests, like
+   *  detailArt's pictures: while it moves the row keeps the figure from the last rest (undefined before one),
+   *  so paging past never waits on it. Made once per rest; any action (afterAction) makes it again. */
+  atRest(view, key, make) {
+    if (!this.term.isTTY) return make();
+    const wait = this.restLeft(view), hit = this.restMemo.get(key);
+    if (hit && (wait || hit.on === this.restOn)) return hit.value;
+    if (wait) { this.repaintAtRest(wait); return undefined; }
+    const value = make();
+    this.restMemo.set(key, { on: this.restOn, value });
+    return value;
   }
 
   logLines(L) {

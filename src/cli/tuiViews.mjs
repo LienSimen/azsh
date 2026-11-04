@@ -48,15 +48,15 @@ import { simLabDialog } from './tuiSimLab.mjs';
 import { withWorldMap } from './tuiMap.mjs';
 import { autopilotSettingsDialog } from './tuiAutopilotSettings.mjs';
 import { preflightCard } from './tuiAutopilot.mjs';
-import { creatureArt } from './modelArt.mjs';
-import { withIcon, iconsOn, miniIcon } from './iconArt.mjs';
+import { creatureArt, objectArt, hasObjectArt, artWidth } from './modelArt.mjs';
+import { withIcon, iconsOn, miniIcon, besideArt, iconBlank } from './iconArt.mjs';
 import { paperdollGrid, paperdollPlan } from './tuiPaperdoll.mjs';
 import { talentGrid, talentPlan, talentTone, talentIcon } from './tuiTalentTree.mjs';
 import { paperdollArt } from './paperdoll.mjs';
 import { reputationDialog } from './tuiRep.mjs';
 import { honorDialog, honorRankLine } from './tuiHonor.mjs';
 import { openWorldSearch } from './tuiSearch.mjs';
-import { useStack, itemMenu, useAll, splitStack, moveStack, destroyStack, sortBags, keyringRows, primaryVerb } from './tuiBags.mjs';
+import { useStack, itemMenu, useAll, splitStack, moveStack, destroyStack, sortBags, keyringRows, primaryVerb, canDisenchantStack, disenchantStackKey } from './tuiBags.mjs';
 
 const STAT_LABEL = { str: 'Strength', agi: 'Agility', sta: 'Stamina', int: 'Intellect', spi: 'Spirit' };
 
@@ -192,6 +192,18 @@ export function npcLines(app, entry, text) {
   const w = L.detailW - 2, used = text.reduce((n, line) => n + (vis(line) > w ? wrapLines(line, w).length : 1), 0);
   const art = creatureArt(id, w, L.mainH - used - 1);
   return art ? [...text, '', ...art] : text;
+}
+
+/** An object (a chest, a vein, a sign): its model the size of an item's icon beside the text, as withIcon.
+ *  `displayId` is the GO's. A model held back while the cursor moves keeps its square blank, so the text
+ *  beside it does not jump when it lands. */
+export function objectLines(app, displayId, text) {
+  if (!hasObjectArt(displayId)) return text;
+  const art = objectArt(displayId, 8, 4);
+  if (!art) return besideArt(iconBlank(8), text);
+  // Centred across the icon's 8 columns and standing on its bottom row.
+  const w = artWidth(art), left = ' '.repeat((8 - w) >> 1), right = ' '.repeat(8 - w - ((8 - w) >> 1));
+  return besideArt([...iconBlank(8).slice(art.length), ...art.map((l) => `${left}${l}${right}`)], text);
 }
 
 export function questLines(app, q, qs) {
@@ -395,6 +407,7 @@ function questsView(app) {
     keys: {
       d: { hint: 'do quest', fn: (a, row) => { if (row?.data) doQuest(a, row.data.q); } },
       x: { hint: 'abandon', fn: (a, row) => { if (row?.data) a.confirm(`Abandon ${row.data.q.title}?`, () => a.result(a.g.abandonQuest(row.data.q.entry), `Abandoned ${row.data.q.title}.`)); } },
+      b: { hint: 'blacklist', fn: (a, row) => { if (row?.data) toggleBlacklist(a, row.data.q); } },
       G: { hint: 'drop gray', fn: (a) => abandonGray(a) },
     },
     rows(a) {
@@ -403,7 +416,7 @@ function questsView(app) {
       const log = list.filter((x) => x.qs.status !== 'turnedIn');
       rows.push({ text: `${log.length} of 20 quests`, header: true });
       for (const x of log) {
-        const st = x.qs.status === 'complete' ? green('(Complete)') : x.qs.status === 'failed' ? red('(Failed)') : a.cmds.questBlacklist.has(x.q.entry) ? dim('(autopilot skips)') : '';
+        const st = x.qs.status === 'complete' ? green('(Complete)') : x.qs.status === 'failed' ? red('(Failed)') : a.cmds.questBlacklist.has(x.q.entry) ? dim('(blacklisted)') : '';
         rows.push({ text: `${conPaint(a.ch.level, x.q.questLevel)(`${x.q.title} L${x.q.questLevel}`)} ${st}`, data: x, detail: () => questLines(a, x.q, x.qs), act: () => a.push(questDialog(a, x.q, 'log')) });
       }
       // Below the log: what this zone offers that you have not taken, so you need not scroll the World tab for it.
@@ -451,6 +464,9 @@ export function questDialog(app, q, mode) {
         const rounds = s?.status === 'complete' && isRepeatableQuest(q) && questRewardChoices(q).length <= 1 ? questRepeatsAvailable(q, a.g.state.inventory, a.ch.zoneId) : 0;
         if (rounds >= 2) rows.push({ text: green(`Hand it in ${rounds} times`), act: () => repeatTurnIn(a, q) });
         else rows.push({ text: 'Do the quest', act: () => doQuest(a, q) });
+        rows.push(a.cmds.questBlacklist.has(q.entry)
+          ? { text: 'Take it off the blacklist', act: () => toggleBlacklist(a, q) }
+          : { text: yellow('Blacklist the quest'), detail: () => [bold('Blacklist the quest'), '', 'The autopilot skips it and does not take it again. Do the quest still works it.'], act: () => toggleBlacklist(a, q) });
         rows.push({ text: red('Abandon the quest'), act: () => a.confirm(`Abandon ${q.title}?`, () => { if (a.result(a.g.abandonQuest(q.entry), `Abandoned ${q.title}.`)) a.popTo('__none__'); }) });
         rows.push({ text: dim('Close'), act: () => a.pop() });
       }
@@ -465,7 +481,7 @@ export function questDialog(app, q, mode) {
 const GARMENTS_PATIENT = Object.fromEntries(Object.entries(GARMENTS_ENTRY_QUEST).map(([entry, quest]) => [quest, Number(entry)]));
 
 /** Speak target for a gossip-event quest: the mid-event NPC its objectives name (Great Bear Spirit) before the
- * turn-in ender (Dendrite). Ported from phonecraft src/ui/quests/questCardUi.ts eventTalkSpeakName. */
+ * turn-in ender (Dendrite). Ported from the web client's questCardUi.ts eventTalkSpeakName. */
 function eventTalkSpeakName(q) {
   const text = q.objectivesText ?? '';
   for (const re of [/\blisten as ([^.]+?) tells/i, /\bseek out the ([^.]+?) in /i, /\bafter speaking with ([^.]+?)\.?$/i, /\bspeak(?:ing)? with ([^.]+?)(?:\.|,| after)/i, /\bspeak to ([^.]+?)(?:\.|,| again)/i]) {
@@ -510,6 +526,14 @@ function doQuest(app, q) {
   if (s?.status === 'complete' && q.rewChoiceItems?.length) { turnIn(app, q); return; }
   app.stack = [];
   startAutopilot(app, Infinity, undefined, q.entry);
+}
+
+/** b on the quest log, or the quest page's row: the world autopilot skips the quest, or takes it again. Saved now. */
+function toggleBlacklist(app, q) {
+  const bl = app.cmds.questBlacklist;
+  if (bl.delete(q.entry)) app.flashMsg(`${q.title} is off the blacklist.`);
+  else { bl.add(q.entry); app.flashMsg(`Blacklisted: the autopilot skips ${q.title}.`); }
+  void app.persist();
 }
 
 function repeatTurnIn(app, q) {
@@ -571,6 +595,7 @@ function bagsView(app) {
       s: { hint: 'sell', fn: (a, row) => { if (!a.vendor) { a.flashMsg('Open a vendor first (World tab).'); return; } const i = slotOf(a, row); if (i >= 0) sellStack(a, i); } },
       j: { hint: 'sell junk', fn: (a) => { if (!a.vendor) { a.flashMsg('Open a vendor first (World tab).'); return; } sellJunk(a); } },
       d: { hint: 'destroy', fn: onStack((a, i) => destroyStack(a, i)) },
+      e: { hint: 'disenchant', fn: onStack(disenchantStackKey) },
       S: { hint: 'sort', fn: (a) => sortBags(a) },
       D: { hint: 'disenchant all', fn: (a) => a.push(bulkDisenchantDialog(a)) },
       L: { hint: 'learn all', fn: (a) => a.push(learnAllDialog(a)) },
@@ -597,7 +622,7 @@ function bagsView(app) {
           text: `${name}${s.count > 1 ? ` x${s.count}` : ''}${tag}${ups.has(s.item) ? green('  ▲') : ''}`, data: s,
           icon: it?.icon, sub: dim(`${it?.typeName ?? ''}${it?.sellPrice ? `  sells ${coinText(it.sellPrice * s.count)}` : ''}`),
           detail: () => itemLines(a, it, [
-            '', dim(`Enter: ${verb ? verb.toLowerCase() : 'more'}   m: more${s.count > 1 ? '   /: split' : ''}   [ ]: move   d: destroy`),
+            '', dim(`Enter: ${verb ? verb.toLowerCase() : 'more'}   m: more${s.count > 1 ? '   /: split' : ''}   [ ]: move${canDisenchantStack(a, i) ? '   e: disenchant' : ''}   d: destroy`),
             ...(a.vendor ? [dim(`s: sell to ${a.vendor.name}`)] : []),
           ]),
           act: () => useStack(a, i),
@@ -855,7 +880,7 @@ function rotNames(app) {
   };
 }
 
-/** Whose rotation the tab edits: yours, or a seated companion's (the editor's companion picker in phonecraft
+/** Whose rotation the tab edits: yours, or a seated companion's (the editor's companion picker in the web client's
  *  rotationEditor.ts). Every read and write on the tab goes through this. */
 function rotOwner(app) {
   const g = app.g, id = app.tabs[5]?.view.whose;
@@ -1060,9 +1085,13 @@ function moveRule(app, { phase, index, rule }, delta) {
 function addRule(app, phase, afterIndex) {
   const o = rotOwner(app);
   const known = o.spells().filter((s) => !s.passive).sort((x, y) => x.name.localeCompare(y.name));
-  const options = known.map((sp) => ({ label: `${sp.name}${sp.rank ? dim(` (Rank ${sp.rank})`) : ''}`, detail: () => spellLines(app, sp), value: { kind: 'spell', spellId: sp.id } }));
+  const options = known.map((sp) => ({
+    label: `${sp.name}${sp.rank ? dim(` (Rank ${sp.rank})`) : ''}`,
+    icon: sp.icon, sub: dim(`${sp.castTimeMs ? `${(sp.castTimeMs / 1000).toFixed(1)}s cast` : sp.channelMs ? 'channeled' : 'instant'}${sp.cooldownMs ? `  ${secondsText(sp.cooldownMs)} cooldown` : ''}`),
+    detail: () => spellLines(app, sp), value: { kind: 'spell', spellId: sp.id },
+  }));
   const combatItems = [...new Set(o.bag().map((s) => s.item))].map((e) => app.ds.item(e)).filter((it) => it?.useInCombat);
-  for (const it of combatItems) options.push({ label: `Use ${qualityPaint(it.quality)(it.name)}`, detail: () => itemLines(app, it), value: { kind: 'item', itemEntry: it.entry } });
+  for (const it of combatItems) options.push({ label: `Use ${qualityPaint(it.quality)(it.name)}`, icon: it.icon, sub: dim(it.typeName ?? ''), detail: () => itemLines(app, it), value: { kind: 'item', itemEntry: it.entry } });
   app.pick(`Add to ${PHASE_LABEL[phase].split(' (')[0].toLowerCase()}: what to do`, options, (picked) => {
     const id = `tui-${Date.now().toString(36)}-${Math.floor(Math.random() * 1e6).toString(36)}`;
     // A new rule starts with the engine's smart default for what it does: a seal or buff only when it is
@@ -1401,7 +1430,7 @@ function characterDetailsDialog(app) {
 const VENDOR_MODES = ['buy', 'sell', 'buyback', 'party'];
 const VENDOR_MODE_LABEL = { buy: 'Buying', sell: 'Selling', buyback: 'Buyback', party: 'Companions' };
 
-/** Record a sale so the Buyback tab can undo it this session (phonecraft keeps the list caller-side too). */
+/** Record a sale so the Buyback tab can undo it this session (the web client keeps the list caller-side too). */
 export function noteSale(app, entry, qty, refundCopper, owner) {
   app.buyback = pushBuyback(app.buyback ?? [], { entry, qty, refundCopper, soldAt: Date.now(), ...(owner ? { owner: owner.id, ownerName: owner.name } : {}) });
 }

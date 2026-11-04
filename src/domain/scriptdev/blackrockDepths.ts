@@ -464,10 +464,18 @@ export const BOSS_AMBASSADOR_FLAMELASH: ScriptDevIR = {
       hpBelowPct: 101,
       actions: [
         {
+          // The four stand OUTSIDE the room (cmangos 496e43ff8), so they only meet a party that left
+          // mid-fight: a pull after a wipe or a flee walks back through them. A first pull never does.
           kind: 'summon_count',
           creatureEntry: NPC_FIREGUARD_DESTROYER,
           count: 4,
-          cite: 'boss_ambassador_flamelash.cpp:88-91 SummonCreature NPC_FIREGUARD_DESTROYER ×4',
+          gate: {
+            field: TYPE_FLAMELASH,
+            equals: INSTANCE_DATA.IN_PROGRESS,
+            or: { field: TYPE_FLAMELASH, equals: INSTANCE_DATA.FAIL, cite: 'JustReachedHome SetData FAIL' },
+            cite: 'boss_ambassador_flamelash.cpp:85-86 an earlier Aggro left TYPE_FLAMELASH IN_PROGRESS',
+          },
+          cite: 'boss_ambassador_flamelash.cpp:88-91 SummonCreature NPC_FIREGUARD_DESTROYER ×4 at the door',
         },
         {
           kind: 'summon_count',
@@ -479,11 +487,13 @@ export const BOSS_AMBASSADOR_FLAMELASH: ScriptDevIR = {
           kind: 'set_instance_data',
           field: TYPE_FLAMELASH,
           value: INSTANCE_DATA.IN_PROGRESS,
+          // Persisted: it is what lets the Destroyer gate above see the next pull is a return.
+          persist: true,
           cite: 'boss_ambassador_flamelash.cpp:85-86 SetData(TYPE_FLAMELASH, IN_PROGRESS)',
         },
         {
           kind: 'flavor',
-          text: 'calls Fireguard Destroyers and Burning Spirits from the runes!',
+          text: 'calls Burning Spirits from the runes!',
           cite: 'boss_ambassador_flamelash.cpp:81-91 Aggro summons; 127-137 spirit timers',
         },
       ],

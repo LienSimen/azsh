@@ -3002,6 +3002,14 @@ export function installStepSession(ctx: CombatContext, deps: installStepSessionD
             // Cite: boss_nefarian.cpp:266-287; no ResetCombatAction when the pick is null.
             if (castState) castState.pendingSlot = null;
             continue;
+          } else if (
+            space === 'eventai'
+            && (mode === TARGET_T.HOSTILE_RANDOM_NOT_TOP || mode === TARGET_T.HOSTILE_RANDOM_NOT_TOP_PLAYER)
+          ) {
+            // Nobody below the top of the threat list is NO cast: solo, Jandice's Banish stunned the
+            // tank 15 s of every 20. Cite: boss_jandice_barov.cpp:75; CreatureEventAI.cpp ACTION_T_CAST.
+            if (castState) castState.pendingSlot = null;
+            continue;
           }
         }
       }

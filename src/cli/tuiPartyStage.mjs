@@ -64,7 +64,7 @@ export function partyStage(app, ctl, W, H, { inline }) {
     { v: pv, key: 'player', isPlayer: true, friend: true, role: pv.groupRole, order: order(pv, 2.5) },
     ...(pet ? [{ v: pet, key: pet.side ?? pet.name, friend: true, small: true, order: 2 }] : []),
     ...s.alliesView().map((v) => ({ v, key: v.side, friend: true, small: petSides.has(v.side) || !!v.summoned, role: v.groupRole, order: order(v, 2) })),
-    ...s.enemiesView().map((v) => ({ v, key: v.side, foe: true, focused: v === focus, rank: rankOf(v), order: v === focus ? 0 : 1 })),
+    ...s.enemiesView().map((v) => ({ v, key: v.side, foe: true, focused: v === focus, picked: v.side === ctl.pick, rank: rankOf(v), order: v === focus ? 0 : v.side === ctl.pick ? 0.5 : 1 })),
   ];
   // Rows the scene keeps whatever the sprites get: the plate (3), the state row, the floor and the ability bar
   // (dropped under auto-play when rows are short); the aura strip only when the sprites still get a box after it.
@@ -95,7 +95,7 @@ export function partyStage(app, ctl, W, H, { inline }) {
     if (widthOf(all) <= W) { cols = all; break; }
     if (size !== 'xs') continue;
     const drop = (pick) => { const i = all.findLastIndex(pick); if (i < 0) return false; all.splice(i, 1); hidden++; return true; };
-    while (widthOf(all) > W && (drop((u) => u.foe && !u.focused) || drop((u) => u.small) || drop((u) => u.friend && !u.isPlayer)));
+    while (widthOf(all) > W && (drop((u) => u.foe && !u.focused && !u.picked) || drop((u) => u.small) || drop((u) => u.friend && !u.isPlayer)));
     if (widthOf(all) <= W) cols = all;
   }
   if (!cols) return null;

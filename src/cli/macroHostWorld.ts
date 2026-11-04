@@ -1,4 +1,4 @@
-// Copied from phonecraft src/ui/macros/macroHostWorld.ts (import paths only).
+// Copied from the web client's macroHostWorld.ts (import paths only).
 // Runs a macro out in the world (no live fight). Same planner, same conditions; the snapshot is
 // built from the character instead of a session, and the steps land on the same
 // castOutOfCombat / consumeItem / equip calls the HUD buttons use.

@@ -1,5 +1,5 @@
 // Out-of-combat prep before a pull: the rotation's buffs phase (armours, Intellect, imbues, conjures, the pet)
-// cast standing still, not on the fight's first ticks. phonecraft autopilotController.ts prepOoc (:889) without
+// cast standing still, not on the fight's first ticks. The web client's autopilotController.ts prepOoc (:889) without
 // its fillMana: the mana the buffs cost stays spent, and the autopilot drinks it back before it pulls.
 import { pickOocAction, useOocPrepItem } from '../autopilot/combatRotation.ts';
 import { maxPower } from '../domain/character/character.ts';

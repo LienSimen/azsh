@@ -1,4 +1,4 @@
-// The Outfitter: named gear sets for you and each companion (phonecraft panels/outfitterPanel.ts). Enter wears or
+// The Outfitter: named gear sets for you and each companion (the web client's outfitterPanel.ts). Enter wears or
 // takes off a set (sets stack, later ones over earlier ones); e edits which slots a set holds, taken from what is
 // worn right now. n saves what you wear as a new set, N builds one for a stat (fire resist, fishing, spell damage),
 // b rebuilds a stat set from the bags, r renames, x deletes, o switches it off, w changes whose wardrobe this is.

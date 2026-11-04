@@ -3,6 +3,7 @@
 //   src/data/model-art.bin.gz  (scripts/bake-model-art.mjs)  creature sprites by display id, a palette each
 //   src/data/gear-art.bin.br   (scripts/bake-gear-art.py)    the sixteen player bodies with their skins, faces,
 //                                                            hair and every item appearance, one shared palette
+//   src/data/go-art.bin.gz     (bake-model-art.mjs --go)     gameobjects (chests, veins, signs) by GO display id
 // A creature is one sprite; a character is a skin with its layers stacked on it (paperdoll.mjs decides the
 // layers). Either is scaled to the room it gets, so the same pack serves a 12-column corner and a 32-column
 // pane. Transparent pixels stay bare spaces, so the art sits on whatever the screen paints behind it. No
@@ -10,23 +11,22 @@
 import { readFileSync } from 'node:fs';
 import { gunzipSync, brotliDecompressSync } from 'node:zlib';
 import { useColor } from './text.mjs';
-import { sixelCreature, sixelImage, sixelOn, forgetSixelPacks } from './sixel.mjs';
+import { sixelCreature, sixelImage, sixelOn, forgetSixelPacks, mayMakeArt, holdingArt } from './sixel.mjs';
 import { hdArtPath } from './hdArt.mjs';
 
 const PACK_URL = new URL('../data/model-art.bin.gz', import.meta.url);
+const GO_URL = new URL('../data/go-art.bin.gz', import.meta.url);
 const GEAR_URL = new URL('../data/gear-art.bin.br', import.meta.url); // brotli: a fifth smaller than gzip for a hundred thousand tiny images
 
-// ---- the creature pack ------------------------------------------------------------------------------
+// ---- the creature and gameobject packs --------------------------------------------------------------
 
-let index = null; // displayId -> byte offset of the sprite header in `pack`
-let pack = null;
-
-function load() {
-  if (index) return index;
-  index = new Map();
+// A sprite pack ("AZART" v1, scripts/bake-model-art.mjs): the bytes and display id -> byte offset of each
+// sprite's header, read on first use.
+function openPack(url) {
+  const index = new Map();
   try {
-    pack = gunzipSync(readFileSync(PACK_URL));
-    if (pack.toString('ascii', 0, 5) !== 'AZART' || pack[5] !== 1) return index;
+    const pack = gunzipSync(readFileSync(url));
+    if (pack.toString('ascii', 0, 5) !== 'AZART' || pack[5] !== 1) return { index, pack: null };
     const count = pack.readUInt32LE(6);
     let off = 10;
     for (let i = 0; i < count && off + 7 <= pack.length; i++) {
@@ -34,21 +34,27 @@ function load() {
       index.set(id, off);
       off += 7 + palLen * 3 + w * h;
     }
-  } catch { pack = null; }
-  return index;
+    return { index, pack };
+  } catch { return { index, pack: null }; }
 }
 
-/** The baked sprite for a display id: `{ w, h, pal, idx }` (idx 0 is transparent, n is pal[n-1]), or null. */
-export function spriteOf(displayId) {
-  const off = load().get(displayId);
+let creatures = null, objects = null;
+const load = () => (creatures ??= openPack(PACK_URL));
+const loadGo = () => (objects ??= openPack(GO_URL));
+
+function spriteIn({ index, pack }, displayId) {
+  const off = index.get(displayId);
   if (off == null) return null;
   const w = pack[off + 4], h = pack[off + 5], palLen = pack[off + 6];
   const palStart = off + 7, idxStart = palStart + palLen * 3;
   return { w, h, pal: pack.subarray(palStart, idxStart), idx: pack.subarray(idxStart, idxStart + w * h) };
 }
 
+/** The baked sprite for a display id: `{ w, h, pal, idx }` (idx 0 is transparent, n is pal[n-1]), or null. */
+export const spriteOf = (displayId) => spriteIn(load(), displayId);
+
 /** Is there art for this display id? Cheap once the pack is loaded. */
-export const hasArt = (displayId) => useColor && load().has(displayId);
+export const hasArt = (displayId) => useColor && load().index.has(displayId);
 
 /** A sprite as an image: `rgb` per pixel and an `on` mask (1 where the pixel is drawn). */
 function spriteImage(sp) {
@@ -127,11 +133,13 @@ export function compositeArt(slug, skin, layers, maxCols, maxRows) {
     }, maxCols, maxRows);
     if (six) return six;
   }
+  if (sixelOn() && holdingArt()) return null; // held back, as in creatureArt
   const g = loadGear(), body = g.bodies.get(slug);
   if (!body || !g.buf) return null;
   const key = `${look}|${maxCols}x${maxRows}`;
   const hit = cache.get(key);
   if (hit) return hit;
+  if (!mayMakeArt()) return null;
   const img = compose(body, g.buf, g.pal, skin, layers);
   return img ? remember(key, renderImage(crop(img), maxCols, maxRows)) : null;
 }
@@ -288,10 +296,24 @@ export function creatureArt(displayId, maxCols, maxRows) {
   if (!useColor || maxCols < 2 || maxRows < 3) return null;
   const six = sixelCreature(displayId, maxCols, maxRows); // real pixels where the terminal draws sixel
   if (six) return six;
+  if (sixelOn() && holdingArt()) return null; // the sixel is held back (holdNewArt): no half-block stand-in either
   const sp = spriteOf(displayId);
   if (!sp) return null;
   const key = `${displayId}|${maxCols}x${maxRows}`;
-  return cache.get(key) ?? remember(key, renderImage(spriteImage(sp), maxCols, maxRows));
+  return cache.get(key) ?? (mayMakeArt() ? remember(key, renderImage(spriteImage(sp), maxCols, maxRows)) : null);
+}
+
+/** Is there a sprite for this gameobject display id? */
+export const hasObjectArt = (displayId) => useColor && !!displayId && loadGo().index.has(displayId);
+
+/** A gameobject's sprite (a chest, an ore vein, a sign) by its GO display id, like creatureArt: the small
+ *  pack's sprite, as sixel where the terminal draws it. Null without art, colour or room, or while held. */
+export function objectArt(displayId, maxCols, maxRows) {
+  if (!hasObjectArt(displayId) || maxCols < 2 || maxRows < 2) return null;
+  const sp = spriteIn(loadGo(), displayId);
+  if (sixelOn()) return sixelImage(`o${displayId}`, () => rgbaOf(spriteImage(sp)), maxCols, maxRows);
+  const key = `go:${displayId}|${maxCols}x${maxRows}`;
+  return cache.get(key) ?? (mayMakeArt() ? remember(key, renderImage(spriteImage(sp), maxCols, maxRows)) : null);
 }
 
 /** Width in cells of art lines (every line is the same width). */

@@ -1,6 +1,6 @@
 // Arena from the Honor window: the 1v1 against a duelist at your rating, and the 2v2, 3v3 and 5v5 with your
 // companions (merc backfill for empty seats). Each is one fight in the live view; Esc forfeits. Settlement is
-// phonecraft app.ts:1861: the rating moves on a win, a loss or a draw, and a win pays per-opponent duel honor
+// the web client's (app.ts:1861): the rating moves on a win, a loss or a draw, and a win pays per-opponent duel honor
 // plus the match bonus, banked into the week.
 import { bold, dim, yellow, green, red, cyan } from './text.mjs';
 import { startFight } from './tuiFight.mjs';
@@ -71,7 +71,7 @@ export function startArenaMatch(app, bracket) {
   });
 }
 
-/** Alterac Valley is a raid run, not a battleground screen (phonecraft appInteractClickA.ts:1179): your side's
+/** Alterac Valley is a raid run, not a battleground screen (the web client's appInteractClickA.ts:1179): your side's
  *  wing of the valley, entered as a raid with the bench promoted, played in the dungeon run window. */
 export function enterAlteracValley(app) {
   const team = factionOf(app.ds, app.ch.race) === 'horde' ? 'horde' : 'alliance';

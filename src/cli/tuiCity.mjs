@@ -1,5 +1,5 @@
 // City services: the bank, the auction house and the mailbox. Same view shape as tuiViews.mjs; every
-// change is a Game facade call. Where they open follows phonecraft's CITY_PANEL rule: the auction
+// change is a Game facade call. Where they open follows the web client's CITY_PANEL rule: the auction
 // house in the six capitals, the bank there plus the goblin and Crossroads banker towns.
 import { bold, dim, cyan, yellow, green, red, inverse, vis, useColor, qualityPaint, fit, secondsText, plural, itemText, coinText } from './text.mjs';
 import { moneyText } from '../domain/economy/money.ts';
@@ -116,7 +116,7 @@ export function bankDialog(app, startMode = 'deposit') {
 
 // ---- auction house ------------------------------------------------------------------------------
 
-// Browse categories: ItemClass.dbc in AuctionFrame.lua order, as phonecraft's auctionModel.ts. Subclass names are
+// Browse categories: ItemClass.dbc in AuctionFrame.lua order, as the web client's auctionModel.ts. Subclass names are
 // ItemSubClass.dbc; the TBC-era consumable and trade goods subclasses the item table carries get their names too.
 const AH_CLASSES = [
   [2, 'Weapons'], [4, 'Armor'], [1, 'Container'], [0, 'Consumable'], [7, 'Trade Goods'],
@@ -418,7 +418,7 @@ function takeMail(app, m) {
 
 // ---- mail between your own characters -------------------------------------------------------------
 // Every save in ~/.azsh/saves is a character on this realm: a letter to one is written into that save's
-// mailbox (phonecraft appInteractInputB.ts sendMailBatch path). Returned letters and COD payments land the same way.
+// mailbox (the web client's appInteractInputB.ts sendMailBatch). Returned letters and COD payments land the same way.
 
 const sameName = (a, b) => String(a).toLowerCase() === String(b).toLowerCase();
 

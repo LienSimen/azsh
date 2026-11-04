@@ -10,7 +10,7 @@ import { bold, dim, cyan, fit, plural } from './text.mjs';
 
 const TIERS = 7, COLS = 4, GAP = 2;
 
-/** maxed, up or locked, the client's three node states. Phonecraft talentTreeGrid.ts talentNodeTone. */
+/** maxed, up or locked, the client's three node states. As the web client's talentTreeGrid.ts talentNodeTone. */
 export function talentTone(ch, t, ds) {
   const cur = ch.talents?.[t.id] ?? 0;
   if (cur >= t.maxRank) return 'maxed';

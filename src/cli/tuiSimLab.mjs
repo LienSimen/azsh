@@ -1,4 +1,4 @@
-// The target dummy (phonecraft rotation/rotationSimLab.ts): run the rotation on screen against a stunned dummy
+// The target dummy (the web client's rotationSimLab.ts): run the rotation on screen against a stunned dummy
 // many times over and read the parse. The dummy never dies, so the numbers measure the rotation and nothing else;
 // every one comes from the same combat engine the game fights in (domain/sim/dummySim.ts).
 import { bold, dim, yellow, green, red, cyan, fit, bar } from './text.mjs';

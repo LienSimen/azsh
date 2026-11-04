@@ -1,5 +1,5 @@
 // Companions in world fights, shared by the line game and the windowed one. The three squad modes write
-// the autopilot knobs phonecraft's squadModePicker.ts writes; squadJoinsPull is autopilotController.ts:1039;
+// the autopilot knobs the web client's squadModePicker.ts writes; squadJoinsPull is autopilotController.ts:1039;
 // prePull is its prepPartyBuffs pacing (:864) plus the weapon-coat refresh liveFloorRecovery.ts:226 makes.
 import { creatureRank } from '../autopilot/questPolicy.ts';
 import { allyIndexOfSide } from '../engine/core/events.ts';
@@ -98,7 +98,7 @@ export function squadLogNames(g, creatureEntry, base) {
   };
 }
 
-// phonecraft companionHint.ts: the one-shot prompt when the run refuses an elite quest for an empty party.
+// The web client's companionHint.ts: the one-shot prompt when the run refuses an elite quest for an empty party.
 export const COMPANION_HINT_LINES = [
   'Auto Quest leaves elite quests alone while your party is empty. Elites are what companions are for.',
   'Hire them at an inn in a settlement, up to four, for a 5-man. A Naked one is free, and it still fights and gains levels off your kills.',

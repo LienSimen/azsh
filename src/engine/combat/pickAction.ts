@@ -2603,6 +2603,20 @@ export function installPickAction(ctx: CombatContext, deps: installPickActionDep
             const triggered = (slotFlags & CAST_FLAG.TRIGGERED) !== 0;
             if (!triggered && !canAfford(f, s)) return false;
             if (onCooldown(f, s)) return false;
+            // SelectAttackingTarget(RANDOM, 1) with nobody below the top is no cast, and the slot must
+            // not hold the queue: solo, Jandice's Banish starved Summon Illusions. No rng drawn here.
+            // Cite: boss_jandice_barov.cpp:75; Unit.cpp ~12200 position 1.
+            const notTop = slotEntry?.targetSpace !== 'spell_list'
+              && (slotEntry?.target === TARGET_T.HOSTILE_RANDOM_NOT_TOP
+                || slotEntry?.target === TARGET_T.HOSTILE_RANDOM_NOT_TOP_PLAYER);
+            if (notTop) {
+              const playerOnly = slotEntry!.target === TARGET_T.HOSTILE_RANDOM_NOT_TOP_PLAYER;
+              const living = new Set(livingHostilesFor(f).filter((h) => !dead(h)).map((h) => h.side));
+              const below = (threatOf(f)?.getThreatIds() ?? []).slice(1).some(
+                (id) => living.has(id as Side) && (!playerOnly || id === 'player' || isAllySide(id as Side)),
+              );
+              if (!below) return false;
+            }
             // The Widow's Embrace lockout: while its debuff is on her, Faerlina's Enrage is refused —
             // that dummy's whole job. Without this the strip buys the raid nothing at all.
             if (widowsEmbraceRefusesCast(s.id, f.buffActive.has(WIDOWS_EMBRACE_CD_SPELL_ID))) {

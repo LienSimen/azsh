@@ -1,6 +1,6 @@
-// The Rotation tab's "when it fires" editor: every condition phonecraft's web editor offers, driven by
+// The Rotation tab's "when it fires" editor: every condition the web editor offers, driven by
 // menus. The catalog (metrics, defaults, buckets) is the engine's condMetricPicker; the field shapes per
-// metric (subject, reference, yes/no vs compare) mirror phonecraft src/ui/rotation/rotationEditor.ts.
+// metric (subject, reference, yes/no vs compare) mirror the web editor's rotationEditor.ts.
 // Also the smart defaults a freshly added spell or item rule starts with (build.ts defaultSpellRuleConditions).
 import { bold, dim, cyan, green, red, yellow } from './text.mjs';
 import {
@@ -20,7 +20,7 @@ import { allySideAt } from '../engine/core/events.ts';
 import { CLASS_NAMES } from '../domain/core/ids.ts';
 import { DISPEL_TYPE } from '../domain/spells/dispel.ts';
 
-// ---- field shapes per metric (phonecraft rotationEditor.ts) ---------------------------------------
+// ---- field shapes per metric (the web editor's rotationEditor.ts) ---------------------------------
 
 const SUBJECTS = ['self', 'target', 'pet'];
 /** Metrics whose subject may be a friendly, so the list offers "an ally" on them. */
@@ -137,7 +137,7 @@ export function defaultItemRule(app, owner, itemEntry) {
   return { action: { kind: 'item', itemEntry, ...(family ? { family } : {}) }, conditions };
 }
 
-/** The quick presets for a spell rule (phonecraft's template chips), each a whole condition list. */
+/** The quick presets for a spell rule (the web editor's template chips), each a whole condition list. */
 function presetLists(sp, char) {
   if (!sp) return [];
   const smart = defaultConditionsForSpell(sp, char);

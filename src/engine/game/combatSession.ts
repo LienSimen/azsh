@@ -374,6 +374,7 @@ export type CombatSessionModule = {
     | 'beginFight'
     | 'resolveFight'
     | 'beginEncounter'
+    | 'beginChainedPhase'
     | 'beginFloorPull'
     | 'beginFloorShell'
     | 'injectFloorMember'
@@ -493,6 +494,14 @@ export function createCombatSessionModule(
   // The rng of the in-flight fight is kept so loot and gold roll on the same seeded stream after combat
   // ends. `encounter` credits a win to the instance run; `phaseIndex` tracks a multi-phase pull.
   let pendingFight: PendingFight | null = null;
+  // The next phase of an encounter a live fight just won, waiting for the stage to open it
+  // (resolveFight liveChain). Run headless, the chain still runs straight through in settleFight.
+  let chainedPhase: {
+    creatureEntry: number;
+    bossSpells?: number[];
+    encounter: Parameters<CombatSessionModule['startFight']>[2] & object;
+    withSquad: boolean;
+  } | null = null;
 
   // ally_N to whose world cooldowns to write back, captured when the party was built: hiring between
   // pulls reorders the squad, so resolving by index alone would stamp the wrong companion.
@@ -2599,7 +2608,10 @@ const persistSessionCooldowns = (session: CombatSession): void => {
 
 // Settle a finished fight ONCE. A repeat call replays the first outcome without re-granting anything;
 // a multi-phase chain resolves a different session per phase, so each phase still settles on its own.
-const resolveFight = (session: CombatSession, opts?: { holdLoot?: boolean }): FightOutcome => {
+const resolveFight = (
+  session: CombatSession,
+  opts?: { holdLoot?: boolean; liveChain?: boolean },
+): FightOutcome => {
   const already = settled.get(rawOf(session));
   if (already) return already;
   const outcome = settleFight(session, opts);
@@ -2792,7 +2804,10 @@ const payKillBodies = (
   return { loot, heldDrops, xpGained, goldGained, restedBonusXp };
 };
 
-const settleFight = (session: CombatSession, opts?: { holdLoot?: boolean }): FightOutcome => {
+const settleFight = (
+  session: CombatSession,
+  opts?: { holdLoot?: boolean; liveChain?: boolean },
+): FightOutcome => {
   const result = session.result();
   // ScriptDev UpdateEntry morph (Dathrohan → Balnazzar): loot / gold / XP / quest kill
   // credit follow the FINAL form's template, not the entry that was pulled.
@@ -2979,7 +2994,7 @@ const settleFight = (session: CombatSession, opts?: { holdLoot?: boolean }): Fig
             const keepSquad = pendingFight?.withSquad === true;
             // Phase N settled enough to chain — drop live pointer so startFight busy-gate allows phase N+1.
             liveFightSession = null;
-            const nextBegin = startFight(nextPull.creatureEntry, nextPull.bossSpells, {
+            const nextEncounter = {
               dungeonId: encounter.dungeonId,
               encounterId: encounter.encounterId,
               pack: nextPull.pack,
@@ -2988,7 +3003,27 @@ const settleFight = (session: CombatSession, opts?: { holdLoot?: boolean }): Fig
               ...(encounter.outdoors === false ? { outdoors: false } : {}),
               ...(encounter.fusedIds?.length ? { fusedIds: encounter.fusedIds } : {}),
               ...(encounter.resolved ? { resolved: encounter.resolved } : {}),
-            }, keepSquad ? { withSquad: true } : undefined);
+            };
+            // A live stage plays the next phase itself. Run to the end here, Sneed's Shredder ejected
+            // Sneed and he died off screen in the same frame.
+            if (opts?.liveChain) {
+              chainedPhase = {
+                creatureEntry: nextPull.creatureEntry,
+                ...(nextPull.bossSpells ? { bossSpells: nextPull.bossSpells } : {}),
+                encounter: nextEncounter,
+                withSquad: keepSquad,
+              };
+              pendingFight = null;
+              return {
+                ok: true, outcome: 'win', result, xpGained, goldGained, loot,
+                leveledTo: lv.leveledTo, killCount: kills.length,
+                nextPhase: { creatureEntry: nextPull.creatureEntry, name: nextName },
+              };
+            }
+            const nextBegin = startFight(
+              nextPull.creatureEntry, nextPull.bossSpells, nextEncounter,
+              keepSquad ? { withSquad: true } : undefined,
+            );
             if (nextBegin.ok) {
               nextBegin.session.runToEnd();
               const chained = resolveFight(nextBegin.session);
@@ -3198,6 +3233,21 @@ const settleFight = (session: CombatSession, opts?: { holdLoot?: boolean }): Fig
   };
 };
 
+// Open the phase a liveChain resolve handed back (FightOutcome.nextPhase). Once: a second call, or
+// one after the run moved on, has nothing to open.
+const beginChainedPhase = (): ActionResult<BeginFight> => {
+  const next = chainedPhase;
+  chainedPhase = null;
+  if (!next) return { ok: false, reason: 'No phase is waiting' };
+  if (state.instance?.dungeonId !== next.encounter.dungeonId) {
+    return { ok: false, reason: 'You are not in that dungeon' };
+  }
+  return startFight(
+    next.creatureEntry, next.bossSpells, next.encounter,
+    next.withSquad ? { withSquad: true } : undefined,
+  );
+};
+
 const fight = (
   creatureEntry: number,
   opts?: { withSquad?: boolean; noAoe?: boolean },
@@ -3215,6 +3265,7 @@ const fight = (
       beginFight,
       resolveFight,
       beginEncounter,
+      beginChainedPhase,
       beginFloorPull,
       beginFloorShell,
       injectFloorMember,
